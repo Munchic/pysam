@@ -9,4 +9,4 @@ jobs:
           name: Installing pysam
           command: |
             echo Installing pysam
-            pysam setup.py install --user
+            python setup.py install --user
