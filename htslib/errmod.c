@@ -25,11 +25,11 @@
 #include "htslib/ksort.h"
 KSORT_INIT_GENERIC(uint16_t)
 
-struct errmod_t {
+typedef struct {
     double depcorr;
     /* table of constants generated for given depcorr and eta */
     double *fk, *beta, *lhet;
-};
+} errmod_t;
 
 typedef struct {
     double fsum[16], bsum[16];
