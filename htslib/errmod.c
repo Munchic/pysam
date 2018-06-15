@@ -59,7 +59,7 @@ static double* logbinomial_table( const int n_size )
     return logbinom;
 }
 
-static void cal_coef(errmod_t *em, double depcorr, double eta)
+static void cal_coef(struct errmod_t *em, double depcorr, double eta)
 {
     int k, n, q;
     long double sum, sum1;
@@ -101,10 +101,10 @@ static void cal_coef(errmod_t *em, double depcorr, double eta)
 /**
  * Create errmod_t object with obj.depcorr set to depcorr and initialise
  */
-errmod_t *errmod_init(double depcorr)
+struct errmod_t *errmod_init(double depcorr)
 {
-    errmod_t *em;
-    em = (errmod_t*)calloc(1, sizeof(errmod_t));
+    struct errmod_t *em;
+    em = (struct errmod_t*)calloc(1, sizeof(struct errmod_t));
     em->depcorr = depcorr;
     cal_coef(em, depcorr, 0.03);
     return em;
@@ -113,7 +113,7 @@ errmod_t *errmod_init(double depcorr)
 /**
  * Deallocate an errmod_t object
  */
-void errmod_destroy(errmod_t *em)
+void errmod_destroy(struct errmod_t *em)
 {
     if (em == 0) return;
     free(em->lhet); free(em->fk); free(em->beta);
@@ -126,7 +126,7 @@ void errmod_destroy(errmod_t *em)
 // n: number of bases observed in sample
 // bases[i]: bases observed in pileup [6 bit quality|1 bit strand|4 bit base]
 // q[i*m+j]: (Output) phred-scaled likelihood of each genotype (i,j)
-int errmod_cal(const errmod_t *em, int n, int m, uint16_t *bases, float *q)
+int errmod_cal(const struct errmod_t *em, int n, int m, uint16_t *bases, float *q)
 {
     // Aux
     // aux.c is total count of each base observed (ignoring strand)
