@@ -1,27 +1,22 @@
 /*  errmod.c -- revised MAQ error model.
-
-    Copyright (C) 2010 Broad Institute.
-    Copyright (C) 2012, 2013, 2016 Genome Research Ltd.
-
-    Author: Heng Li <lh3@sanger.ac.uk>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.  */
+ Copyright (C) 2010 Broad Institute.
+ Copyright (C) 2012, 2013, 2016 Genome Research Ltd.
+ Author: Heng Li <lh3@sanger.ac.uk>
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.  */
 
 #include <config.h>
 
@@ -59,7 +54,7 @@ static double* logbinomial_table( const int n_size )
     return logbinom;
 }
 
-static void cal_coef(struct errmod_t *em, double depcorr, double eta)
+static void cal_coef(errmod_t *em, double depcorr, double eta)
 {
     int k, n, q;
     long double sum, sum1;
@@ -101,10 +96,10 @@ static void cal_coef(struct errmod_t *em, double depcorr, double eta)
 /**
  * Create errmod_t object with obj.depcorr set to depcorr and initialise
  */
-struct errmod_t *errmod_init(double depcorr)
+errmod_t *errmod_init(double depcorr)
 {
-    struct errmod_t *em;
-    em = (struct errmod_t*)calloc(1, sizeof(struct errmod_t));
+    errmod_t *em;
+    em = (errmod_t*)calloc(1, sizeof(errmod_t));
     em->depcorr = depcorr;
     cal_coef(em, depcorr, 0.03);
     return em;
@@ -113,7 +108,7 @@ struct errmod_t *errmod_init(double depcorr)
 /**
  * Deallocate an errmod_t object
  */
-void errmod_destroy(struct errmod_t *em)
+void errmod_destroy(errmod_t *em)
 {
     if (em == 0) return;
     free(em->lhet); free(em->fk); free(em->beta);
@@ -126,7 +121,7 @@ void errmod_destroy(struct errmod_t *em)
 // n: number of bases observed in sample
 // bases[i]: bases observed in pileup [6 bit quality|1 bit strand|4 bit base]
 // q[i*m+j]: (Output) phred-scaled likelihood of each genotype (i,j)
-int errmod_cal(const struct errmod_t *em, int n, int m, uint16_t *bases, float *q)
+int errmod_cal(const errmod_t *em, int n, int m, uint16_t *bases, float *q)
 {
     // Aux
     // aux.c is total count of each base observed (ignoring strand)
