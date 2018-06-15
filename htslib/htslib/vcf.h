@@ -1,5 +1,6 @@
-/*  vcf.h -- VCF/BCF API functions.
-
+/// @file htslib/vcf.h
+/// High-level VCF/BCF variant calling file operations.
+/*
     Copyright (C) 2012, 2013 Broad Institute.
     Copyright (C) 2012-2014 Genome Research Ltd.
 
@@ -421,11 +422,20 @@ typedef struct {
     /** Read VCF header from a file and update the header */
     int bcf_hdr_set(bcf_hdr_t *hdr, const char *fname);
 
+    /// Appends formatted header text to _str_.
+    /** If _is_bcf_ is zero, `IDX` fields are discarded.
+     *  @return 0 if successful, or negative if an error occurred
+     *  @since 1.4
+     */
+    int bcf_hdr_format(const bcf_hdr_t *hdr, int is_bcf, kstring_t *str);
+
     /** Returns formatted header (newly allocated string) and its length,
      *  excluding the terminating \0. If is_bcf parameter is unset, IDX
      *  fields are discarded.
+     *  @deprecated Use bcf_hdr_format() instead as it can handle huge headers.
      */
-    char *bcf_hdr_fmt_text(const bcf_hdr_t *hdr, int is_bcf, int *len);
+    char *bcf_hdr_fmt_text(const bcf_hdr_t *hdr, int is_bcf, int *len)
+        HTS_DEPRECATED("use bcf_hdr_format() instead");
 
     /** Append new VCF header line, returns 0 on success */
     int bcf_hdr_append(bcf_hdr_t *h, const char *line);
@@ -595,7 +605,7 @@ typedef struct {
     // from bcf_get_genotypes() below.
     #define bcf_gt_phased(idx)      (((idx)+1)<<1|1)
     #define bcf_gt_unphased(idx)    (((idx)+1)<<1)
-    #define bcf_gt_missing          0 
+    #define bcf_gt_missing          0
     #define bcf_gt_is_missing(val)  ((val)>>1 ? 0 : 1)
     #define bcf_gt_is_phased(idx)   ((idx)&1)
     #define bcf_gt_allele(val)      (((val)>>1)-1)
@@ -625,8 +635,8 @@ typedef struct {
      * bcf_get_*_id() - returns pointer to FORMAT/INFO field data given the header index instead of the string ID
      * @line: VCF line obtained from vcf_parse1
      * @id:  The header index for the tag, obtained from bcf_hdr_id2int()
-     * 
-     * Returns bcf_fmt_t* / bcf_info_t*. These functions do not check if the index is valid 
+     *
+     * Returns bcf_fmt_t* / bcf_info_t*. These functions do not check if the index is valid
      * as their goal is to avoid the header lookup.
      */
     bcf_fmt_t *bcf_get_fmt_id(bcf1_t *line, const int id);
@@ -755,8 +765,51 @@ typedef struct {
     #define bcf_index_seqnames(idx, hdr, nptr) hts_idx_seqnames((idx),(nptr),(hts_id2name_f)(bcf_hdr_id2name),(hdr))
 
     hts_idx_t *bcf_index_load2(const char *fn, const char *fnidx);
+
+    /**
+     *  bcf_index_build() - Generate and save an index file
+     *  @fn:         Input VCF/BCF filename
+     *  @min_shift:  Positive to generate CSI, or 0 to generate TBI
+     *
+     *  Returns 0 if successful, or negative if an error occurred.
+     *
+     *  List of error codes:
+     *      -1 .. indexing failed
+     *      -2 .. opening @fn failed
+     *      -3 .. format not indexable
+     */
     int bcf_index_build(const char *fn, int min_shift);
+
+    /**
+     *  bcf_index_build2() - Generate and save an index to a specific file
+     *  @fn:         Input VCF/BCF filename
+     *  @fnidx:      Output filename, or NULL to add .csi/.tbi to @fn
+     *  @min_shift:  Positive to generate CSI, or 0 to generate TBI
+     *
+     *  Returns 0 if successful, or negative if an error occurred.
+     *
+     *  List of error codes:
+     *      -1 .. indexing failed
+     *      -2 .. opening @fn failed
+     *      -3 .. format not indexable
+     */
     int bcf_index_build2(const char *fn, const char *fnidx, int min_shift);
+
+    /**
+     *  bcf_index_build3() - Generate and save an index to a specific file
+     *  @fn:         Input VCF/BCF filename
+     *  @fnidx:      Output filename, or NULL to add .csi/.tbi to @fn
+     *  @min_shift:  Positive to generate CSI, or 0 to generate TBI
+     *  @n_threads:  Number of VCF/BCF decoder threads
+     *
+     *  Returns 0 if successful, or negative if an error occurred.
+     *
+     *  List of error codes:
+     *      -1 .. indexing failed
+     *      -2 .. opening @fn failed
+     *      -3 .. format not indexable
+     */
+     int bcf_index_build3(const char *fn, const char *fnidx, int min_shift, int n_threads);
 
 /*******************
  * Typed value I/O *

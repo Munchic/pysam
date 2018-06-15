@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2012-2014 Genome Research Ltd.
+Copyright (c) 2012-2016 Genome Research Ltd.
 Author: James Bonfield <jkb@sanger.ac.uk>
 
 Redistribution and use in source and binary forms, with or without 
@@ -62,7 +62,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <math.h>
-#include <ctype.h>
 #include <time.h>
 
 #include "cram/cram.h"
@@ -85,6 +84,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "htslib/hfile.h"
 #include "htslib/bgzf.h"
 #include "htslib/faidx.h"
+#include "hts_internal.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX FILENAME_MAX
@@ -1626,29 +1626,6 @@ char *cram_content_type2str(enum cram_content_type t) {
     return "?";
 }
 
-/*
- * Extra error checking on fclose to really ensure data is written.
- * Care needs to be taken to handle pipes vs real files.
- *
- * Returns 0 on success
- *        -1 on failure.
- */
-int paranoid_fclose(FILE *fp) {
-    if (-1 == fflush(fp) && errno != EBADF) {
-	fclose(fp);
-	return -1;
-    }
-
-    errno = 0;
-    if (-1 == fsync(fileno(fp))) {
-	if (errno != EINVAL) { // eg pipe
-	    fclose(fp);
-	    return -1;
-	}
-    }
-    return fclose(fp);
-}
-
 /* ----------------------------------------------------------------------
  * Reference sequence handling
  *
@@ -1855,28 +1832,28 @@ static refs_t *refs_load_fai(refs_t *r_orig, char *fn, int is_err) {
 	    return NULL;
 
 	// id
-	for (cp = line; *cp && !isspace(*cp); cp++)
+	for (cp = line; *cp && !isspace_c(*cp); cp++)
 	    ;
 	*cp++ = 0;
 	e->name = string_dup(r->pool, line);
 	
 	// length
-	while (*cp && isspace(*cp))
+	while (*cp && isspace_c(*cp))
 	    cp++;
 	e->length = strtoll(cp, &cp, 10);
 
 	// offset
-	while (*cp && isspace(*cp))
+	while (*cp && isspace_c(*cp))
 	    cp++;
 	e->offset = strtoll(cp, &cp, 10);
 
 	// bases per line
-	while (*cp && isspace(*cp))
+	while (*cp && isspace_c(*cp))
 	    cp++;
 	e->bases_per_line = strtol(cp, &cp, 10);
 
 	// line length
-	while (*cp && isspace(*cp))
+	while (*cp && isspace_c(*cp))
 	    cp++;
 	e->line_length = strtol(cp, &cp, 10);
 
@@ -1922,6 +1899,7 @@ static refs_t *refs_load_fai(refs_t *r_orig, char *fn, int is_err) {
 	r->nref = ++id;
     }
 
+    fclose(fp);
     return r;
 
  err:
@@ -2343,7 +2321,7 @@ static int cram_populate_ref(cram_fd *fd, int id, ref_entry *r) {
     if (local_cache && *local_cache) {
 	int pid = (int) getpid();
 	unsigned thrid = get_int_threadid();
-	FILE *fp;
+	hFILE *fp;
 
 	if (*cache_root && !is_directory(cache_root) && hts_verbose >= 1)
 	    fprintf(stderr,
@@ -2362,7 +2340,7 @@ static int cram_populate_ref(cram_fd *fd, int id, ref_entry *r) {
 	    thrid++; // Ensure filename changes even if time/clock haven't
 
 	    sprintf(path_tmp, "%s.tmp_%d_%u_%u", path, pid, thrid, t);
-	    fp = fopen(path_tmp, "wx");
+	    fp = hopen(path_tmp, "wx");
 	} while (fp == NULL && errno == EEXIST);
 	if (!fp) {
 	    perror(path_tmp);
@@ -2377,8 +2355,8 @@ static int cram_populate_ref(cram_fd *fd, int id, ref_entry *r) {
 	char md5_buf2[33];
 
 	if (!(md5 = hts_md5_init())) {
+	    hclose_abruptly(fp);
 	    unlink(path_tmp);
-	    fclose(fp);
 	    return -1;
 	}
 	hts_md5_update(md5, r->seq, r->length);
@@ -2388,15 +2366,15 @@ static int cram_populate_ref(cram_fd *fd, int id, ref_entry *r) {
 
 	if (strncmp(tag->str+3, md5_buf2, 32) != 0) {
 	    fprintf(stderr, "[E::%s] mismatching md5sum for downloaded reference.\n", __func__);
+	    hclose_abruptly(fp);
 	    unlink(path_tmp);
-	    fclose(fp);
 	    return -1;
 	}
 
-	if (r->length != fwrite(r->seq, 1, r->length, fp)) {
+	if (hwrite(fp, r->seq, r->length) != r->length) {
 	    perror(path);
 	}
-	if (-1 == paranoid_fclose(fp)) {
+	if (hclose(fp) < 0) {
 	    unlink(path_tmp);
 	} else {
 	    if (0 == chmod(path_tmp, 0444))
@@ -2509,7 +2487,7 @@ static char *load_ref_portion(BGZF *fp, ref_entry *e, int start, int end) {
 
 	for (i = j = 0; i < len; i++) {
 	    if (cp[i] >= '!' && cp[i] <= '~')
-		cp[j++] = toupper(cp[i]);
+		cp[j++] = toupper_c(cp[i]);
 	}
 	cp_to = cp+j;
 
@@ -2521,7 +2499,7 @@ static char *load_ref_portion(BGZF *fp, ref_entry *e, int start, int end) {
     } else {
 	int i;
 	for (i = 0; i < len; i++) {
-	    seq[i] = toupper(seq[i]);
+	    seq[i] = toupper_c(seq[i]);
 	}
     }
 
@@ -3266,14 +3244,14 @@ void *cram_flush_thread(void *arg) {
 
 static int cram_flush_result(cram_fd *fd) {
     int i, ret = 0;
-    t_pool_result *r;
+    hts_tpool_result *r;
 
-    while ((r = t_pool_next_result(fd->rqueue))) {
-	cram_job *j = (cram_job *)r->data;
+    while ((r = hts_tpool_next_result(fd->rqueue))) {
+	cram_job *j = (cram_job *)hts_tpool_result_data(r);
 	cram_container *c;
 
 	if (!j) {
-	    t_pool_delete_result(r, 0);
+	    hts_tpool_delete_result(r, 0);
 	    return -1;
 	}
 
@@ -3296,7 +3274,7 @@ static int cram_flush_result(cram_fd *fd) {
 
 	ret |= hflush(fd->fp) == 0 ? 0 : -1;
 
-	t_pool_delete_result(r, 1);
+	hts_tpool_delete_result(r, 1);
     }
 
     return ret;
@@ -3312,10 +3290,23 @@ int cram_flush_container_mt(cram_fd *fd, cram_container *c) {
 	return -1;
     j->fd = fd;
     j->c = c;
-    
-    t_pool_dispatch(fd->pool, fd->rqueue, cram_flush_thread, j);
 
-    return cram_flush_result(fd);
+    // Flush the job.  Note our encoder queue may be full, so we
+    // either have to keep trying in non-blocking mode (what we do) or
+    // use a dedicated separate thread for draining the queue.
+    for (;;) {
+	errno = 0;
+	hts_tpool_dispatch2(fd->pool, fd->rqueue, cram_flush_thread, j, 1);
+	int pending = (errno == EAGAIN);
+	if (cram_flush_result(fd) != 0)
+	    return -1;
+	if (!pending)
+	    break;
+
+	usleep(1000);
+    }
+
+    return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -4235,6 +4226,7 @@ cram_fd *cram_dopen(hFILE *fp, const char *filename, const char *mode) {
     fd->embed_ref = 0;
     fd->no_ref = 0;
     fd->ignore_md5 = 0;
+    fd->lossy_read_names = 0;
     fd->use_bz2 = 0;
     fd->use_rans = (CRAM_MAJOR_VERS(fd->version) >= 3);
     fd->use_lzma = 0;
@@ -4313,7 +4305,8 @@ int cram_flush(cram_fd *fd) {
 
     if (fd->mode == 'w' && fd->ctr) {
 	if(fd->ctr->slice)
-	    fd->ctr->curr_slice++;
+	    cram_update_curr_slice(fd->ctr);
+
 	if (-1 == cram_flush_container_mt(fd, fd->ctr))
 	    return -1;
     }
@@ -4335,13 +4328,14 @@ int cram_close(cram_fd *fd) {
 
     if (fd->mode == 'w' && fd->ctr) {
 	if(fd->ctr->slice)
-	    fd->ctr->curr_slice++;
+	    cram_update_curr_slice(fd->ctr);
+
 	if (-1 == cram_flush_container_mt(fd, fd->ctr))
 	    return -1;
     }
 
     if (fd->pool && fd->eof >= 0) {
-	t_pool_flush(fd->pool);
+	hts_tpool_process_flush(fd->rqueue);
 
 	if (0 != cram_flush_result(fd))
 	    return -1;
@@ -4354,7 +4348,7 @@ int cram_close(cram_fd *fd) {
 
 	//fprintf(stderr, "CRAM: destroy queue %p\n", fd->rqueue);
 
-	t_results_queue_destroy(fd->rqueue);
+	hts_tpool_process_destroy(fd->rqueue);
     }
 
     if (fd->mode == 'w') {
@@ -4419,7 +4413,7 @@ int cram_close(cram_fd *fd) {
 	cram_index_free(fd);
 
     if (fd->own_pool && fd->pool)
-	t_pool_destroy(fd->pool, 0);
+	hts_tpool_destroy(fd->pool);
 
     free(fd);
     return 0;
@@ -4502,6 +4496,10 @@ int cram_set_voption(cram_fd *fd, enum hts_fmt_option opt, va_list args) {
 	fd->ignore_md5 = va_arg(args, int);
 	break;
 
+    case CRAM_OPT_LOSSY_NAMES:
+	fd->lossy_read_names = va_arg(args, int);
+	break;
+
     case CRAM_OPT_USE_BZIP2:
 	fd->use_bz2 = va_arg(args, int);
 	break;
@@ -4561,10 +4559,10 @@ int cram_set_voption(cram_fd *fd, enum hts_fmt_option opt, va_list args) {
     case CRAM_OPT_NTHREADS: {
 	int nthreads =  va_arg(args, int);
         if (nthreads > 1) {
-            if (!(fd->pool = t_pool_init(nthreads*2, nthreads)))
+            if (!(fd->pool = hts_tpool_init(nthreads)))
                 return -1;
 
-	    fd->rqueue = t_results_queue_init();
+	    fd->rqueue = hts_tpool_process_init(fd->pool, nthreads*2, 0);
 	    pthread_mutex_init(&fd->metrics_lock, NULL);
 	    pthread_mutex_init(&fd->ref_lock, NULL);
 	    pthread_mutex_init(&fd->bam_list_lock, NULL);
@@ -4574,10 +4572,13 @@ int cram_set_voption(cram_fd *fd, enum hts_fmt_option opt, va_list args) {
 	break;
     }
 
-    case CRAM_OPT_THREAD_POOL:
-	fd->pool = va_arg(args, t_pool *);
+    case CRAM_OPT_THREAD_POOL: {
+	htsThreadPool *p = va_arg(args, htsThreadPool *);
+	fd->pool = p ? p->pool : NULL;
 	if (fd->pool) {
-	    fd->rqueue = t_results_queue_init();
+	    fd->rqueue = hts_tpool_process_init(fd->pool,
+						p->qsize ? p->qsize : hts_tpool_size(fd->pool)*2,
+						0);
 	    pthread_mutex_init(&fd->metrics_lock, NULL);
 	    pthread_mutex_init(&fd->ref_lock, NULL);
 	    pthread_mutex_init(&fd->bam_list_lock, NULL);
@@ -4587,8 +4588,9 @@ int cram_set_voption(cram_fd *fd, enum hts_fmt_option opt, va_list args) {
 
 	//fd->qsize = 1;
 	//fd->decoded = calloc(fd->qsize, sizeof(cram_container *));
-	//t_pool_dispatch(fd->pool, cram_decoder_thread, fd);
+	//hts_tpool_dispatch(fd->pool, cram_decoder_thread, fd);
 	break;
+    }
 
     case CRAM_OPT_REQUIRED_FIELDS:
 	fd->required_fields = va_arg(args, int);
@@ -4605,4 +4607,55 @@ int cram_set_voption(cram_fd *fd, enum hts_fmt_option opt, va_list args) {
     }
 
     return 0;
+}
+
+int cram_check_EOF(cram_fd *fd)
+{
+    // Byte 9 in these templates is & with 0x0f to resolve differences
+    // between ITF-8 interpretations between early Java and C
+    // implementations of CRAM
+    static const unsigned char TEMPLATE_2_1[30] = {
+        0x0b, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0x0f, 0xe0,
+        0x45, 0x4f, 0x46, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
+        0x01, 0x00, 0x06, 0x06, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00
+    };
+    static const unsigned char TEMPLATE_3[38] = {
+        0x0f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0x0f, 0xe0,
+        0x45, 0x4f, 0x46, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x05,
+        0xbd, 0xd9, 0x4f, 0x00, 0x01, 0x00, 0x06, 0x06, 0x01, 0x00,
+        0x01, 0x00, 0x01, 0x00, 0xee, 0x63, 0x01, 0x4b
+    };
+
+    unsigned char buf[38]; // max(sizeof TEMPLATE_*)
+
+    uint8_t major = CRAM_MAJOR_VERS(fd->version);
+    uint8_t minor = CRAM_MINOR_VERS(fd->version);
+
+    const unsigned char *template;
+    ssize_t template_len;
+    if ((major < 2) ||
+        (major == 2 && minor == 0)) {
+        return 3; // No EOF support in cram versions less than 2.1
+    } else if (major == 2 && minor == 1) {
+        template = TEMPLATE_2_1;
+        template_len = sizeof TEMPLATE_2_1;
+    } else {
+        template = TEMPLATE_3;
+        template_len = sizeof TEMPLATE_3;
+    }
+
+    off_t offset = htell(fd->fp);
+    if (hseek(fd->fp, -template_len, SEEK_END) < 0) {
+        if (errno == ESPIPE) {
+            hclearerr(fd->fp);
+            return 2;
+        }
+        else {
+            return -1;
+        }
+    }
+    if (hread(fd->fp, buf, template_len) != template_len) return -1;
+    if (hseek(fd->fp, offset, SEEK_SET) < 0) return -1;
+    buf[8] &= 0x0f;
+    return (memcmp(template, buf, template_len) == 0)? 1 : 0;
 }

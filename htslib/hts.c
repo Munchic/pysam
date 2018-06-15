@@ -33,14 +33,18 @@ DEALINGS IN THE SOFTWARE.  */
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include "htslib/bgzf.h"
+
 #include "htslib/hts.h"
+#include "htslib/bgzf.h"
 #include "cram/cram.h"
 #include "htslib/hfile.h"
 #include "version.h"
 #include "hts_internal.h"
 
+#include "htslib/khash.h"
 #include "htslib/kseq.h"
+#include "htslib/ksort.h"
+
 #define KS_BGZF 1
 #if KS_BGZF
     // bgzf now supports gzip-compressed files, the gzFile branch can be removed
@@ -49,7 +53,6 @@ DEALINGS IN THE SOFTWARE.  */
     KSTREAM_INIT2(, gzFile, gzread, 16384)
 #endif
 
-#include "htslib/khash.h"
 KHASH_INIT2(s2i,, kh_cstr_t, int64_t, 1, kh_str_hash_func, kh_str_hash_equal)
 
 int hts_verbose = 3;
@@ -187,9 +190,27 @@ int hts_detect_format(hFILE *hfile, htsFormat *fmt)
     if (len >= 2 && s[0] == 0x1f && s[1] == 0x8b) {
         // The stream is either gzip-compressed or BGZF-compressed.
         // Determine which, and decompress the first few bytes.
-        fmt->compression = (len >= 18 && (s[3] & 4) &&
-                            memcmp(&s[12], "BC\2\0", 4) == 0)? bgzf : gzip;
-        len = decompress_peek(hfile, s, sizeof s);
+        if ( len<18 || !(s[3] & 4) )
+        {
+            fmt->compression = gzip;
+            len = decompress_peek(hfile, s, sizeof s);
+        }
+        else if ( memcmp(&s[12], "BC\2\0", 4) == 0 )
+        {
+            fmt->compression = bgzf;
+            len = decompress_peek(hfile, s, sizeof s);
+        }
+        else if ( !memcmp(&s[12], "EC\2\0", 4) || !memcmp(&s[12], "DC\2\0", 4) )
+        {
+            // temporary, not optimal
+            fmt->compression = bgzf;
+            BGZF *fp = bgzf_hopen(hfile, "r");
+            if ( !fp ) return -1;
+            len = bgzf_read(fp, s, sizeof s);
+            int ret = bgzf_seek(fp,0,SEEK_SET);
+            bgzf_hclose(fp);
+            if ( ret<0 ) return -1;
+        }
     }
     else {
         fmt->compression = no_compression;
@@ -523,9 +544,37 @@ int hts_opt_add(hts_opt **opts, const char *c_arg) {
              strcmp(o->arg, "NTHREADS") == 0)
         o->opt = HTS_OPT_NTHREADS, o->val.i = atoi(val);
 
+    else if (strcmp(o->arg, "cache_size") == 0 ||
+             strcmp(o->arg, "CACHE_SIZE") == 0) {
+        char *endp;
+        o->opt = HTS_OPT_CACHE_SIZE;
+        o->val.i = strtol(val, &endp, 0);
+        // NB: Doesn't support floats, eg 1.5g
+        // TODO: extend hts_parse_decimal? See also samtools sort.
+        switch (*endp) {
+        case 'g': case 'G': o->val.i *= 1024;
+        case 'm': case 'M': o->val.i *= 1024;
+        case 'k': case 'K': o->val.i *= 1024; break;
+        case '\0': break;
+        default:
+            fprintf(stderr, "Unrecognised cache size suffix '%c'\n", *endp);
+            free(o->arg);
+            free(o);
+            return -1;
+        }
+    }
+
     else if (strcmp(o->arg, "required_fields") == 0 ||
              strcmp(o->arg, "REQUIRED_FIELDS") == 0)
         o->opt = CRAM_OPT_REQUIRED_FIELDS, o->val.i = strtol(val, NULL, 0);
+
+    else if (strcmp(o->arg, "lossy_names") == 0 ||
+             strcmp(o->arg, "LOSSY_NAMES") == 0)
+        o->opt = CRAM_OPT_LOSSY_NAMES, o->val.i = strtol(val, NULL, 0);
+
+    else if (strcmp(o->arg, "name_prefix") == 0 ||
+             strcmp(o->arg, "NAME_PREFIX") == 0)
+        o->opt = CRAM_OPT_PREFIX, o->val.s = val;
 
     else {
         fprintf(stderr, "Unknown option '%s'\n", o->arg);
@@ -896,11 +945,31 @@ int hts_set_opt(htsFile *fp, enum hts_fmt_option opt, ...) {
     int r;
     va_list args;
 
-    if (opt == HTS_OPT_NTHREADS) {
+    switch (opt) {
+    case HTS_OPT_NTHREADS: {
         va_start(args, opt);
         int nthreads = va_arg(args, int);
         va_end(args);
         return hts_set_threads(fp, nthreads);
+    }
+
+    case HTS_OPT_THREAD_POOL: {
+        va_start(args, opt);
+        htsThreadPool *p = va_arg(args, htsThreadPool *);
+        va_end(args);
+        return hts_set_thread_pool(fp, p);
+    }
+
+    case HTS_OPT_CACHE_SIZE: {
+        va_start(args, opt);
+        int cache_size = va_arg(args, int);
+        va_end(args);
+        hts_set_cache_size(fp, cache_size);
+        return 0;
+    }
+
+    default:
+        break;
     }
 
     if (fp->format.format != cram)
@@ -913,14 +982,31 @@ int hts_set_opt(htsFile *fp, enum hts_fmt_option opt, ...) {
     return r;
 }
 
+BGZF *hts_get_bgzfp(htsFile *fp);
+
 int hts_set_threads(htsFile *fp, int n)
 {
     if (fp->format.compression == bgzf) {
-        return bgzf_mt(fp->fp.bgzf, n, 256);
+        return bgzf_mt(hts_get_bgzfp(fp), n, 256/*unused*/);
     } else if (fp->format.format == cram) {
         return hts_set_opt(fp, CRAM_OPT_NTHREADS, n);
     }
     else return 0;
+}
+
+int hts_set_thread_pool(htsFile *fp, htsThreadPool *p) {
+    if (fp->format.compression == bgzf) {
+        return bgzf_thread_pool(hts_get_bgzfp(fp), p->pool, p->qsize);
+    } else if (fp->format.format == cram) {
+        return hts_set_opt(fp, CRAM_OPT_THREAD_POOL, p);
+    }
+    else return 0;
+}
+
+void hts_set_cache_size(htsFile *fp, int n)
+{
+    if (fp->format.compression == bgzf)
+        bgzf_set_cache_size(hts_get_bgzfp(fp), n);
 }
 
 int hts_set_fai_filename(htsFile *fp, const char *fn_aux)
@@ -943,7 +1029,7 @@ int hts_set_fai_filename(htsFile *fp, const char *fn_aux)
 // future is uncertain. Things will probably have to change with hFILE...
 BGZF *hts_get_bgzfp(htsFile *fp)
 {
-    if ( fp->is_bin )
+    if ( fp->is_bin  || fp->is_write )
         return fp->fp.bgzf;
     else
         return ((kstream_t*)fp->fp.voidp)->f;
@@ -1101,6 +1187,17 @@ int hts_file_type(const char *fname)
     }
 }
 
+int hts_check_EOF(htsFile *fp)
+{
+    if (fp->format.compression == bgzf)
+        return bgzf_check_EOF(hts_get_bgzfp(fp));
+    else if (fp->format.format == cram)
+        return cram_check_EOF(fp->fp.cram);
+    else
+        return 3;
+}
+
+
 /****************
  *** Indexing ***
  ****************/
@@ -1113,7 +1210,6 @@ int hts_file_type(const char *fname)
 
 #define pair64_lt(a,b) ((a).u < (b).u)
 
-#include "htslib/ksort.h"
 KSORT_INIT(_off, hts_pair64_t, pair64_lt)
 
 typedef struct {
@@ -1122,7 +1218,6 @@ typedef struct {
     hts_pair64_t *list;
 } bins_t;
 
-#include "htslib/khash.h"
 KHASH_MAP_INIT_INT(bin, bins_t)
 typedef khash_t(bin) bidx_t;
 
@@ -1338,14 +1433,18 @@ int hts_idx_push(hts_idx_t *idx, int tid, int beg, int end, uint64_t offset, int
         idx->z.last_tid = tid;
         idx->z.last_bin = 0xffffffffu;
     } else if (tid >= 0 && idx->z.last_coor > beg) { // test if positions are out of order
-        if (hts_verbose >= 1) fprintf(stderr, "[E::%s] unsorted positions\n", __func__);
+        if (hts_verbose >= 1) fprintf(stderr, "[E::%s] unsorted positions on sequence #%d: %d followed by %d\n", __func__, tid+1, idx->z.last_coor+1, beg+1);
         return -1;
     }
     if ( tid>=0 )
     {
         if (idx->bidx[tid] == 0) idx->bidx[tid] = kh_init(bin);
-        if ( is_mapped)
+        if (is_mapped) {
+            // shoehorn [-1,0) (VCF POS=0) into the leftmost bottom-level bin
+            if (beg < 0)  beg = 0;
+            if (end <= 0) end = 1;
             insert_to_l(&idx->lidx[tid], beg, end, idx->z.last_off, idx->min_shift); // last_off points to the start of the current record
+        }
     }
     else idx->n_no_coor++;
     bin = hts_reg2bin(beg, end, idx->min_shift, idx->n_lvls);
@@ -1721,7 +1820,7 @@ hts_itr_t *hts_itr_query(const hts_idx_t *idx, int tid, int beg, int end, hts_re
     hts_pair64_t *off;
     khint_t k;
     bidx_t *bidx;
-    uint64_t min_off;
+    uint64_t min_off, max_off;
     hts_itr_t *iter = 0;
     if (tid < 0) {
         int finished0 = 0;
@@ -1741,11 +1840,20 @@ hts_itr_t *hts_itr_query(const hts_idx_t *idx, int tid, int beg, int end, hts_re
             break;
 
         case HTS_IDX_NOCOOR:
-            if ( idx->n>0 )
-            {
-                bidx = idx->bidx[idx->n - 1];
+            /* No-coor reads sort after all of the mapped reads.  The position
+               is not stored in the index itself, so need to find the end
+               offset for the last mapped read.  A loop is needed here in
+               case references at the end of the file have no mapped reads,
+               or sequence ids are not ordered sequentially.
+               See issue samtools#568 and commits b2aab8, 60c22d and cc207d. */
+            for (i = 0; i < idx->n; i++) {
+                bidx = idx->bidx[i];
                 k = kh_get(bin, bidx, META_BIN(idx));
-                if (k != kh_end(bidx)) off0 = kh_val(bidx, k).list[0].v;
+                if (k != kh_end(bidx)) {
+                    if (off0==(uint64_t)-1 || off0 < kh_val(bidx, k).list[0].v) {
+                        off0 = kh_val(bidx, k).list[0].v;
+                    }
+                }
             }
             if ( off0==(uint64_t)-1 && idx->n_no_coor ) off0 = 0; // only no-coor reads in this bam
             break;
@@ -1792,6 +1900,20 @@ hts_itr_t *hts_itr_query(const hts_idx_t *idx, int tid, int beg, int end, hts_re
     } while (bin);
     if (bin == 0) k = kh_get(bin, bidx, bin);
     min_off = k != kh_end(bidx)? kh_val(bidx, k).loff : 0;
+
+    // compute max_off: a virtual offset from a bin to the right of end
+    bin = hts_bin_first(idx->n_lvls) + ((end-1) >> idx->min_shift) + 1;
+    while (1) {
+        // search for an extant bin by moving right, but moving up to the
+        // parent whenever we get to a first child (which also covers falling
+        // off the RHS, which wraps around and immediately goes up to bin 0)
+        while (bin % 8 == 1) bin = hts_bin_parent(bin);
+        if (bin == 0) { max_off = (uint64_t)-1; break; }
+        k = kh_get(bin, bidx, bin);
+        if (k != kh_end(bidx) && kh_val(bidx, k).n > 0) { max_off = kh_val(bidx, k).list[0].u; break; }
+        bin++;
+    }
+
     // retrieve bins
     reg2bins(beg, end, iter, idx->min_shift, idx->n_lvls);
     for (i = n_off = 0; i < iter->bins.n; ++i)
@@ -1804,7 +1926,8 @@ hts_itr_t *hts_itr_query(const hts_idx_t *idx, int tid, int beg, int end, hts_re
             int j;
             bins_t *p = &kh_value(bidx, k);
             for (j = 0; j < p->n; ++j)
-                if (p->list[j].v > min_off) off[n_off++] = p->list[j];
+                if (p->list[j].v > min_off && p->list[j].u < max_off)
+                    off[n_off++] = p->list[j];
         }
     }
     if (n_off == 0) {
@@ -1979,10 +2102,10 @@ int hts_itr_next(BGZF *fp, hts_itr_t *iter, void *r, void *data)
 
 static char *test_and_fetch(const char *fn)
 {
-    FILE *fp;
     if (hisremote(fn)) {
         const int buf_size = 1 * 1024 * 1024;
         hFILE *fp_remote;
+        FILE *fp;
         uint8_t *buf;
         int l;
         const char *p;
@@ -2010,8 +2133,9 @@ static char *test_and_fetch(const char *fn)
         if (hclose(fp_remote) != 0) fprintf(stderr, "[E::%s] fail to close remote file '%s'\n", __func__, fn);
         return (char*)p;
     } else {
-        if ((fp = fopen(fn, "rb")) == 0) return 0;
-        fclose(fp);
+        hFILE *fp;
+        if ((fp = hopen(fn, "r")) == 0) return 0;
+        hclose_abruptly(fp);
         return (char*)fn;
     }
 }
@@ -2057,7 +2181,7 @@ hts_idx_t *hts_idx_load2(const char *fn, const char *fnidx)
     struct stat stat_idx,stat_main;
     if ( !stat(fn, &stat_main) && !stat(fnidx, &stat_idx) )
     {
-        if ( stat_idx.st_mtime < stat_main.st_mtime )
+        if ( hts_verbose >= 1 && stat_idx.st_mtime < stat_main.st_mtime )
             fprintf(stderr, "Warning: The index file is older than the data file: %s\n", fnidx);
     }
 

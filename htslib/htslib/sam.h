@@ -1,5 +1,6 @@
-/*  sam.h -- SAM and BAM file I/O and manipulation.
-
+/// @file htslib/sam.h
+/// High-level SAM/BAM/CRAM sequence file operations.
+/*
     Copyright (C) 2008, 2009, 2013-2014 Genome Research Ltd.
     Copyright (C) 2010, 2012, 2013 Broad Institute.
 
@@ -321,7 +322,8 @@ hts_idx_t *sam_index_load2(htsFile *fp, const char *fn, const char *fnidx);
 /** @param fn        Input BAM/etc filename, to which .csi/etc will be added
     @param min_shift Positive to generate CSI, or 0 to generate BAI
     @return  0 if successful, or negative if an error occurred (usually -1; or
-             -2: opening fn failed; -3: format not indexable)
+             -2: opening fn failed; -3: format not indexable; -4:
+             failed to create and/or save the index)
 */
 int sam_index_build(const char *fn, int min_shift) HTS_RESULT_USED;
 
@@ -329,9 +331,11 @@ int sam_index_build(const char *fn, int min_shift) HTS_RESULT_USED;
 /** @param fn        Input BAM/CRAM/etc filename
     @param fnidx     Output filename, or NULL to add .bai/.csi/etc to @a fn
     @param min_shift Positive to generate CSI, or 0 to generate BAI
-    @return  0 if successful, or negative if an error occurred.
+    @return  0 if successful, or negative if an error occurred (see
+             sam_index_build for error codes)
 */
 int sam_index_build2(const char *fn, const char *fnidx, int min_shift) HTS_RESULT_USED;
+int sam_index_build3(const char *fn, const char *fnidx, int min_shift, int nthreads) HTS_RESULT_USED;
 
     #define sam_itr_destroy(iter) hts_itr_destroy(iter)
     hts_itr_t *sam_itr_queryi(const hts_idx_t *idx, int tid, int beg, int end);
@@ -375,14 +379,30 @@ int sam_index_build2(const char *fn, const char *fnidx, int min_shift) HTS_RESUL
     char bam_aux2A(const uint8_t *s);
     char *bam_aux2Z(const uint8_t *s);
 
-    void bam_aux_append(bam1_t *b, const char tag[2], char type, int len, uint8_t *data);
+    void bam_aux_append(bam1_t *b, const char tag[2], char type, int len, const uint8_t *data);
     int bam_aux_del(bam1_t *b, uint8_t *s);
+    int bam_aux_update_str(bam1_t *b, const char tag[2], int len, const char *data);
 
 /**************************
  *** Pileup and Mpileup ***
  **************************/
 
 #if !defined(BAM_NO_PILEUP)
+
+/*! @typedef
+ @abstract Generic pileup 'client data'.
+
+ @discussion The pileup iterator allows setting a constructor and
+ destructor function, which will be called every time a sequence is
+ fetched and discarded.  This permits caching of per-sequence data in
+ a tidy manner during the pileup process.  This union is the cached
+ data to be manipulated by the "client" (the caller of pileup).
+*/
+typedef union {
+    void *p;
+    int64_t i;
+    double f;
+} bam_pileup_cd;
 
 /*! @typedef
  @abstract Structure for one alignment covering the pileup position.
@@ -407,6 +427,7 @@ typedef struct {
     int32_t qpos;
     int indel, level;
     uint32_t is_del:1, is_head:1, is_tail:1, is_refskip:1, aux:28;
+    bam_pileup_cd cd; // generic per-struct data, owned by caller.
 } bam_pileup1_t;
 
 typedef int (*bam_plp_auto_f)(void *data, bam1_t *b);
@@ -431,6 +452,19 @@ typedef struct __bam_mplp_t *bam_mplp_t;
     void bam_plp_set_maxcnt(bam_plp_t iter, int maxcnt);
     void bam_plp_reset(bam_plp_t iter);
 
+    /**
+     *  bam_plp_constructor() - sets a callback to initialise any per-pileup1_t fields.
+     *  @plp:       The bam_plp_t initialised using bam_plp_init.
+     *  @func:      The callback function itself.  When called, it is given the
+     *              data argument (specified in bam_plp_init), the bam structure and
+     *              a pointer to a locally allocated bam_pileup_cd union.  This union
+     *              will also be present in each bam_pileup1_t created.
+     */
+    void bam_plp_constructor(bam_plp_t plp,
+                             int (*func)(void *data, const bam1_t *b, bam_pileup_cd *cd));
+    void bam_plp_destructor(bam_plp_t plp,
+                            int (*func)(void *data, const bam1_t *b, bam_pileup_cd *cd));
+
     bam_mplp_t bam_mplp_init(int n, bam_plp_auto_f func, void **data);
     /**
      *  bam_mplp_init_overlaps() - if called, mpileup will detect overlapping
@@ -444,8 +478,21 @@ typedef struct __bam_mplp_t *bam_mplp_t;
     void bam_mplp_destroy(bam_mplp_t iter);
     void bam_mplp_set_maxcnt(bam_mplp_t iter, int maxcnt);
     int bam_mplp_auto(bam_mplp_t iter, int *_tid, int *_pos, int *n_plp, const bam_pileup1_t **plp);
+    void bam_mplp_reset(bam_mplp_t iter);
+    void bam_mplp_constructor(bam_mplp_t iter,
+                              int (*func)(void *data, const bam1_t *b, bam_pileup_cd *cd));
+    void bam_mplp_destructor(bam_mplp_t iter,
+                             int (*func)(void *data, const bam1_t *b, bam_pileup_cd *cd));
 
 #endif // ~!defined(BAM_NO_PILEUP)
+
+
+/***********************************
+ * BAQ calculation and realignment *
+ ***********************************/
+
+int sam_cap_mapq(bam1_t *b, const char *ref, int ref_len, int thres);
+int sam_prob_realn(bam1_t *b, const char *ref, int ref_len, int flag);
 
 #ifdef __cplusplus
 }

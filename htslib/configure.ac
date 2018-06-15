@@ -1,6 +1,6 @@
 # Configure script for htslib, a C library for high-throughput sequencing data.
 #
-#    Copyright (C) 2015 Genome Research Ltd.
+#    Copyright (C) 2015-2016 Genome Research Ltd.
 #
 #    Author: John Marshall <jm18@sanger.ac.uk>
 #
@@ -30,10 +30,21 @@ AC_CONFIG_SRCDIR(hts.c)
 AC_CONFIG_HEADERS(config.h)
 
 dnl Copyright notice to be copied into the generated configure script
-AC_COPYRIGHT([Portions copyright (C) 2015 Genome Research Ltd.
+AC_COPYRIGHT([Portions copyright (C) 2016 Genome Research Ltd.
 
 This configure script is free software: you are free to change and
 redistribute it.  There is NO WARRANTY, to the extent permitted by law.])
+
+dnl Notes to be copied (by autoheader) into the generated config.h.in
+AH_TOP([/* If you use configure, this file provides @%:@defines reflecting your
+   configuration choices.  If you have not run configure, suitable
+   conservative defaults will be used.
+
+   Autoheader adds a number of items to this template file that are not
+   used by HTSlib: STDC_HEADERS and most HAVE_*_H header file defines
+   are immaterial, as we assume standard ISO C headers and facilities;
+   the PACKAGE_* defines are unused and are overridden by the more
+   accurate PACKAGE_VERSION as computed by the Makefile.  */])
 
 AC_PROG_CC
 AC_PROG_RANLIB
@@ -42,20 +53,15 @@ AC_SYS_LARGEFILE
 
 need_crypto=no
 
-AC_ARG_WITH([irods],
-  [AS_HELP_STRING([[--with-irods[=DIR]]],
-                  [use RodsAPIs library (in DIR) to support iRODS URLs])],
-  [case $withval in
-     no)  irods=disabled ;;
-     yes) irods=enabled ;;
-     *)   irods=enabled; IRODS_HOME=$withval ;;
-   esac],
-  [irods=disabled])
-
 AC_ARG_ENABLE([libcurl],
   [AS_HELP_STRING([--enable-libcurl],
                   [enable libcurl-based support for http/https/etc URLs])],
   [], [enable_libcurl=no])
+
+AC_ARG_ENABLE([openssl],
+  [AS_HELP_STRING([--enable-openssl],
+                  [enable openssl-based support for encrypted BGZF])],
+  [], [enable_openssl=no])
 
 AC_ARG_ENABLE([plugins],
   [AS_HELP_STRING([--enable-plugins],
@@ -82,9 +88,34 @@ AC_ARG_WITH([plugin-path],
   [with_plugin_path=$with_plugin_dir])
 AC_SUBST([pluginpath], $with_plugin_path)
 
+AC_MSG_CHECKING([shared library type])
+test -n "$host_alias" || host_alias=unknown-`uname -s`
+case $host_alias in
+  *-cygwin* | *-CYGWIN*)
+    host_result="Cygwin DLL"
+    PLATFORM=CYGWIN
+    PLUGIN_EXT=.cygdll
+    ;;
+  *-darwin* | *-Darwin*)
+    host_result="Darwin dylib"
+    PLATFORM=Darwin
+    PLUGIN_EXT=.bundle
+    ;;
+  *)
+    host_result="plain .so"
+    PLATFORM=default
+    PLUGIN_EXT=.so
+    ;;
+esac
+AC_MSG_RESULT([$host_result])
+AC_SUBST([PLATFORM])
+
 dnl FIXME This pulls in dozens of standard header checks
 AC_FUNC_MMAP
 AC_CHECK_FUNCS(gmtime_r)
+
+# Darwin has a dubious fdatasync() symbol, but no declaration in <unistd.h>
+AC_CHECK_DECL([fdatasync(int)], [AC_CHECK_FUNCS(fdatasync)])
 
 if test $enable_plugins != no; then
   AC_SEARCH_LIBS([dlopen], [dl], [],
@@ -95,6 +126,9 @@ Either configure with --disable-plugins or resolve this error to build HTSlib.])
   # TODO Test whether this is required and/or needs tweaking per-platform
   LDFLAGS="$LDFLAGS -rdynamic"
   AC_DEFINE([ENABLE_PLUGINS], 1, [Define if HTSlib should enable plugins.])
+  AC_SUBST([PLUGIN_EXT])
+  AC_DEFINE_UNQUOTED([PLUGIN_EXT], ["$PLUGIN_EXT"],
+                     [Platform-dependent plugin filename extension.])
 fi
 
 save_LIBS=$LIBS
@@ -110,35 +144,11 @@ if test $zlib_devel != ok; then
 HTSlib uses compression routines from the zlib library <http://zlib.net>.
 Building HTSlib requires zlib development files to be installed on the build
 machine; you may need to ensure a package such as zlib1g-dev (on Debian or
-Ubuntu Linux) or zlib-devel (on RPM-based Linux distributions) is installed.
+Ubuntu Linux) or zlib-devel (on RPM-based Linux distributions or Cygwin)
+is installed.
 
 FAILED.  This error must be resolved in order to build HTSlib successfully.])
 fi
-
-if test $irods = enabled; then
-  # TODO Also test whether we require libgssapi_krb5 and AC_CHECK_LIB it
-  save_LDFLAGS=$LDFLAGS
-  LDFLAGS="$LDFLAGS -L$IRODS_HOME/lib/core/obj"
-  AC_CHECK_LIB([RodsAPIs], [getRodsEnvFileName],
-    [case $with_irods in
-       yes) define_IRODS_HOME='# Uses $(IRODS_HOME) from the environment' ;;
-       *)   define_IRODS_HOME="IRODS_HOME = $with_irods" ;;
-     esac],
-    [AC_MSG_ERROR([iRODS development files not found
-
-Support for iRODS URLs requires the libRodsAPI client library and headers.
-Configure with --with-irods=DIR (or just --with-irods if \$IRODS_HOME has
-been exported with a suitable value), where DIR is the base of an iRODS tree
-such that the library is present as DIR/lib/core/obj/libRodsAPI.* and headers
-are present under DIR/lib/api/include and so on.])],
-    [-lgssapi_krb5 -lpthread])
-  LDFLAGS=$save_LDFLAGS
-  AC_DEFINE([HAVE_IRODS], 1, [Define to 1 if iRODS file access is enabled.])
-else
-  define_IRODS_HOME='IRODS_HOME ?= /disabled'
-fi
-AC_SUBST([irods])
-AC_SUBST([define_IRODS_HOME])
 
 libcurl=disabled
 if test "$enable_libcurl" != no; then
@@ -156,8 +166,8 @@ Support for HTTPS and other SSL-based URLs requires routines from the libcurl
 library <http://curl.haxx.se/libcurl/>.  Building HTSlib with libcurl enabled
 requires libcurl development files to be installed on the build machine; you
 may need to ensure a package such as libcurl4-{gnutls,nss,openssl}-dev (on
-Debian or Ubuntu Linux) or libcurl-devel (on RPM-based Linux distributions)
-is installed.
+Debian or Ubuntu Linux) or libcurl-devel (on RPM-based Linux distributions
+or Cygwin) is installed.
 
 Either configure with --disable-libcurl or resolve this error to build HTSlib.])
        ;;
@@ -183,12 +193,23 @@ Support for AWS S3 URLs requires routines from an SSL library.  Building
 HTSlib with libcurl enabled requires SSL development files to be installed
 on the build machine; you may need to ensure a package such as libgnutls-dev,
 libnss3-dev, or libssl-dev (on Debian or Ubuntu Linux, corresponding to the
-libcurl4-*-dev package installed) or similar on RPM-based Linux distributions.
+libcurl4-*-dev package installed), or openssl-devel (on RPM-based Linux
+distributions or Cygwin) is installed.
 
 Either configure with --disable-libcurl or resolve this error to build HTSlib.])])
      LIBS=$save_LIBS])
 fi
 AC_SUBST([CRYPTO_LIBS])
 
-AC_CONFIG_FILES(config.mk)
+openssl=disabled
+if test "$enable_openssl" != no; then
+  AC_CHECK_LIB([ssl], [SSL_library_init],
+    [AC_DEFINE([USE_CRYPTO], 1, [Define if BGZF encryption using openssl is enabled.])
+     openssl=enabled],
+    [AC_MSG_ERROR([SSL development files not found])])
+  enable_openssl=yes
+fi
+AC_SUBST([openssl])
+
+AC_CONFIG_FILES(config.mk deps.mk)
 AC_OUTPUT

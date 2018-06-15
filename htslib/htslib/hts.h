@@ -1,7 +1,9 @@
-/*  hts.h -- format-neutral I/O, indexing, and iterator API functions.
-
-    Copyright (C) 2012-2015 Genome Research Ltd.
-    Copyright (C) 2012 Broad Institute.
+/// @file htslib/hts.h
+/// Format-neutral I/O, indexing, and iterator API functions.
+/*
+    Copyright (C) 2012-2016 Genome Research Ltd.
+    Copyright (C) 2010, 2012 Broad Institute.
+    Portions copyright (C) 2003-2006, 2008-2010 by Heng Li <lh3@live.co.uk>
 
     Author: Heng Li <lh3@sanger.ac.uk>
 
@@ -41,6 +43,7 @@ typedef struct BGZF BGZF;
 #endif
 struct cram_fd;
 struct hFILE;
+struct hts_tpool;
 
 #ifndef KSTRING_T
 #define KSTRING_T kstring_t
@@ -129,6 +132,18 @@ typedef struct {
     htsFormat format;
 } htsFile;
 
+// A combined thread pool and queue allocation size.
+// The pool should already be defined, but qsize may be zero to
+// indicate an appropriate queue size is taken from the pool.
+//
+// Reasons for explicitly setting it could be where many more file
+// descriptors are in use than threads, so keeping memory low is
+// important.
+typedef struct {
+    struct hts_tpool *pool; // The shared thread pool itself
+    int qsize;    // Size of I/O queue to use for this fp
+} htsThreadPool;
+
 // REQUIRED_FIELDS
 enum sam_fields {
     SAM_QNAME = 0x00000001,
@@ -168,10 +183,13 @@ enum hts_fmt_option {
     CRAM_OPT_USE_LZMA,
     CRAM_OPT_USE_RANS,
     CRAM_OPT_REQUIRED_FIELDS,
+    CRAM_OPT_LOSSY_NAMES,
 
     // General purpose
     HTS_OPT_COMPRESSION_LEVEL = 100,
     HTS_OPT_NTHREADS,
+    HTS_OPT_THREAD_POOL,
+    HTS_OPT_CACHE_SIZE,
 };
 
 // For backwards compatibility
@@ -377,9 +395,26 @@ char **hts_readlist(const char *fn, int is_file, int *_n);
   @param fp  The file handle
   @param n   The number of worker threads to create
   @return    0 for success, or negative if an error occurred.
-  @notes     THIS THREADING API IS LIKELY TO CHANGE IN FUTURE.
+  @notes     This function creates non-shared threads for use solely by fp.
+             The hts_set_thread_pool function is the recommended alternative.
 */
 int hts_set_threads(htsFile *fp, int n);
+
+/*!
+  @abstract  Create extra threads to aid compress/decompression for this file
+  @param fp  The file handle
+  @param p   A pool of worker threads, previously allocated by hts_create_threads().
+  @return    0 for success, or negative if an error occurred.
+*/
+int hts_set_thread_pool(htsFile *fp, htsThreadPool *p);
+
+/*!
+  @abstract  Adds a cache of decompressed blocks, potentially speeding up seeks.
+             This may not work for all file types (currently it is bgzf only).
+  @param fp  The file handle
+  @param n   The size of cache, in bytes
+*/
+void hts_set_cache_size(htsFile *fp, int n);
 
 /*!
   @abstract  Set .fai filename for a file opened for reading
@@ -389,6 +424,19 @@ int hts_set_threads(htsFile *fp, int n);
       used to provide a reference list if the htsFile contains no @SQ headers.
 */
 int hts_set_fai_filename(htsFile *fp, const char *fn_aux);
+
+
+/*!
+  @abstract  Determine whether a given htsFile contains a valid EOF block
+  @return    3 for a non-EOF checkable filetype;
+             2 for an unseekable file type where EOF cannot be checked;
+             1 for a valid EOF block;
+             0 for if the EOF marker is absent when it should be present;
+            -1 (with errno set) on failure
+  @discussion
+      Check if the BGZF end-of-file (EOF) marker is present
+*/
+int hts_check_EOF(htsFile *fp);
 
 /************
  * Indexing *
@@ -424,7 +472,7 @@ typedef struct {
 typedef int hts_readrec_func(BGZF *fp, void *data, void *r, int *tid, int *beg, int *end);
 
 typedef struct {
-    uint32_t read_rest:1, finished:1, dummy:29;
+    uint32_t read_rest:1, finished:1, is_cram:1, dummy:29;
     int tid, beg, end, n_off, i;
     int curr_tid, curr_beg, curr_end;
     uint64_t curr_off;
@@ -532,6 +580,37 @@ const char *hts_parse_reg(const char *str, int *beg, int *end);
     #define FT_BCF_GZ (FT_GZ|FT_BCF)
     #define FT_STDIN  (1<<3)
     int hts_file_type(const char *fname);
+
+
+/***************************
+ * Revised MAQ error model *
+ ***************************/
+
+struct errmod_t;
+typedef struct errmod_t errmod_t;
+
+errmod_t *errmod_init(double depcorr);
+void errmod_destroy(errmod_t *em);
+
+/*
+    n: number of bases
+    m: maximum base
+    bases[i]: qual:6, strand:1, base:4
+    q[i*m+j]: phred-scaled likelihood of (i,j)
+ */
+int errmod_cal(const errmod_t *em, int n, int m, uint16_t *bases, float *q);
+
+
+/*****************************************
+ * Probabilistic banded glocal alignment *
+ *****************************************/
+
+typedef struct probaln_par_t {
+    float d, e;
+    int bw;
+} probaln_par_t;
+
+int probaln_glocal(const uint8_t *ref, int l_ref, const uint8_t *query, int l_query, const uint8_t *iqual, const probaln_par_t *c, int *state, uint8_t *q);
 
 
     /**********************
