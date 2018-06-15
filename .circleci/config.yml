@@ -8,5 +8,5 @@ jobs:
       - run:
           name: Installing pysam
           command: |
-            Installing pysam
+            echo Installing pysam
             pysam setup.py install --user
