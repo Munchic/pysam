@@ -1,12 +1,8 @@
 version: 2
 jobs:
-  machine:
-    pre:
-      - pyenv local 2.7.0
-      - virtualenv venv
   build:
     docker:
-      - image: debian:stretch
+      - image: circleci/python:2.7.15
     steps:
       - checkout
       - run:
