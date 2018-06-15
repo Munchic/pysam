@@ -7,4 +7,6 @@ jobs:
       - checkout
       - run:
           name: Installing pysam
-          command: pysam setup.py install --user
+          command: |
+            Installing pysam
+            pysam setup.py install --user
