@@ -61,7 +61,7 @@ AC_ARG_ENABLE([libcurl],
 AC_ARG_ENABLE([openssl],
   [AS_HELP_STRING([--enable-openssl],
                   [enable openssl-based support for encrypted BGZF])],
-  [], [enable_openssl=no])
+  [], [enable_openssl=yes])
 
 AC_ARG_ENABLE([plugins],
   [AS_HELP_STRING([--enable-plugins],
@@ -201,7 +201,7 @@ Either configure with --disable-libcurl or resolve this error to build HTSlib.])
 fi
 AC_SUBST([CRYPTO_LIBS])
 
-openssl=disabled
+openssl=enabled
 if test "$enable_openssl" != no; then
   AC_CHECK_LIB([ssl], [SSL_library_init],
     [AC_DEFINE([USE_CRYPTO], 1, [Define if BGZF encryption using openssl is enabled.])

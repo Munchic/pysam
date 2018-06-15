@@ -268,7 +268,8 @@ with open(os.path.join("pysam", "config.py"), "w") as outf:
                 if line.startswith("#define"):
                     key, value = re.match(
                         "#define (\S+)\s+(\S+)", line).groups()
-                    config_values[key] = int(value)
+                    if value.isdigit():
+                        config_values[key] = int(value)
             for key in ["ENABLE_PLUGINS",
                         "HAVE_COMMONCRYPTO",
                         "HAVE_GMTIME_R",
