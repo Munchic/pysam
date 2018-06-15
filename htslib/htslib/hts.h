@@ -587,7 +587,7 @@ const char *hts_parse_reg(const char *str, int *beg, int *end);
  ***************************/
 
 struct errmod_t;
-typedef struct errmod_t errmod_t;
+// typedef struct errmod_t errmod_t;
 
 // errmod_t *errmod_init(double depcorr);
 // void errmod_destroy(errmod_t *em);
