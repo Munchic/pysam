@@ -12,16 +12,19 @@ next-generation sequencing methods.
 Pysam is a lightweight wrapper of the samtools_ C-API. Pysam also
 includes an interface for tabix_.
 
+
 Installation::
 
    git clone --branch=feature/connect-crypto-htslib https://github.com/Munchic/pysam/
    cd pysam
    python setup.py install --user
 
+
 The latest version is available through `pypi
 <https://pypi.python.org/pypi/pysam>`_. To install, simply type::
 
    pip install pysam
+
 
 If you are using the conda packaging manager (e.g. miniconda or anaconda),
 you can install pysam from the `bioconda channel <https://bioconda.github.io/>`_:
