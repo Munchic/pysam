@@ -18,6 +18,24 @@ Installation::
    cd pysam
    python setup.py install --user
 
+Usage (adopted from https://samtools.github.io/bcftools/bgzf-aes-encryption.pdf):: 
+   
+   # Generate a random private key and its hash (digest)
+   KEY=`dd if=/dev/urandom bs=1 count=32 2>/dev/null | xxd -ps -c32`
+   HASH=`echo $KEY | openssl sha256 | cut -f2 -d ' '`
+   echo -e "$HASH\t$KEY" > hts-keys.txt
+   
+   # Configure environment variables, compress + encrypt, and index
+   export HTS_KEYS=hts-keys.txt
+   HTS_ENC=${PRIVATE_KEY} bgzip -c in.vcf > enc.vcf.gz
+   HTS_ENC=${PRIVATE_KEY} tabix enc.vcf.gz
+   
+   # Reading encrypted tabix-indexed file with Pysam
+   import pysam
+   file = pysam.TabixFile("/home/ec2-user/test/sample_genome_dup/enc_sample.vcf.gz")
+   for read in file.fetch('chr1'):
+       print(read)
+
 The latest version is available through `pypi
 <https://pypi.python.org/pypi/pysam>`_. To install, simply type::
 
