@@ -18,19 +18,19 @@ Installation::
    $ cd pysam
    $ python setup.py install --user
 
-Usage (adopted from https://samtools.github.io/bcftools/bgzf-aes-encryption.pdf):: 
+Usage (adapted from https://samtools.github.io/bcftools/bgzf-aes-encryption.pdf):: 
    
    # Generate a random private key and its hash (digest)
    $ KEY=`dd if=/dev/urandom bs=1 count=32 2>/dev/null | xxd -ps -c32`
    $ HASH=`echo $KEY | openssl sha256 | cut -f2 -d ' '`
    $ echo -e "$HASH\t$KEY" > hts-keys.txt
    
-   # Configure environment variables, compress + encrypt, and index
+   # Configure environment variables, compress + encrypt, and index with built-in crypto htslib
    $ export HTS_KEYS=hts-keys.txt
-   $ HTS_ENC=${PRIVATE_KEY} bgzip -c in.vcf > enc.vcf.gz
-   $ HTS_ENC=${PRIVATE_KEY} tabix enc.vcf.gz
+   $ HTS_ENC=${PRIVATE_KEY} htslib/bgzip -c in.vcf > enc.vcf.gz
+   $ HTS_ENC=${PRIVATE_KEY} htslib/tabix enc.vcf.gz
    
-   # Read encrypted tabix-indexed file with Pysam
+   # Read encrypted tabix-indexed file in Python with Pysam
    import pysam
    file = pysam.TabixFile("enc.vcf.gz")
    for read in file.fetch('chr1'):
