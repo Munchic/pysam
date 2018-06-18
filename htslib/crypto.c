@@ -30,7 +30,11 @@
 #include <string.h>
 #include <fcntl.h>
 #include <time.h>
+
+#include <openssl/conf.h>
 #include <openssl/evp.h>
+#include <openssl/err.h>
+
 #include "htslib/hts.h"
 #include "htslib/kseq.h"
 #include "htslib/khash.h"
