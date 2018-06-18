@@ -1,7 +1,7 @@
 import pysam
 
-enc_file = pysam.TabixFile("crypto_read/enc_test.vcf.gz")
-plain_file = pysam.TabixFile("crypto_read/test.vcf.gz")
+enc_file = pysam.TabixFile("./crypto_read/enc_test.vcf.gz")
+plain_file = pysam.TabixFile("./crypto_read/test.vcf.gz")
 
 enc_read = ""
 plain_read = ""
