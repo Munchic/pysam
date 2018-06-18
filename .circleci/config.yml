@@ -8,14 +8,13 @@ jobs:
       - run:
           name: Installing pysam
           command: |
-            echo Cleaning existing pysam
-            pip uninstall pysam
             echo Installing pysam
             python setup.py install --user
       - run:
           name: Testing reading encrypted BGZF
           command: |
+            cd tests
             echo Retrieving public and private keys library
-            export HTS_KEYS="tests/crypto_read/hts-keys.txt"
+            export HTS_KEYS="crypto_read/hts-keys.txt"
             echo Running python script
-            python "tests/crypto_read.py"
+            python crypto_read.py
