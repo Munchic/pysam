@@ -24,6 +24,7 @@
 */
 
 #include "crypto.h"
+#define USE_CRYPTO 1 // activate crypto by default
 #if USE_CRYPTO
 #include <unistd.h>
 #include <stdlib.h>
