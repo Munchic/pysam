@@ -12,6 +12,7 @@ jobs:
             python setup.py install --user
             echo Install OpenSSL C library
             sudo apt-get install libssl-dev
+            sudo apt-get install openssl
       - run:
           name: Testing reading encrypted BGZF
           command: |
