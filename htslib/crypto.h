@@ -45,7 +45,7 @@ struct crypto_t {
     void *lib;           // library of keys, khash mapping from hash to key
     uint8_t *buf;        // ?can openssl be made to encrypt inplace?
     int mbuf;
-}
+};
 typedef struct crypto_t crypto_t;
 
 int crypto_init(crypto_t *crypto, char mode);
