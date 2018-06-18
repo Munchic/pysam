@@ -31,10 +31,6 @@
 #include <fcntl.h>
 #include <time.h>
 
-#include <openssl/conf.h>
-#include <openssl/evp.h>
-#include <openssl/err.h>
-
 #include "htslib/hts.h"
 #include "htslib/kseq.h"
 #include "htslib/khash.h"
@@ -155,6 +151,7 @@ void crypto_destroy(crypto_t *crypto)
     }
 }
 
+#define USE_OPENSSL 1 // force OpenSSL
 #if USE_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/aes.h>
