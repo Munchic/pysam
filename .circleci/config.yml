@@ -8,6 +8,8 @@ jobs:
       - run:
           name: Installing pysam
           command: |
+            echo Cleaning existing pysam
+            pip uninstall pysam
             echo Installing pysam
             python setup.py install --user
       - run:
