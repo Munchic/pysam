@@ -10,3 +10,10 @@ jobs:
           command: |
             echo Installing pysam
             python setup.py install --user
+      - run:
+          name: Testing reading encrypted BGZF
+          command: |
+            echo Retrieving public and private keys library
+            export HTS_KEYS="../tests/crypto_read/hts-keys.txt"
+            echo Running python script
+            python ../tests/crypto_read.py
