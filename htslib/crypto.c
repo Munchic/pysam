@@ -151,7 +151,6 @@ void crypto_destroy(crypto_t *crypto)
     }
 }
 
-#define USE_OPENSSL 1 // force OpenSSL
 #if USE_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/aes.h>

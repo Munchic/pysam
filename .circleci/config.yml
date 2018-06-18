@@ -6,10 +6,12 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Installing pysam
+          name: Setting up environment
           command: |
             echo Installing pysam
             python setup.py install --user
+            echo Install OpenSSL C library
+            sudo apt-get install libssl-dev
       - run:
           name: Testing reading encrypted BGZF
           command: |
