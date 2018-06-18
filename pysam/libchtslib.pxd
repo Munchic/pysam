@@ -353,6 +353,7 @@ cdef extern from "htslib/bgzf.h" nogil:
     #  Returns 0 on success and -1 on error.
     int bgzf_index_dump(BGZF *fp, const char *bname, const char *suffix)
 
+
 cdef extern from "crypto.h" nogil:
     ctypedef struct crypto_t:
         uint8_t     active             # is the encoding/decoding mode turned on?
@@ -372,6 +373,7 @@ cdef extern from "crypto.h" nogil:
 
     int encrypt_buffer(crypto_t *aes, uint64_t offset, uint8_t *buffer, int length);
     int decrypt_buffer(crypto_t *aes, uint64_t offset, uint8_t *buffer, int length);
+
 
 cdef extern from "htslib/hts.h" nogil:
     uint32_t kroundup32(uint32_t x)
