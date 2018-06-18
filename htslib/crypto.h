@@ -36,8 +36,7 @@
 #define CRYPTO_SHA2_LEN 64
 #define CRYPTO_IV_LEN 16
 
-typedef struct
-{
+struct crypto_t {
     uint8_t active;      // is the encoding/decoding mode turned on?
     char hashed_key[64]; // SHA-2 encoded key
     int attach_key;      // create 1:DC block or 0:EC block
@@ -47,7 +46,7 @@ typedef struct
     uint8_t *buf;        // ?can openssl be made to encrypt inplace?
     int mbuf;
 }
-crypto_t;
+typedef struct crypto_t crypto_t;
 
 int crypto_init(crypto_t *crypto, char mode);
 void crypto_destroy(crypto_t *crypto);

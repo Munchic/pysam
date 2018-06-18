@@ -353,6 +353,25 @@ cdef extern from "htslib/bgzf.h" nogil:
     #  Returns 0 on success and -1 on error.
     int bgzf_index_dump(BGZF *fp, const char *bname, const char *suffix)
 
+cdef extern from "crypto.h" nogil:
+    ctypedef struct crypto_t:
+        uint8_t     active             # is the encoding/decoding mode turned on?
+        char        hashed_key[64]     # SHA-2 encoded key
+        int         attach_key         # create 1:DC block or 0:EC block
+        uint8_t     key[32]            # active key
+        uint8_t     ivec[16]           # initialization vector
+        void        *lib               # library of keys, khash mapping from hash to key
+        uint8_t     *buf               # ?can openssl be made to encrypt inplace?
+        int         mbuf
+    
+    int crypto_init(crypto_t *crypto, char mode);
+    void crypto_destroy(crypto_t *crypto);
+
+    int crypto_set_key(crypto_t *crypto, const char *hashed_key);
+    int crypto_set_ivec(crypto_t *crypto, const uint8_t *ivec);
+
+    int encrypt_buffer(crypto_t *aes, uint64_t offset, uint8_t *buffer, int length);
+    int decrypt_buffer(crypto_t *aes, uint64_t offset, uint8_t *buffer, int length);
 
 cdef extern from "htslib/hts.h" nogil:
     uint32_t kroundup32(uint32_t x)
