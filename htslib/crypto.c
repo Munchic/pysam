@@ -24,13 +24,13 @@
 */
 
 #include "crypto.h"
-#define USE_CRYPTO 1 // activate crypto by default
 #if USE_CRYPTO
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <time.h>
+#include <openssl/evp.h>
 #include "htslib/hts.h"
 #include "htslib/kseq.h"
 #include "htslib/khash.h"
