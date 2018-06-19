@@ -236,7 +236,7 @@ int decrypt_buffer(crypto_t *crypto, uint64_t offset, uint8_t *buffer, int ciphe
     if ( EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, crypto->key, ivec) != 1 ) openssl_handle_errors();
     if ( EVP_DecryptUpdate(ctx, crypto->buf, &len, buffer, ciphertext_len) != 1 ) openssl_handle_errors();
     plaintext_len = len;
-    if ( EVP_DecryptFinal_ex(ctx, crypto->buf + len, &len) != 1 ) openssl_handle_errors();
+    // if ( EVP_DecryptFinal_ex(ctx, crypto->buf + len, &len) != 1 ) openssl_handle_errors();
     plaintext_len += len;
     EVP_CIPHER_CTX_free(ctx);
     int aes_padding =  ciphertext_len - plaintext_len;
