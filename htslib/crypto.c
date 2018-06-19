@@ -151,8 +151,10 @@ void crypto_destroy(crypto_t *crypto)
     }
 }
 
-#if USE_OPENSSL
-#include <openssl>
+// #if USE_OPENSSL
+#include <openssl/evp.h>
+#include <openssl/aes.h>
+#include <openssl/err.h>
 
 static inline void openssl_handle_errors(void)
 {
@@ -241,5 +243,5 @@ int decrypt_buffer(crypto_t *crypto, uint64_t offset, uint8_t *buffer, int ciphe
     memcpy(buffer, crypto->buf, ciphertext_len - aes_padding);
     return aes_padding;
 }
-#endif // USE_OPENSSL
+// #endif // USE_OPENSSL
 #endif // USE_CRYPTO
