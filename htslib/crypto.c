@@ -152,9 +152,7 @@ void crypto_destroy(crypto_t *crypto)
 }
 
 #if USE_OPENSSL
-#include <openssl/evp.h>
-#include <openssl/aes.h>
-#include <openssl/err.h>
+#include <openssl>
 
 static inline void openssl_handle_errors(void)
 {
@@ -185,7 +183,7 @@ static inline int openssl_decrypt(unsigned char *ciphertext, int ciphertext_len,
     if (EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len) != 1) openssl_handle_errors();
     plaintext_len = len;
 
-    // if (EVP_DecryptFinal_ex(ctx, plaintext + len, &len) != 1) openssl_handle_errors();
+    if (EVP_DecryptFinal_ex(ctx, plaintext + len, &len) != 1) openssl_handle_errors();
     plaintext_len += len;
 
     EVP_CIPHER_CTX_free(ctx);
@@ -236,7 +234,7 @@ int decrypt_buffer(crypto_t *crypto, uint64_t offset, uint8_t *buffer, int ciphe
     if ( EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, crypto->key, ivec) != 1 ) openssl_handle_errors();
     if ( EVP_DecryptUpdate(ctx, crypto->buf, &len, buffer, ciphertext_len) != 1 ) openssl_handle_errors();
     plaintext_len = len;
-    // if ( EVP_DecryptFinal_ex(ctx, crypto->buf + len, &len) != 1 ) openssl_handle_errors();
+    if ( EVP_DecryptFinal_ex(ctx, crypto->buf + len, &len) != 1 ) openssl_handle_errors();
     plaintext_len += len;
     EVP_CIPHER_CTX_free(ctx);
     int aes_padding =  ciphertext_len - plaintext_len;
