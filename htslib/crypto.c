@@ -185,7 +185,7 @@ static inline int openssl_decrypt(unsigned char *ciphertext, int ciphertext_len,
     if (EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len) != 1) openssl_handle_errors();
     plaintext_len = len;
 
-    if (EVP_DecryptFinal_ex(ctx, plaintext + len, &len) != 1) openssl_handle_errors();
+    // if (EVP_DecryptFinal_ex(ctx, plaintext + len, &len) != 1) openssl_handle_errors();
     plaintext_len += len;
 
     EVP_CIPHER_CTX_free(ctx);
