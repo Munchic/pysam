@@ -152,6 +152,7 @@ void crypto_destroy(crypto_t *crypto)
 }
 
 #if USE_OPENSSL
+#include <openssl/ssl.h>
 #include <openssl/evp.h>
 #include <openssl/aes.h>
 #include <openssl/err.h>
