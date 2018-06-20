@@ -506,13 +506,16 @@ err:
     return NULL;
 }
 
-int sam_index_build2(const char *fn, const char *fnidx, int min_shift)
+int sam_index_build3(const char *fn, const char *fnidx, int min_shift, int nthreads)
 {
     hts_idx_t *idx;
     htsFile *fp;
     int ret = 0;
 
     if ((fp = hts_open(fn, "r")) == 0) return -2;
+    if (nthreads)
+        hts_set_threads(fp, nthreads);
+
     switch (fp->format.format) {
     case cram:
         ret = cram_index_build(fp->fp.cram, fn, fnidx);
@@ -522,6 +525,7 @@ int sam_index_build2(const char *fn, const char *fnidx, int min_shift)
         idx = bam_index(fp->fp.bgzf, min_shift);
         if (idx) {
             ret = hts_idx_save_as(idx, fn, fnidx, (min_shift > 0)? HTS_FMT_CSI : HTS_FMT_BAI);
+            if (ret < 0) ret = -4;
             hts_idx_destroy(idx);
         }
         else ret = -1;
@@ -536,9 +540,14 @@ int sam_index_build2(const char *fn, const char *fnidx, int min_shift)
     return ret;
 }
 
+int sam_index_build2(const char *fn, const char *fnidx, int min_shift)
+{
+    return sam_index_build3(fn, fnidx, min_shift, 0);
+}
+
 int sam_index_build(const char *fn, int min_shift)
 {
-    return sam_index_build2(fn, NULL, min_shift);
+    return sam_index_build3(fn, NULL, min_shift, 0);
 }
 
 // Provide bam_index_build() symbol for binary compability with earlier HTSlib
@@ -617,6 +626,7 @@ static hts_itr_t *cram_itr_query(const hts_idx_t *idx, int tid, int beg, int end
 
     // Cons up a dummy iterator for which hts_itr_next() will simply invoke
     // the readrec function:
+    iter->is_cram = 1;
     iter->read_rest = 1;
     iter->off = NULL;
     iter->bins.a = NULL;
@@ -954,9 +964,11 @@ int sam_parse1(kstring_t *s, bam_hdr_t *h, bam1_t *b)
     while (p < s->s + s->l) {
         uint8_t type;
         q = _read_token_aux(p); // FIXME: can be accelerated for long 'B' arrays
-        _parse_err(p - q - 1 < 6, "incomplete aux field");
+        _parse_err(p - q - 1 < 5, "incomplete aux field");
         kputsn_(q, 2, &str);
         q += 3; type = *q++; ++q; // q points to value
+        if (type != 'Z' && type != 'H') // the only zero length acceptable fields
+            _parse_err(p - q - 1 < 1, "incomplete aux field");
         if (type == 'A' || type == 'a' || type == 'c' || type == 'C') {
             kputc_('A', &str);
             kputc_(*q, &str);
@@ -993,6 +1005,8 @@ int sam_parse1(kstring_t *s, bam_hdr_t *h, bam1_t *b)
             x = strtod(q, &q);
             kputc_('d', &str); kputsn_(&x, 8, &str);
         } else if (type == 'Z' || type == 'H') {
+            _parse_err(type == 'H' && !((p-q)&1),
+                       "hex field does not have an even number of digits");
             kputc_(type, &str);kputsn_(q, p - q, &str); // note that this include the trailing NULL
         } else if (type == 'B') {
             int32_t n;
@@ -1228,7 +1242,7 @@ int sam_write1(htsFile *fp, const bam_hdr_t *h, const bam1_t *b)
  *** Auxiliary fields ***
  ************************/
 
-void bam_aux_append(bam1_t *b, const char tag[2], char type, int len, uint8_t *data)
+void bam_aux_append(bam1_t *b, const char tag[2], char type, int len, const uint8_t *data)
 {
     int ori_len = b->l_data;
     b->l_data += 3 + len;
@@ -1286,6 +1300,32 @@ int bam_aux_del(bam1_t *b, uint8_t *s)
     s = skip_aux(s);
     memmove(p, s, l_aux - (s - aux));
     b->l_data -= s - p;
+    return 0;
+}
+
+int bam_aux_update_str(bam1_t *b, const char tag[2], int len, const char *data)
+{
+    uint8_t *s = bam_aux_get(b,tag);
+    if (!s) return -1;
+    char type = *s;
+    if (type != 'Z') { fprintf(stderr,"bam_aux_update_str() called for type '%c' instead of 'Z'\n", type); abort(); }
+    bam_aux_del(b,s);
+    s -= 2;
+    int l_aux = bam_get_l_aux(b);
+
+    b->l_data += 3 + len;
+    if (b->m_data < b->l_data) {
+        ptrdiff_t s_offset = s - b->data;
+        b->m_data = b->l_data;
+        kroundup32(b->m_data);
+        b->data = (uint8_t*)realloc(b->data, b->m_data);
+        s = b->data + s_offset;
+    }
+    memmove(s+3+len, s, l_aux - (s - bam_get_aux(b)));
+    s[0] = tag[0];
+    s[1] = tag[1];
+    s[2] = type;
+    memmove(s+3,data,len);
     return 0;
 }
 
@@ -1477,6 +1517,7 @@ typedef struct __linkbuf_t {
     int32_t beg, end;
     cstate_t s;
     struct __linkbuf_t *next;
+    bam_pileup_cd cd;
 } lbnode_t;
 
 typedef struct {
@@ -1621,6 +1662,11 @@ struct __bam_plp_t {
     bam_plp_auto_f func;
     void *data;
     olap_hash_t *overlaps;
+
+    // For notification of creation and destruction events
+    // and associated client-owned pointer.
+    int (*plp_construct)(void *data, const bam1_t *b, bam_pileup_cd *cd);
+    int (*plp_destruct )(void *data, const bam1_t *b, bam_pileup_cd *cd);
 };
 
 bam_plp_t bam_plp_init(bam_plp_auto_f func, void *data)
@@ -1658,6 +1704,15 @@ void bam_plp_destroy(bam_plp_t iter)
     free(iter);
 }
 
+void bam_plp_constructor(bam_plp_t plp,
+                         int (*func)(void *data, const bam1_t *b, bam_pileup_cd *cd)) {
+    plp->plp_construct = func;
+}
+
+void bam_plp_destructor(bam_plp_t plp,
+                        int (*func)(void *data, const bam1_t *b, bam_pileup_cd *cd)) {
+    plp->plp_destruct = func;
+}
 
 //---------------------------------
 //---  Tweak overlapping reads
@@ -1787,7 +1842,7 @@ static void tweak_overlap_quality(bam1_t *a, bam1_t *b)
             if ( a_qual[a_iseq] >= b_qual[b_iseq] )
             {
                 #if DBG
-                    fprintf(stderr,"[%c/%c]",seq_nt16_str[bam_seqi(a_seq,a_iseq)],tolower(seq_nt16_str[bam_seqi(b_seq,b_iseq)]));
+                    fprintf(stderr,"[%c/%c]",seq_nt16_str[bam_seqi(a_seq,a_iseq)],tolower_c(seq_nt16_str[bam_seqi(b_seq,b_iseq)]));
                 #endif
                 a_qual[a_iseq] = 0.8 * a_qual[a_iseq];  // not so confident about a_qual anymore given the mismatch
                 b_qual[b_iseq] = 0;
@@ -1795,7 +1850,7 @@ static void tweak_overlap_quality(bam1_t *a, bam1_t *b)
             else
             {
                 #if DBG
-                    fprintf(stderr,"[%c/%c]",tolower(seq_nt16_str[bam_seqi(a_seq,a_iseq)]),seq_nt16_str[bam_seqi(b_seq,b_iseq)]);
+                    fprintf(stderr,"[%c/%c]",tolower_c(seq_nt16_str[bam_seqi(a_seq,a_iseq)]),seq_nt16_str[bam_seqi(b_seq,b_iseq)]);
                 #endif
                 b_qual[b_iseq] = 0.8 * b_qual[b_iseq];
                 a_qual[a_iseq] = 0;
@@ -1864,9 +1919,9 @@ static void overlap_remove(bam_plp_t iter, const bam1_t *b)
 // buffer yet (the current position is still the maximum position across all buffered reads).
 const bam_pileup1_t *bam_plp_next(bam_plp_t iter, int *_tid, int *_pos, int *_n_plp)
 {
-    if (iter->error) { *_n_plp = -1; return 0; }
+    if (iter->error) { *_n_plp = -1; return NULL; }
     *_n_plp = 0;
-    if (iter->is_eof && iter->head == iter->tail) return 0;
+    if (iter->is_eof && iter->head == iter->tail) return NULL;
     while (iter->is_eof || iter->max_tid > iter->tid || (iter->max_tid == iter->tid && iter->max_pos > iter->pos)) {
         int n_plp = 0;
         // write iter->plp at iter->pos
@@ -1875,6 +1930,8 @@ const bam_pileup1_t *bam_plp_next(bam_plp_t iter, int *_tid, int *_pos, int *_n_
             lbnode_t *p = *pptr;
             if (p->b.core.tid < iter->tid || (p->b.core.tid == iter->tid && p->end <= iter->pos)) { // then remove
                 overlap_remove(iter, &p->b);
+                if (iter->plp_destruct)
+                    iter->plp_destruct(iter->data, &p->b, &p->cd);
                 *pptr = p->next; mp_free(iter->mp, p);
             }
             else {
@@ -1884,6 +1941,7 @@ const bam_pileup1_t *bam_plp_next(bam_plp_t iter, int *_tid, int *_pos, int *_n_
                         iter->plp = (bam_pileup1_t*)realloc(iter->plp, sizeof(bam_pileup1_t) * iter->max_plp);
                     }
                     iter->plp[n_plp].b = &p->b;
+                    iter->plp[n_plp].cd = p->cd;
                     if (resolve_cigar2(iter->plp + n_plp, iter->pos, &p->s)) ++n_plp; // actually always true...
                 }
                 pptr = &(*pptr)->next;
@@ -1896,7 +1954,7 @@ const bam_pileup1_t *bam_plp_next(bam_plp_t iter, int *_tid, int *_pos, int *_n_
                 fprintf(stderr, "[%s] unsorted input. Pileup aborts.\n", __func__);
                 iter->error = 1;
                 *_n_plp = -1;
-                return 0;
+                return NULL;
             }
         }
         if (iter->tid < iter->head->b.core.tid) { // come to a new reference sequence
@@ -1908,7 +1966,7 @@ const bam_pileup1_t *bam_plp_next(bam_plp_t iter, int *_tid, int *_pos, int *_n_
         if (n_plp) return iter->plp;
         if (iter->is_eof && iter->head == iter->tail) break;
     }
-    return 0;
+    return NULL;
 }
 
 int bam_plp_push(bam_plp_t iter, const bam1_t *b)
@@ -1943,6 +2001,8 @@ int bam_plp_push(bam_plp_t iter, const bam1_t *b)
         }
         iter->max_tid = b->core.tid; iter->max_pos = iter->tail->beg;
         if (iter->tail->end > iter->pos || iter->tail->b.core.tid > iter->tid) {
+            if (iter->plp_construct)
+                iter->plp_construct(iter->data, b, &iter->tail->cd);
             iter->tail->next = mp_alloc(iter->mp);
             iter->tail = iter->tail->next;
         }
@@ -2067,6 +2127,32 @@ int bam_mplp_auto(bam_mplp_t iter, int *_tid, int *_pos, int *n_plp, const bam_p
         } else n_plp[i] = 0, plp[i] = 0;
     }
     return ret;
+}
+
+void bam_mplp_reset(bam_mplp_t iter)
+{
+    int i;
+    iter->min = (uint64_t)-1;
+    for (i = 0; i < iter->n; ++i) {
+        bam_plp_reset(iter->iter[i]);
+        iter->pos[i] = (uint64_t)-1;
+        iter->n_plp[i] = 0;
+        iter->plp[i] = NULL;
+    }
+}
+
+void bam_mplp_constructor(bam_mplp_t iter,
+                          int (*func)(void *arg, const bam1_t *b, bam_pileup_cd *cd)) {
+    int i;
+    for (i = 0; i < iter->n; ++i)
+        bam_plp_constructor(iter->iter[i], func);
+}
+
+void bam_mplp_destructor(bam_mplp_t iter,
+                         int (*func)(void *arg, const bam1_t *b, bam_pileup_cd *cd)) {
+    int i;
+    for (i = 0; i < iter->n; ++i)
+        bam_plp_destructor(iter->iter[i], func);
 }
 
 #endif // ~!defined(BAM_NO_PILEUP)

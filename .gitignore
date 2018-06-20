@@ -22,6 +22,10 @@ htslib/config.log
 htslib/config.mk
 pysam/config.py
 
+htslib/autom4te.cache
+htslib/config.cache
+htslib/deps.mk
+
 # cython files
 pysam/TabProxies.c
 pysam/csamtools.c

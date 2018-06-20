@@ -1,6 +1,6 @@
 /*  hfile_libcurl.c -- libcurl backend for low-level file streams.
 
-    Copyright (C) 2015 Genome Research Ltd.
+    Copyright (C) 2015, 2016 Genome Research Ltd.
 
     Author: John Marshall <jm18@sanger.ac.uk>
 
@@ -24,7 +24,6 @@ DEALINGS IN THE SOFTWARE.  */
 
 #include <config.h>
 
-#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +32,11 @@ DEALINGS IN THE SOFTWARE.  */
 #include <errno.h>
 #include <sys/select.h>
 
+#include "hts_internal.h"
 #include "hfile_internal.h"
+#ifdef ENABLE_PLUGINS
+#include "version.h"
+#endif
 #include "htslib/hts.h"  // for hts_version() and hts_verbose
 #include "htslib/kstring.h"
 
@@ -499,7 +502,7 @@ hFILE *hopen_libcurl(const char *url, const char *modes)
         if (add_header(fp, "Transfer-Encoding: chunked") < 0) goto error;
     }
 
-    if (tolower(url[0]) == 's' && url[1] == '3') {
+    if (tolower_c(url[0]) == 's' && url[1] == '3') {
         // Construct the HTTP-Method/Content-MD5/Content-Type part of the
         // message to be signed.  This will be destroyed by add_s3_settings().
         kstring_t message = { 0, 0, NULL };
@@ -563,6 +566,13 @@ int PLUGIN_GLOBAL(hfile_plugin_init,_libcurl)(struct hFILE_plugin *self)
     static const struct hFILE_scheme_handler handler =
         { hopen_libcurl, hfile_always_remote, "libcurl", 50 };
 
+#ifdef ENABLE_PLUGINS
+    // Embed version string for examination via strings(1) or what(1)
+    static const char id[] = "@(#)hfile_libcurl plugin (htslib)\t" HTS_VERSION;
+    const char *version = strchr(id, '\t')+1;
+#else
+    const char *version = hts_version();
+#endif
     const curl_version_info_data *info;
     const char * const *protocol;
     CURLcode err;
@@ -574,8 +584,7 @@ int PLUGIN_GLOBAL(hfile_plugin_init,_libcurl)(struct hFILE_plugin *self)
     if (curl.multi == NULL) { curl_global_cleanup(); errno = EIO; return -1; }
 
     info = curl_version_info(CURLVERSION_NOW);
-    ksprintf(&curl.useragent, "htslib/%s libcurl/%s",
-             hts_version(), info->version);
+    ksprintf(&curl.useragent, "htslib/%s libcurl/%s", version, info->version);
 
     curl.nrunning = 0;
     curl.perform_again = 0;
@@ -597,6 +606,41 @@ int PLUGIN_GLOBAL(hfile_plugin_init,_libcurl)(struct hFILE_plugin *self)
 /*******************
  * Rewrite S3 URLs *
  *******************/
+
+static size_t kput_callback(char *ptr, size_t size, size_t nmemb, void *strv)
+{
+    kstring_t *str = (kstring_t *) strv;
+    size_t len = size * nmemb;
+    return (kputsn(ptr, len, str) >= 0)? len : 0;
+}
+
+static int curl_kput(const char *url, kstring_t *str)
+{
+    CURLcode err;
+    CURL *easy = curl_easy_init();
+    if (easy == NULL) { errno = ENOMEM; return -1; }
+
+    err  = curl_easy_setopt(easy, CURLOPT_URL, url);
+    err |= curl_easy_setopt(easy, CURLOPT_WRITEFUNCTION, kput_callback);
+    err |= curl_easy_setopt(easy, CURLOPT_WRITEDATA, str);
+    err |= curl_easy_setopt(easy, CURLOPT_USERAGENT, curl.useragent.s);
+    err |= curl_easy_setopt(easy, CURLOPT_FOLLOWLOCATION, 1L);
+    err |= curl_easy_setopt(easy, CURLOPT_FAILONERROR, 1L);
+    if (hts_verbose >= 8) err |= curl_easy_setopt(easy, CURLOPT_VERBOSE, 1L);
+    if (err != 0) { curl_easy_cleanup(easy); errno = ENOSYS; return -1; }
+
+    err = curl_easy_perform(easy);
+    if (err != CURLE_OK) {
+        int save_errno = easy_errno(easy, err);
+        curl_easy_cleanup(easy);
+        errno = save_errno;
+        return -1;
+    }
+
+    curl_easy_cleanup(easy);
+    return 0;
+}
+
 
 #if defined HAVE_COMMONCRYPTO
 
@@ -673,17 +717,17 @@ static int is_dns_compliant(const char *s0, const char *slim)
     const char *s;
 
     for (s = s0; s < slim; len++, s++)
-        if (islower(*s))
+        if (islower_c(*s))
             has_nondigit = 1;
         else if (*s == '-') {
             has_nondigit = 1;
             if (s == s0 || s+1 == slim) return 0;
         }
-        else if (isdigit(*s))
+        else if (isdigit_c(*s))
             ;
         else if (*s == '.') {
-            if (s == s0 || ! isalnum(s[-1])) return 0;
-            if (s+1 == slim || ! isalnum(s[1])) return 0;
+            if (s == s0 || ! isalnum_c(s[-1])) return 0;
+            if (s+1 == slim || ! isalnum_c(s[1])) return 0;
         }
         else return 0;
 
@@ -729,12 +773,12 @@ static void parse_ini(const char *fname, const char *section, ...)
             const char *key = line.s, *value = &s[1], *akey;
             va_list args;
 
-            while (isspace(*key)) key++;
-            while (s > key && isspace(s[-1])) s--;
+            while (isspace_c(*key)) key++;
+            while (s > key && isspace_c(s[-1])) s--;
             *s = '\0';
 
-            while (isspace(*value)) value++;
-            while (line.l > 0 && isspace(line.s[line.l-1]))
+            while (isspace_c(*value)) value++;
+            while (line.l > 0 && isspace_c(line.s[line.l-1]))
                 line.s[--line.l] = '\0';
 
             va_start(args, section);
@@ -763,11 +807,11 @@ static void parse_simple(const char *fname, kstring_t *id, kstring_t *secret)
     fclose(fp);
 
     s = text.s;
-    while (isspace(*s)) s++;
+    while (isspace_c(*s)) s++;
     kputsn(s, len = strcspn(s, " \t"), id);
 
     s += len;
-    while (isspace(*s)) s++;
+    while (isspace_c(*s)) s++;
     kputsn(s, strcspn(s, " \t"), secret);
 
     free(text.s);

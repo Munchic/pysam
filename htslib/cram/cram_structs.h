@@ -46,9 +46,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 
+#include <pthread.h>
 #include <stdint.h>
 
-#include "cram/thread_pool.h"
+#include "htslib/thread_pool.h"
 #include "cram/string_alloc.h"
 #include "cram/mFILE.h"
 #include "htslib/khash.h"
@@ -719,14 +720,15 @@ typedef struct cram_fd {
     
     // thread pool
     int own_pool;
-    t_pool *pool;
-    t_results_queue *rqueue;
+    hts_tpool *pool;
+    hts_tpool_process *rqueue;
     pthread_mutex_t metrics_lock;
     pthread_mutex_t ref_lock;
     spare_bams *bl;
     pthread_mutex_t bam_list_lock;
     void *job_pending;
     int ooc;                            // out of containers.
+    int lossy_read_names;
 } cram_fd;
 
 // Translation of required fields to cram data series
@@ -812,7 +814,7 @@ enum cram_fields {
 
 /* Internal only */
 #define CRAM_FLAG_STATS_ADDED          (1<<30)
-
+#define CRAM_FLAG_DISCARD_NAME         (1<<31)
 
 #ifdef __cplusplus
 }

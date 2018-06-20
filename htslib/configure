@@ -11,7 +11,7 @@
 # This configure script is free software; the Free Software Foundation
 # gives unlimited permission to copy, distribute and modify it.
 #
-# Portions copyright (C) 2015 Genome Research Ltd.
+# Portions copyright (C) 2016 Genome Research Ltd.
 #
 # This configure script is free software: you are free to change and
 # redistribute it.  There is NO WARRANTY, to the extent permitted by law.
@@ -630,13 +630,14 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+openssl
 CRYPTO_LIBS
 libcurl
-define_IRODS_HOME
-irods
+PLUGIN_EXT
 EGREP
 GREP
 CPP
+PLATFORM
 pluginpath
 plugindir
 enable_plugins
@@ -690,8 +691,8 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_largefile
-with_irods
 enable_libcurl
+enable_openssl
 enable_plugins
 with_plugin_dir
 with_plugin_path
@@ -1316,12 +1317,12 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-largefile     omit support for large files
   --enable-libcurl        enable libcurl-based support for http/https/etc URLs
+  --enable-openssl        enable openssl-based support for encrypted BGZF
   --enable-plugins        enable separately-compiled plugins for file access
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-irods[=DIR]      use RodsAPIs library (in DIR) to support iRODS URLs
   --with-plugin-dir=DIR   plugin installation location [LIBEXECDIR/htslib]
   --with-plugin-path=PATH default HTS_PATH plugin search path [PLUGINDIR]
 
@@ -1409,7 +1410,7 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This configure script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it.
 
-Portions copyright (C) 2015 Genome Research Ltd.
+Portions copyright (C) 2016 Genome Research Ltd.
 
 This configure script is free software: you are free to change and
 redistribute it.  There is NO WARRANTY, to the extent permitted by law.
@@ -1681,6 +1682,52 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_func
+
+# ac_fn_c_check_decl LINENO SYMBOL VAR INCLUDES
+# ---------------------------------------------
+# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
+# accordingly.
+ac_fn_c_check_decl ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  as_decl_name=`echo $2|sed 's/ *(.*//'`
+  as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
+$as_echo_n "checking whether $as_decl_name is declared... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main ()
+{
+#ifndef $as_decl_name
+#ifdef __cplusplus
+  (void) $as_decl_use;
+#else
+  (void) $as_decl_name;
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$3=yes"
+else
+  eval "$3=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_check_decl
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -2038,6 +2085,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 ac_config_headers="$ac_config_headers config.h"
+
+
 
 
 
@@ -3128,24 +3177,19 @@ fi
 
 need_crypto=no
 
-
-# Check whether --with-irods was given.
-if test "${with_irods+set}" = set; then :
-  withval=$with_irods; case $withval in
-     no)  irods=disabled ;;
-     yes) irods=enabled ;;
-     *)   irods=enabled; IRODS_HOME=$withval ;;
-   esac
-else
-  irods=disabled
-fi
-
-
 # Check whether --enable-libcurl was given.
 if test "${enable_libcurl+set}" = set; then :
   enableval=$enable_libcurl;
 else
   enable_libcurl=no
+fi
+
+
+# Check whether --enable-openssl was given.
+if test "${enable_openssl+set}" = set; then :
+  enableval=$enable_openssl;
+else
+  enable_openssl=yes
 fi
 
 
@@ -3183,6 +3227,30 @@ else
 fi
 
 pluginpath=$with_plugin_path
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking shared library type" >&5
+$as_echo_n "checking shared library type... " >&6; }
+test -n "$host_alias" || host_alias=unknown-`uname -s`
+case $host_alias in
+  *-cygwin* | *-CYGWIN*)
+    host_result="Cygwin DLL"
+    PLATFORM=CYGWIN
+    PLUGIN_EXT=.cygdll
+    ;;
+  *-darwin* | *-Darwin*)
+    host_result="Darwin dylib"
+    PLATFORM=Darwin
+    PLUGIN_EXT=.bundle
+    ;;
+  *)
+    host_result="plain .so"
+    PLATFORM=default
+    PLUGIN_EXT=.so
+    ;;
+esac
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $host_result" >&5
+$as_echo "$host_result" >&6; }
 
 
 ac_ext=c
@@ -3795,6 +3863,24 @@ fi
 done
 
 
+# Darwin has a dubious fdatasync() symbol, but no declaration in <unistd.h>
+as_ac_Symbol=`$as_echo "ac_cv_have_decl_fdatasync(int)" | $as_tr_sh`
+ac_fn_c_check_decl "$LINENO" "fdatasync(int)" "$as_ac_Symbol" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Symbol"\" = x"yes"; then :
+  for ac_func in fdatasync
+do :
+  ac_fn_c_check_func "$LINENO" "fdatasync" "ac_cv_func_fdatasync"
+if test "x$ac_cv_func_fdatasync" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FDATASYNC 1
+_ACEOF
+
+fi
+done
+
+fi
+
+
 if test $enable_plugins != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing dlopen" >&5
 $as_echo_n "checking for library containing dlopen... " >&6; }
@@ -3861,6 +3947,12 @@ fi
   LDFLAGS="$LDFLAGS -rdynamic"
 
 $as_echo "#define ENABLE_PLUGINS 1" >>confdefs.h
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define PLUGIN_EXT "$PLUGIN_EXT"
+_ACEOF
 
 fi
 
@@ -3930,75 +4022,11 @@ if test $zlib_devel != ok; then
 HTSlib uses compression routines from the zlib library <http://zlib.net>.
 Building HTSlib requires zlib development files to be installed on the build
 machine; you may need to ensure a package such as zlib1g-dev (on Debian or
-Ubuntu Linux) or zlib-devel (on RPM-based Linux distributions) is installed.
+Ubuntu Linux) or zlib-devel (on RPM-based Linux distributions or Cygwin)
+is installed.
 
 FAILED.  This error must be resolved in order to build HTSlib successfully." "$LINENO" 5
 fi
-
-if test $irods = enabled; then
-  # TODO Also test whether we require libgssapi_krb5 and AC_CHECK_LIB it
-  save_LDFLAGS=$LDFLAGS
-  LDFLAGS="$LDFLAGS -L$IRODS_HOME/lib/core/obj"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getRodsEnvFileName in -lRodsAPIs" >&5
-$as_echo_n "checking for getRodsEnvFileName in -lRodsAPIs... " >&6; }
-if ${ac_cv_lib_RodsAPIs_getRodsEnvFileName+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lRodsAPIs -lgssapi_krb5 -lpthread $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char getRodsEnvFileName ();
-int
-main ()
-{
-return getRodsEnvFileName ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_RodsAPIs_getRodsEnvFileName=yes
-else
-  ac_cv_lib_RodsAPIs_getRodsEnvFileName=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_RodsAPIs_getRodsEnvFileName" >&5
-$as_echo "$ac_cv_lib_RodsAPIs_getRodsEnvFileName" >&6; }
-if test "x$ac_cv_lib_RodsAPIs_getRodsEnvFileName" = xyes; then :
-  case $with_irods in
-       yes) define_IRODS_HOME='# Uses $(IRODS_HOME) from the environment' ;;
-       *)   define_IRODS_HOME="IRODS_HOME = $with_irods" ;;
-     esac
-else
-  as_fn_error $? "iRODS development files not found
-
-Support for iRODS URLs requires the libRodsAPI client library and headers.
-Configure with --with-irods=DIR (or just --with-irods if \$IRODS_HOME has
-been exported with a suitable value), where DIR is the base of an iRODS tree
-such that the library is present as DIR/lib/core/obj/libRodsAPI.* and headers
-are present under DIR/lib/api/include and so on." "$LINENO" 5
-fi
-
-  LDFLAGS=$save_LDFLAGS
-
-$as_echo "#define HAVE_IRODS 1" >>confdefs.h
-
-else
-  define_IRODS_HOME='IRODS_HOME ?= /disabled'
-fi
-
-
 
 libcurl=disabled
 if test "$enable_libcurl" != no; then
@@ -4095,8 +4123,8 @@ Support for HTTPS and other SSL-based URLs requires routines from the libcurl
 library <http://curl.haxx.se/libcurl/>.  Building HTSlib with libcurl enabled
 requires libcurl development files to be installed on the build machine; you
 may need to ensure a package such as libcurl4-{gnutls,nss,openssl}-dev (on
-Debian or Ubuntu Linux) or libcurl-devel (on RPM-based Linux distributions)
-is installed.
+Debian or Ubuntu Linux) or libcurl-devel (on RPM-based Linux distributions
+or Cygwin) is installed.
 
 Either configure with --disable-libcurl or resolve this error to build HTSlib." "$LINENO" 5
        ;;
@@ -4182,7 +4210,8 @@ Support for AWS S3 URLs requires routines from an SSL library.  Building
 HTSlib with libcurl enabled requires SSL development files to be installed
 on the build machine; you may need to ensure a package such as libgnutls-dev,
 libnss3-dev, or libssl-dev (on Debian or Ubuntu Linux, corresponding to the
-libcurl4-*-dev package installed) or similar on RPM-based Linux distributions.
+libcurl4-*-dev package installed), or openssl-devel (on RPM-based Linux
+distributions or Cygwin) is installed.
 
 Either configure with --disable-libcurl or resolve this error to build HTSlib." "$LINENO" 5
 fi
@@ -4193,7 +4222,58 @@ fi
 fi
 
 
-ac_config_files="$ac_config_files config.mk"
+openssl=enabled
+if test "$enable_openssl" != no; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SSL_CTX_new in -lssl" >&5
+$as_echo_n "checking for SSL_CTX_new in -lssl... " >&6; }
+if ${ac_cv_lib_ssl_SSL_CTX_new+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lssl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char SSL_CTX_new ();
+int
+main ()
+{
+return SSL_CTX_new ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ssl_SSL_CTX_new=yes
+else
+  ac_cv_lib_ssl_SSL_CTX_new=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ssl_SSL_CTX_new" >&5
+$as_echo "$ac_cv_lib_ssl_SSL_CTX_new" >&6; }
+if test "x$ac_cv_lib_ssl_SSL_CTX_new" = xyes; then :
+
+$as_echo "#define USE_CRYPTO 1" >>confdefs.h
+
+     openssl=enabled
+else
+  as_fn_error $? "SSL development files not found" "$LINENO" 5
+fi
+
+  enable_openssl=yes
+fi
+
+
+ac_config_files="$ac_config_files config.mk deps.mk"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -4887,6 +4967,7 @@ do
   case $ac_config_target in
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "config.mk") CONFIG_FILES="$CONFIG_FILES config.mk" ;;
+    "deps.mk") CONFIG_FILES="$CONFIG_FILES deps.mk" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

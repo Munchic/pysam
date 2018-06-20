@@ -1,5 +1,6 @@
-/* The MIT License
-
+/// @file htslib/bgzf.h
+/// Low-level routines for direct BGZF operations.
+/*
    Copyright (c) 2008 Broad Institute / Massachusetts Institute of Technology
                  2011, 2012 Attractive Chaos <attractor@live.co.uk>
    Copyright (C) 2009, 2013, 2014 Genome Research Ltd
@@ -49,15 +50,17 @@ extern "C" {
 #define BGZF_ERR_MISUSE 8
 
 struct hFILE;
+struct hts_tpool;
 struct bgzf_mtaux_t;
 typedef struct __bgzidx_t bgzidx_t;
+typedef struct __bgzf_aux_t bgzf_aux_t;
 
 struct BGZF {
     unsigned errcode:16, is_write:2, is_be:2;
     signed compress_level:9;
     unsigned is_compressed:2, is_gzip:1;
     int cache_size;
-    int block_length, block_offset;
+    int block_length, block_clength, block_offset;
     int64_t block_address, uncompressed_address;
     void *uncompressed_block, *compressed_block;
     void *cache; // a pointer to a hash table
@@ -66,6 +69,7 @@ struct BGZF {
     bgzidx_t *idx;      // BGZF index
     int idx_build_otf;  // build index on the fly, set by bgzf_index_build_init()
     z_stream *gz_stream;// for gzip-compressed files
+    bgzf_aux_t *aux;
 };
 #ifndef HTS_BGZF_TYPEDEF
 typedef struct BGZF BGZF;
@@ -120,6 +124,14 @@ typedef struct __kstring_t {
     int bgzf_close(BGZF *fp);
 
     /**
+     * Close the BGZF and free all associated resources except for hFILE.
+     *
+     * @param fp    BGZF file handler
+     * @return      0 on success and -1 on error
+     */
+    int bgzf_hclose(BGZF *fp);
+
+    /**
      * Read up to _length_ bytes from the file storing into _data_.
      *
      * @param fp     BGZF file handler
@@ -139,6 +151,18 @@ typedef struct __kstring_t {
      * @return       number of bytes written (i.e., _length_); negative on error
      */
     ssize_t bgzf_write(BGZF *fp, const void *data, size_t length) HTS_RESULT_USED;
+
+    /**
+     * Write _length_ bytes from _data_ to the file, the index will be used to
+     * decide the amount of uncompressed data to be writen to each bgzip block.
+     * If no I/O errors occur, the complete _length_ bytes will be written (or
+     * queued for writing).
+     * @param fp     BGZF file handler
+     * @param data   data array to write
+     * @param length size of data to write
+     * @return       number of bytes written (i.e., _length_); negative on error
+     */
+    ssize_t bgzf_block_write(BGZF *fp, const void *data, size_t length);
 
     /**
      * Read up to _length_ bytes directly from the underlying stream without
@@ -250,8 +274,18 @@ typedef struct __kstring_t {
     int bgzf_read_block(BGZF *fp) HTS_RESULT_USED;
 
     /**
-     * Enable multi-threading (only effective on writing and when the
-     * library was compiled with -DBGZF_MT)
+     * Enable multi-threading (when compiled with -DBGZF_MT) via a shared
+     * thread pool.  This means both encoder and decoder can balance
+     * usage across a single pool of worker jobs.
+     *
+     * @param fp          BGZF file handler; must be opened for writing
+     * @param pool        The thread pool (see hts_create_threads)
+     */
+    int bgzf_thread_pool(BGZF *fp, struct hts_tpool *pool, int qsize);
+
+    /**
+     * Enable multi-threading (only effective when the library was compiled
+     * with -DBGZF_MT)
      *
      * @param fp          BGZF file handler; must be opened for writing
      * @param n_threads   #threads used for writing
