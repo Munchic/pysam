@@ -15,7 +15,7 @@ includes an interface for tabix_.
 
 Installation::
 
-   $ git clone --branch=feature/connect-crypto-htslib https://github.com/Munchic/pysam/
+   $ git clone https://github.com/Munchic/pysam/
    $ cd pysam
    $ python setup.py install --user
 
