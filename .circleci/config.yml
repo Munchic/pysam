@@ -7,7 +7,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - "26:d5:68:e5:7c:54:20:f8:95:9c:60:2d:34:cc:bc:eb"
+            - "34:1e:25:71:88:8d:c9:1f:1e:5a:43:a4:c7:18:56:71"
       - run:
           name: Setting up environment
           command: |
