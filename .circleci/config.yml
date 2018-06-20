@@ -5,10 +5,9 @@ jobs:
       - image: circleci/python:2.7.15
     steps:
       - checkout
-      - run:
-          name: Enable SSH
-          command: |
-            ssh git@github.com
+      - add_ssh_keys:
+          fingerprints:
+            - "3a:67:ef:a3:be:a2:70:b2:95:f7:91:58:57:e7:34:27"
       - run:
           name: Setting up environment
           command: |
