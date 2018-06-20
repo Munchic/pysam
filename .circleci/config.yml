@@ -11,14 +11,14 @@ jobs:
       - run:
           name: Setting up environment
           command: |
-            gcc --version
-            sudo apt-get install build-essential
-            echo Installing pysam
-            python setup.py install --user
             echo Install OpenSSL C library
             sudo apt-get install libssl-dev
             sudo apt-get install openssl
             sudo apt-get install libcurl4-openssl-dev
+            gcc --version
+            sudo apt-get install build-essential
+            echo Installing pysam
+            python setup.py install --user
       - run:
           name: Testing reading encrypted BGZF
           command: |
