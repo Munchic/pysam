@@ -9,14 +9,6 @@ jobs:
           fingerprints:
             - "34:1e:25:71:88:8d:c9:1f:1e:5a:43:a4:c7:18:56:71"
       - run:
-          name: Setting up environment
-          command: |
-            echo Install OpenSSL C library
-            sudo apt-get install libssl-dev
-            sudo apt-get install openssl
-            sudo apt-get install libcurl4-openssl-dev
-            gcc --version
-            sudo apt-get install build-essential
           name: Installing pysam
           command: |
             echo Installing pysam
