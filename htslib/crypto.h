@@ -27,7 +27,6 @@
 #define __CRYPTO_H__
 
 #include <config.h>
-#define USE_CRYPTO 1 // activating crypto by default
 #if USE_CRYPTO
 
 #include <stdio.h>
