@@ -2,7 +2,8 @@
 Pysam with reading encrypted BGZF files functionality
 =====
 
-|build-status| |docs|
+.. image:: https://circleci.com/gh/Munchic/pysam/tree/feature%2Fconnect-crypto-htslib.svg?style=shield
+    :target: https://circleci.com/gh/Munchic/pysam/tree/feature%2Fconnect-crypto-htslib
 
 Pysam is a python module for reading and manipulating files in the
 SAM/BAM format. The SAM/BAM format is a way to store efficiently large
