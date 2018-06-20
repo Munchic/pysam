@@ -55,16 +55,23 @@
 ###############################################################################
 import re
 import array
+import json
+import string
 import ctypes
 import struct
 
 cimport cython
 from cpython cimport array as c_array
 from cpython.version cimport PY_MAJOR_VERSION
-from cpython cimport PyErr_SetString, PyBytes_FromStringAndSize
+from cpython cimport PyBytes_FromStringAndSize
 from libc.string cimport strchr
 from cpython cimport array as c_array
+from libc.stdint cimport INT8_MIN, INT16_MIN, INT32_MIN, \
+    INT8_MAX, INT16_MAX, INT32_MAX, \
+    UINT8_MAX, UINT16_MAX, UINT32_MAX
+from libc.stdio cimport snprintf
 
+from pysam.libchtslib cimport HTS_IDX_NOCOOR
 from pysam.libcutils cimport force_bytes, force_str, \
     charptr_to_str, charptr_to_bytes
 from pysam.libcutils cimport qualities_to_qualitystring, qualitystring_to_array, \
@@ -74,18 +81,29 @@ from pysam.libcutils cimport qualities_to_qualitystring, qualitystring_to_array,
 cdef char * htslib_types = 'cCsSiIf'
 cdef char * parray_types = 'bBhHiIf'
 
+cdef bint IS_PYTHON3 = PY_MAJOR_VERSION >= 3
+
 # translation tables
 
 # cigar code to character and vice versa
 cdef char* CODE2CIGAR= "MIDNSHP=XB"
 cdef int NCIGAR_CODES = 10
 
-if PY_MAJOR_VERSION >= 3:
+# dimensioned for 8000 pileup limit (+ insertions/deletions)
+cdef uint32_t MAX_PILEUP_BUFFER_SIZE = 10000
+
+if IS_PYTHON3:
     CIGAR2CODE = dict([y, x] for x, y in enumerate(CODE2CIGAR))
+    maketrans = str.maketrans
 else:
     CIGAR2CODE = dict([ord(y), x] for x, y in enumerate(CODE2CIGAR))
+    maketrans = string.maketrans
 
 CIGAR_REGEX = re.compile("(\d+)([MIDNSHP=XB])")
+
+# names for keys in dictionary representation of an AlignedSegment
+KEY_NAMES = ["name", "flag", "ref_name", "ref_pos", "map_quality", "cigar",
+             "next_ref_name", "next_ref_pos", "length", "seq", "qual", "tags"]
 
 #####################################################################
 # C multiplication with wrapping around
@@ -93,8 +111,44 @@ cdef inline uint32_t c_mul(uint32_t a, uint32_t b):
     return (a * b) & 0xffffffff
 
 
-#####################################################################
-# typecode guessing
+cdef inline uint8_t tolower(uint8_t ch):
+    if ch >= 65 and ch <= 90:
+        return ch + 32
+    else:
+        return ch
+
+
+cdef inline uint8_t toupper(uint8_t ch):
+    if ch >= 97 and ch <= 122:
+        return ch - 32
+    else:
+        return ch
+
+
+cdef inline uint8_t strand_mark_char(uint8_t ch, bam1_t *b):
+    if ch == '=':
+        if bam_is_rev(b):
+            return ','
+        else:
+            return '.'
+    else:
+        if bam_is_rev(b):
+            return tolower(ch)
+        else:
+            return toupper(ch)
+
+    
+cdef inline bint pileup_base_qual_skip(bam_pileup1_t * p, uint32_t threshold):
+    cdef uint32_t c
+    if p.qpos < p.b.core.l_qseq:
+        c = bam_get_qual(p.b)[p.qpos]
+    else:
+        c = 0
+    if c < threshold:
+        return True
+    return False
+    
+
 cdef inline char map_typecode_htslib_to_python(uint8_t s):
     """map an htslib typecode to the corresponding python typecode
     to be used in the struct or array modules."""
@@ -106,12 +160,36 @@ cdef inline char map_typecode_htslib_to_python(uint8_t s):
         return 0
     return parray_types[f - htslib_types]
 
+
 cdef inline uint8_t map_typecode_python_to_htslib(char s):
     """determine value type from type code of array"""
     cdef char * f = strchr(parray_types, s)
     if f == NULL:
         return 0
     return htslib_types[f - parray_types]
+
+
+cdef inline void update_bin(bam1_t * src):
+    if src.core.flag & BAM_FUNMAP:
+        # treat alignment as length of 1 for unmapped reads
+        src.core.bin = hts_reg2bin(
+            src.core.pos,
+            src.core.pos + 1,
+            14,
+            5)
+    elif pysam_get_n_cigar(src):
+        src.core.bin = hts_reg2bin(
+            src.core.pos,
+            bam_endpos(src),
+            14,
+            5)
+    else:
+        src.core.bin = hts_reg2bin(
+            src.core.pos,
+            src.core.pos + 1,
+            14,
+            5)
+
 
 # optional tag data manipulation
 cdef convert_binary_tag(uint8_t * tag):
@@ -142,18 +220,33 @@ cdef convert_binary_tag(uint8_t * tag):
     return byte_size, nvalues, c_values
 
 
-cdef inline uint8_t get_value_code(value, value_type=None):
-    '''guess type code for a *value*. If *value_type* is None,
-    the type code will be inferred based on the Python type of
-    *value*'''
-    cdef uint8_t  typecode
-    cdef char * _char_type
+cdef inline uint8_t get_tag_typecode(value, value_type=None):
+    """guess type code for a *value*. If *value_type* is None, the type
+    code will be inferred based on the Python type of *value*
 
+    """
+    # 0 is unknown typecode
+    cdef char typecode = 0
+    
     if value_type is None:
         if isinstance(value, int):
-            typecode = 'i'
+            if value < 0:
+                if value >= INT8_MIN:
+                    typecode = 'c'
+                elif value >= INT16_MIN:
+                    typecode = 's'
+                elif value >= INT32_MIN:
+                    typecode = 'i'
+            # unsigned ints
+            else:
+                if value <= UINT8_MAX:
+                    typecode = 'C'
+                elif value <= UINT16_MAX:
+                    typecode = 'S'
+                elif value <= UINT32_MAX:
+                    typecode = 'I'
         elif isinstance(value, float):
-            typecode = 'd'
+            typecode = 'f'
         elif isinstance(value, str):
             typecode = 'Z'
         elif isinstance(value, bytes):
@@ -162,93 +255,98 @@ cdef inline uint8_t get_value_code(value, value_type=None):
                 isinstance(value, list) or \
                 isinstance(value, tuple):
             typecode = 'B'
-        else:
-            return 0
     else:
-        if value_type not in 'Zidf':
-            return 0
-        value_type = force_bytes(value_type)
-        _char_type = value_type
-        typecode = (<uint8_t*>_char_type)[0]
+        if value_type in 'aAsSIcCZidfH':
+            typecode = force_bytes(value_type)[0]
 
     return typecode
 
 
-cdef inline bytes getTypecode(value, maximum_value=None):
+cdef inline uint8_t get_btag_typecode(value, min_value=None, max_value=None):
     '''returns the value typecode of a value.
 
-    If max is specified, the approprite type is
-    returned for a range where value is the minimum.
+    If max is specified, the appropriate type is returned for a range
+    where value is the minimum.
+
+    Note that this method returns types from the extended BAM alphabet
+    of types that includes tags that are not part of the SAM
+    specification.
     '''
 
-    if maximum_value is None:
-        maximum_value = value
 
-    cdef bytes valuetype
+    cdef uint8_t typecode
 
     t = type(value)
 
     if t is float:
-        valuetype = b'f'
+        typecode = 'f'
     elif t is int:
+        if max_value is None:
+            max_value = value
+        if min_value is None:
+            min_value = value
         # signed ints
-        if value < 0:
-            if value >= -128 and maximum_value < 128:
-                valuetype = b'c'
-            elif value >= -32768 and maximum_value < 32768:
-                valuetype = b's'
-            elif value < -2147483648 or maximum_value >= 2147483648:
+        if min_value < 0:
+            if min_value >= INT8_MIN and max_value <= INT8_MAX:
+                typecode = 'c'
+            elif min_value >= INT16_MIN and max_value <= INT16_MAX:
+                typecode = 's'
+            elif min_value >= INT32_MIN or max_value <= INT32_MAX:
+                typecode = 'i'
+            else:
                 raise ValueError(
                     "at least one signed integer out of range of "
                     "BAM/SAM specification")
-            else:
-                valuetype = b'i'
         # unsigned ints
         else:
-            if maximum_value < 256:
-                valuetype = b'C'
-            elif maximum_value < 65536:
-                valuetype = b'S'
-            elif maximum_value >= 4294967296:
+            if max_value <= UINT8_MAX:
+                typecode = 'C'
+            elif max_value <= UINT16_MAX:
+                typecode = 'S'
+            elif max_value <= UINT32_MAX:
+                typecode = 'I'
+            else:
                 raise ValueError(
                     "at least one integer out of range of BAM/SAM specification")
-            else:
-                valuetype = b'I'
     else:
         # Note: hex strings (H) are not supported yet
         if t is not bytes:
             value = value.encode('ascii')
         if len(value) == 1:
-            valuetype = b'A'
+            typecode = 'A'
         else:
-            valuetype = b'Z'
+            typecode = 'Z'
 
-    return valuetype
+    return typecode
 
 
-cdef inline packTags(tags):
+# mapping python array.array and htslib typecodes to struct typecodes
+DATATYPE2FORMAT = {
+    ord('c'): ('b', 1),
+    ord('C'): ('B', 1),
+    ord('s'): ('h', 2),
+    ord('S'): ('H', 2),
+    ord('i'): ('i', 4),
+    ord('I'): ('I', 4),
+    ord('f'): ('f', 4),
+    ord('d'): ('d', 8),
+    ord('A'): ('c', 1),
+    ord('a'): ('c', 1)}
+
+
+cdef inline pack_tags(tags):
     """pack a list of tags. Each tag is a tuple of (tag, tuple).
 
     Values are packed into the most space efficient data structure
     possible unless the tag contains a third field with the typecode.
 
-    Returns a format string and the associated list of arguments
-    to be used in a call to struct.pack_into.
+    Returns a format string and the associated list of arguments to be
+    used in a call to struct.pack_into.
     """
     fmts, args = ["<"], []
 
-    cdef char array_typecode
-
-    datatype2format = {
-        b'c': ('b', 1),
-        b'C': ('B', 1),
-        b's': ('h', 2),
-        b'S': ('H', 2),
-        b'i': ('i', 4),
-        b'I': ('I', 4),
-        b'f': ('f', 4),
-        b'A': ('c', 1)}
-
+    # htslib typecode 
+    cdef uint8_t typecode
     for tag in tags:
 
         if len(tag) == 2:
@@ -259,65 +357,76 @@ cdef inline packTags(tags):
         else:
             raise ValueError("malformatted tag: %s" % str(tag))
 
-        pytag = force_bytes(pytag)
-        valuetype = force_bytes(valuetype)
-        t = type(value)
+        if valuetype is None:
+            typecode = 0
+        else:
+            # only first character in valuecode matters
+            if IS_PYTHON3:
+                typecode = force_bytes(valuetype)[0]
+            else:
+                typecode = ord(valuetype[0])
 
-        if t is tuple or t is list:
+        pytag = force_bytes(pytag)
+        pytype = type(value)
+
+        if pytype is tuple or pytype is list:
             # binary tags from tuples or lists
-            if valuetype is None:
+            if not typecode:
                 # automatically determine value type - first value
                 # determines type. If there is a mix of types, the
                 # result is undefined.
-                valuetype = getTypecode(min(value), max(value))
+                typecode = get_btag_typecode(min(value),
+                                             min_value=min(value),
+                                             max_value=max(value))
 
-            if valuetype not in datatype2format:
-                raise ValueError("invalid value type '%s'" % valuetype)
+            if typecode not in DATATYPE2FORMAT:
+                raise ValueError("invalid value type '{}'".format(chr(typecode)))
 
-            datafmt = "2sccI%i%s" % (len(value), datatype2format[valuetype][0])
+            datafmt = "2sBBI%i%s" % (len(value), DATATYPE2FORMAT[typecode][0])
             args.extend([pytag[:2],
-                         b"B",
-                         valuetype,
+                         ord("B"),
+                         typecode,
                          len(value)] + list(value))
 
         elif isinstance(value, array.array):
             # binary tags from arrays
-            if valuetype is None:
-                array_typecode = map_typecode_python_to_htslib(ord(value.typecode))
+            if typecode == 0:
+                typecode = map_typecode_python_to_htslib(ord(value.typecode))
 
-                if array_typecode == 0:
-                    raise ValueError("unsupported type code '{}'"
-                                     .format(value.typecode))
+                if typecode == 0:
+                    raise ValueError("unsupported type code '{}'".format(value.typecode))
 
-                valuetype = force_bytes(chr(array_typecode))
-
-            if valuetype not in datatype2format:
-                raise ValueError("invalid value type '%s' (%s)" %
-                                 (valuetype, type(valuetype)))
-
+            if typecode not in DATATYPE2FORMAT:
+                raise ValueError("invalid value type '{}' ({})".format(chr(typecode), array.typecode))
+            
             # use array.tostring() to retrieve byte representation and
             # save as bytes
-            datafmt = "2sccI%is" % (len(value) * datatype2format[valuetype][1])
+            datafmt = "2sBBI%is" % (len(value) * DATATYPE2FORMAT[typecode][1])
             args.extend([pytag[:2],
-                         b"B",
-                         valuetype,
+                         ord("B"),
+                         typecode,
                          len(value),
                          force_bytes(value.tostring())])
 
         else:
-            if valuetype is None:
-                valuetype = getTypecode(value)
-
-            if valuetype in b"AZ":
+            if typecode == 0:
+                typecode = get_tag_typecode(value)
+                if typecode == 0:
+                    raise ValueError("could not deduce typecode for value {}".format(value))
+                
+            if typecode == 'a' or typecode == 'A' or typecode == 'Z' or typecode == 'H':
                 value = force_bytes(value)
 
-            if valuetype == b"Z":
-                datafmt = "2sc%is" % (len(value)+1)
-            else:
-                datafmt = "2sc%s" % datatype2format[valuetype][0]
+            if typecode == "a":
+                typecode = 'A'
 
+            if typecode == 'Z' or typecode == 'H':
+                datafmt = "2sB%is" % (len(value)+1)
+            else:
+                datafmt = "2sB%s" % DATATYPE2FORMAT[typecode][0]
+                
             args.extend([pytag[:2],
-                         valuetype,
+                         typecode,
                          value])
 
         fmts.append(datafmt)
@@ -325,8 +434,40 @@ cdef inline packTags(tags):
     return "".join(fmts), args
 
 
-cdef inline int32_t calculateQueryLength(bam1_t * src):
+cdef inline int32_t calculateQueryLengthWithoutHardClipping(bam1_t * src):
     """return query length computed from CIGAR alignment.
+
+    Length ignores hard-clipped bases.
+
+    Return 0 if there is no CIGAR alignment.
+    """
+
+    cdef uint32_t * cigar_p = pysam_bam_get_cigar(src)
+
+    if cigar_p == NULL:
+        return 0
+
+    cdef uint32_t k, qpos
+    cdef int op
+    qpos = 0
+
+    for k from 0 <= k < pysam_get_n_cigar(src):
+        op = cigar_p[k] & BAM_CIGAR_MASK
+
+        if op == BAM_CMATCH or \
+           op == BAM_CINS or \
+           op == BAM_CSOFT_CLIP or \
+           op == BAM_CEQUAL or \
+           op == BAM_CDIFF:
+            qpos += cigar_p[k] >> BAM_CIGAR_SHIFT
+
+    return qpos
+
+
+cdef inline int32_t calculateQueryLengthWithHardClipping(bam1_t * src):
+    """return query length computed from CIGAR alignment.
+
+    Length includes hard-clipped bases.
 
     Return 0 if there is no CIGAR alignment.
     """
@@ -356,44 +497,45 @@ cdef inline int32_t calculateQueryLength(bam1_t * src):
 
 cdef inline int32_t getQueryStart(bam1_t *src) except -1:
     cdef uint32_t * cigar_p
-    cdef uint32_t k, op
     cdef uint32_t start_offset = 0
+    cdef uint32_t k, op
 
-    if pysam_get_n_cigar(src):
-        cigar_p = pysam_bam_get_cigar(src);
-        for k from 0 <= k < pysam_get_n_cigar(src):
-            op = cigar_p[k] & BAM_CIGAR_MASK
-            if op == BAM_CHARD_CLIP:
-                if start_offset != 0 and start_offset != src.core.l_qseq:
-                    PyErr_SetString(ValueError, 'Invalid clipping in CIGAR string')
-                    return -1
-            elif op == BAM_CSOFT_CLIP:
-                start_offset += cigar_p[k] >> BAM_CIGAR_SHIFT
-            else:
-                break
+    cigar_p = pysam_bam_get_cigar(src);
+    for k from 0 <= k < pysam_get_n_cigar(src):
+        op = cigar_p[k] & BAM_CIGAR_MASK
+        if op == BAM_CHARD_CLIP:
+            if start_offset != 0 and start_offset != src.core.l_qseq:
+                raise ValueError('Invalid clipping in CIGAR string')
+        elif op == BAM_CSOFT_CLIP:
+            start_offset += cigar_p[k] >> BAM_CIGAR_SHIFT
+        else:
+            break
 
     return start_offset
 
 
 cdef inline int32_t getQueryEnd(bam1_t *src) except -1:
-    cdef uint32_t * cigar_p
-    cdef uint32_t k, op
+    cdef uint32_t * cigar_p = pysam_bam_get_cigar(src)
     cdef uint32_t end_offset = src.core.l_qseq
+    cdef uint32_t k, op
 
     # if there is no sequence, compute length from cigar string
     if end_offset == 0:
-        end_offset = calculateQueryLength(src)
-
-    # walk backwards in cigar string
-    if pysam_get_n_cigar(src) > 1:
-        cigar_p = pysam_bam_get_cigar(src);
+        for k from 0 <= k < pysam_get_n_cigar(src):
+            op = cigar_p[k] & BAM_CIGAR_MASK
+            if op == BAM_CMATCH or \
+               op == BAM_CINS or \
+               op == BAM_CEQUAL or \
+               op == BAM_CDIFF or \
+              (op == BAM_CSOFT_CLIP and end_offset == 0):
+                end_offset += cigar_p[k] >> BAM_CIGAR_SHIFT
+    else:
+        # walk backwards in cigar string
         for k from pysam_get_n_cigar(src) > k >= 1:
             op = cigar_p[k] & BAM_CIGAR_MASK
             if op == BAM_CHARD_CLIP:
-                if end_offset != 0 and end_offset != src.core.l_qseq:
-                    PyErr_SetString(ValueError,
-                                    'Invalid clipping in CIGAR string')
-                    return -1
+                if end_offset != src.core.l_qseq:
+                    raise ValueError('Invalid clipping in CIGAR string')
             elif op == BAM_CSOFT_CLIP:
                 end_offset -= cigar_p[k] >> BAM_CIGAR_SHIFT
             else:
@@ -450,38 +592,53 @@ cdef inline object getQualitiesInRange(bam1_t *src,
 
 
 #####################################################################
-## private factory methods
+## factory methods for instantiating extension classes
 cdef class AlignedSegment
-cdef makeAlignedSegment(bam1_t * src, AlignmentFile alignment_file):
+cdef AlignedSegment makeAlignedSegment(bam1_t *src,
+                                       AlignmentHeader header):
     '''return an AlignedSegment object constructed from `src`'''
     # note that the following does not call __init__
     cdef AlignedSegment dest = AlignedSegment.__new__(AlignedSegment)
     dest._delegate = bam_dup1(src)
-    dest._alignment_file = alignment_file
+    dest.header = header
     return dest
 
 
 cdef class PileupColumn
-cdef makePileupColumn(bam_pileup1_t ** plp, int tid, int pos,
-                      int n_pu, AlignmentFile alignment_file):
+cdef PileupColumn makePileupColumn(bam_pileup1_t ** plp,
+                      int tid,
+                      int pos,
+                      int n_pu,
+                      uint32_t min_base_quality,
+                      char * reference_sequence,
+                      AlignmentHeader header):
     '''return a PileupColumn object constructed from pileup in `plp` and
     setting additional attributes.
 
     '''
     # note that the following does not call __init__
     cdef PileupColumn dest = PileupColumn.__new__(PileupColumn)
-    dest._alignment_file = alignment_file
+    dest.header = header
     dest.plp = plp
     dest.tid = tid
     dest.pos = pos
     dest.n_pu = n_pu
+    dest.min_base_quality = min_base_quality
+    dest.reference_sequence = reference_sequence
+    dest.buf = <uint8_t *>calloc(MAX_PILEUP_BUFFER_SIZE, sizeof(uint8_t))
+    if dest.buf == NULL:
+        raise MemoryError("could not allocate pileup buffer")
+
     return dest
 
+
 cdef class PileupRead
-cdef inline makePileupRead(bam_pileup1_t * src, AlignmentFile alignment_file):
+cdef PileupRead makePileupRead(bam_pileup1_t *src,
+                               AlignmentHeader header):
     '''return a PileupRead object construted from a bam_pileup1_t * object.'''
+    # note that the following does not call __init__
     cdef PileupRead dest = PileupRead.__new__(PileupRead)
-    dest._alignment = makeAlignedSegment(src.b, alignment_file)
+    dest._alignment = makeAlignedSegment(src.b, header)
     dest._qpos = src.qpos
     dest._indel = src.indel
     dest._level = src.level
@@ -492,8 +649,8 @@ cdef inline makePileupRead(bam_pileup1_t * src, AlignmentFile alignment_file):
     return dest
 
 
-cdef inline uint32_t get_alignment_length(bam1_t * src):
-    cdef int k = 0
+cdef inline uint32_t get_alignment_length(bam1_t *src):
+    cdef uint32_t k = 0
     cdef uint32_t l = 0
     if src == NULL:
         return 0
@@ -501,7 +658,7 @@ cdef inline uint32_t get_alignment_length(bam1_t * src):
     if cigar_p == NULL:
         return 0
     cdef int op
-    cdef int n = pysam_get_n_cigar(src)
+    cdef uint32_t n = pysam_get_n_cigar(src)
     for k from 0 <= k < n:
         op = cigar_p[k] & BAM_CIGAR_MASK
         if op == BAM_CSOFT_CLIP or op == BAM_CHARD_CLIP:
@@ -509,6 +666,32 @@ cdef inline uint32_t get_alignment_length(bam1_t * src):
         l += cigar_p[k] >> BAM_CIGAR_SHIFT
     return l
 
+
+cdef inline uint32_t get_md_reference_length(char * md_tag):
+    cdef int l = 0
+    cdef int md_idx = 0
+    cdef int nmatches = 0
+
+    while md_tag[md_idx] != 0:
+        if md_tag[md_idx] >= 48 and md_tag[md_idx] <= 57:
+            nmatches *= 10
+            nmatches += md_tag[md_idx] - 48
+            md_idx += 1
+            continue
+        else:
+            l += nmatches
+            nmatches = 0
+            if md_tag[md_idx] == '^':
+                md_idx += 1
+                while md_tag[md_idx] >= 65 and md_tag[md_idx] <= 90:
+                    md_idx += 1
+                    l += 1
+            else:
+                md_idx += 1
+                l += 1
+
+    l += nmatches
+    return l
 
 # TODO: avoid string copying for getSequenceInRange, reconstituneSequenceFromMD, ...
 cdef inline bytes build_alignment_sequence(bam1_t * src):
@@ -535,6 +718,10 @@ cdef inline bytes build_alignment_sequence(bam1_t * src):
     if src == NULL:
         return None
 
+    cdef uint8_t * md_tag_ptr = bam_aux_get(src, "MD")
+    if md_tag_ptr == NULL:
+        return None
+
     cdef uint32_t start = getQueryStart(src)
     cdef uint32_t end = getQueryEnd(src)
     # get read sequence, taking into account soft-clipping
@@ -557,7 +744,7 @@ cdef inline bytes build_alignment_sequence(bam1_t * src):
     cdef char * s = <char*>calloc(max_len + 1, sizeof(char))
     if s == NULL:
         raise ValueError(
-            "could not allocated sequence of length %i" % max_len)
+            "could not allocate sequence of length %i" % max_len)
 
     for k from 0 <= k < pysam_get_n_cigar(src):
         op = cigar_p[k] & BAM_CIGAR_MASK
@@ -588,15 +775,26 @@ cdef inline bytes build_alignment_sequence(bam1_t * src):
                 "Padding (BAM_CPAD, 6) is currently not supported. "
                 "Please implement. Sorry about that.")
 
-    cdef uint8_t * md_tag_ptr = bam_aux_get(src, "MD")
-    if md_tag_ptr == NULL:
-        seq = PyBytes_FromStringAndSize(s, s_idx)
-        free(s)
-        return seq
-
     cdef char * md_tag = <char*>bam_aux2Z(md_tag_ptr)
     cdef int md_idx = 0
     s_idx = 0
+
+    # Check if MD tag is valid by matching CIGAR length to MD tag defined length
+    # Insertions would be in addition to what is described by MD, so we calculate
+    # the number of insertions seperately.
+    cdef int insertions = 0
+
+    while s[s_idx] != 0:
+        if s[s_idx] >= 'a':
+            insertions += 1
+        s_idx += 1
+    s_idx = 0
+
+    cdef uint32_t md_len = get_md_reference_length(md_tag)
+    if md_len + insertions > max_len:
+        raise AssertionError(
+            "Invalid MD tag: MD length {} mismatch with CIGAR length {} and {} insertions".format(
+            md_len, max_len, insertions))
 
     while md_tag[md_idx] != 0:
         # c is numerical
@@ -619,7 +817,7 @@ cdef inline bytes build_alignment_sequence(bam1_t * src):
             if md_tag[md_idx] == '^':
                 md_idx += 1
                 while md_tag[md_idx] >= 65 and md_tag[md_idx] <= 90:
-                    assert s[s_idx] == '-'
+                    # assert s[s_idx] == '-'
                     s[s_idx] = md_tag[md_idx]
                     s_idx += 1
                     md_idx += 1
@@ -644,6 +842,60 @@ cdef inline bytes build_alignment_sequence(bam1_t * src):
     return seq
 
 
+cdef inline bytes build_reference_sequence(bam1_t * src):
+    """return the reference sequence in the region that is covered by the
+    alignment of the read to the reference.
+
+    This method requires the MD tag to be set.
+
+    """
+    cdef uint32_t k, i, l
+    cdef int op
+    cdef int s_idx = 0
+    ref_seq = build_alignment_sequence(src)
+    if ref_seq is None:
+        raise ValueError("MD tag not present")
+
+    cdef char * s = <char*>calloc(len(ref_seq) + 1, sizeof(char))
+    if s == NULL:
+        raise ValueError(
+            "could not allocate sequence of length %i" % len(ref_seq))
+
+    cdef char * cref_seq = ref_seq
+    cdef uint32_t * cigar_p = pysam_bam_get_cigar(src)
+    cdef uint32_t r_idx = 0
+    for k from 0 <= k < pysam_get_n_cigar(src):
+        op = cigar_p[k] & BAM_CIGAR_MASK
+        l = cigar_p[k] >> BAM_CIGAR_SHIFT
+        if op == BAM_CMATCH or op == BAM_CEQUAL or op == BAM_CDIFF:
+            for i from 0 <= i < l:
+                s[s_idx] = cref_seq[r_idx]
+                r_idx += 1
+                s_idx += 1
+        elif op == BAM_CDEL:
+            for i from 0 <= i < l:
+                s[s_idx] = cref_seq[r_idx]
+                r_idx += 1
+                s_idx += 1
+        elif op == BAM_CREF_SKIP:
+            pass
+        elif op == BAM_CINS:
+            r_idx += l
+        elif op == BAM_CSOFT_CLIP:
+            pass
+        elif op == BAM_CHARD_CLIP:
+            pass # advances neither
+        elif op == BAM_CPAD:
+            raise NotImplementedError(
+                "Padding (BAM_CPAD, 6) is currently not supported. "
+                "Please implement. Sorry about that.")
+
+    seq = PyBytes_FromStringAndSize(s, s_idx)
+    free(s)
+
+    return seq
+
+
 cdef class AlignedSegment:
     '''Class representing an aligned segment.
 
@@ -661,18 +913,29 @@ cdef class AlignedSegment:
     One issue to look out for is that the sequence should always
     be set *before* the quality scores. Setting the sequence will
     also erase any quality scores that were set previously.
+
+    Parameters
+    ----------
+
+    header -- :class:`~pysam.AlignmentHeader` object to map numerical
+              identifiers to chromosome names. If not given, an empty
+              header is created.
     '''
 
     # Now only called when instances are created from Python
-    def __init__(self):
+    def __init__(self, AlignmentHeader header=None):
         # see bam_init1
         self._delegate = <bam1_t*>calloc(1, sizeof(bam1_t))
+        if self._delegate == NULL:
+            raise MemoryError("could not allocated memory of {} bytes".format(sizeof(bam1_t)))
         # allocate some memory. If size is 0, calloc does not return a
         # pointer that can be passed to free() so allocate 40 bytes
         # for a new read
         self._delegate.m_data = 40
         self._delegate.data = <uint8_t *>calloc(
             self._delegate.m_data, 1)
+        if self._delegate.data == NULL:
+            raise MemoryError("could not allocate memory of {} bytes".format(self._delegate.m_data))
         self._delegate.l_data = 0
         # set some data to make read approximately legit.
         # Note, SAM writing fails with q_name of length 0
@@ -687,7 +950,9 @@ cdef class AlignedSegment:
         self.cache_query_alignment_qualities = None
         self.cache_query_sequence = None
         self.cache_query_alignment_sequence = None
-
+        
+        self.header = header
+        
     def __dealloc__(self):
         bam_destroy1(self._delegate)
 
@@ -699,7 +964,7 @@ cdef class AlignedSegment:
         As a result :term:`tid` is shown instead of the reference name.
         Similarly, the tags field is returned in its parsed state.
 
-        To get a valid SAM record, use :meth:`tostring`.
+        To get a valid SAM record, use :meth:`to_string`.
         """
         # sam-parsing is done in sam.c/bam_format1_core which
         # requires a valid header.
@@ -717,15 +982,14 @@ cdef class AlignedSegment:
                                    self.tags)))
 
     def __copy__(self):
-        return makeAlignedSegment(self._delegate, self._alignment_file)
+        return makeAlignedSegment(self._delegate, self.header)
 
     def __deepcopy__(self, memo):
-        return makeAlignedSegment(self._delegate, self._alignment_file)
+        return makeAlignedSegment(self._delegate, self.header)
 
     def compare(self, AlignedSegment other):
         '''return -1,0,1, if contents in this are binary
         <,=,> to *other*
-
         '''
 
         cdef int retval, x
@@ -748,10 +1012,13 @@ cdef class AlignedSegment:
         if t == o:
             return 0
 
+        cdef uint8_t *a = <uint8_t*>&t.core
+        cdef uint8_t *b = <uint8_t*>&o.core
+        
         retval = memcmp(&t.core, &o.core, sizeof(bam1_core_t))
-
         if retval:
             return retval
+
         # cmp(t.l_data, o.l_data)
         retval = (t.l_data > o.l_data) - (t.l_data < o.l_data)
         if retval:
@@ -781,32 +1048,24 @@ cdef class AlignedSegment:
 
         return hash_value
 
-    cpdef tostring(self, AlignmentFile_t htsfile):
+    cpdef to_string(self):
         """returns a string representation of the aligned segment.
 
-        The output format is valid SAM format.
-
-        Parameters
-        ----------
-
-        htsfile -- AlignmentFile object to map numerical
-                   identifiers to chromosome names.
+        The output format is valid SAM format if a header is associated
+        with the AlignedSegment.
         """
-        cdef int n_targets = htsfile.header.n_targets
-
-        if self._delegate.core.tid >= n_targets \
-            or self._delegate.core.mtid >= n_targets:
-            raise ValueError('htsfile does not match aligned segment')
-
         cdef kstring_t line
         line.l = line.m = 0
         line.s = NULL
 
-        if sam_format1(htsfile.header, self._delegate, &line) < 0:
-            if line.m:
-                free(line.s)
-            raise ValueError('sam_format failed')
-
+        if self.header:
+            if sam_format1(self.header.ptr, self._delegate, &line) < 0:
+                if line.m:
+                    free(line.s)
+                raise ValueError('sam_format failed')
+        else:
+            raise NotImplementedError("todo")
+        
         ret = force_str(line.s[:line.l])
 
         if line.m:
@@ -814,61 +1073,153 @@ cdef class AlignedSegment:
 
         return ret
 
+    @classmethod
+    def fromstring(cls, sam, AlignmentHeader header):
+        """parses a string representation of the aligned segment.
+
+        The input format should be valid SAM format.
+
+        Parameters
+        ----------
+        sam -- :term:`SAM` formatted string
+
+        """
+        cdef AlignedSegment dest = cls.__new__(cls)
+        dest._delegate = <bam1_t*>calloc(1, sizeof(bam1_t))
+        dest.header = header
+
+        cdef kstring_t line
+        line.l = line.m = len(sam)
+        _sam = force_bytes(sam)
+        line.s = _sam
+
+        sam_parse1(&line, dest.header.ptr, dest._delegate)
+        
+        return dest
+
+    cpdef tostring(self, htsfile=None):
+        """deprecated, use :meth:`to_string()` instead.
+
+        Parameters
+        ----------
+
+        htsfile -- (deprecated) AlignmentFile object to map numerical
+                   identifiers to chromosome names. This parameter is present
+                   for backwards compatibility and ignored.
+        """
+
+        return self.to_string()
+    
+    def to_dict(self):
+        """returns a json representation of the aligned segment.
+
+        Field names are abbreviated versions of the class attributes.
+        """
+        # let htslib do the string conversions, but treat optional field properly as list
+        vals = self.to_string().split("\t")
+        n = len(KEY_NAMES) - 1
+        return dict(list(zip(KEY_NAMES[:-1], vals[:n])) + [(KEY_NAMES[-1], vals[n:])])
+
+    @classmethod
+    def from_dict(cls, sam_dict, AlignmentHeader header):
+        """parses a dictionary representation of the aligned segment.
+
+        Parameters
+        ----------
+        sam_dict -- dictionary of alignment values, keys corresponding to output from
+                    :meth:`todict()`.
+
+        """
+        # let htslib do the parsing
+        # the tags field can be missing
+        return cls.fromstring(
+            "\t".join((sam_dict[x] for x in KEY_NAMES[:-1])) +
+            "\t" +
+            "\t".join(sam_dict.get(KEY_NAMES[-1], [])), header)
+    
     ########################################################
     ## Basic attributes in order of appearance in SAM format
     property query_name:
         """the query template name (None if not present)"""
         def __get__(self):
-            cdef bam1_t * src
-            src = self._delegate
-            if pysam_get_l_qname(src) == 0:
+
+            cdef bam1_t * src = self._delegate
+            if src.core.l_qname == 0:
                 return None
+
             return charptr_to_str(<char *>pysam_bam_get_qname(src))
 
         def __set__(self, qname):
+
             if qname is None or len(qname) == 0:
                 return
 
-            if len(qname) >= 255:
-                raise ValueError("query length out of range {} > 254".format(
+            # See issue #447
+            # (The threshold is 252 chars, but this includes a \0 byte.
+            if len(qname) > 251:
+                raise ValueError("query length out of range {} > 251".format(
                     len(qname)))
 
             qname = force_bytes(qname)
-            cdef bam1_t * src
-            cdef int l
-            cdef char * p
-
-            src = self._delegate
-            p = pysam_bam_get_qname(src)
-
+            cdef bam1_t * src = self._delegate
             # the qname is \0 terminated
-            l = len(qname) + 1
-            pysam_bam_update(src,
-                             pysam_get_l_qname(src),
-                             l,
-                             <uint8_t*>p)
+            cdef uint8_t l = len(qname) + 1
 
-            pysam_set_l_qname(src, l)
+            cdef char * p = pysam_bam_get_qname(src)
+            cdef uint8_t l_extranul = 0
 
+            if l % 4 != 0:
+                l_extranul = 4 - l % 4
+
+            cdef bam1_t * retval = pysam_bam_update(src,
+                                                    src.core.l_qname,
+                                                    l + l_extranul,
+                                                    <uint8_t*>p)
+            if retval == NULL:
+                raise MemoryError("could not allocate memory")
+
+            src.core.l_extranul = l_extranul
+            src.core.l_qname = l + l_extranul
+            
             # re-acquire pointer to location in memory
             # as it might have moved
             p = pysam_bam_get_qname(src)
 
             strncpy(p, qname, l)
+            # x might be > 255
+            cdef uint16_t x = 0
+
+            for x from l <= x < l + l_extranul:
+                p[x] = '\0'
 
     property flag:
         """properties flag"""
         def __get__(self):
-            return pysam_get_flag(self._delegate)
+            return self._delegate.core.flag
         def __set__(self, flag):
-            pysam_set_flag(self._delegate, flag)
+            self._delegate.core.flag = flag
 
     property reference_name:
-        """:term:`reference` name (None if no AlignmentFile is associated)"""
+        """:term:`reference` name"""
         def __get__(self):
-            if self._alignment_file is not None:
-                return self._alignment_file.getrname(self._delegate.core.tid)
-            return None
+            if self._delegate.core.tid == -1:
+                return None
+            if self.header:
+                return self.header.get_reference_name(self._delegate.core.tid)
+            else:
+                raise ValueError("reference_name unknown if no header associated with record")
+        def __set__(self, reference):
+            cdef int tid
+            if reference is None or reference == "*":
+                self._delegate.core.tid = -1
+            elif self.header:
+                tid = self.header.get_tid(reference)
+                if tid < 0:
+                    raise ValueError("reference {} does not exist in header".format(
+                        reference))
+                self._delegate.core.tid = tid
+            else:
+                raise ValueError("reference_name can not be set if no header associated with record")
 
     property reference_id:
         """:term:`reference` ID
@@ -877,35 +1228,27 @@ cdef class AlignedSegment:
 
             This field contains the index of the reference sequence in
             the sequence dictionary. To obtain the name of the
-            reference sequence, use
-            :meth:`pysam.AlignmentFile.getrname()`
+            reference sequence, use :meth:`get_reference_name()`
 
         """
-        def __get__(self): return self._delegate.core.tid
-        def __set__(self, tid): self._delegate.core.tid = tid
+        def __get__(self):
+            return self._delegate.core.tid
+        def __set__(self, tid):
+            if tid != -1 and self.header and not self.header.is_valid_tid(tid):
+                raise ValueError("reference id {} does not exist in header".format(
+                    tid))
+            self._delegate.core.tid = tid
 
     property reference_start:
         """0-based leftmost coordinate"""
-        def __get__(self): return self._delegate.core.pos
+        def __get__(self):
+            return self._delegate.core.pos
         def __set__(self, pos):
             ## setting the position requires updating the "bin" attribute
             cdef bam1_t * src
             src = self._delegate
             src.core.pos = pos
-            if pysam_get_n_cigar(src):
-                pysam_set_bin(src,
-                              hts_reg2bin(
-                                  src.core.pos,
-                                  bam_endpos(src),
-                                  14,
-                                  5))
-            else:
-                pysam_set_bin(src,
-                              hts_reg2bin(
-                                  src.core.pos,
-                                  src.core.pos + 1,
-                                  14,
-                                  5))
+            update_bin(src)
 
     property mapping_quality:
         """mapping quality"""
@@ -953,17 +1296,39 @@ cdef class AlignedSegment:
 
     property next_reference_id:
         """the :term:`reference` id of the mate/next read."""
-        def __get__(self): return self._delegate.core.mtid
+        def __get__(self):
+            return self._delegate.core.mtid
         def __set__(self, mtid):
+            if mtid != -1 and self.header and not self.header.is_valid_tid(mtid):
+                raise ValueError("reference id {} does not exist in header".format(
+                    mtid))
             self._delegate.core.mtid = mtid
 
     property next_reference_name:
         """:term:`reference` name of the mate/next read (None if no
         AlignmentFile is associated)"""
         def __get__(self):
-            if self._alignment_file is not None:
-                return self._alignment_file.getrname(self._delegate.core.mtid)
-            return None
+            if self._delegate.core.mtid == -1:
+                return None
+            if self.header:
+                return self.header.get_reference_name(self._delegate.core.mtid)
+            else:
+                raise ValueError("next_reference_name unknown if no header associated with record")
+            
+        def __set__(self, reference):
+            cdef int mtid
+            if reference is None or reference == "*":
+                self._delegate.core.mtid = -1
+            elif reference == "=":
+                self._delegate.core.mtid = self._delegate.core.tid
+            elif self.header:
+                mtid = self.header.get_tid(reference)
+                if mtid < 0:
+                    raise ValueError("reference {} does not exist in header".format(
+                        reference))
+                self._delegate.core.mtid = mtid
+            else:
+                raise ValueError("next_reference_name can not be set if no header associated with record")
 
     property next_reference_start:
         """the position of the mate/next read."""
@@ -1058,10 +1423,13 @@ cdef class AlignedSegment:
             src.core.l_qseq = l
 
             # change length of data field
-            pysam_bam_update(src,
-                             nbytes_old,
-                             nbytes_new,
-                             p)
+            cdef bam1_t * retval = pysam_bam_update(src,
+                                                    nbytes_old,
+                                                    nbytes_new,
+                                                    p)
+            
+            if retval == NULL:
+                raise MemoryError("could not allocate memory")
 
             if l > 0:
                 # re-acquire pointer to location in memory
@@ -1156,9 +1524,9 @@ cdef class AlignedSegment:
     property bin:
         """properties bin"""
         def __get__(self):
-            return pysam_get_bin(self._delegate)
+            return self._delegate.core.bin
         def __set__(self, bin):
-            pysam_set_bin(self._delegate, bin)
+            self._delegate.core.bin = bin
 
 
     ##########################################################
@@ -1186,6 +1554,10 @@ cdef class AlignedSegment:
             return (self.flag & BAM_FUNMAP) != 0
         def __set__(self, val):
             pysam_update_flag(self._delegate, val, BAM_FUNMAP)
+            # setting the unmapped flag requires recalculation of
+            # bin as alignment length is now implicitely 1
+            update_bin(self._delegate)
+                
     property mate_is_unmapped:
         """true if the mate is unmapped"""
         def __get__(self):
@@ -1344,14 +1716,17 @@ cdef class AlignedSegment:
 
         This the index of the first base in :attr:`seq` that is not
         soft-clipped.
-
         """
         def __get__(self):
             return getQueryStart(self._delegate)
 
     property query_alignment_end:
         """end index of the aligned query portion of the sequence (0-based,
-        exclusive)"""
+        exclusive)
+
+        This the index just past the last base in :attr:`seq` that is not
+        soft-clipped.
+        """
         def __get__(self):
             return getQueryEnd(self._delegate)
 
@@ -1377,7 +1752,7 @@ cdef class AlignedSegment:
         thus be of the same length as the read.
 
         """
-        cdef uint32_t k, i, pos
+        cdef uint32_t k, i, l, pos
         cdef int op
         cdef uint32_t * cigar_p
         cdef bam1_t * src
@@ -1408,68 +1783,71 @@ cdef class AlignedSegment:
 
         return result
 
-    def infer_query_length(self, always=True):
-        """inferred read length from CIGAR string.
+    def infer_query_length(self, always=False):
+        """infer query length from CIGAR alignment.
 
-        If *always* is set to True, the read length
-        will be always inferred. If set to False, the length
-        of the read sequence will be returned if it is
-        available.
+        This method deduces the query length from the CIGAR alignment
+        but does not include hard-clipped bases.
 
-        Returns None if CIGAR string is not present.
+        Returns None if CIGAR alignment is not present.
+
+        If *always* is set to True, `infer_read_length` is used instead.
+        This is deprecated and only present for backward compatibility.
         """
+        if always is True:
+            return self.infer_read_length()
+        cdef int32_t l = calculateQueryLengthWithoutHardClipping(self._delegate)
+        if l > 0:
+            return l
+        else:
+            return None
 
-        cdef uint32_t * cigar_p
-        cdef bam1_t * src
+    def infer_read_length(self):
+        """infer read length from CIGAR alignment.
 
-        src = self._delegate
+        This method deduces the read length from the CIGAR alignment
+        including hard-clipped bases.
 
-        if not always and src.core.l_qseq:
-            return src.core.l_qseq
-
-        return calculateQueryLength(src)
+        Returns None if CIGAR alignment is not present.
+        """
+        cdef int32_t l = calculateQueryLengthWithHardClipping(self._delegate)
+        if l > 0:
+            return l
+        else:
+            return None
 
     def get_reference_sequence(self):
-        """return the reference sequence.
+        """return the reference sequence in the region that is covered by the
+        alignment of the read to the reference.
 
         This method requires the MD tag to be set.
+
         """
-        cdef uint32_t k, i
-        cdef int op
-        cdef bam1_t * src = self._delegate
-        ref_seq = force_str(build_alignment_sequence(src))
-        if ref_seq is None:
-            raise ValueError("MD tag not present")
+        return force_str(build_reference_sequence(self._delegate))
 
-        cdef uint32_t * cigar_p = pysam_bam_get_cigar(src)
-        cdef uint32_t r_idx = 0
-        result = []
-        for k from 0 <= k < pysam_get_n_cigar(src):
-            op = cigar_p[k] & BAM_CIGAR_MASK
-            l = cigar_p[k] >> BAM_CIGAR_SHIFT
-            if op == BAM_CMATCH or op == BAM_CEQUAL or op == BAM_CDIFF:
-                for i from 0 <= i < l:
-                    result.append(ref_seq[r_idx])
-                    r_idx += 1
-            elif op == BAM_CDEL:
-                for i from 0 <= i < l:
-                    result.append(ref_seq[r_idx])
-                    r_idx += 1
-            elif op == BAM_CREF_SKIP:
-                pass
-            elif op == BAM_CINS:
-                r_idx += l
-            elif op == BAM_CSOFT_CLIP:
-                pass
-            elif op == BAM_CHARD_CLIP:
-                pass # advances neither
-            elif op == BAM_CPAD:
-                raise NotImplementedError(
-                    "Padding (BAM_CPAD, 6) is currently not supported. "
-                    "Please implement. Sorry about that.")
+    def get_forward_sequence(self):
+        """return the original read sequence.
+        
+        Reads mapping to the reverse strand will be reverse
+        complemented.
+        """
+        s = force_str(self.query_sequence)
+        if self.is_reverse:
+            s = s.translate(maketrans("ACGTacgtNnXx", "TGCAtgcaNnXx"))[::-1]
+        return s
 
-        return "".join(result)
+    def get_forward_qualities(self):
+        """return the original read sequence.
+        
+        Reads mapping to the reverse strand will be reverse
+        complemented.
+        """
+        if self.is_reverse:
+            return self.query_qualities[::-1]
+        else:
+            return self.query_qualities
 
+    
     def get_aligned_pairs(self, matches_only=False, with_seq=False):
         """a list of aligned read (query) and reference positions.
 
@@ -1506,7 +1884,8 @@ cdef class AlignedSegment:
         # read sequence, cigar and MD tag are consistent.
 
         if _with_seq:
-            ref_seq = force_str(self.get_reference_sequence())
+            # force_str required for py2/py3 compatibility
+            ref_seq = force_str(build_reference_sequence(src))
             if ref_seq is None:
                 raise ValueError("MD tag not present")
 
@@ -1677,7 +2056,9 @@ cdef class AlignedSegment:
         +-----+--------------+-----+
         |X    |BAM_CDIFF     |8    |
         +-----+--------------+-----+
-        |NM   |NM tag        |9    |
+        |B    |BAM_CBACK     |9    |
+        +-----+--------------+-----+
+        |NM   |NM tag        |10   |
         +-----+--------------+-----+
 
         If no cigar string is present, empty arrays will be returned.
@@ -1756,6 +2137,8 @@ cdef class AlignedSegment:
         +-----+--------------+-----+
         |X    |BAM_CDIFF     |8    |
         +-----+--------------+-----+
+        |B    |BAM_CBACK     |9    |
+        +-----+--------------+-----+
 
         .. note::
             The output is a list of (operation, length) tuples, such as
@@ -1771,7 +2154,7 @@ cdef class AlignedSegment:
             cdef uint32_t * cigar_p
             cdef bam1_t * src
             cdef uint32_t op, l
-            cdef int k
+            cdef uint32_t k
 
             src = self._delegate
             if pysam_get_n_cigar(src) == 0:
@@ -1790,7 +2173,7 @@ cdef class AlignedSegment:
             cdef uint32_t * p
             cdef bam1_t * src
             cdef op, l
-            cdef int k, ncigar
+            cdef int k
 
             k = 0
 
@@ -1803,12 +2186,15 @@ cdef class AlignedSegment:
             if values is None:
                 values = []
 
-            ncigar = len(values)
-            # create space for cigar data within src.data
-            pysam_bam_update(src,
-                             pysam_get_n_cigar(src) * 4,
-                             ncigar * 4,
-                             <uint8_t*>p)
+            cdef uint32_t ncigar = len(values)
+            
+            cdef bam1_t * retval = pysam_bam_update(src,
+                                                    pysam_get_n_cigar(src) * 4,
+                                                    ncigar * 4,
+                                                    <uint8_t*>p)
+
+            if retval == NULL:
+                raise MemoryError("could not allocate memory")
 
             # length is number of cigar operations, not bytes
             pysam_set_n_cigar(src, ncigar)
@@ -1823,13 +2209,7 @@ cdef class AlignedSegment:
                 k += 1
 
             ## setting the cigar string requires updating the bin
-            pysam_set_bin(src,
-                          hts_reg2bin(
-                              src.core.pos,
-                              bam_endpos(src),
-                              14,
-                              5))
-
+            update_bin(src)
 
     cpdef set_tag(self,
                   tag,
@@ -1840,24 +2220,56 @@ cdef class AlignedSegment:
         section.
 
         *value_type* describes the type of *value* that is to entered
-        into the alignment record.. It can be set explicitly to one
-        of the valid one-letter type codes. If unset, an appropriate
-        type will be chosen automatically.
+        into the alignment record. It can be set explicitly to one of
+        the valid one-letter type codes. If unset, an appropriate type
+        will be chosen automatically based on the python type of
+        *value*.
 
         An existing value of the same *tag* will be overwritten unless
-        replace is set to False. This is usually not recommened as a
+        *replace* is set to False. This is usually not recommened as a
         tag may only appear once in the optional alignment section.
 
         If *value* is None, the tag will be deleted.
+
+        This method accepts valid SAM specification value types, which
+        are::
+        
+           A: printable char
+           i: signed int
+           f: float
+           Z: printable string
+           H: Byte array in hex format
+           B: Integer or numeric array
+
+        Additionally, it will accept the integer BAM types ('cCsSI')
+
+        For htslib compatibility, 'a' is synonymous with 'A' and the
+        method accepts a 'd' type code for a double precision float.
+
+        When deducing the type code by the python type of *value*, the
+        following mapping is applied::
+        
+            i: python int
+            f: python float
+            Z: python str or bytes
+            B: python array.array, list or tuple
+            
+        Note that a single character string will be output as 'Z' and
+        not 'A' as the former is the more general type.
         """
 
         cdef int value_size
+        cdef uint8_t tc
         cdef uint8_t * value_ptr
         cdef uint8_t *existing_ptr
-        cdef uint8_t typecode
         cdef float float_value
         cdef double double_value
-        cdef int32_t int_value
+        cdef int32_t int32_t_value
+        cdef uint32_t uint32_t_value
+        cdef int16_t int16_t_value
+        cdef uint16_t uint16_t_value
+        cdef int8_t int8_t_value
+        cdef uint8_t uint8_t_value
         cdef bam1_t * src = self._delegate
         cdef char * _value_type
         cdef c_array.array array_value
@@ -1876,19 +2288,51 @@ cdef class AlignedSegment:
         if value is None:
             return
 
-        typecode = get_value_code(value, value_type)
+        cdef uint8_t typecode = get_tag_typecode(value, value_type)
         if typecode == 0:
-            raise ValueError("can't guess type or invalid type code specified")
+            raise ValueError("can't guess type or invalid type code specified: {} {}".format(
+                value, value_type))
 
-        # Not Endian-safe, but then again neither is samtools!
+        # sam_format1 for typecasting
         if typecode == 'Z':
             value = force_bytes(value)
             value_ptr = <uint8_t*><char*>value
             value_size = len(value)+1
+        elif typecode == 'H':
+            # Note that hex tags are stored the very same
+            # way as Z string.s
+            value = force_bytes(value)
+            value_ptr = <uint8_t*><char*>value
+            value_size = len(value)+1
+        elif typecode == 'A' or typecode == 'a':
+            value = force_bytes(value)
+            value_ptr = <uint8_t*><char*>value
+            value_size = sizeof(char)
+            typecode = 'A'
         elif typecode == 'i':
-            int_value = value
-            value_ptr = <uint8_t*>&int_value
+            int32_t_value = value
+            value_ptr = <uint8_t*>&int32_t_value
             value_size = sizeof(int32_t)
+        elif typecode == 'I':
+            uint32_t_value = value
+            value_ptr = <uint8_t*>&uint32_t_value
+            value_size = sizeof(uint32_t)
+        elif typecode == 's':
+            int16_t_value = value
+            value_ptr = <uint8_t*>&int16_t_value
+            value_size = sizeof(int16_t)
+        elif typecode == 'S':
+            uint16_t_value = value
+            value_ptr = <uint8_t*>&uint16_t_value
+            value_size = sizeof(uint16_t)
+        elif typecode == 'c':
+            int8_t_value = value
+            value_ptr = <uint8_t*>&int8_t_value
+            value_size = sizeof(int8_t)
+        elif typecode == 'C':
+            uint8_t_value = value
+            value_ptr = <uint8_t*>&uint8_t_value
+            value_size = sizeof(uint8_t)
         elif typecode == 'd':
             double_value = value
             value_ptr = <uint8_t*>&double_value
@@ -1900,13 +2344,10 @@ cdef class AlignedSegment:
         elif typecode == 'B':
             # the following goes through python, needs to be cleaned up
             # pack array using struct
-            if value_type is None:
-                fmt, args = packTags([(tag, value)])
-            else:
-                fmt, args = packTags([(tag, value, value_type)])
+            fmt, args = pack_tags([(tag, value, value_type)])
 
             # remove tag and type code as set by bam_aux_append
-            # first four chars of format (<2sc)
+            # first four chars of format (<2sB)
             fmt = '<' + fmt[4:]
             # first two values to pack
             args = args[2:]
@@ -1922,7 +2363,7 @@ cdef class AlignedSegment:
                            <uint8_t*>buffer.raw)
             return
         else:
-            raise ValueError('unsupported value_type in set_option')
+            raise ValueError('unsupported value_type {} in set_option'.format(typecode))
 
         bam_aux_append(src,
                        tag,
@@ -1948,6 +2389,10 @@ cdef class AlignedSegment:
 
         This method is the fastest way to access the optional
         alignment section if only few tags need to be retrieved.
+
+        Possible value types are "AcCsSiIfZHB" (see BAM format
+        specification) as well as additional value type 'd' as
+        implemented in htslib.
 
         Parameters
         ----------
@@ -1983,19 +2428,20 @@ cdef class AlignedSegment:
         else:
             auxtype = chr(v[0])
 
-        if auxtype == 'c' or auxtype == 'C' or auxtype == 's' or auxtype == 'S':
-            value = <int>bam_aux2i(v)
-        elif auxtype == 'i' or auxtype == 'I':
-            value = <int32_t>bam_aux2i(v)
+        if auxtype in "iIcCsS":
+            value = bam_aux2i(v)
         elif auxtype == 'f' or auxtype == 'F':
-            value = <float>bam_aux2f(v)
+            value = bam_aux2f(v)
         elif auxtype == 'd' or auxtype == 'D':
-            value = <double>bam_aux2f(v)
-        elif auxtype == 'A':
+            value = bam_aux2f(v)
+        elif auxtype == 'A' or auxtype == 'a':
+            # force A to a
+            v[0] = 'A'
             # there might a more efficient way
             # to convert a char into a string
             value = '%c' % <char>bam_aux2A(v)
-        elif auxtype == 'Z':
+        elif auxtype == 'Z' or auxtype == 'H':
+            # Z and H are treated equally as strings in htslib
             value = charptr_to_str(<char*>bam_aux2Z(v))
         elif auxtype[0] == 'B':
             bytesize, nvalues, values = convert_binary_tag(v + 1)
@@ -2063,7 +2509,7 @@ cdef class AlignedSegment:
             elif auxtype == 'd':
                 value = <double>bam_aux2f(s)
                 s += 8
-            elif auxtype == 'A':
+            elif auxtype in ('A', 'a'):
                 value = "%c" % <char>bam_aux2A(s)
                 s += 1
             elif auxtype in ('Z', 'H'):
@@ -2088,7 +2534,7 @@ cdef class AlignedSegment:
         return result
 
     def set_tags(self, tags):
-        """sets the fields in the optional alignmest section with
+        """sets the fields in the optional alignment section with
         a list of (tag, value) tuples.
 
         The :term:`value type` of the values is determined from the
@@ -2110,7 +2556,7 @@ cdef class AlignedSegment:
 
         # convert and pack the data
         if tags is not None and len(tags) > 0:
-            fmt, args = packTags(tags)
+            fmt, args = pack_tags(tags)
             new_size = struct.calcsize(fmt)
             buffer = ctypes.create_string_buffer(new_size)
             struct.pack_into(fmt,
@@ -2118,14 +2564,17 @@ cdef class AlignedSegment:
                              0,
                              *args)
 
+
         # delete the old data and allocate new space.
         # If total_size == 0, the aux field will be
         # empty
         old_size = pysam_bam_get_l_aux(src)
-        pysam_bam_update(src,
-                         old_size,
-                         new_size,
-                         pysam_bam_get_aux(src))
+        cdef bam1_t * retval = pysam_bam_update(src,
+                                                old_size,
+                                                new_size,
+                                                pysam_bam_get_aux(src))
+        if retval == NULL:
+            raise MemoryError("could not allocated memory")
 
         # copy data only if there is any
         if new_size > 0:
@@ -2319,7 +2768,6 @@ cdef class PileupColumn:
     This class is a proxy for results returned by the samtools pileup
     engine.  If the underlying engine iterator advances, the results
     of this column will change.
-
     '''
     def __init__(self):
         raise TypeError("this class cannot be instantiated from Python")
@@ -2332,6 +2780,22 @@ cdef class PileupColumn:
             "\n" +\
             "\n".join(map(str, self.pileups))
 
+    def __dealloc__(self):
+        if self.buf is not NULL:
+            free(self.buf)
+
+    def set_min_base_quality(self, min_base_quality):
+        """set the minimum base quality for this pileup column.
+        """
+        self.min_base_quality = min_base_quality
+    
+    def __len__(self):
+        """return number of reads aligned to this column.
+
+        see :meth:`get_num_aligned`
+        """
+        return self.get_num_aligned()
+    
     property reference_id:
         '''the reference sequence number as defined in the header'''
         def __get__(self):
@@ -2340,12 +2804,14 @@ cdef class PileupColumn:
     property reference_name:
         """:term:`reference` name (None if no AlignmentFile is associated)"""
         def __get__(self):
-            if self._alignment_file is not None:
-                return self._alignment_file.getrname(self.tid)
+            if self.header is not None:
+                return self.header.get_reference_name(self.tid)
             return None
 
     property nsegments:
-        '''number of reads mapping to this column.'''
+        '''number of reads mapping to this column.
+
+        Note that this number ignores the base quality filter.'''
         def __get__(self):
             return self.n_pu
         def __set__(self, n):
@@ -2359,17 +2825,20 @@ cdef class PileupColumn:
     property pileups:
         '''list of reads (:class:`pysam.PileupRead`) aligned to this column'''
         def __get__(self):
-            cdef int x
-            pileups = []
-
             if self.plp == NULL or self.plp[0] == NULL:
                 raise ValueError("PileupColumn accessed after iterator finished")
+
+            cdef int x
+            cdef bam_pileup1_t * p = NULL
+            pileups = []
 
             # warning: there could be problems if self.n and self.buf are
             # out of sync.
             for x from 0 <= x < self.n_pu:
-                pileups.append(makePileupRead(&(self.plp[0][x]),
-                                              self._alignment_file))
+                p = &(self.plp[0][x])
+                if pileup_base_qual_skip(p, self.min_base_quality):
+                    continue
+                pileups.append(makePileupRead(p, self.header))
             return pileups
 
     ########################################################
@@ -2377,23 +2846,277 @@ cdef class PileupColumn:
     # Functions, properties for compatibility with pysam < 0.8
     ########################################################
     property pos:
+        """deprecated: use reference_pos"""
         def __get__(self):
             return self.reference_pos
         def __set__(self, v):
             self.reference_pos = v
 
     property tid:
+        """deprecated: use reference_id"""
         def __get__(self):
             return self.reference_id
         def __set__(self, v):
             self.reference_id = v
 
     property n:
+        """deprecated: use nsegments"""
         def __get__(self):
             return self.nsegments
         def __set__(self, v):
             self.nsegments = v
 
+    def get_num_aligned(self):
+        """return number of aligned bases at pileup column position.
+        
+        This method applies a base quality filter and the number is
+        equal to the size of :meth:`get_query_sequences`,
+        :meth:`get_mapping_qualities`, etc.
+
+        """
+        cdef uint32_t x = 0
+        cdef uint32_t c = 0
+        cdef uint32_t cnt = 0
+        cdef bam_pileup1_t * p = NULL
+        for x from 0 <= x < self.n_pu:
+            p = &(self.plp[0][x])
+            if pileup_base_qual_skip(p, self.min_base_quality):
+                continue
+            cnt += 1
+        return cnt
+
+    def get_query_sequences(self, bint mark_matches=False, bint mark_ends=False, bint add_indels=False):
+        """query bases/sequences at pileup column position.
+
+        Optionally, the bases/sequences can be annotated according to the samtools
+        mpileup format. This is the format description from the samtools mpileup tool::
+        
+           Information on match, mismatch, indel, strand, mapping
+           quality and start and end of a read are all encoded at the
+           read base column. At this column, a dot stands for a match
+           to the reference base on the forward strand, a comma for a
+           match on the reverse strand, a '>' or '<' for a reference
+           skip, `ACGTN' for a mismatch on the forward strand and
+           `acgtn' for a mismatch on the reverse strand. A pattern
+           `\\+[0-9]+[ACGTNacgtn]+' indicates there is an insertion
+           between this reference position and the next reference
+           position. The length of the insertion is given by the
+           integer in the pattern, followed by the inserted
+           sequence. Similarly, a pattern `-[0-9]+[ACGTNacgtn]+'
+           represents a deletion from the reference. The deleted bases
+           will be presented as `*' in the following lines. Also at
+           the read base column, a symbol `^' marks the start of a
+           read. The ASCII of the character following `^' minus 33
+           gives the mapping quality. A symbol `$' marks the end of a
+           read segment
+
+        To reproduce samtools mpileup format, set all of mark_matches,
+        mark_ends and add_indels to True.
+        
+        Parameters
+        ----------
+
+        mark_matches: bool
+
+          If True, output bases matching the reference as "," or "."
+          for forward and reverse strand, respectively. This mark
+          requires the reference sequence. If no reference is
+          present, this option is ignored.
+
+        mark_ends : bool
+
+          If True, add markers "^" and "$" for read start and end, respectively.
+
+        add_indels : bool
+
+          If True, add bases for bases inserted into the reference and
+          'N's for base skipped from the reference. If a reference sequence
+          is given, add the actual bases.
+ 
+        Returns
+        -------
+
+        list: a list of bases/sequences per read at pileup column position.
+
+        """
+        cdef uint32_t x = 0
+        cdef uint32_t j = 0
+        cdef uint32_t c = 0
+        cdef uint32_t n = 0
+        cdef uint8_t cc = 0
+        cdef uint8_t rb = 0
+        cdef uint8_t * buf = self.buf
+        cdef bam_pileup1_t * p = NULL
+
+        # todo: reference sequence to count matches/mismatches
+        # todo: convert assertions to exceptions
+        for x from 0 <= x < self.n_pu:
+            p = &(self.plp[0][x])
+            if pileup_base_qual_skip(p, self.min_base_quality):
+                continue
+            # see samtools pileup_seq
+            if mark_ends and p.is_head:
+                buf[n] = '^'
+                n += 1
+                assert n < MAX_PILEUP_BUFFER_SIZE
+                
+                if p.b.core.qual > 93:
+                    buf[n] = 126
+                else:
+                    buf[n] = p.b.core.qual + 33
+                n += 1
+                assert n < MAX_PILEUP_BUFFER_SIZE
+            if not p.is_del:
+                if p.qpos < p.b.core.l_qseq:
+                    cc = <uint8_t>seq_nt16_str[bam_seqi(bam_get_seq(p.b), p.qpos)]
+                else:
+                    cc = 'N'
+
+                if mark_matches and self.reference_sequence != NULL:
+                    rb = self.reference_sequence[self.reference_pos]
+                    if seq_nt16_table[cc] == seq_nt16_table[rb]:
+                        cc = "="
+                buf[n] = strand_mark_char(cc, p.b)
+                n += 1
+                assert n < MAX_PILEUP_BUFFER_SIZE
+            elif add_indels:
+                if p.is_refskip:
+                    if bam_is_rev(p.b):
+                        buf[n] = '<'
+                    else:
+                        buf[n] = '>'
+                else:
+                    buf[n] = '*'
+                n += 1
+                assert n < MAX_PILEUP_BUFFER_SIZE
+            if add_indels:
+                if p.indel > 0:
+                    buf[n] = '+'
+                    n += 1
+                    assert n < MAX_PILEUP_BUFFER_SIZE
+                    n += snprintf(<char *>&(buf[n]),
+                                  MAX_PILEUP_BUFFER_SIZE - n,
+                                  "%i",
+                                  p.indel)
+                    assert n < MAX_PILEUP_BUFFER_SIZE
+                    for j from 1 <= j <= p.indel:
+                        cc = seq_nt16_str[bam_seqi(bam_get_seq(p.b), p.qpos + j)]
+                        buf[n] = strand_mark_char(cc, p.b)
+                        n += 1
+                        assert n < MAX_PILEUP_BUFFER_SIZE
+                elif p.indel < 0:
+                    buf[n] = '-'
+                    n += 1
+                    assert n < MAX_PILEUP_BUFFER_SIZE
+                    n += snprintf(<char *>&(buf[n]),
+                                  MAX_PILEUP_BUFFER_SIZE - n,
+                                  "%i",
+                                  -p.indel)
+                    assert n < MAX_PILEUP_BUFFER_SIZE
+                    for j from 1 <= j <= -p.indel:
+                        # TODO: out-of-range check here?
+                        if self.reference_sequence == NULL:
+                            cc = 'N'
+                        else:
+                            cc = self.reference_sequence[self.reference_pos + j]
+                        buf[n] = strand_mark_char(cc, p.b)
+                        n += 1
+                        assert n < MAX_PILEUP_BUFFER_SIZE
+            if mark_ends and p.is_tail:
+                buf[n] = '$'
+                n += 1
+                assert n < MAX_PILEUP_BUFFER_SIZE
+
+            buf[n] = ':'
+            n += 1
+            assert n < MAX_PILEUP_BUFFER_SIZE
+
+        if n == 0:
+            # could be zero if all qualities are too low
+            return ""
+        else:
+            # quicker to ensemble all and split than to encode all separately.
+            # ignore last ":"
+            return force_str(PyBytes_FromStringAndSize(<char*>buf, n-1)).split(":")
+
+    def get_query_qualities(self):
+        """query base quality scores at pileup column position.
+
+        Returns
+        -------
+
+        list: a list of quality scores
+        """
+        cdef uint32_t x = 0
+        cdef bam_pileup1_t * p = NULL
+        cdef uint32_t c = 0
+        result = []
+        for x from 0 <= x < self.n_pu:
+            p = &(self.plp[0][x])
+            if p.qpos < p.b.core.l_qseq:
+                c = bam_get_qual(p.b)[p.qpos]
+            else:
+                c = 0
+            if c < self.min_base_quality:
+                continue
+            result.append(c)
+        return result
+
+    def get_mapping_qualities(self):
+        """query mapping quality scores at pileup column position.
+
+        Returns
+        -------
+
+        list: a list of quality scores
+        """
+        cdef uint32_t x = 0
+        cdef bam_pileup1_t * p = NULL
+        result = []
+        for x from 0 <= x < self.n_pu:
+            p = &(self.plp[0][x])
+            if pileup_base_qual_skip(p, self.min_base_quality):
+                continue
+            result.append(p.b.core.qual)
+        return result
+
+    def get_query_positions(self):
+        """positions in read at pileup column position.
+
+        Returns
+        -------
+
+        list: a list of read positions
+        """
+
+        cdef uint32_t x = 0
+        cdef bam_pileup1_t * p = NULL
+        result = []
+        for x from 0 <= x < self.n_pu:
+            p = &(self.plp[0][x])
+            if pileup_base_qual_skip(p, self.min_base_quality):
+                continue
+            result.append(p.qpos)
+        return result
+
+    def get_query_names(self):
+        """query/read names aligned at pileup column position.
+
+        Returns
+        -------
+
+        list: a list of query names at pileup column position.
+        """
+        cdef uint32_t x = 0
+        cdef bam_pileup1_t * p = NULL
+        result = []
+        for x from 0 <= x < self.n_pu:
+            p = &(self.plp[0][x])
+            if pileup_base_qual_skip(p, self.min_base_quality):
+                continue
+            result.append(charptr_to_str(pysam_bam_get_qname(p.b)))
+        return result
+            
 
 cdef class PileupRead:
     '''Representation of a read aligned to a particular position in the
@@ -2477,7 +3200,72 @@ cdef class PileupRead:
         def __get__(self):
             return self._is_refskip
 
+        
+
+cpdef enum CIGAR_OPS:
+    CMATCH = 0
+    CINS = 1
+    CDEL = 2
+    CREF_SKIP = 3
+    CSOFT_CLIP = 4
+    CHARD_CLIP = 5
+    CPAD = 6
+    CEQUAL = 7
+    CDIFF = 8
+    CBACK = 9
+
+
+cpdef enum SAM_FLAGS:
+    # the read is paired in sequencing, no matter whether it is mapped in a pair 
+    FPAIRED = 1
+    # the read is mapped in a proper pair 
+    FPROPER_PAIR = 2
+    # the read itself is unmapped; conflictive with FPROPER_PAIR 
+    FUNMAP = 4
+    # the mate is unmapped 
+    FMUNMAP = 8
+    # the read is mapped to the reverse strand 
+    FREVERSE = 16
+    # the mate is mapped to the reverse strand 
+    FMREVERSE = 32
+    # this is read1 
+    FREAD1 = 64
+    # this is read2 
+    FREAD2 = 128
+    # not primary alignment 
+    FSECONDARY = 256
+    # QC failure 
+    FQCFAIL = 512
+    # optical or PCR duplicate 
+    FDUP = 1024
+    # supplementary alignment 
+    FSUPPLEMENTARY = 2048      
+
+
 __all__ = [
     "AlignedSegment",
     "PileupColumn",
-    "PileupRead"]
+    "PileupRead",
+    "CMATCH",
+    "CINS",
+    "CDEL",
+    "CREF_SKIP",
+    "CSOFT_CLIP",
+    "CHARD_CLIP",
+    "CPAD",
+    "CEQUAL",
+    "CDIFF",
+    "CBACK",
+    "FPAIRED",
+    "FPROPER_PAIR",
+    "FUNMAP",
+    "FMUNMAP",
+    "FREVERSE",
+    "FMREVERSE",
+    "FREAD1",
+    "FREAD2",
+    "FSECONDARY",
+    "FQCFAIL",
+    "FDUP",
+    "FSUPPLEMENTARY",
+    "KEY_NAMES"]

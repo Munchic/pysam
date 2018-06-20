@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# test script for pysam.
+# The script performs the following tasks:
+# 1. Setup a conda environment and install dependencies via conda
+# 2. Build pysam via the conda recipe
+# 3. Build pysam via setup.py from repository
+# 4. Run tests on the setup.py version
+# 5. Additional build tests
+# 5.1 pip install with cython
+# 5.2 pip install without cython
+# 5.3 pip install without cython and without configure options
+
 pushd .
 
 WORKDIR=`pwd`
@@ -15,22 +26,24 @@ bash Miniconda3.sh -b
 
 # Create a new conda environment with the target python version
 ~/miniconda3/bin/conda install conda-build -y
-~/miniconda3/bin/conda create -q -y --name testenv python=$CONDA_PY cython numpy nose psutil pip 
+~/miniconda3/bin/conda create -q -y --name testenv python=$CONDA_PY cython numpy pytest psutil pip
 
 # activate testenv environment
 source ~/miniconda3/bin/activate testenv
 
-conda config --add channels conda-forge
-conda config --add channels defaults
 conda config --add channels r
+conda config --add channels defaults
+conda config --add channels conda-forge
 conda config --add channels bioconda
 
-conda install -y samtools bcftools htslib
+# pin versions, so that tests do not fail when pysam/htslib out of step
+# add htslib dependencies
+conda install -y "samtools=1.7" "bcftools=1.6" "htslib=1.7" xz curl bzip2
 
 # Need to make C compiler and linker use the anaconda includes and libraries:
 export PREFIX=~/miniconda3/
 export CFLAGS="-I${PREFIX}/include -L${PREFIX}/lib"
-export HTSLIB_CONFIGURE_OPTIONS="--disable-libcurl"
+export HTSLIB_CONFIGURE_OPTIONS="--disable-libcurl --disable-lzma"
 
 samtools --version
 htslib --version
@@ -39,36 +52,29 @@ bcftools --version
 # Try building conda recipe first
 ~/miniconda3/bin/conda-build ci/conda-recipe/ --python=$CONDA_PY
 
-# install code from the repository
+# install code from the repository via setup.py
+echo "installing via setup.py from repository"
 python setup.py install
-
-# find build/
-
-# change into tests directory. Otherwise,
-# 'import pysam' will import the repository,
-# not the installed version. This causes
-# problems in the compilation test.
-cd tests
 
 # create auxilliary data
 echo
 echo 'building test data'
 echo
-make -C pysam_data
-make -C cbcf_data
+make -C tests/pysam_data
+make -C tests/cbcf_data
 
-# run nosetests
-# -s: do not capture stdout, conflicts with pysam.dispatch
-# -v: verbose output
-nosetests -s -v
+# echo any limits that are in place
+ulimit -a
+
+# run tests
+pytest
 
 if [ $? != 0 ]; then
     exit 1
 fi
 
-# build source tar-ball. Make sure to build so that .pyx files
-# are cythonized.
-cd ..
+# build source tar-ball. Make sure to run 'build' target so that .pyx
+# files are cythonized.
 python setup.py build sdist
 
 if [ $? != 0 ]; then
@@ -80,6 +86,8 @@ echo "checking for presence of config.h files in tar-ball"
 tar -tvzf dist/pysam-*.tar.gz | grep "config.h$"
 
 if [ $? != 1 ]; then
+    echo "ERROR: found config.h in tar-ball"
+    tar -tvzf dist/pysam-*.tar.gz | grep "config.h%"
     exit 1
 fi
 

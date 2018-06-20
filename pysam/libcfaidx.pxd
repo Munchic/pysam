@@ -39,23 +39,24 @@ cdef class FastaFile:
     cdef object _filename, _references, _lengths, reference2length
     cdef faidx_t* fastafile
     cdef char* _fetch(self, char* reference,
-                      int start, int end, int* length)
+                      int start, int end, int* length) except? NULL
 
 
 cdef class FastqProxy:
     cdef kseq_t * _delegate
+    cdef cython.str to_string(self)
     cdef cython.str tostring(self)
     cpdef array.array get_quality_array(self, int offset=*)
 
 
-cdef class PersistentFastqProxy:
+cdef class FastxRecord:
     """
     Python container for pysam.libcfaidx.FastqProxy with persistence.
     """
     cdef public str comment, quality, sequence, name
+    cdef cython.str to_string(self)
     cdef cython.str tostring(self)
     cpdef array.array get_quality_array(self, int offset=*)
-
 
 cdef class FastxFile:
     cdef object _filename

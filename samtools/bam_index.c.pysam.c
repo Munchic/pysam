@@ -1,4 +1,4 @@
-#include "pysam.h"
+#include "samtools.pysam.h"
 
 /*  bam_index.c -- index and idxstats subcommands.
 
@@ -48,42 +48,59 @@ static void index_usage(FILE *fp)
 "Options:\n"
 "  -b       Generate BAI-format index for BAM files [default]\n"
 "  -c       Generate CSI-format index for BAM files\n"
-"  -m INT   Set minimum interval size for CSI indices to 2^INT [%d]\n", BAM_LIDX_SHIFT);
+"  -m INT   Set minimum interval size for CSI indices to 2^INT [%d]\n"
+"  -@ INT   Sets the number of threads [none]\n", BAM_LIDX_SHIFT);
 }
 
 int bam_index(int argc, char *argv[])
 {
     int csi = 0;
     int min_shift = BAM_LIDX_SHIFT;
+    int n_threads = 0;
     int c, ret;
 
-    while ((c = getopt(argc, argv, "bcm:")) >= 0)
+    while ((c = getopt(argc, argv, "bcm:@:")) >= 0)
         switch (c) {
         case 'b': csi = 0; break;
         case 'c': csi = 1; break;
         case 'm': csi = 1; min_shift = atoi(optarg); break;
+        case '@': n_threads = atoi(optarg); break;
         default:
-            index_usage(pysam_stderr);
+            index_usage(samtools_stderr);
             return 1;
         }
 
     if (optind == argc) {
-        index_usage(pysam_stdout);
+        index_usage(samtools_stdout);
         return 1;
     }
 
-    ret = sam_index_build2(argv[optind], argv[optind+1], csi? min_shift : 0);
-    if (ret != 0) {
-        if (ret == -2)
-            print_error_errno("index", "failed to open \"%s\"", argv[optind]);
-        else if (ret == -3)
-            print_error("index", "\"%s\" is in a format that cannot be usefully indexed", argv[optind]);
+    ret = sam_index_build3(argv[optind], argv[optind+1], csi? min_shift : 0, n_threads);
+    switch (ret) {
+    case 0:
+        return 0;
+
+    case -2:
+        print_error_errno("index", "failed to open \"%s\"", argv[optind]);
+        break;
+
+    case -3:
+        print_error("index", "\"%s\" is in a format that cannot be usefully indexed", argv[optind]);
+        break;
+
+    case -4:
+        if (argv[optind+1])
+            print_error("index", "failed to create or write index \"%s\"", argv[optind+1]);
         else
-            print_error("index", "\"%s\" is corrupted or unsorted", argv[optind]);
-        return EXIT_FAILURE;
+            print_error("index", "failed to create or write index");
+        break;
+
+    default:
+        print_error_errno("index", "failed to create index for \"%s\"", argv[optind]);
+        break;
     }
 
-    return 0;
+    return EXIT_FAILURE;
 }
 
 int bam_idxstats(int argc, char *argv[])
@@ -93,31 +110,36 @@ int bam_idxstats(int argc, char *argv[])
     samFile* fp;
 
     if (argc < 2) {
-        fprintf(pysam_stderr, "Usage: samtools idxstats <in.bam>\n");
+        fprintf(samtools_stderr, "Usage: samtools idxstats <in.bam>\n");
         return 1;
     }
     fp = sam_open(argv[1], "r");
-    if (fp == NULL) { fprintf(pysam_stderr, "[%s] fail to open BAM.\n", __func__); return 1; }
+    if (fp == NULL) {
+        print_error_errno("idxstats", "failed to open \"%s\"", argv[1]);
+        return 1;
+    }
     header = sam_hdr_read(fp);
     if (header == NULL) {
-        fprintf(pysam_stderr, "[%s] failed to read header for '%s'.\n",
-                __func__, argv[1]);
+        print_error("idxstats", "failed to read header for \"%s\"", argv[1]);
         return 1;
     }
     idx = sam_index_load(fp, argv[1]);
-    if (idx == NULL) { fprintf(pysam_stderr, "[%s] fail to load the index.\n", __func__); return 1; }
+    if (idx == NULL) {
+        print_error("idxstats", "fail to load index for \"%s\"", argv[1]);
+        return 1;
+    }
 
     int i;
     for (i = 0; i < header->n_targets; ++i) {
         // Print out contig name and length
-        fprintf(pysam_stdout, "%s\t%d", header->target_name[i], header->target_len[i]);
+        fprintf(samtools_stdout, "%s\t%d", header->target_name[i], header->target_len[i]);
         // Now fetch info about it from the meta bin
         uint64_t u, v;
         hts_idx_get_stat(idx, i, &u, &v);
-        fprintf(pysam_stdout, "\t%" PRIu64 "\t%" PRIu64 "\n", u, v);
+        fprintf(samtools_stdout, "\t%" PRIu64 "\t%" PRIu64 "\n", u, v);
     }
     // Dump information about unmapped reads
-    fprintf(pysam_stdout, "*\t0\t0\t%" PRIu64 "\n", hts_idx_get_n_no_coor(idx));
+    fprintf(samtools_stdout, "*\t0\t0\t%" PRIu64 "\n", hts_idx_get_n_no_coor(idx));
     bam_hdr_destroy(header);
     hts_idx_destroy(idx);
     sam_close(fp);

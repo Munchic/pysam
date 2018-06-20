@@ -28,9 +28,9 @@ DEALINGS IN THE SOFTWARE.  */
 #include <assert.h>
 #include <ctype.h>
 #include <string.h>
+#include "htslib/hts.h"
 #include "htslib/sam.h"
 #include "bam2bcf.h"
-#include "kprobaln.h"
 #include "htslib/khash.h"
 KHASH_SET_INIT_STR(rg)
 
@@ -359,7 +359,7 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
     bca->indelreg = 0;
     for (t = 0; t < n_types; ++t) {
         int l, ir;
-        kpa_par_t apf1 = { 1e-4, 1e-2, 10 }, apf2 = { 1e-6, 1e-3, 10 };
+        probaln_par_t apf1 = { 1e-4, 1e-2, 10 }, apf2 = { 1e-6, 1e-3, 10 };
         apf1.bw = apf2.bw = abs(types[t]) + 3;
         // compute indelreg
         if (types[t] == 0) ir = 0;
@@ -412,14 +412,14 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
                         if (qq[l - qbeg] > 30) qq[l - qbeg] = 30;
                         if (qq[l - qbeg] < 7) qq[l - qbeg] = 7;
                     }
-                    sc = kpa_glocal((uint8_t*)ref2 + tbeg - left, tend - tbeg + abs(types[t]),
-                                    (uint8_t*)query, qend - qbeg, qq, &apf1, 0, 0);
+                    sc = probaln_glocal((uint8_t*)ref2 + tbeg - left, tend - tbeg + abs(types[t]),
+                                        (uint8_t*)query, qend - qbeg, qq, &apf1, 0, 0);
                     l = (int)(100. * sc / (qend - qbeg) + .499); // used for adjusting indelQ below
                     if (l > 255) l = 255;
                     score1[K*n_types + t] = score2[K*n_types + t] = sc<<8 | l;
                     if (sc > 5) {
-                        sc = kpa_glocal((uint8_t*)ref2 + tbeg - left, tend - tbeg + abs(types[t]),
-                                        (uint8_t*)query, qend - qbeg, qq, &apf2, 0, 0);
+                        sc = probaln_glocal((uint8_t*)ref2 + tbeg - left, tend - tbeg + abs(types[t]),
+                                            (uint8_t*)query, qend - qbeg, qq, &apf2, 0, 0);
                         l = (int)(100. * sc / (qend - qbeg) + .499);
                         if (l > 255) l = 255;
                         score2[K*n_types + t] = sc<<8 | l;
@@ -439,10 +439,13 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
     }
     free(ref2); free(query);
     { // compute indelQ
-        int *sc, tmp, *sumq;
-        sc   = alloca(n_types * sizeof(int));
-        sumq = alloca(n_types * sizeof(int));
-        memset(sumq, 0, sizeof(int) * n_types);
+        int sc_a[16], sumq_a[16];
+        int tmp, *sc = sc_a, *sumq = sumq_a;
+        if (n_types > 16) {
+            sc   = (int *)malloc(n_types * sizeof(int));
+            sumq = (int *)malloc(n_types * sizeof(int));
+        }
+        memset(sumq, 0, n_types * sizeof(int));
         for (s = K = 0; s < n; ++s) {
             for (i = 0; i < n_plp[s]; ++i, ++K) {
                 bam_pileup1_t *p = plp[s] + i;
@@ -523,6 +526,9 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
                 //fprintf(stderr, "X pos=%d read=%d:%d name=%s call=%d type=%d seqQ=%d indelQ=%d\n", pos, s, i, bam1_qname(p->b), (p->aux>>16)&0x3f, bca->indel_types[(p->aux>>16)&0x3f], (p->aux>>8)&0xff, p->aux&0xff);
             }
         }
+
+        if (sc   != sc_a)   free(sc);
+        if (sumq != sumq_a) free(sumq);
     }
     free(score1); free(score2);
     // free

@@ -1,7 +1,7 @@
 /// @file htslib/thread_pool.h
 /// Thread pool for multi-threading applications.
 /*
-    Copyright (c) 2013-2016 Genome Research Ltd.
+    Copyright (c) 2013-2018 Genome Research Ltd.
 
     Author: James Bonfield <jkb@sanger.ac.uk>
 
@@ -68,7 +68,7 @@ extern "C" {
  * growing too large and serial numbers to ensure sequential consumption of
  * the output.
  *
- * The thread pool may have many hetergeneous tasks, each using its own
+ * The thread pool may have many heterogeneous tasks, each using its own
  * process mixed into the same thread pool.
  */
 typedef struct hts_tpool_process hts_tpool_process;
@@ -145,7 +145,7 @@ void hts_tpool_wake_dispatch(hts_tpool_process *q);
 int hts_tpool_process_flush(hts_tpool_process *q);
 
 /*
- * Resets a process to the intial state.
+ * Resets a process to the initial state.
  *
  * This removes any queued up input jobs, disables any notification of
  * new results/output, flushes what is left and then discards any
@@ -273,6 +273,15 @@ void hts_tpool_process_shutdown(hts_tpool_process *q);
  */
 void hts_tpool_process_attach(hts_tpool *p, hts_tpool_process *q);
 void hts_tpool_process_detach(hts_tpool *p, hts_tpool_process *q);
+
+/*
+ * Increment and decrement the reference count in a process-queue.
+ * If the queue is being driven from two external (non thread-pool)
+ * threads, eg "main" and a "reader", this permits each end to
+ * decrement its use of the process-queue independently.
+ */
+void hts_tpool_process_ref_incr(hts_tpool_process *q);
+void hts_tpool_process_ref_decr(hts_tpool_process *q);
 
 #ifdef __cplusplus
 }

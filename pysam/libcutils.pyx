@@ -16,6 +16,12 @@ from libc.stdio cimport fprintf, stderr, fflush
 from libc.stdio cimport stdout as c_stdout
 from posix.fcntl cimport open as c_open, O_WRONLY
 
+from libcsamtools cimport samtools_main, samtools_set_stdout, samtools_set_stderr, \
+    samtools_unset_stderr, samtools_unset_stdout, samtools_set_stdout_fn, samtools_set_optind
+
+from libcbcftools cimport bcftools_main, bcftools_set_stdout, bcftools_set_stderr, \
+    bcftools_unset_stderr, bcftools_unset_stdout, bcftools_set_stdout_fn, bcftools_set_optind
+
 #####################################################################
 # hard-coded constants
 cdef int MAX_POS = 2 << 29
@@ -164,17 +170,15 @@ cpdef parse_region(reference=None,
                    region=None):
     """parse alternative ways to specify a genomic region. A region can
     either be specified by :term:`reference`, `start` and
-    `end`. `start` and `end` denote 0-based, half-open
-    intervals.
+    `end`. `start` and `end` denote 0-based, half-open intervals.
 
-    Alternatively, a samtools :term:`region` string can be
-    supplied.
+    Alternatively, a samtools :term:`region` string can be supplied.
 
     If any of the coordinates are missing they will be replaced by the
     minimum (`start`) or maximum (`end`) coordinate.
 
-    Note that region strings are 1-based, while `start` and `end` denote
-    an interval in python coordinates.
+    Note that region strings are 1-based, while `start` and `end`
+    denote an interval in python coordinates.
 
     Returns
     -------
@@ -188,11 +192,9 @@ cpdef parse_region(reference=None,
        for invalid or out of bounds regions.
 
     """
-    cdef int rtid
     cdef long long rstart
     cdef long long rend
 
-    rtid = -1
     rstart = 0
     rend = MAX_POS
     if start != None:
@@ -234,16 +236,22 @@ def _pysam_dispatch(collection,
                     method,
                     args=None,
                     catch_stdout=True,
+                    is_usage=False,
                     save_stdout=None):
     '''call ``method`` in samtools/bcftools providing arguments in args.
     
+    By default, stdout is redirected to a temporary file using the patched
+    C sources except for a few commands that have an explicit output option
+    (typically: -o). In these commands (such as samtools view), this explicit
+    option is used. If *is_usage* is True, then these explicit output options
+    will not be used.
+
     Catching of stdout can be turned off by setting *catch_stdout* to
     False.
-
     '''
 
     if method == "index":
-        if not os.path.exists(args[0]):
+        if args and not os.path.exists(args[0]):
             raise IOError("No such file or directory: '%s'" % args[0])
             
     if args is None:
@@ -253,31 +261,34 @@ def _pysam_dispatch(collection,
 
     # redirect stderr to file
     stderr_h, stderr_f = tempfile.mkstemp()
-    pysam_set_stderr(stderr_h)
-
+    samtools_set_stderr(stderr_h)
+    bcftools_set_stderr(stderr_h)
+        
     # redirect stdout to file
     if save_stdout:
         stdout_f = save_stdout
         stdout_h = c_open(force_bytes(stdout_f),
                           O_WRONLY)
         if stdout_h == -1:
-            raise OSError("error while opening {} for writing".format(stdout_f))
+            raise IOError("error while opening {} for writing".format(stdout_f))
 
-        pysam_set_stdout_fn(force_bytes(stdout_f))
-        pysam_set_stdout(stdout_h)
+        samtools_set_stdout_fn(force_bytes(stdout_f))
+        samtools_set_stdout(stdout_h)
+        bcftools_set_stdout_fn(force_bytes(stdout_f))
+        bcftools_set_stdout(stdout_h)
+            
     elif catch_stdout:
         stdout_h, stdout_f = tempfile.mkstemp()
-
         MAP_STDOUT_OPTIONS = {
-            "samtools": {
-                "view": "-o {}",
-                "mpileup": "-o {}",
-                "depad": "-o {}",
-                "calmd": "",  # uses pysam_stdout_fn
-            },
+        "samtools": {
+            "view": "-o {}",
+            "mpileup": "-o {}",
+            "depad": "-o {}",
+            "calmd": "",  # uses pysam_stdout_fn
+        },
             "bcftools": {}
         }
-
+        
         stdout_option = None
         if collection == "bcftools":
             # in bcftools, most methods accept -o, the exceptions
@@ -289,14 +300,17 @@ def _pysam_dispatch(collection,
             if not(method == "view" and "-c" in args):
                 stdout_option = MAP_STDOUT_OPTIONS[collection][method]
 
-        if stdout_option is not None:
+        if stdout_option is not None and not is_usage:
             os.close(stdout_h)
-            pysam_set_stdout_fn(force_bytes(stdout_f))
+            samtools_set_stdout_fn(force_bytes(stdout_f))
+            bcftools_set_stdout_fn(force_bytes(stdout_f))
             args.extend(stdout_option.format(stdout_f).split(" "))
         else:
-            pysam_set_stdout(stdout_h)
+            samtools_set_stdout(stdout_h)
+            bcftools_set_stdout(stdout_h)
     else:
-        pysam_set_stdout_fn("-")
+        samtools_set_stdout_fn("-")
+        bcftools_set_stdout_fn("-")
 
     # setup the function call to samtools/bcftools main
     cdef char ** cargs
@@ -327,9 +341,11 @@ def _pysam_dispatch(collection,
     # between getopt and getopt_long
     if method in [b'index', b'cat', b'quickcheck',
                   b'faidx', b'kprobaln']:
-        set_optind(1)
+        samtools_set_optind(1)
+        bcftools_set_optind(1)
     else:
-        set_optind(0)
+        samtools_set_optind(0)
+        bcftools_set_optind(0)
 
     # call samtools/bcftools
     if collection == b"samtools":
@@ -355,18 +371,21 @@ def _pysam_dispatch(collection,
             os.remove(fn)
         return out
 
-    pysam_unset_stderr()
-    out_stderr = _collect(stderr_f)
+    samtools_unset_stderr()
+    bcftools_unset_stderr()
 
+    if save_stdout or catch_stdout:
+        samtools_unset_stdout()
+        bcftools_unset_stdout()
+
+    out_stderr = _collect(stderr_f)
     if save_stdout:
-        pysam_unset_stdout()
         out_stdout = None
     elif catch_stdout:
-        pysam_unset_stdout()
         out_stdout = _collect(stdout_f)
     else:
         out_stdout = None
-
+        
     return retval, out_stderr, out_stdout
 
 

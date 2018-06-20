@@ -12,18 +12,21 @@
 # For samtools, type:
 # rm -rf samtools
 # python import.py samtools download/samtools
+# git checkout -- samtools/version.h
 #
 # Manually, then:
 # modify config.h to set compatibility flags
 #
 # For bcftools, type:
-# rm -rf bedtools
-# python import.py bedtools download/bedtools
+# rm -rf bcftools
+# python import.py bcftools download/bedtools
+# git checkout -- bcftools/version.h
 # rm -rf bedtools/test bedtools/plugins
 
 import fnmatch
 import os
 import re
+import itertools
 import shutil
 import sys
 import hashlib
@@ -31,18 +34,29 @@ import hashlib
 
 EXCLUDE = {
     "samtools": (
-        "razip.c", "bgzip.c", "main.c",
-        "calDepth.c", "bam2bed.c", "wgsim.c",
-        "md5fa.c", "md5sum-lite.c", "maq2sam.c",
-        "bamcheck.c", "chk_indel.c", "vcf-miniview.c",
-        "htslib-1.3",   # do not import twice
+        "razip.c",
+        "bgzip.c",
+        "main.c",
+        "calDepth.c",
+        "bam2bed.c",
+        "wgsim.c",
+        "bam_tview.c",
+        "bam_tview.h",
+        "bam_tview_html.c",
+        "bam_tview_curses.c",
+        "md5fa.c",
+        "md5sum-lite.c",
+        "maq2sam.c",
+        "bamcheck.c",
+        "chk_indel.c",
+        "vcf-miniview.c",
         "hfile_irods.c",  # requires irods library
     ),
     "bcftools": (
         "test", "plugins", "peakfit.c",
         "peakfit.h",
         # needs to renamed, name conflict with samtools reheader
-        "reheader.c",
+        # "reheader.c",
         "polysomy.c"),
     "htslib": (
         'htslib/tabix.c', 'htslib/bgzip.c',
@@ -73,10 +87,11 @@ def _update_pysam_files(cf, destdir):
         if not filename:
             continue
         dest = filename + ".pysam.c"
-        with open(filename) as infile:
+        with open(filename, encoding="utf-8") as infile:
             lines = "".join(infile.readlines())
-            with open(dest, "w") as outfile:
-                outfile.write('#include "pysam.h"\n\n')
+
+            with open(dest, "w", encoding="utf-8") as outfile:
+                outfile.write('#include "{}.pysam.h"\n\n'.format(basename))
                 subname, _ = os.path.splitext(os.path.basename(filename))
                 if subname in MAIN.get(basename, []):
                     lines = re.sub("int main\(", "int {}_main(".format(
@@ -84,27 +99,27 @@ def _update_pysam_files(cf, destdir):
                 else:
                     lines = re.sub("int main\(", "int {}_{}_main(".format(
                         basename, subname), lines)
-                lines = re.sub("stderr", "pysam_stderr", lines)
-                lines = re.sub("stdout", "pysam_stdout", lines)
-                lines = re.sub(" printf\(", " fprintf(pysam_stdout, ", lines)
+                lines = re.sub("stderr", "{}_stderr".format(basename), lines)
+                lines = re.sub("stdout", "{}_stdout".format(basename), lines)
+                lines = re.sub(" printf\(", " fprintf({}_stdout, ".format(basename), lines)
                 lines = re.sub("([^kf])puts\(([^)]+)\)",
-                               r"\1fputs(\2, pysam_stdout) & fputc('\\n', pysam_stdout)",
+                               r"\1fputs(\2, {}_stdout) & fputc('\\n', {}_stdout)".format(basename, basename),
                                lines)
                 lines = re.sub("putchar\(([^)]+)\)",
-                               r"fputc(\1, pysam_stdout)", lines)
+                               r"fputc(\1, {}_stdout)".format(basename), lines)
 
                 fn = os.path.basename(filename)
                 # some specific fixes:
                 SPECIFIC_SUBSTITUTIONS = {
                     "bam_md.c": (
                         'sam_open_format("-", mode_w',
-                        'sam_open_format(pysam_stdout_fn, mode_w'),
+                        'sam_open_format({}_stdout_fn, mode_w'.format(basename)),
                     "phase.c": (
-                        'putc("ACGT"[f->seq[j] == 1? (c&3, pysam_stdout) : (c>>16&3)]);',
-                        'putc("ACGT"[f->seq[j] == 1? (c&3) : (c>>16&3)], pysam_stdout);'),
+                        'putc("ACGT"[f->seq[j] == 1? (c&3, {}_stdout) : (c>>16&3)]);'.format(basename),
+                        'putc("ACGT"[f->seq[j] == 1? (c&3) : (c>>16&3)], {}_stdout);'.format(basename)),
                     "cut_target.c": (
-                        'putc(33 + (cns[j]>>8>>2, pysam_stdout));',
-                        'putc(33 + (cns[j]>>8>>2), pysam_stdout);')
+                        'putc(33 + (cns[j]>>8>>2, {}_stdout));'.format(basename),
+                        'putc(33 + (cns[j]>>8>>2), {}_stdout);'.format(basename))
                     }
                 if fn in SPECIFIC_SUBSTITUTIONS:
                     lines = lines.replace(
@@ -112,15 +127,13 @@ def _update_pysam_files(cf, destdir):
                         SPECIFIC_SUBSTITUTIONS[fn][1])
                 outfile.write(lines)
 
-            with open(os.path.join(destdir, "pysam.h"), "w")as outfile:
-                outfile.write("""#ifndef PYSAM_H
-#define PYSAM_H
-#include "stdio.h"
-extern FILE * pysam_stderr;
-extern FILE * pysam_stdout;
-extern const char * pysam_stdout_fn;
-#endif
-""")
+    with open(os.path.join("import", "pysam.h")) as inf, \
+         open(os.path.join(destdir, "{}.pysam.h".format(basename)), "w") as outf:
+        outf.write(re.sub("@pysam@", basename, inf.read()))
+
+    with open(os.path.join("import", "pysam.c")) as inf, \
+         open(os.path.join(destdir, "{}.pysam.c".format(basename)), "w") as outf:
+        outf.write(re.sub("@pysam@", basename, inf.read()))
 
 
 if len(sys.argv) >= 1:
@@ -140,7 +153,8 @@ if len(sys.argv) >= 1:
 
     cfiles = locate("*.c", srcdir)
     hfiles = locate("*.h", srcdir)
-
+    mfiles = itertools.chain(locate("README", srcdir), locate("LICENSE", srcdir))
+    
     # remove unwanted files and htslib subdirectory.
     cfiles = [x for x in cfiles if os.path.basename(x) not in exclude
               and not re.search("htslib-", x)]
@@ -161,9 +175,9 @@ if len(sys.argv) >= 1:
         old_file = os.path.join(targetdir, f)
         if os.path.exists(old_file):
             md5_old = hashlib.md5(
-                "".join(open(old_file, "r").readlines())).digest()
+                "".join(open(old_file, "r", encoding="utf-8").readlines()).encode()).digest()
             md5_new = hashlib.md5(
-                "".join(open(src, "r").readlines())).digest()
+                "".join(open(src, "r", encoding="utf-8").readlines()).encode()).digest()
             if md5_old != md5_new:
                 raise ValueError(
                     "incompatible files for %s and %s" %
@@ -173,6 +187,10 @@ if len(sys.argv) >= 1:
         return old_file
 
     for src_file in hfiles:
+        _compareAndCopy(src_file, srcdir, destdir, exclude)
+        ncopied += 1
+
+    for src_file in mfiles:
         _compareAndCopy(src_file, srcdir, destdir, exclude)
         ncopied += 1
 
