@@ -18,7 +18,7 @@ jobs:
             echo Install OpenSSL C library
             sudo apt-get install libssl-dev
             sudo apt-get install openssl
-            sudo aptitude -f install libcurl4-openssl-dev
+            sudo apt-get install libcurl4-openssl-dev
       - run:
           name: Testing reading encrypted BGZF
           command: |
