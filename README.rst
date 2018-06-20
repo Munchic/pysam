@@ -2,7 +2,8 @@
 Pysam with reading encrypted BGZF files functionality
 =====
 
-[![CircleCI](https://circleci.com/gh/Munchic/pysam/tree/feature%2Fconnect-crypto-htslib.svg?style=shield)](https://circleci.com/gh/Munchic/pysam/tree/feature%2Fconnect-crypto-htslib)
+.. image:: https://circleci.com/gh/Munchic/pysam/tree/feature%2Fconnect-crypto-htslib.svg?style=shield
+    :target: https://circleci.com/gh/Munchic/pysam/tree/feature%2Fconnect-crypto-htslib
 
 |build-status| |docs|
 
