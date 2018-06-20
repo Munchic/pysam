@@ -11,6 +11,7 @@ jobs:
       - run:
           name: Setting up environment
           command: |
+            gcc --version
             sudo apt-get install build-essential
             echo Installing pysam
             python setup.py install --user
