@@ -3186,11 +3186,11 @@ fi
 
 
 # Check whether --enable-openssl was given.
-if test "${enable_openssl+set}" = set; then :
-  enableval=$enable_openssl;
-else
-  enable_openssl=yes
-fi
+# if test "${enable_openssl+set}" = set; then :
+enableval=$enable_openssl;
+# else
+enable_openssl=yes
+# fi
 
 
 # Check whether --enable-plugins was given.
