@@ -6,6 +6,10 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Enable SSH
+          command: |
+            ssh git@github.com
+      - run:
           name: Setting up environment
           command: |
             echo Installing pysam
