@@ -7,7 +7,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - "3a:67:ef:a3:be:a2:70:b2:95:f7:91:58:57:e7:34:27"
+            - "26:d5:68:e5:7c:54:20:f8:95:9c:60:2d:34:cc:bc:eb"
       - run:
           name: Setting up environment
           command: |
@@ -17,6 +17,8 @@ jobs:
             sudo apt-get install libcurl4-openssl-dev
             gcc --version
             sudo apt-get install build-essential
+          name: Installing pysam
+          command: |
             echo Installing pysam
             python setup.py install --user
       - run:
