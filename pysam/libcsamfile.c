@@ -568,6 +568,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include <stdio.h>
 #include "pythread.h"
 #include <sys/types.h>
+#include "stdarg.h"
 #include "htslib/kstring.h"
 #include "htslib_util.h"
 #include "htslib/hfile.h"
@@ -578,8 +579,8 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "htslib/tbx.h"
 #include "htslib/vcf.h"
 #include "htslib/vcfutils.h"
+#include "htslib/cram.h"
 #include "pysam_stream.h"
-// #include "samfile_util.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -803,13 +804,14 @@ typedef struct arrayobject arrayobject;
 struct __pyx_obj_5pysam_10libchtslib_HTSFile;
 struct __pyx_obj_5pysam_9libcfaidx_FastaFile;
 struct __pyx_obj_5pysam_9libcfaidx_FastqProxy;
-struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy;
+struct __pyx_obj_5pysam_9libcfaidx_FastxRecord;
 struct __pyx_obj_5pysam_9libcfaidx_FastxFile;
 struct __pyx_obj_5pysam_9libcfaidx_FastqFile;
 struct __pyx_obj_5pysam_9libcfaidx_Fastafile;
 struct __pyx_obj_5pysam_18libcalignedsegment_AlignedSegment;
 struct __pyx_obj_5pysam_18libcalignedsegment_PileupColumn;
 struct __pyx_obj_5pysam_18libcalignedsegment_PileupRead;
+struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentHeader;
 struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentFile;
 struct __pyx_obj_5pysam_17libcalignmentfile_PileupColumn;
 struct __pyx_obj_5pysam_17libcalignmentfile_PileupRead;
@@ -826,10 +828,10 @@ struct __pyx_obj_5pysam_17libcalignmentfile_IndexedReads;
 struct __pyx_obj_5pysam_11libcsamfile_AlignedRead;
 struct __pyx_obj_5pysam_11libcsamfile_Samfile;
 struct __pyx_opt_args_5pysam_9libcfaidx_10FastqProxy_get_quality_array;
-struct __pyx_opt_args_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array;
+struct __pyx_opt_args_5pysam_9libcfaidx_11FastxRecord_get_quality_array;
 
-/* "pysam/libcfaidx.pxd":48
- *     cdef kseq_t * _delegate
+/* "pysam/libcfaidx.pxd":49
+ *     cdef cython.str to_string(self)
  *     cdef cython.str tostring(self)
  *     cpdef array.array get_quality_array(self, int offset=*)             # <<<<<<<<<<<<<<
  * 
@@ -840,30 +842,31 @@ struct __pyx_opt_args_5pysam_9libcfaidx_10FastqProxy_get_quality_array {
   int offset;
 };
 
-/* "pysam/libcfaidx.pxd":57
- *     cdef public str comment, quality, sequence, name
+/* "pysam/libcfaidx.pxd":59
+ *     cdef cython.str to_string(self)
  *     cdef cython.str tostring(self)
  *     cpdef array.array get_quality_array(self, int offset=*)             # <<<<<<<<<<<<<<
  * 
- * 
+ * cdef class FastxFile:
  */
-struct __pyx_opt_args_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array {
+struct __pyx_opt_args_5pysam_9libcfaidx_11FastxRecord_get_quality_array {
   int __pyx_n;
   int offset;
 };
 struct __pyx_opt_args_5pysam_18libcalignedsegment_14AlignedSegment_set_tag;
 struct __pyx_opt_args_5pysam_18libcalignedsegment_14AlignedSegment_get_tag;
+struct __pyx_opt_args_5pysam_18libcalignedsegment_14AlignedSegment_tostring;
 
-/* "pysam/libcalignedsegment.pxd":36
+/* "pysam/libcalignedsegment.pxd":30
  * 
- * from pysam.libcalignmentfile cimport AlignmentFile
+ * from pysam.libcalignmentfile cimport AlignmentFile, AlignmentHeader
  * ctypedef AlignmentFile AlignmentFile_t             # <<<<<<<<<<<<<<
  * 
  * 
  */
 typedef struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentFile *__pyx_t_5pysam_18libcalignedsegment_AlignmentFile_t;
 
-/* "pysam/libcalignedsegment.pxd":56
+/* "pysam/libcalignedsegment.pxd":50
  *     # add an alignment tag with value to the AlignedSegment
  *     # an existing tag of the same name will be replaced.
  *     cpdef set_tag(self, tag, value, value_type=?, replace=?)             # <<<<<<<<<<<<<<
@@ -876,7 +879,7 @@ struct __pyx_opt_args_5pysam_18libcalignedsegment_14AlignedSegment_set_tag {
   PyObject *replace;
 };
 
-/* "pysam/libcalignedsegment.pxd":60
+/* "pysam/libcalignedsegment.pxd":54
  *     # add an alignment tag with value to the AlignedSegment
  *     # an existing tag of the same name will be replaced.
  *     cpdef get_tag(self, tag, with_value_type=?)             # <<<<<<<<<<<<<<
@@ -887,11 +890,23 @@ struct __pyx_opt_args_5pysam_18libcalignedsegment_14AlignedSegment_get_tag {
   int __pyx_n;
   PyObject *with_value_type;
 };
+
+/* "pysam/libcalignedsegment.pxd":63
+ * 
+ *     # returns a valid sam alignment string (deprecated)
+ *     cpdef tostring(self, htsfile=*)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+struct __pyx_opt_args_5pysam_18libcalignedsegment_14AlignedSegment_tostring {
+  int __pyx_n;
+  PyObject *htsfile;
+};
 struct __pyx_t_5pysam_17libcalignmentfile___iterdata;
 typedef struct __pyx_t_5pysam_17libcalignmentfile___iterdata __pyx_t_5pysam_17libcalignmentfile___iterdata;
-struct __pyx_opt_args_5pysam_17libcalignmentfile_14IteratorColumn_setupIteratorData;
+struct __pyx_opt_args_5pysam_17libcalignmentfile_14IteratorColumn__setup_iterator;
 
-/* "pysam/libcalignmentfile.pxd":29
+/* "pysam/libcalignmentfile.pxd":24
  * # Utility types
  * 
  * ctypedef struct __iterdata:             # <<<<<<<<<<<<<<
@@ -906,21 +921,28 @@ struct __pyx_t_5pysam_17libcalignmentfile___iterdata {
   int tid;
   char *seq;
   int seq_len;
+  int min_mapping_quality;
+  int flag_require;
+  int flag_filter;
+  int compute_baq;
+  int redo_baq;
+  int ignore_orphans;
+  int adjust_capq_threshold;
 };
 
-/* "pysam/libcalignmentfile.pxd":131
- *     cdef char * getSequence(self)
- *     cdef setMask(self, mask)
- *     cdef setupIteratorData(self,             # <<<<<<<<<<<<<<
- *                            int tid,
- *                            int start,
+/* "pysam/libcalignmentfile.pxd":138
+ *     cdef int cnext(self)
+ *     cdef char * get_sequence(self)
+ *     cdef _setup_iterator(self,             # <<<<<<<<<<<<<<
+ *                          int tid,
+ *                          int start,
  */
-struct __pyx_opt_args_5pysam_17libcalignmentfile_14IteratorColumn_setupIteratorData {
+struct __pyx_opt_args_5pysam_17libcalignmentfile_14IteratorColumn__setup_iterator {
   int __pyx_n;
   int multiple_iterators;
 };
 
-/* "pysam/libchtslib.pxd":1904
+/* "pysam/libchtslib.pxd":2590
  * 
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
@@ -934,6 +956,7 @@ struct __pyx_obj_5pysam_10libchtslib_HTSFile {
   int64_t start_offset;
   PyObject *filename;
   PyObject *mode;
+  PyObject *threads;
   PyObject *index_filename;
   int is_stream;
   int is_remote;
@@ -965,7 +988,7 @@ struct __pyx_obj_5pysam_9libcfaidx_FastaFile {
  * 
  * cdef class FastqProxy:             # <<<<<<<<<<<<<<
  *     cdef kseq_t * _delegate
- *     cdef cython.str tostring(self)
+ *     cdef cython.str to_string(self)
  */
 struct __pyx_obj_5pysam_9libcfaidx_FastqProxy {
   PyObject_HEAD
@@ -974,16 +997,16 @@ struct __pyx_obj_5pysam_9libcfaidx_FastqProxy {
 };
 
 
-/* "pysam/libcfaidx.pxd":51
+/* "pysam/libcfaidx.pxd":52
  * 
  * 
- * cdef class PersistentFastqProxy:             # <<<<<<<<<<<<<<
+ * cdef class FastxRecord:             # <<<<<<<<<<<<<<
  *     """
  *     Python container for pysam.libcfaidx.FastqProxy with persistence.
  */
-struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy {
+struct __pyx_obj_5pysam_9libcfaidx_FastxRecord {
   PyObject_HEAD
-  struct __pyx_vtabstruct_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_vtab;
+  struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxRecord *__pyx_vtab;
   PyObject *comment;
   PyObject *quality;
   PyObject *sequence;
@@ -991,8 +1014,8 @@ struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy {
 };
 
 
-/* "pysam/libcfaidx.pxd":60
- * 
+/* "pysam/libcfaidx.pxd":61
+ *     cpdef array.array get_quality_array(self, int offset=*)
  * 
  * cdef class FastxFile:             # <<<<<<<<<<<<<<
  *     cdef object _filename
@@ -1009,7 +1032,7 @@ struct __pyx_obj_5pysam_9libcfaidx_FastxFile {
 };
 
 
-/* "pysam/libcfaidx.pxd":72
+/* "pysam/libcfaidx.pxd":73
  * 
  * # Compatibility Layer for pysam 0.8.1
  * cdef class FastqFile(FastxFile):             # <<<<<<<<<<<<<<
@@ -1021,7 +1044,7 @@ struct __pyx_obj_5pysam_9libcfaidx_FastqFile {
 };
 
 
-/* "pysam/libcfaidx.pxd":77
+/* "pysam/libcfaidx.pxd":78
  * 
  * # Compatibility Layer for pysam < 0.8
  * cdef class Fastafile(FastaFile):             # <<<<<<<<<<<<<<
@@ -1033,7 +1056,7 @@ struct __pyx_obj_5pysam_9libcfaidx_Fastafile {
 };
 
 
-/* "pysam/libcalignedsegment.pxd":40
+/* "pysam/libcalignedsegment.pxd":34
  * 
  * # Note: need to declare all C fields and methods here
  * cdef class AlignedSegment:             # <<<<<<<<<<<<<<
@@ -1044,7 +1067,7 @@ struct __pyx_obj_5pysam_18libcalignedsegment_AlignedSegment {
   PyObject_HEAD
   struct __pyx_vtabstruct_5pysam_18libcalignedsegment_AlignedSegment *__pyx_vtab;
   bam1_t *_delegate;
-  struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentFile *_alignment_file;
+  struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentHeader *header;
   PyObject *cache_query_qualities;
   PyObject *cache_query_alignment_qualities;
   PyObject *cache_query_sequence;
@@ -1052,7 +1075,7 @@ struct __pyx_obj_5pysam_18libcalignedsegment_AlignedSegment {
 };
 
 
-/* "pysam/libcalignedsegment.pxd":69
+/* "pysam/libcalignedsegment.pxd":66
  * 
  * 
  * cdef class PileupColumn:             # <<<<<<<<<<<<<<
@@ -1065,21 +1088,24 @@ struct __pyx_obj_5pysam_18libcalignedsegment_PileupColumn {
   int tid;
   int pos;
   int n_pu;
-  struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentFile *_alignment_file;
+  struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentHeader *header;
+  uint32_t min_base_quality;
+  uint8_t *buf;
+  char *reference_sequence;
 };
 
 
-/* "pysam/libcalignedsegment.pxd":77
- * 
+/* "pysam/libcalignedsegment.pxd":76
+ *     cdef char * reference_sequence
  * 
  * cdef class PileupRead:             # <<<<<<<<<<<<<<
- *     cdef AlignedSegment _alignment
  *     cdef int32_t  _qpos
+ *     cdef AlignedSegment _alignment
  */
 struct __pyx_obj_5pysam_18libcalignedsegment_PileupRead {
   PyObject_HEAD
-  struct __pyx_obj_5pysam_18libcalignedsegment_AlignedSegment *_alignment;
   int32_t _qpos;
+  struct __pyx_obj_5pysam_18libcalignedsegment_AlignedSegment *_alignment;
   int _indel;
   int _level;
   uint32_t _is_del;
@@ -1089,23 +1115,36 @@ struct __pyx_obj_5pysam_18libcalignedsegment_PileupRead {
 };
 
 
-/* "pysam/libcalignmentfile.pxd":39
+/* "pysam/libcalignmentfile.pxd":41
  * 
+ * 
+ * cdef class AlignmentHeader(object):             # <<<<<<<<<<<<<<
+ *     cdef bam_hdr_t *ptr
+ * 
+ */
+struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentHeader {
+  PyObject_HEAD
+  bam_hdr_t *ptr;
+};
+
+
+/* "pysam/libcalignmentfile.pxd":44
+ *     cdef bam_hdr_t *ptr
  * 
  * cdef class AlignmentFile(HTSFile):             # <<<<<<<<<<<<<<
  *     cdef readonly object reference_filename
- * 
+ *     cdef readonly AlignmentHeader header
  */
 struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentFile {
   struct __pyx_obj_5pysam_10libchtslib_HTSFile __pyx_base;
   PyObject *reference_filename;
+  struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentHeader *header;
   hts_idx_t *index;
-  bam_hdr_t *header;
   bam1_t *b;
 };
 
 
-/* "pysam/libcalignmentfile.pxd":57
+/* "pysam/libcalignmentfile.pxd":61
  * 
  * 
  * cdef class PileupColumn:             # <<<<<<<<<<<<<<
@@ -1121,7 +1160,7 @@ struct __pyx_obj_5pysam_17libcalignmentfile_PileupColumn {
 };
 
 
-/* "pysam/libcalignmentfile.pxd":64
+/* "pysam/libcalignmentfile.pxd":68
  * 
  * 
  * cdef class PileupRead:             # <<<<<<<<<<<<<<
@@ -1141,7 +1180,7 @@ struct __pyx_obj_5pysam_17libcalignmentfile_PileupRead {
 };
 
 
-/* "pysam/libcalignmentfile.pxd":75
+/* "pysam/libcalignmentfile.pxd":79
  * 
  * 
  * cdef class IteratorRow:             # <<<<<<<<<<<<<<
@@ -1154,12 +1193,13 @@ struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRow {
   bam1_t *b;
   struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentFile *samfile;
   htsFile *htsfile;
-  bam_hdr_t *header;
+  hts_idx_t *index;
+  struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentHeader *header;
   int owns_samfile;
 };
 
 
-/* "pysam/libcalignmentfile.pxd":84
+/* "pysam/libcalignmentfile.pxd":89
  * 
  * 
  * cdef class IteratorRowRegion(IteratorRow):             # <<<<<<<<<<<<<<
@@ -1173,8 +1213,8 @@ struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowRegion {
 };
 
 
-/* "pysam/libcalignmentfile.pxd":89
- *     cdef int cnext(self)
+/* "pysam/libcalignmentfile.pxd":95
+ * 
  * 
  * cdef class IteratorRowHead(IteratorRow):             # <<<<<<<<<<<<<<
  *     cdef int max_rows
@@ -1188,8 +1228,8 @@ struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowHead {
 };
 
 
-/* "pysam/libcalignmentfile.pxd":95
- *     cdef int cnext(self)
+/* "pysam/libcalignmentfile.pxd":102
+ * 
  * 
  * cdef class IteratorRowAll(IteratorRow):             # <<<<<<<<<<<<<<
  *     cdef bam1_t * getCurrent(self)
@@ -1201,7 +1241,7 @@ struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowAll {
 };
 
 
-/* "pysam/libcalignmentfile.pxd":100
+/* "pysam/libcalignmentfile.pxd":107
  * 
  * 
  * cdef class IteratorRowAllRefs(IteratorRow):             # <<<<<<<<<<<<<<
@@ -1215,7 +1255,7 @@ struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowAllRefs {
 };
 
 
-/* "pysam/libcalignmentfile.pxd":105
+/* "pysam/libcalignmentfile.pxd":112
  * 
  * 
  * cdef class IteratorRowSelection(IteratorRow):             # <<<<<<<<<<<<<<
@@ -1230,7 +1270,7 @@ struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowSelection {
 };
 
 
-/* "pysam/libcalignmentfile.pxd":112
+/* "pysam/libcalignmentfile.pxd":119
  * 
  * 
  * cdef class IteratorColumn:             # <<<<<<<<<<<<<<
@@ -1244,33 +1284,34 @@ struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn {
   int tid;
   int pos;
   int n_plp;
-  int mask;
+  uint32_t min_base_quality;
   bam_pileup1_t *plp;
-  bam_plp_t pileup_iter;
+  bam_mplp_t pileup_iter;
   __pyx_t_5pysam_17libcalignmentfile___iterdata iterdata;
   struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentFile *samfile;
-  struct __pyx_obj_5pysam_9libcfaidx_Fastafile *fastafile;
+  struct __pyx_obj_5pysam_9libcfaidx_FastaFile *fastafile;
   PyObject *stepper;
   int max_depth;
+  int ignore_overlaps;
 };
 
 
-/* "pysam/libcalignmentfile.pxd":141
+/* "pysam/libcalignmentfile.pxd":150
  * 
  * 
  * cdef class IteratorColumnRegion(IteratorColumn):             # <<<<<<<<<<<<<<
  *     cdef int start
- *     cdef int end
+ *     cdef int stop
  */
 struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumnRegion {
   struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn __pyx_base;
   int start;
-  int end;
+  int stop;
   int truncate;
 };
 
 
-/* "pysam/libcalignmentfile.pxd":147
+/* "pysam/libcalignmentfile.pxd":156
  * 
  * 
  * cdef class IteratorColumnAllRefs(IteratorColumn):             # <<<<<<<<<<<<<<
@@ -1282,7 +1323,7 @@ struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumnAllRefs {
 };
 
 
-/* "pysam/libcalignmentfile.pxd":151
+/* "pysam/libcalignmentfile.pxd":160
  * 
  * 
  * cdef class IndexedReads:             # <<<<<<<<<<<<<<
@@ -1295,7 +1336,7 @@ struct __pyx_obj_5pysam_17libcalignmentfile_IndexedReads {
   htsFile *htsfile;
   PyObject *index;
   int owns_samfile;
-  bam_hdr_t *header;
+  struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentHeader *header;
 };
 
 
@@ -1324,7 +1365,7 @@ struct __pyx_obj_5pysam_11libcsamfile_Samfile {
 
 
 
-/* "pysam/libchtslib.pxd":1904
+/* "pysam/libchtslib.pxd":2590
  * 
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
@@ -1357,33 +1398,35 @@ static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastaFile *__pyx_vtabptr_5pysam
  * 
  * cdef class FastqProxy:             # <<<<<<<<<<<<<<
  *     cdef kseq_t * _delegate
- *     cdef cython.str tostring(self)
+ *     cdef cython.str to_string(self)
  */
 
 struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqProxy {
+  PyObject *(*to_string)(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *);
   PyObject *(*tostring)(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *);
   arrayobject *(*get_quality_array)(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_10FastqProxy_get_quality_array *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqProxy *__pyx_vtabptr_5pysam_9libcfaidx_FastqProxy;
 
 
-/* "pysam/libcfaidx.pxd":51
+/* "pysam/libcfaidx.pxd":52
  * 
  * 
- * cdef class PersistentFastqProxy:             # <<<<<<<<<<<<<<
+ * cdef class FastxRecord:             # <<<<<<<<<<<<<<
  *     """
  *     Python container for pysam.libcfaidx.FastqProxy with persistence.
  */
 
-struct __pyx_vtabstruct_5pysam_9libcfaidx_PersistentFastqProxy {
-  PyObject *(*tostring)(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *);
-  arrayobject *(*get_quality_array)(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array *__pyx_optional_args);
+struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxRecord {
+  PyObject *(*to_string)(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *);
+  PyObject *(*tostring)(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *);
+  arrayobject *(*get_quality_array)(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_11FastxRecord_get_quality_array *__pyx_optional_args);
 };
-static struct __pyx_vtabstruct_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_vtabptr_5pysam_9libcfaidx_PersistentFastqProxy;
+static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxRecord *__pyx_vtabptr_5pysam_9libcfaidx_FastxRecord;
 
 
-/* "pysam/libcfaidx.pxd":60
- * 
+/* "pysam/libcfaidx.pxd":61
+ *     cpdef array.array get_quality_array(self, int offset=*)
  * 
  * cdef class FastxFile:             # <<<<<<<<<<<<<<
  *     cdef object _filename
@@ -1397,7 +1440,7 @@ struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxFile {
 static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxFile *__pyx_vtabptr_5pysam_9libcfaidx_FastxFile;
 
 
-/* "pysam/libcfaidx.pxd":72
+/* "pysam/libcfaidx.pxd":73
  * 
  * # Compatibility Layer for pysam 0.8.1
  * cdef class FastqFile(FastxFile):             # <<<<<<<<<<<<<<
@@ -1411,7 +1454,7 @@ struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqFile {
 static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqFile *__pyx_vtabptr_5pysam_9libcfaidx_FastqFile;
 
 
-/* "pysam/libcfaidx.pxd":77
+/* "pysam/libcfaidx.pxd":78
  * 
  * # Compatibility Layer for pysam < 0.8
  * cdef class Fastafile(FastaFile):             # <<<<<<<<<<<<<<
@@ -1425,7 +1468,7 @@ struct __pyx_vtabstruct_5pysam_9libcfaidx_Fastafile {
 static struct __pyx_vtabstruct_5pysam_9libcfaidx_Fastafile *__pyx_vtabptr_5pysam_9libcfaidx_Fastafile;
 
 
-/* "pysam/libcalignedsegment.pxd":40
+/* "pysam/libcalignedsegment.pxd":34
  * 
  * # Note: need to declare all C fields and methods here
  * cdef class AlignedSegment:             # <<<<<<<<<<<<<<
@@ -1437,17 +1480,18 @@ struct __pyx_vtabstruct_5pysam_18libcalignedsegment_AlignedSegment {
   PyObject *(*set_tag)(struct __pyx_obj_5pysam_18libcalignedsegment_AlignedSegment *, PyObject *, PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_18libcalignedsegment_14AlignedSegment_set_tag *__pyx_optional_args);
   PyObject *(*get_tag)(struct __pyx_obj_5pysam_18libcalignedsegment_AlignedSegment *, PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_18libcalignedsegment_14AlignedSegment_get_tag *__pyx_optional_args);
   PyObject *(*has_tag)(struct __pyx_obj_5pysam_18libcalignedsegment_AlignedSegment *, PyObject *, int __pyx_skip_dispatch);
-  PyObject *(*tostring)(struct __pyx_obj_5pysam_18libcalignedsegment_AlignedSegment *, __pyx_t_5pysam_18libcalignedsegment_AlignmentFile_t, int __pyx_skip_dispatch);
+  PyObject *(*to_string)(struct __pyx_obj_5pysam_18libcalignedsegment_AlignedSegment *, int __pyx_skip_dispatch);
+  PyObject *(*tostring)(struct __pyx_obj_5pysam_18libcalignedsegment_AlignedSegment *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_18libcalignedsegment_14AlignedSegment_tostring *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_5pysam_18libcalignedsegment_AlignedSegment *__pyx_vtabptr_5pysam_18libcalignedsegment_AlignedSegment;
 
 
-/* "pysam/libcalignmentfile.pxd":39
- * 
+/* "pysam/libcalignmentfile.pxd":44
+ *     cdef bam_hdr_t *ptr
  * 
  * cdef class AlignmentFile(HTSFile):             # <<<<<<<<<<<<<<
  *     cdef readonly object reference_filename
- * 
+ *     cdef readonly AlignmentHeader header
  */
 
 struct __pyx_vtabstruct_5pysam_17libcalignmentfile_AlignmentFile {
@@ -1459,7 +1503,7 @@ struct __pyx_vtabstruct_5pysam_17libcalignmentfile_AlignmentFile {
 static struct __pyx_vtabstruct_5pysam_17libcalignmentfile_AlignmentFile *__pyx_vtabptr_5pysam_17libcalignmentfile_AlignmentFile;
 
 
-/* "pysam/libcalignmentfile.pxd":84
+/* "pysam/libcalignmentfile.pxd":89
  * 
  * 
  * cdef class IteratorRowRegion(IteratorRow):             # <<<<<<<<<<<<<<
@@ -1474,8 +1518,8 @@ struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowRegion {
 static struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowRegion *__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowRegion;
 
 
-/* "pysam/libcalignmentfile.pxd":89
- *     cdef int cnext(self)
+/* "pysam/libcalignmentfile.pxd":95
+ * 
  * 
  * cdef class IteratorRowHead(IteratorRow):             # <<<<<<<<<<<<<<
  *     cdef int max_rows
@@ -1489,8 +1533,8 @@ struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowHead {
 static struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowHead *__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowHead;
 
 
-/* "pysam/libcalignmentfile.pxd":95
- *     cdef int cnext(self)
+/* "pysam/libcalignmentfile.pxd":102
+ * 
  * 
  * cdef class IteratorRowAll(IteratorRow):             # <<<<<<<<<<<<<<
  *     cdef bam1_t * getCurrent(self)
@@ -1504,7 +1548,7 @@ struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowAll {
 static struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowAll *__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowAll;
 
 
-/* "pysam/libcalignmentfile.pxd":105
+/* "pysam/libcalignmentfile.pxd":112
  * 
  * 
  * cdef class IteratorRowSelection(IteratorRow):             # <<<<<<<<<<<<<<
@@ -1519,7 +1563,7 @@ struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowSelection {
 static struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowSelection *__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowSelection;
 
 
-/* "pysam/libcalignmentfile.pxd":112
+/* "pysam/libcalignmentfile.pxd":119
  * 
  * 
  * cdef class IteratorColumn:             # <<<<<<<<<<<<<<
@@ -1529,21 +1573,21 @@ static struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowSelection *
 
 struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorColumn {
   int (*cnext)(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn *);
-  char *(*getSequence)(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn *);
-  PyObject *(*setMask)(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn *, PyObject *);
-  PyObject *(*setupIteratorData)(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn *, int, int, int, struct __pyx_opt_args_5pysam_17libcalignmentfile_14IteratorColumn_setupIteratorData *__pyx_optional_args);
+  char *(*get_sequence)(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn *);
+  PyObject *(*_setup_iterator)(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn *, int, int, int, struct __pyx_opt_args_5pysam_17libcalignmentfile_14IteratorColumn__setup_iterator *__pyx_optional_args);
   PyObject *(*reset)(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn *, PyObject *, PyObject *, PyObject *);
   PyObject *(*_free_pileup_iter)(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn *);
+  char *(*getSequence)(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn *);
 };
 static struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorColumn *__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumn;
 
 
-/* "pysam/libcalignmentfile.pxd":141
+/* "pysam/libcalignmentfile.pxd":150
  * 
  * 
  * cdef class IteratorColumnRegion(IteratorColumn):             # <<<<<<<<<<<<<<
  *     cdef int start
- *     cdef int end
+ *     cdef int stop
  */
 
 struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorColumnRegion {
@@ -1552,7 +1596,7 @@ struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorColumnRegion {
 static struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorColumnRegion *__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumnRegion;
 
 
-/* "pysam/libcalignmentfile.pxd":147
+/* "pysam/libcalignmentfile.pxd":156
  * 
  * 
  * cdef class IteratorColumnAllRefs(IteratorColumn):             # <<<<<<<<<<<<<<
@@ -2243,7 +2287,7 @@ static PyTypeObject *__pyx_ptype_5pysam_10libchtslib_HTSFile = 0;
 /* Module declarations from 'pysam.libcfaidx' */
 static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_FastaFile = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_FastqProxy = 0;
-static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_PersistentFastqProxy = 0;
+static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_FastxRecord = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_FastxFile = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_FastqFile = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_Fastafile = 0;
@@ -2254,6 +2298,7 @@ static PyTypeObject *__pyx_ptype_5pysam_18libcalignedsegment_PileupColumn = 0;
 static PyTypeObject *__pyx_ptype_5pysam_18libcalignedsegment_PileupRead = 0;
 
 /* Module declarations from 'pysam.libcalignmentfile' */
+static PyTypeObject *__pyx_ptype_5pysam_17libcalignmentfile_AlignmentHeader = 0;
 static PyTypeObject *__pyx_ptype_5pysam_17libcalignmentfile_AlignmentFile = 0;
 static PyTypeObject *__pyx_ptype_5pysam_17libcalignmentfile_PileupColumn = 0;
 static PyTypeObject *__pyx_ptype_5pysam_17libcalignmentfile_PileupRead = 0;
@@ -2306,8 +2351,8 @@ static const char __pyx_k_collections[] = "collections";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
-static const char __pyx_k_self_b_self_header_self_htsfile[] = "self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling";
 static const char __pyx_k_self__delegate_cannot_be_convert[] = "self._delegate cannot be converted to a Python object for pickling";
+static const char __pyx_k_self_b_self_htsfile_self_index_c[] = "self.b,self.htsfile,self.index cannot be converted to a Python object for pickling";
 static PyObject *__pyx_n_s_AlignedRead;
 static PyObject *__pyx_n_s_MemoryError;
 static PyObject *__pyx_n_s_Samfile;
@@ -2329,7 +2374,7 @@ static PyObject *__pyx_n_s_reduce;
 static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_reduce_ex;
 static PyObject *__pyx_kp_s_self__delegate_cannot_be_convert;
-static PyObject *__pyx_kp_s_self_b_self_header_self_htsfile;
+static PyObject *__pyx_kp_s_self_b_self_htsfile_self_index_c;
 static PyObject *__pyx_n_s_setstate;
 static PyObject *__pyx_n_s_setstate_cython;
 static PyObject *__pyx_n_s_struct;
@@ -2354,7 +2399,7 @@ static PyObject *__pyx_tuple__4;
 
 /* "(tree fragment)":1
  * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")
  * def __setstate_cython__(self, __pyx_state):
  */
 
@@ -2382,9 +2427,9 @@ static PyObject *__pyx_pf_5pysam_11libcsamfile_7Samfile___reduce_cython__(CYTHON
 
   /* "(tree fragment)":2
  * def __reduce_cython__(self):
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")
  */
   __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -2394,7 +2439,7 @@ static PyObject *__pyx_pf_5pysam_11libcsamfile_7Samfile___reduce_cython__(CYTHON
 
   /* "(tree fragment)":1
  * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")
  * def __setstate_cython__(self, __pyx_state):
  */
 
@@ -2411,9 +2456,9 @@ static PyObject *__pyx_pf_5pysam_11libcsamfile_7Samfile___reduce_cython__(CYTHON
 
 /* "(tree fragment)":3
  * def __reduce_cython__(self):
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")
  */
 
 /* Python wrapper */
@@ -2439,9 +2484,9 @@ static PyObject *__pyx_pf_5pysam_11libcsamfile_7Samfile_2__setstate_cython__(CYT
   __Pyx_TraceCall("__setstate_cython__", __pyx_f[0], 3, 0, __PYX_ERR(0, 3, __pyx_L1_error));
 
   /* "(tree fragment)":4
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")
  * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
   __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -2451,9 +2496,9 @@ static PyObject *__pyx_pf_5pysam_11libcsamfile_7Samfile_2__setstate_cython__(CYT
 
   /* "(tree fragment)":3
  * def __reduce_cython__(self):
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")
  */
 
   /* function exit code */
@@ -3497,7 +3542,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
   {&__pyx_kp_s_self__delegate_cannot_be_convert, __pyx_k_self__delegate_cannot_be_convert, sizeof(__pyx_k_self__delegate_cannot_be_convert), 0, 0, 1, 0},
-  {&__pyx_kp_s_self_b_self_header_self_htsfile, __pyx_k_self_b_self_header_self_htsfile, sizeof(__pyx_k_self_b_self_header_self_htsfile), 0, 0, 1, 0},
+  {&__pyx_kp_s_self_b_self_htsfile_self_index_c, __pyx_k_self_b_self_htsfile_self_index_c, sizeof(__pyx_k_self_b_self_htsfile_self_index_c), 0, 0, 1, 0},
   {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
   {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
   {&__pyx_n_s_struct, __pyx_k_struct, sizeof(__pyx_k_struct), 0, 0, 1, 1},
@@ -3522,20 +3567,20 @@ static int __Pyx_InitCachedConstants(void) {
 
   /* "(tree fragment)":2
  * def __reduce_cython__(self):
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_self_b_self_header_self_htsfile); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 2, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_self_b_self_htsfile_self_index_c); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
   /* "(tree fragment)":4
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")
  * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("self.b,self.header,self.htsfile,self.index cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ *     raise TypeError("self.b,self.htsfile,self.index cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_self_b_self_header_self_htsfile); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 4, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_self_b_self_htsfile_self_index_c); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
@@ -3656,41 +3701,42 @@ static int __Pyx_modinit_type_import_code(void) {
   __pyx_ptype_7cpython_4bool_bool = __Pyx_ImportType(__Pyx_BUILTIN_MODULE_NAME, "bool", sizeof(PyBoolObject), 0); if (unlikely(!__pyx_ptype_7cpython_4bool_bool)) __PYX_ERR(4, 8, __pyx_L1_error)
   __pyx_ptype_7cpython_7complex_complex = __Pyx_ImportType(__Pyx_BUILTIN_MODULE_NAME, "complex", sizeof(PyComplexObject), 0); if (unlikely(!__pyx_ptype_7cpython_7complex_complex)) __PYX_ERR(5, 15, __pyx_L1_error)
   __pyx_ptype_7cpython_5array_array = __Pyx_ImportType("array", "array", sizeof(arrayobject), 0); if (unlikely(!__pyx_ptype_7cpython_5array_array)) __PYX_ERR(1, 58, __pyx_L1_error)
-  __pyx_ptype_5pysam_10libchtslib_HTSFile = __Pyx_ImportType("pysam.libchtslib", "HTSFile", sizeof(struct __pyx_obj_5pysam_10libchtslib_HTSFile), 1); if (unlikely(!__pyx_ptype_5pysam_10libchtslib_HTSFile)) __PYX_ERR(6, 1904, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_10libchtslib_HTSFile = (struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_10libchtslib_HTSFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_10libchtslib_HTSFile)) __PYX_ERR(6, 1904, __pyx_L1_error)
+  __pyx_ptype_5pysam_10libchtslib_HTSFile = __Pyx_ImportType("pysam.libchtslib", "HTSFile", sizeof(struct __pyx_obj_5pysam_10libchtslib_HTSFile), 1); if (unlikely(!__pyx_ptype_5pysam_10libchtslib_HTSFile)) __PYX_ERR(6, 2590, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_10libchtslib_HTSFile = (struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_10libchtslib_HTSFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_10libchtslib_HTSFile)) __PYX_ERR(6, 2590, __pyx_L1_error)
   __pyx_ptype_5pysam_9libcfaidx_FastaFile = __Pyx_ImportType("pysam.libcfaidx", "FastaFile", sizeof(struct __pyx_obj_5pysam_9libcfaidx_FastaFile), 1); if (unlikely(!__pyx_ptype_5pysam_9libcfaidx_FastaFile)) __PYX_ERR(7, 37, __pyx_L1_error)
   __pyx_vtabptr_5pysam_9libcfaidx_FastaFile = (struct __pyx_vtabstruct_5pysam_9libcfaidx_FastaFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libcfaidx_FastaFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libcfaidx_FastaFile)) __PYX_ERR(7, 37, __pyx_L1_error)
   __pyx_ptype_5pysam_9libcfaidx_FastqProxy = __Pyx_ImportType("pysam.libcfaidx", "FastqProxy", sizeof(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy), 1); if (unlikely(!__pyx_ptype_5pysam_9libcfaidx_FastqProxy)) __PYX_ERR(7, 45, __pyx_L1_error)
   __pyx_vtabptr_5pysam_9libcfaidx_FastqProxy = (struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libcfaidx_FastqProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libcfaidx_FastqProxy)) __PYX_ERR(7, 45, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libcfaidx_PersistentFastqProxy = __Pyx_ImportType("pysam.libcfaidx", "PersistentFastqProxy", sizeof(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy), 1); if (unlikely(!__pyx_ptype_5pysam_9libcfaidx_PersistentFastqProxy)) __PYX_ERR(7, 51, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libcfaidx_PersistentFastqProxy = (struct __pyx_vtabstruct_5pysam_9libcfaidx_PersistentFastqProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libcfaidx_PersistentFastqProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libcfaidx_PersistentFastqProxy)) __PYX_ERR(7, 51, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libcfaidx_FastxFile = __Pyx_ImportType("pysam.libcfaidx", "FastxFile", sizeof(struct __pyx_obj_5pysam_9libcfaidx_FastxFile), 1); if (unlikely(!__pyx_ptype_5pysam_9libcfaidx_FastxFile)) __PYX_ERR(7, 60, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libcfaidx_FastxFile = (struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libcfaidx_FastxFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libcfaidx_FastxFile)) __PYX_ERR(7, 60, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libcfaidx_FastqFile = __Pyx_ImportType("pysam.libcfaidx", "FastqFile", sizeof(struct __pyx_obj_5pysam_9libcfaidx_FastqFile), 1); if (unlikely(!__pyx_ptype_5pysam_9libcfaidx_FastqFile)) __PYX_ERR(7, 72, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libcfaidx_FastqFile = (struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libcfaidx_FastqFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libcfaidx_FastqFile)) __PYX_ERR(7, 72, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libcfaidx_Fastafile = __Pyx_ImportType("pysam.libcfaidx", "Fastafile", sizeof(struct __pyx_obj_5pysam_9libcfaidx_Fastafile), 1); if (unlikely(!__pyx_ptype_5pysam_9libcfaidx_Fastafile)) __PYX_ERR(7, 77, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libcfaidx_Fastafile = (struct __pyx_vtabstruct_5pysam_9libcfaidx_Fastafile*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libcfaidx_Fastafile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libcfaidx_Fastafile)) __PYX_ERR(7, 77, __pyx_L1_error)
-  __pyx_ptype_5pysam_18libcalignedsegment_PileupColumn = __Pyx_ImportType("pysam.libcalignedsegment", "PileupColumn", sizeof(struct __pyx_obj_5pysam_18libcalignedsegment_PileupColumn), 1); if (unlikely(!__pyx_ptype_5pysam_18libcalignedsegment_PileupColumn)) __PYX_ERR(8, 69, __pyx_L1_error)
-  __pyx_ptype_5pysam_18libcalignedsegment_PileupRead = __Pyx_ImportType("pysam.libcalignedsegment", "PileupRead", sizeof(struct __pyx_obj_5pysam_18libcalignedsegment_PileupRead), 1); if (unlikely(!__pyx_ptype_5pysam_18libcalignedsegment_PileupRead)) __PYX_ERR(8, 77, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_PileupColumn = __Pyx_ImportType("pysam.libcalignmentfile", "PileupColumn", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_PileupColumn), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_PileupColumn)) __PYX_ERR(9, 57, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_PileupRead = __Pyx_ImportType("pysam.libcalignmentfile", "PileupRead", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_PileupRead), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_PileupRead)) __PYX_ERR(9, 64, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRow = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRow", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRow), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRow)) __PYX_ERR(9, 75, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRowRegion = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRowRegion", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowRegion), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowRegion)) __PYX_ERR(9, 84, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowRegion = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowRegion*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowRegion->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowRegion)) __PYX_ERR(9, 84, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRowHead = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRowHead", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowHead), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowHead)) __PYX_ERR(9, 89, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowHead = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowHead*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowHead->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowHead)) __PYX_ERR(9, 89, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRowAll = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRowAll", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowAll), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowAll)) __PYX_ERR(9, 95, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowAll = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowAll*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowAll->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowAll)) __PYX_ERR(9, 95, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRowAllRefs = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRowAllRefs", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowAllRefs), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowAllRefs)) __PYX_ERR(9, 100, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRowSelection = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRowSelection", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowSelection), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowSelection)) __PYX_ERR(9, 105, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowSelection = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowSelection*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowSelection->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowSelection)) __PYX_ERR(9, 105, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_IteratorColumn = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorColumn", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumn)) __PYX_ERR(9, 112, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumn = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorColumn*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumn->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumn)) __PYX_ERR(9, 112, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnRegion = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorColumnRegion", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumnRegion), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnRegion)) __PYX_ERR(9, 141, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumnRegion = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorColumnRegion*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnRegion->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumnRegion)) __PYX_ERR(9, 141, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnAllRefs = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorColumnAllRefs", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumnAllRefs), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnAllRefs)) __PYX_ERR(9, 147, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumnAllRefs = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorColumnAllRefs*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnAllRefs->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumnAllRefs)) __PYX_ERR(9, 147, __pyx_L1_error)
-  __pyx_ptype_5pysam_17libcalignmentfile_IndexedReads = __Pyx_ImportType("pysam.libcalignmentfile", "IndexedReads", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IndexedReads), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IndexedReads)) __PYX_ERR(9, 151, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libcfaidx_FastxRecord = __Pyx_ImportType("pysam.libcfaidx", "FastxRecord", sizeof(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord), 1); if (unlikely(!__pyx_ptype_5pysam_9libcfaidx_FastxRecord)) __PYX_ERR(7, 52, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libcfaidx_FastxRecord = (struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxRecord*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libcfaidx_FastxRecord->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libcfaidx_FastxRecord)) __PYX_ERR(7, 52, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libcfaidx_FastxFile = __Pyx_ImportType("pysam.libcfaidx", "FastxFile", sizeof(struct __pyx_obj_5pysam_9libcfaidx_FastxFile), 1); if (unlikely(!__pyx_ptype_5pysam_9libcfaidx_FastxFile)) __PYX_ERR(7, 61, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libcfaidx_FastxFile = (struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libcfaidx_FastxFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libcfaidx_FastxFile)) __PYX_ERR(7, 61, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libcfaidx_FastqFile = __Pyx_ImportType("pysam.libcfaidx", "FastqFile", sizeof(struct __pyx_obj_5pysam_9libcfaidx_FastqFile), 1); if (unlikely(!__pyx_ptype_5pysam_9libcfaidx_FastqFile)) __PYX_ERR(7, 73, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libcfaidx_FastqFile = (struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libcfaidx_FastqFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libcfaidx_FastqFile)) __PYX_ERR(7, 73, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libcfaidx_Fastafile = __Pyx_ImportType("pysam.libcfaidx", "Fastafile", sizeof(struct __pyx_obj_5pysam_9libcfaidx_Fastafile), 1); if (unlikely(!__pyx_ptype_5pysam_9libcfaidx_Fastafile)) __PYX_ERR(7, 78, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libcfaidx_Fastafile = (struct __pyx_vtabstruct_5pysam_9libcfaidx_Fastafile*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libcfaidx_Fastafile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libcfaidx_Fastafile)) __PYX_ERR(7, 78, __pyx_L1_error)
+  __pyx_ptype_5pysam_18libcalignedsegment_PileupColumn = __Pyx_ImportType("pysam.libcalignedsegment", "PileupColumn", sizeof(struct __pyx_obj_5pysam_18libcalignedsegment_PileupColumn), 1); if (unlikely(!__pyx_ptype_5pysam_18libcalignedsegment_PileupColumn)) __PYX_ERR(8, 66, __pyx_L1_error)
+  __pyx_ptype_5pysam_18libcalignedsegment_PileupRead = __Pyx_ImportType("pysam.libcalignedsegment", "PileupRead", sizeof(struct __pyx_obj_5pysam_18libcalignedsegment_PileupRead), 1); if (unlikely(!__pyx_ptype_5pysam_18libcalignedsegment_PileupRead)) __PYX_ERR(8, 76, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_AlignmentHeader = __Pyx_ImportType("pysam.libcalignmentfile", "AlignmentHeader", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_AlignmentHeader), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_AlignmentHeader)) __PYX_ERR(9, 41, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_PileupColumn = __Pyx_ImportType("pysam.libcalignmentfile", "PileupColumn", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_PileupColumn), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_PileupColumn)) __PYX_ERR(9, 61, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_PileupRead = __Pyx_ImportType("pysam.libcalignmentfile", "PileupRead", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_PileupRead), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_PileupRead)) __PYX_ERR(9, 68, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRow = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRow", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRow), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRow)) __PYX_ERR(9, 79, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRowRegion = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRowRegion", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowRegion), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowRegion)) __PYX_ERR(9, 89, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowRegion = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowRegion*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowRegion->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowRegion)) __PYX_ERR(9, 89, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRowHead = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRowHead", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowHead), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowHead)) __PYX_ERR(9, 95, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowHead = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowHead*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowHead->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowHead)) __PYX_ERR(9, 95, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRowAll = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRowAll", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowAll), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowAll)) __PYX_ERR(9, 102, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowAll = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowAll*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowAll->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowAll)) __PYX_ERR(9, 102, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRowAllRefs = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRowAllRefs", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowAllRefs), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowAllRefs)) __PYX_ERR(9, 107, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_IteratorRowSelection = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorRowSelection", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorRowSelection), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowSelection)) __PYX_ERR(9, 112, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowSelection = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorRowSelection*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorRowSelection->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorRowSelection)) __PYX_ERR(9, 112, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_IteratorColumn = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorColumn", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumn), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumn)) __PYX_ERR(9, 119, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumn = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorColumn*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumn->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumn)) __PYX_ERR(9, 119, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnRegion = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorColumnRegion", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumnRegion), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnRegion)) __PYX_ERR(9, 150, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumnRegion = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorColumnRegion*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnRegion->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumnRegion)) __PYX_ERR(9, 150, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnAllRefs = __Pyx_ImportType("pysam.libcalignmentfile", "IteratorColumnAllRefs", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IteratorColumnAllRefs), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnAllRefs)) __PYX_ERR(9, 156, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumnAllRefs = (struct __pyx_vtabstruct_5pysam_17libcalignmentfile_IteratorColumnAllRefs*)__Pyx_GetVtable(__pyx_ptype_5pysam_17libcalignmentfile_IteratorColumnAllRefs->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_17libcalignmentfile_IteratorColumnAllRefs)) __PYX_ERR(9, 156, __pyx_L1_error)
+  __pyx_ptype_5pysam_17libcalignmentfile_IndexedReads = __Pyx_ImportType("pysam.libcalignmentfile", "IndexedReads", sizeof(struct __pyx_obj_5pysam_17libcalignmentfile_IndexedReads), 1); if (unlikely(!__pyx_ptype_5pysam_17libcalignmentfile_IndexedReads)) __PYX_ERR(9, 160, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
