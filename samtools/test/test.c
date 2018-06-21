@@ -1,6 +1,6 @@
 /*  test/test.c -- test harness utility routines.
 
-    Copyright (C) 2014 Genome Research Ltd.
+    Copyright (C) 2014, 2016 Genome Research Ltd.
 
     Author: Martin O. Pollard <mp15@sanger.ac.uk>
 

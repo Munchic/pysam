@@ -1,6 +1,6 @@
 /*  thread_pool.c -- A pool of generic worker threads
 
-    Copyright (c) 2013-2016 Genome Research Ltd.
+    Copyright (c) 2013-2018 Genome Research Ltd.
 
     Author: James Bonfield <jkb@sanger.ac.uk>
 
@@ -43,7 +43,7 @@ DEALINGS IN THE SOFTWARE.  */
 //#define DEBUG
 
 #ifdef DEBUG
-static int worker_id(t_pool *p) {
+static int worker_id(hts_tpool *p) {
     int i;
     pthread_t s = pthread_self();
     for (i = 0; i < p->tsize; i++) {
@@ -127,6 +127,9 @@ static void wake_next_worker(hts_tpool_process *q, int locked);
 static hts_tpool_result *hts_tpool_next_result_locked(hts_tpool_process *q) {
     hts_tpool_result *r, *last;
 
+    if (q->shutdown)
+        return NULL;
+
     for (last = NULL, r = q->output_head; r; last = r, r = r->next) {
         if (r->serial == q->next_serial)
             break;
@@ -209,7 +212,6 @@ hts_tpool_result *hts_tpool_next_result_wait(hts_tpool_process *q) {
         timeout.tv_nsec = now.tv_usec * 1000;
 
         q->ref_count++;
-        pthread_cond_timedwait(&q->output_avail_c, &q->p->pool_m, &timeout);
         if (q->shutdown) {
             int rc = --q->ref_count;
             pthread_mutex_unlock(&q->p->pool_m);
@@ -217,6 +219,7 @@ hts_tpool_result *hts_tpool_next_result_wait(hts_tpool_process *q) {
                 hts_tpool_process_destroy(q);
             return NULL;
         }
+        pthread_cond_timedwait(&q->output_avail_c, &q->p->pool_m, &timeout);
 
         q->ref_count--;
     }
@@ -237,6 +240,24 @@ int hts_tpool_process_empty(hts_tpool_process *q) {
     pthread_mutex_unlock(&q->p->pool_m);
 
     return empty;
+}
+
+void hts_tpool_process_ref_incr(hts_tpool_process *q) {
+    pthread_mutex_lock(&q->p->pool_m);
+    q->ref_count++;
+    pthread_mutex_unlock(&q->p->pool_m);
+}
+
+void hts_tpool_process_ref_decr(hts_tpool_process *q) {
+    pthread_mutex_lock(&q->p->pool_m);
+    if (--q->ref_count <= 0) {
+        pthread_mutex_unlock(&q->p->pool_m);
+        hts_tpool_process_destroy(q);
+        return;
+    }
+
+    // maybe also call destroy here if needed?
+    pthread_mutex_unlock(&q->p->pool_m);
 }
 
 /*
@@ -435,9 +456,6 @@ void hts_tpool_process_detach(hts_tpool *p, hts_tpool_process *q) {
  */
 
 #define TDIFF(t2,t1) ((t2.tv_sec-t1.tv_sec)*1000000 + t2.tv_usec-t1.tv_usec)
-
-#include <sys/syscall.h>
-#define TID (int)syscall(SYS_gettid)
 
 /*
  * A worker thread.
@@ -671,8 +689,10 @@ hts_tpool *hts_tpool_init(int n) {
         w->p = p;
         w->idx = i;
         pthread_cond_init(&w->pending_c, NULL);
-        if (0 != pthread_create(&w->tid, NULL, tpool_worker, w))
+        if (0 != pthread_create(&w->tid, NULL, tpool_worker, w)) {
+            pthread_mutex_unlock(&p->pool_m);
             return NULL;
+        }
     }
 
     pthread_mutex_unlock(&p->pool_m);
@@ -720,8 +740,10 @@ int hts_tpool_dispatch2(hts_tpool *p, hts_tpool_process *q,
         return -1;
     }
 
-    if (!(j = malloc(sizeof(*j))))
+    if (!(j = malloc(sizeof(*j)))) {
+        pthread_mutex_unlock(&p->pool_m);
         return -1;
+    }
     j->func = func;
     j->arg = arg;
     j->next = NULL;
@@ -733,6 +755,7 @@ int hts_tpool_dispatch2(hts_tpool *p, hts_tpool_process *q,
         while (q->n_input >= q->qsize && !q->shutdown && !q->wake_dispatch)
             pthread_cond_wait(&q->input_not_full_c, &q->p->pool_m);
         if (q->shutdown) {
+            free(j);
             pthread_mutex_unlock(&p->pool_m);
             return -1;
         }
@@ -827,7 +850,7 @@ int hts_tpool_process_flush(hts_tpool_process *q) {
 }
 
 /*
- * Resets a process to the intial state.
+ * Resets a process to the initial state.
  *
  * This removes any queued up input jobs, disables any notification of
  * new results/output, flushes what is left and then discards any
@@ -1061,7 +1084,7 @@ int test_square(int n) {
 
             // Check for results.
             if ((r = hts_tpool_next_result(q))) {
-                printf("RESULT: %d\n", *(int *)r->data);
+                printf("RESULT: %d\n", *(int *)hts_tpool_result_data(r));
                 hts_tpool_delete_result(r, 1);
             }
             if (blk == -1) {
@@ -1077,7 +1100,7 @@ int test_square(int n) {
     hts_tpool_process_flush(q);
 
     while ((r = hts_tpool_next_result(q))) {
-        printf("RESULT: %d\n", *(int *)r->data);
+        printf("RESULT: %d\n", *(int *)hts_tpool_result_data(r));
         hts_tpool_delete_result(r, 1);
     }
 
@@ -1129,7 +1152,7 @@ int test_squareB(int n) {
     // Consume all results until we find the end-of-job marker.
     for(;;) {
         hts_tpool_result *r = hts_tpool_next_result_wait(q);
-        int x = *(int *)r->data;
+        int x = *(int *)hts_tpool_result_data(r);
         hts_tpool_delete_result(r, 1);
         if (x == -1)
             break;
@@ -1152,7 +1175,7 @@ int test_squareB(int n) {
 
 /*-----------------------------------------------------------------------------
  * A simple pipeline test.
- * We use a dediocated input thread that does the initial generation of job
+ * We use a dedicated input thread that does the initial generation of job
  * and dispatch, several execution steps running in a shared pool, and a
  * dedicated output thread that prints up the final result.  It's key that our
  * pipeline execution stages can run independently and don't themselves have
@@ -1230,7 +1253,7 @@ static void *pipe_stage1to2(void *arg) {
     hts_tpool_result *r;
 
     while ((r = hts_tpool_next_result_wait(o->q1))) {
-        pipe_job *j = (pipe_job *)r->data;
+        pipe_job *j = (pipe_job *)hts_tpool_result_data(r);
         hts_tpool_delete_result(r, 0);
         if (hts_tpool_dispatch(j->o->p, j->o->q2, pipe_stage2, j) != 0)
             pthread_exit((void *)1);
@@ -1256,7 +1279,7 @@ static void *pipe_stage2to3(void *arg) {
     hts_tpool_result *r;
 
     while ((r = hts_tpool_next_result_wait(o->q2))) {
-        pipe_job *j = (pipe_job *)r->data;
+        pipe_job *j = (pipe_job *)hts_tpool_result_data(r);
         hts_tpool_delete_result(r, 0);
         if (hts_tpool_dispatch(j->o->p, j->o->q3, pipe_stage3, j) != 0)
             pthread_exit((void *)1);
@@ -1280,7 +1303,7 @@ static void *pipe_output_thread(void *arg) {
     hts_tpool_result *r;
 
     while ((r = hts_tpool_next_result_wait(o->q3))) {
-        pipe_job *j = (pipe_job *)r->data;
+        pipe_job *j = (pipe_job *)hts_tpool_result_data(r);
         int eof = j->eof;
         printf("O  %08x\n", j->x);
         hts_tpool_delete_result(r, 1);

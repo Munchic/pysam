@@ -1,9 +1,10 @@
 # pysam versioning information
+__version__ = "0.14.1"
 
-__version__ = "0.10.0"
+# TODO: upgrade number
+__samtools_version__ = "1.7"
 
-__samtools_version__ = "1.3.1"
+# TODO: upgrade code and number
+__bcftools_version__ = "1.6"
 
-__bcftools_version__ = "1.3.1"
-
-__htslib_version__ = "1.3.2"
+__htslib_version__ = "1.7"

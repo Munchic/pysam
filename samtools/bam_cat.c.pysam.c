@@ -1,4 +1,4 @@
-#include "pysam.h"
+#include "samtools.pysam.h"
 
 /*  bam_cat.c -- efficiently concatenates bam files.
 
@@ -42,6 +42,7 @@ Illumina.
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <strings.h>
 
 #include "htslib/bgzf.h"
 #include "htslib/sam.h"
@@ -209,7 +210,7 @@ static bam_hdr_t *cram_cat_check_hdr(int nfn, char * const *fn, const bam_hdr_t 
         int vmin = cram_minor_vers(in_c);
         if ((vers_maj != -1 && vers_maj != vmaj) ||
             (vers_min != -1 && vers_min != vmin)) {
-            fprintf(pysam_stderr, "[%s] ERROR: input files have differing version numbers.\n",
+            fprintf(samtools_stderr, "[%s] ERROR: input files have differing version numbers.\n",
                     __func__);
             return NULL;
         }
@@ -229,7 +230,7 @@ static bam_hdr_t *cram_cat_check_hdr(int nfn, char * const *fn, const bam_hdr_t 
             int added;
 
             new_rg = hash_s2i_inc(*rg2id, rg2id_in->id[ki], rg2id_in->line[ki], &added);
-            //fprintf(pysam_stderr, "RG %s: #%d -> #%d\n",
+            //fprintf(samtools_stderr, "RG %s: #%d -> #%d\n",
             //        rg2id_in->id[ki], ki, new_rg);
 
             if (added) {
@@ -245,7 +246,7 @@ static bam_hdr_t *cram_cat_check_hdr(int nfn, char * const *fn, const bam_hdr_t 
             }
 
             if (new_rg != ki && rg2id_in->n_id > 1) {
-                fprintf(pysam_stderr, "[%s] ERROR: Same size @RG lists but differing order / contents\n",
+                fprintf(samtools_stderr, "[%s] ERROR: Same size @RG lists but differing order / contents\n",
                         __func__);
                 return NULL;
             }
@@ -312,7 +313,7 @@ int cram_cat(int nfn, char * const *fn, const bam_hdr_t *h, const char* outcram)
     }
     out_c = out->fp.cram;
     cram_set_option(out_c, CRAM_OPT_VERSION, vers);
-    //fprintf(pysam_stderr, "Creating cram vers %s\n", vers);
+    //fprintf(samtools_stderr, "Creating cram vers %s\n", vers);
 
     cram_fd_set_header(out_c, sam_hdr_parse_(new_h->text,  new_h->l_text)); // needed?
     if (sam_hdr_write(out, new_h) < 0) {
@@ -373,7 +374,7 @@ int cram_cat(int nfn, char * const *fn, const bam_hdr_t *h, const char* outcram)
             // we need to edit the compression header. IF WE CAN.
             if (new_rg) {
                 int zero = 0;
-                //fprintf(pysam_stderr, "Transcode RG %d to %d\n", 0, new_rg);
+                //fprintf(samtools_stderr, "Transcode RG %d to %d\n", 0, new_rg);
                 cram_transcode_rg(in_c, out_c, c, 1, &zero, &new_rg);
             } else {
                 int32_t num_slices;
@@ -428,7 +429,7 @@ int bam_cat(int nfn, char * const *fn, const bam_hdr_t *h, const char* outbam)
     const int es=BGZF_EMPTY_BLOCK_SIZE;
     int i;
 
-    fp = strcmp(outbam, "-")? bgzf_open(outbam, "w") : bgzf_fdopen(fileno(pysam_stdout), "w");
+    fp = strcmp(outbam, "-")? bgzf_open(outbam, "w") : bgzf_fdopen(fileno(samtools_stdout), "w");
     if (fp == 0) {
         print_error_errno("cat", "fail to open output file '%s'", outbam);
         return -1;
@@ -442,7 +443,7 @@ int bam_cat(int nfn, char * const *fn, const bam_hdr_t *h, const char* outbam)
 
     buf = (uint8_t*) malloc(BUF_SIZE);
     if (!buf) {
-        fprintf(pysam_stderr, "[%s] Couldn't allocate buffer\n", __func__);
+        fprintf(samtools_stderr, "[%s] Couldn't allocate buffer\n", __func__);
         goto fail;
     }
     for(i = 0; i < nfn; ++i){
@@ -458,7 +459,7 @@ int bam_cat(int nfn, char * const *fn, const bam_hdr_t *h, const char* outbam)
 
         old = bam_hdr_read(in);
         if (old == NULL) {
-            fprintf(pysam_stderr, "[%s] ERROR: couldn't read header for '%s'.\n",
+            fprintf(samtools_stderr, "[%s] ERROR: couldn't read header for '%s'.\n",
                     __func__, fn[i]);
             goto fail;
         }
@@ -470,7 +471,7 @@ int bam_cat(int nfn, char * const *fn, const bam_hdr_t *h, const char* outbam)
         }
 
         if (in->block_offset < in->block_length) {
-            if (bgzf_write(fp, in->uncompressed_block + in->block_offset, in->block_length - in->block_offset) < 0) goto write_fail;
+            if (bgzf_write(fp, (char *)in->uncompressed_block + in->block_offset, in->block_length - in->block_offset) < 0) goto write_fail;
             if (bgzf_flush(fp) != 0) goto write_fail;
         }
 
@@ -479,7 +480,7 @@ int bam_cat(int nfn, char * const *fn, const bam_hdr_t *h, const char* outbam)
             if(len<es){
                 int diff=es-len;
                 if(j==0) {
-                    fprintf(pysam_stderr, "[%s] ERROR: truncated file?: '%s'.\n", __func__, fn[i]);
+                    fprintf(samtools_stderr, "[%s] ERROR: truncated file?: '%s'.\n", __func__, fn[i]);
                     goto fail;
                 }
                 if (bgzf_raw_write(fp, ebuf, len) < 0) goto write_fail;
@@ -503,8 +504,8 @@ int bam_cat(int nfn, char * const *fn, const bam_hdr_t *h, const char* outbam)
             const uint8_t gzip2=ebuf[1];
             const uint32_t isize=*((uint32_t*)(ebuf+es-4));
             if(((gzip1!=GZIPID1) || (gzip2!=GZIPID2)) || (isize!=0)) {
-                fprintf(pysam_stderr, "[%s] WARNING: Unexpected block structure in file '%s'.", __func__, fn[i]);
-                fprintf(pysam_stderr, " Possible output corruption.\n");
+                fprintf(samtools_stderr, "[%s] WARNING: Unexpected block structure in file '%s'.", __func__, fn[i]);
+                fprintf(samtools_stderr, " Possible output corruption.\n");
                 if (bgzf_raw_write(fp, ebuf, es) < 0) goto write_fail;
             }
         }
@@ -514,13 +515,13 @@ int bam_cat(int nfn, char * const *fn, const bam_hdr_t *h, const char* outbam)
     }
     free(buf);
     if (bgzf_close(fp) < 0) {
-        fprintf(pysam_stderr, "[%s] Error on closing '%s'.\n", __func__, outbam);
+        fprintf(samtools_stderr, "[%s] Error on closing '%s'.\n", __func__, outbam);
         return -1;
     }
     return 0;
 
  write_fail:
-    fprintf(pysam_stderr, "[%s] Error writing to '%s'.\n", __func__, outbam);
+    fprintf(samtools_stderr, "[%s] Error writing to '%s'.\n", __func__, outbam);
  fail:
     if (in) bgzf_close(in);
     if (fp) bgzf_close(fp);
@@ -533,20 +534,22 @@ int main_cat(int argc, char *argv[])
 {
     bam_hdr_t *h = 0;
     char *outfn = 0;
+    char **infns = NULL; // files to concatenate
+    int infns_size = 0;
     int c, ret = 0;
     samFile *in;
 
-    while ((c = getopt(argc, argv, "h:o:")) >= 0) {
+    while ((c = getopt(argc, argv, "h:o:b:")) >= 0) {
         switch (c) {
             case 'h': {
                 samFile *fph = sam_open(optarg, "r");
                 if (fph == 0) {
-                    fprintf(pysam_stderr, "[%s] ERROR: fail to read the header from '%s'.\n", __func__, argv[1]);
+                    fprintf(samtools_stderr, "[%s] ERROR: fail to read the header from '%s'.\n", __func__, argv[1]);
                     return 1;
                 }
                 h = sam_hdr_read(fph);
                 if (h == NULL) {
-                    fprintf(pysam_stderr,
+                    fprintf(samtools_stderr,
                             "[%s] ERROR: failed to read the header for '%s'.\n",
                             __func__, argv[1]);
                     return 1;
@@ -555,38 +558,79 @@ int main_cat(int argc, char *argv[])
                 break;
             }
             case 'o': outfn = strdup(optarg); break;
+            case 'b': {
+                // add file names in "optarg" to the list
+                // of files to concatenate
+                int nfns;
+                char **fns_read = hts_readlines(optarg, &nfns);
+                if (fns_read) {
+                    infns = realloc(infns, (infns_size + nfns) * sizeof(char*));
+                    if (infns == NULL) { ret = 1; goto end; }
+                    memcpy(infns+infns_size, fns_read, nfns * sizeof(char*));
+                    infns_size += nfns;
+                    free(fns_read);
+                } else {
+                    print_error("cat", "Invalid file list \"%s\"", optarg);
+                    ret = 1;
+                }
+                break;
+            }
         }
     }
-    if (argc - optind < 1) {
-        fprintf(pysam_stderr, "Usage: samtools cat [-h header.sam] [-o out.bam] <in1.bam> [...]\n");
+
+    // Append files specified in argv to the list.
+    int nargv_fns = argc - optind;
+    if (nargv_fns > 0) {
+        infns = realloc(infns, (infns_size + nargv_fns) * sizeof(char*));
+        if (infns == NULL) { ret = 1; goto end; }
+        memcpy(infns + infns_size, argv + optind, nargv_fns * sizeof(char*));
+    }
+
+    // Require at least one input file
+    if (infns_size + nargv_fns == 0) {
+        fprintf(samtools_stderr, "Usage: samtools cat [options] <in1.bam>  [... <inN.bam>]\n");
+        fprintf(samtools_stderr, "       samtools cat [options] <in1.cram> [... <inN.cram>]\n\n");
+        fprintf(samtools_stderr, "Concatenate BAM or CRAM files, first those in <bamlist.fofn>, then those\non the command line.\n\n");
+        fprintf(samtools_stderr, "Options: -b FILE  list of input BAM/CRAM file names, one per line\n");
+        fprintf(samtools_stderr, "         -h FILE  copy the header from FILE [default is 1st input file]\n");
+        fprintf(samtools_stderr, "         -o FILE  output BAM/CRAM\n");
         return 1;
     }
 
-    in = sam_open(argv[optind], "r");
+    in = sam_open(infns[0], "r");
     if (!in) {
-        print_error_errno("cat", "failed to open file '%s'", argv[optind]);
+        print_error_errno("cat", "failed to open file '%s'", infns[0]);
         return 1;
     }
 
     switch (hts_get_format(in)->format) {
     case bam:
         sam_close(in);
-        if (bam_cat(argc - optind, argv + optind, h, outfn? outfn : "-") < 0)
+        if (bam_cat(infns_size+nargv_fns, infns, h, outfn? outfn : "-") < 0)
             ret = 1;
         break;
 
     case cram:
         sam_close(in);
-        if (cram_cat(argc - optind, argv + optind, h, outfn? outfn : "-") < 0)
+        if (cram_cat(infns_size+nargv_fns, infns, h, outfn? outfn : "-") < 0)
             ret = 1;
         break;
 
     default:
         sam_close(in);
-        fprintf(pysam_stderr, "[%s] ERROR: input is not BAM or CRAM\n", __func__);
+        fprintf(samtools_stderr, "[%s] ERROR: input is not BAM or CRAM\n", __func__);
         return 1;
     }
+
+ end:
+    if (infns_size > 0) {
+        int i;
+        for (i=0; i<infns_size; i++)
+            free(infns[i]);
+    }
+
     free(outfn);
+    free(infns);
 
     if (h)
         bam_hdr_destroy(h);

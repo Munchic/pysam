@@ -9,7 +9,8 @@
 # class TabixFile  class wrapping tabix indexed files in bgzf format
 #
 # class asTuple  Parser class for tuples
-# class asGT     Parser class for GTF formatted rows
+# class asGTF    Parser class for GTF formatted rows
+# class asGFF3   Parser class for GFF3 formatted rows
 # class asBed    Parser class for Bed formatted rows
 # class asVCF    Parser class for VCF formatted rows
 #
@@ -52,6 +53,7 @@
 # DEALINGS IN THE SOFTWARE.
 #
 ###############################################################################
+import binascii
 import os
 import sys
 
@@ -70,9 +72,11 @@ cimport pysam.libctabixproxies as ctabixproxies
 
 from pysam.libchtslib cimport htsFile, hts_open, hts_close, HTS_IDX_START,\
     BGZF, bgzf_open, bgzf_dopen, bgzf_close, bgzf_write, \
-    tbx_index_build, tbx_index_load, tbx_itr_queryi, tbx_itr_querys, \
+    tbx_index_build2, tbx_index_load2, tbx_itr_queryi, tbx_itr_querys, \
     tbx_conf_t, tbx_seqnames, tbx_itr_next, tbx_itr_destroy, \
-    tbx_destroy, hisremote, region_list
+    tbx_destroy, hisremote, region_list, hts_getline, \
+    TBX_GENERIC, TBX_SAM, TBX_VCF, TBX_UCSC, htsExactFormat, bcf, \
+    bcf_index_build2
 
 from pysam.libcutils cimport force_bytes, force_str, charptr_to_str
 from pysam.libcutils cimport encode_filename, from_string_and_size
@@ -106,6 +110,42 @@ cdef class asTuple(Parser):
         r = ctabixproxies.TupleProxy(self.encoding)
         # need to copy - there were some
         # persistence issues with "present"
+        r.copy(buffer, len)
+        return r
+
+
+cdef class asGFF3(Parser):
+    '''converts a :term:`tabix row` into a GFF record with the following
+    fields:
+   
+    +----------+----------+-------------------------------+
+    |*Column*  |*Name*    |*Content*                      |
+    +----------+----------+-------------------------------+
+    |1         |contig    |the chromosome name            |
+    +----------+----------+-------------------------------+
+    |2         |feature   |The feature type               |
+    +----------+----------+-------------------------------+
+    |3         |source    |The feature source             |
+    +----------+----------+-------------------------------+
+    |4         |start     |genomic start coordinate       |
+    |          |          |(0-based)                      |
+    +----------+----------+-------------------------------+
+    |5         |end       |genomic end coordinate         |
+    |          |          |(0-based)                      |
+    +----------+----------+-------------------------------+
+    |6         |score     |feature score                  |
+    +----------+----------+-------------------------------+
+    |7         |strand    |strand                         |
+    +----------+----------+-------------------------------+
+    |8         |frame     |frame                          |
+    +----------+----------+-------------------------------+
+    |9         |attributes|the attribute field            |
+    +----------+----------+-------------------------------+
+
+    ''' 
+    cdef parse(self, char * buffer, int len):
+        cdef ctabixproxies.GFF3Proxy r
+        r = ctabixproxies.GFF3Proxy(self.encoding)
         r.copy(buffer, len)
         return r
 
@@ -155,7 +195,7 @@ cdef class asGTF(Parser):
         r = ctabixproxies.GTFProxy(self.encoding)
         r.copy(buffer, len)
         return r
-
+    
 
 cdef class asBed(Parser):
     '''converts a :term:`tabix row` into a bed record
@@ -279,6 +319,11 @@ cdef class TabixFile:
 
         The encoding passed to the parser
 
+    threads: integer
+        Number of threads to use for decompressing Tabix files.
+        (Default=1)
+
+
     Raises
     ------
     
@@ -294,6 +339,7 @@ cdef class TabixFile:
                   parser=None,
                   index=None,
                   encoding="ascii",
+                  threads=1,
                   *args,
                   **kwargs ):
 
@@ -301,13 +347,15 @@ cdef class TabixFile:
         self.is_remote = False
         self.is_stream = False
         self.parser = parser
+        self.threads = threads
         self._open(filename, mode, index, *args, **kwargs)
         self.encoding = encoding
 
-    def _open( self, 
+    def _open( self,
                filename,
                mode='r',
                index=None,
+               threads=1,
               ):
         '''open a :term:`tabix file` for reading.'''
 
@@ -317,6 +365,7 @@ cdef class TabixFile:
         if self.htsfile != NULL:
             self.close()
         self.htsfile = NULL
+        self.threads=threads
 
         filename_index = index or (filename + ".tbi")
         # encode all the strings to pass to tabix
@@ -335,6 +384,7 @@ cdef class TabixFile:
 
         # open file
         cdef char *cfilename = self.filename
+        cdef char *cfilename_index = self.filename_index
         with nogil:
             self.htsfile = hts_open(cfilename, 'r')
 
@@ -344,9 +394,8 @@ cdef class TabixFile:
         #if self.htsfile.format.category != region_list:
         #    raise ValueError("file does not contain region data")
 
-        cfilename = self.filename_index
         with nogil:
-            self.index = tbx_index_load(cfilename)
+            self.index = tbx_index_load2(cfilename, cfilename_index)
 
         if self.index == NULL:
             raise IOError("could not open index for `%s`" % filename)
@@ -360,7 +409,8 @@ cdef class TabixFile:
         The file is being re-opened.
         '''
         return TabixFile(self.filename,
-                         mode="r", 
+                         mode="r",
+                         threads=self.threads,
                          parser=self.parser,
                          index=self.filename_index,
                          encoding=self.encoding)
@@ -434,9 +484,9 @@ cdef class TabixFile:
             # without region or reference - iterate from start
             with nogil:
                 itr = tbx_itr_queryi(fileobj.index,
-                                      HTS_IDX_START,
-                                      0,
-                                      0)
+                                     HTS_IDX_START,
+                                     0,
+                                     0)
         else:
             s = force_bytes(region, encoding=fileobj.encoding)
             cstr = s
@@ -490,18 +540,43 @@ cdef class TabixFile:
         .. note::
             The header is returned as an iterator presenting lines
             without the newline character.
-        
-        .. note::
-            The header is only available for local files. For remote
-            files an Attribute Error is raised.
-
         '''
         
         def __get__(self):
-            if self.is_remote:
-                raise AttributeError(
-                    "the header is not available for remote files")
-            return GZIteratorHead(self.filename)
+
+            cdef char *cfilename = self.filename
+            cdef char *cfilename_index = self.filename_index
+            
+            cdef kstring_t buffer
+            buffer.l = buffer.m = 0
+            buffer.s = NULL
+            
+            cdef htsFile * fp = NULL
+            cdef int KS_SEP_LINE = 2
+            cdef tbx_t * tbx = NULL
+            lines = []
+            with nogil:
+                fp = hts_open(cfilename, 'r')
+                
+            if fp == NULL:
+                raise OSError("could not open {} for reading header".format(self.filename))
+
+            with nogil:
+                tbx = tbx_index_load2(cfilename, cfilename_index)
+                
+            if tbx == NULL:
+                raise OSError("could not load .tbi/.csi index of {}".format(self.filename))
+
+            while hts_getline(fp, KS_SEP_LINE, &buffer) >= 0:
+                if not buffer.l or buffer.s[0] != tbx.conf.meta_char:
+                    break
+                lines.append(force_str(buffer.s, self.encoding))
+
+            with nogil:
+                hts_close(fp)
+                free(buffer.s)
+
+            return lines
 
     property contigs:
         '''list of chromosome names'''
@@ -791,62 +866,80 @@ def tabix_compress(filename_in,
             r = bgzf_write(fp, buffer, c)
         if r < 0:
             free(buffer)
-            raise OSError("writing failed")
+            raise IOError("writing failed")
         
     free(buffer)
     r = bgzf_close(fp)
     if r < 0:
-        raise OSError("error %i when writing to file %s" % (r, filename_out))
+        raise IOError("error %i when writing to file %s" % (r, filename_out))
 
     r = close(fd_src)
     # an empty file will return with -1, thus ignore this.
     if r < 0:
         if not (r == -1 and is_empty):
-            raise OSError("error %i when closing file %s" % (r, filename_in))
+            raise IOError("error %i when closing file %s" % (r, filename_in))
 
 
-def tabix_index( filename, 
-                 force = False,
-                 seq_col = None, 
-                 start_col = None, 
-                 end_col = None,
-                 preset = None,
-                 meta_char = "#",
-                 zerobased = False,
-                 int min_shift = -1,
+def is_gzip_file(filename):
+    gzip_magic_hex = b'1f8b'
+    fd = os.open(filename, os.O_RDONLY)
+    header = os.read(fd, 2)
+    return header == binascii.a2b_hex(gzip_magic_hex)
+
+
+def tabix_index(filename,
+                force=False,
+                seq_col=None,
+                start_col=None,
+                end_col=None,
+                preset=None,
+                meta_char="#",
+                int line_skip=0,
+                zerobased=False,
+                int min_shift=-1,
+                index=None,
+                keep_original=False,
+                csi=False,
                 ):
     '''index tab-separated *filename* using tabix.
 
-    An existing index will not be overwritten unless
-    *force* is set.
+    An existing index will not be overwritten unless *force* is set.
 
-    The index will be built from coordinates
-    in columns *seq_col*, *start_col* and *end_col*.
+    The index will be built from coordinates in columns *seq_col*,
+    *start_col* and *end_col*.
 
-    The contents of *filename* have to be sorted by 
-    contig and position - the method does not check
-    if the file is sorted.
+    The contents of *filename* have to be sorted by contig and
+    position - the method does not check if the file is sorted.
 
-    Column indices are 0-based. Coordinates in the file
-    are assumed to be 1-based.
-
-    If *preset* is provided, the column coordinates
-    are taken from a preset. Valid values for preset
-    are "gff", "bed", "sam", "vcf", psltbl", "pileup".
+    Column indices are 0-based. Note that this is different from the
+    tabix command line utility where column indices start at 1.
     
-    Lines beginning with *meta_char* and the first
-    *line_skip* lines will be skipped.
-    
-    If *filename* does not end in ".gz", it will be automatically
-    compressed. The original file will be removed and only the 
-    compressed file will be retained. 
+    Coordinates in the file are assumed to be 1-based unless
+    *zerobased* is set.
 
-    If *filename* ends in *gz*, the file is assumed to be already
-    compressed with bgzf.
+    If *preset* is provided, the column coordinates are taken from a
+    preset. Valid values for preset are "gff", "bed", "sam", "vcf",
+    psltbl", "pileup".
+    
+    Lines beginning with *meta_char* and the first *line_skip* lines
+    will be skipped.
+
+    If *filename* is not detected as a gzip file it will be automatically
+    compressed. The original file will be removed and only the compressed
+    file will be retained.
 
     *min-shift* sets the minimal interval size to 1<<INT; 0 for the
     old tabix index. The default of -1 is changed inside htslib to 
     the old tabix default of 0.
+
+    *index* controls the filename which should be used for creating the index.
+    If not set, the default is to append ``.tbi`` to *filename*.
+
+    If *csi* is set, create a CSI index, the default is to create a
+    TBI index.
+
+    When automatically compressing files, if *keep_original* is set the
+    uncompressed file will not be deleted.
 
     returns the filename of the compressed data
 
@@ -860,29 +953,37 @@ def tabix_index( filename,
         raise ValueError(
             "neither preset nor seq_col,start_col and end_col given")
 
-    if not filename.endswith(".gz"): 
+    if not is_gzip_file(filename):
         tabix_compress(filename, filename + ".gz", force=force)
-        os.unlink( filename )
+        if not keep_original:
+            os.unlink(filename)
         filename += ".gz"
 
-    if not force and os.path.exists(filename + ".tbi"):
-        raise IOError(
-            "Filename '%s.tbi' already exists, use *force* to overwrite")
+    fn = encode_filename(filename)
+    cdef char *cfn = fn
 
+    cdef htsFile *fp = hts_open(cfn, "r")
+    cdef htsExactFormat fmt = fp.format.format
+    hts_close(fp)
+    
     # columns (1-based):
     #   preset-code, contig, start, end, metachar for
     #     comments, lines to ignore at beginning
     # 0 is a missing column
     preset2conf = {
-        'gff' : (0, 1, 4, 5, ord('#'), 0),
-        'bed' : (0x10000, 1, 2, 3, ord('#'), 0),
-        'psltbl' : (0x10000, 15, 17, 18, ord('#'), 0),
-        'sam' : (1, 3, 4, 0, ord('@'), 0),
-        'vcf' : (2, 1, 2, 0, ord('#'), 0),
-        'pileup': (3, 1, 2, 0, ord('#'), 0),
+        'gff' : (TBX_GENERIC, 1, 4, 5, ord('#'), 0),
+        'bed' : (TBX_UCSC, 1, 2, 3, ord('#'), 0),
+        'psltbl' : (TBX_UCSC, 15, 17, 18, ord('#'), 0),
+        'sam' : (TBX_SAM, 3, 4, 0, ord('@'), 0),
+        'vcf' : (TBX_VCF, 1, 2, 0, ord('#'), 0),
         }
-
-    if preset:
+    
+    conf_data = None
+    if preset == "bcf" or fmt == bcf:
+        csi = True
+        if min_shift == -1:
+            min_shift = 14
+    elif preset:
         try:
             conf_data = preset2conf[preset]
         except KeyError:
@@ -890,29 +991,48 @@ def tabix_index( filename,
                 "unknown preset '%s', valid presets are '%s'" %
                 (preset, ",".join(preset2conf.keys())))
     else:
-        if end_col == None:
+        if end_col is None:
             end_col = -1
+            
         preset = 0
-
-        # note that tabix internally works with 0-based coordinates
-        # and open/closed intervals.  When using a preset, conversion
-        # is automatically taken care of.  Otherwise, the coordinates
-        # are assumed to be 1-based closed intervals and -1 is
-        # subtracted from the start coordinate. To avoid doing this,
-        # set the TI_FLAG_UCSC=0x10000 flag:
+        # tabix internally works with 0-based coordinates and
+        # open/closed intervals.  When using a preset, conversion is
+        # automatically taken care of.  Otherwise, the coordinates are
+        # assumed to be 1-based closed intervals and -1 is subtracted
+        # from the start coordinate. To avoid doing this, set the
+        # TI_FLAG_UCSC=0x10000 flag:
         if zerobased:
-            preset = preset | 0x10000
+            preset = preset | TBX_UCSC
 
-        conf_data = (preset, seq_col+1, start_col+1, end_col+1, ord(meta_char), 0)
-                
+        conf_data = (preset, seq_col + 1, start_col + 1, end_col + 1, ord(meta_char), line_skip)
+
     cdef tbx_conf_t conf
-    conf.preset, conf.sc, conf.bc, conf.ec, conf.meta_char, conf.line_skip = conf_data
+    if conf_data:
+        conf.preset, conf.sc, conf.bc, conf.ec, conf.meta_char, conf.line_skip = conf_data
 
+    if csi:
+        suffix = ".csi"
+    else:
+        suffix = ".tbi"
+    index = index or filename + suffix    
+    fn_index = encode_filename(index)
 
-    fn = encode_filename(filename)
-    cdef char *cfn = fn
-    with nogil:
-        tbx_index_build(cfn, min_shift, &conf)
+    if not force and os.path.exists(index):
+        raise IOError(
+            "filename '%s' already exists, use *force* to overwrite" % index)
+    
+    cdef char *fnidx = fn_index
+    cdef int retval = 0
+
+    if csi and fmt == bcf:
+        with nogil:
+            retval = bcf_index_build2(cfn, fnidx, min_shift)
+    else:
+        with nogil:
+            retval = tbx_index_build2(cfn, fnidx, min_shift, &conf)
+            
+    if retval != 0:
+        raise OSError("building of index for {} failed".format(filename))
     
     return filename
 
@@ -1137,6 +1257,7 @@ class tabix_generic_iterator:
     # python version - required for python 2.7
     def next(self):
         return self.__next__()
+    
 
 def tabix_iterator(infile, parser):
     """return an iterator over all entries in a file.
@@ -1178,6 +1299,7 @@ __all__ = [
     "Tabixfile",
     "asTuple",
     "asGTF",
+    "asGFF3",
     "asVCF",
     "asBed",
     "GZIterator",

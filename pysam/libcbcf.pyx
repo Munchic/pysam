@@ -101,9 +101,6 @@ from cpython.version cimport PY_MAJOR_VERSION
 from pysam.libchtslib cimport HTSFile, hisremote
 
 
-from warnings         import warn
-
-
 __all__ = ['VariantFile',
            'VariantHeader',
            'VariantHeaderRecord',
@@ -128,6 +125,13 @@ cdef tuple METADATA_LENGTHS = ('FIXED', 'VARIABLE', 'A', 'G', 'R')
 from pysam.libcutils cimport force_bytes, force_str, charptr_to_str, charptr_to_str_w_len
 from pysam.libcutils cimport encode_filename, from_string_and_size
 
+
+########################################################################
+########################################################################
+## Sentinel object
+########################################################################
+
+cdef object _nothing = object()
 
 ########################################################################
 ########################################################################
@@ -156,6 +160,55 @@ cdef inline bcf_str_cache_get_charptr(const char* s):
 
 ########################################################################
 ########################################################################
+## Genotype math
+########################################################################
+
+cdef int comb(int n, int k) except -1:
+    """Return binomial coeffient: n choose k
+
+    >>> comb(5, 1)
+    5
+    >>> comb(5, 2)
+    10
+    >>> comb(2, 2)
+    1
+    >>> comb(100, 2)
+    4950
+    """
+    if k > n:
+        return 0
+    elif k == n:
+        return 1
+    elif k > n // 2:
+        k = n - k
+
+    cdef d, result
+
+    d = result = n - k + 1
+    for i in range(2, k + 1):
+        d += 1
+        result  *= d
+        result //= i
+    return result
+
+
+cdef inline int bcf_geno_combinations(int ploidy, int alleles) except -1:
+    """Return the count of genotypes expected for the given ploidy and number of alleles.
+
+    >>> bcf_geno_combinations(1, 2)
+    2
+    >>> bcf_geno_combinations(2, 2)
+    3
+    >>> bcf_geno_combinations(2, 3)
+    6
+    >>> bcf_geno_combinations(3, 2)
+    4
+    """
+    return comb(alleles + ploidy - 1, ploidy)
+
+
+########################################################################
+########################################################################
 ## Low level type conversion helpers
 ########################################################################
 
@@ -165,7 +218,33 @@ cdef inline bint check_header_id(bcf_hdr_t *hdr, int hl_type, int id):
 
 
 cdef inline int is_gt_fmt(bcf_hdr_t *hdr, int fmt_id):
-    return strcmp(bcf_hdr_int2id(hdr, BCF_DT_ID, fmt_id), "GT") == 0
+    return strcmp(bcf_hdr_int2id(hdr, BCF_DT_ID, fmt_id), 'GT') == 0
+
+
+cdef inline int bcf_genotype_count(bcf_hdr_t *hdr, bcf1_t *rec, int sample) except -1:
+
+    if sample < 0:
+        raise ValueError('genotype is only valid as a format field')
+
+    cdef int32_t *gt_arr = NULL
+    cdef int ngt = 0
+    ngt = bcf_get_genotypes(hdr, rec, &gt_arr, &ngt)
+
+    if ngt <= 0 or not gt_arr:
+        return 0
+
+    assert ngt % rec.n_sample == 0
+    cdef int max_ploidy = ngt // rec.n_sample
+    cdef int32_t *gt = gt_arr + sample * max_ploidy
+    cdef int ploidy = 0
+
+    while ploidy < max_ploidy and gt[0] != bcf_int32_vector_end:
+        gt += 1
+        ploidy += 1
+
+    free(<void*>gt_arr)
+
+    return bcf_geno_combinations(ploidy, rec.n_allele)
 
 
 cdef tuple char_array_to_tuple(const char **a, ssize_t n, int free_after=0):
@@ -185,19 +264,25 @@ cdef bcf_array_to_object(void *data, int type, ssize_t n, ssize_t count, int sca
     cdef int32_t *data32
     cdef float   *dataf
     cdef int      i
+    cdef bytes    b
 
     if not data or n <= 0:
         return None
 
     if type == BCF_BT_CHAR:
         datac = <char *>data
-        while n and datac[n-1] == bcf_str_vector_end:
-            n -= 1
-        value = charptr_to_str_w_len(datac, n) if datac[0] != bcf_str_missing else None
-        # FIXME: Need to know length?  Report errors?  Pad with missing values?  Not clear what to do.
 
-        value = tuple(v or None for v in value.split(',')) if value else ()
-        # FIXME: Need to know length?  Report errors?  Pad with missing values?  Not clear what to do.
+        if not n:
+            value = ()
+        else:
+            # Check if at least one null terminator is present
+            if datac[n-1] == bcf_str_vector_end:
+                # If so, create a string up to the first null terminator
+                b = datac
+            else:
+                # Otherwise, copy the entire block
+                b = datac[:n]
+            value = tuple(v.decode('ascii') if v and v != bcf_str_missing else None for v in b.split(b','))
     else:
         value = []
         if type == BCF_BT_INT8:
@@ -251,13 +336,13 @@ cdef bcf_object_to_array(values, void *data, int bt_type, ssize_t n, int vlen):
     cdef float   *dataf
     cdef ssize_t  i, value_count = len(values)
 
-    assert(value_count <= n)
+    assert value_count <= n
 
     if bt_type == BCF_BT_CHAR:
         if not isinstance(values, (str, bytes)):
-            values = b','.join(force_bytes(v) if v is not None else b'' for v in values)
+            values = b','.join(force_bytes(v) if v else bcf_str_missing for v in values)
             value_count = len(values)
-        assert(value_count <= n)
+        assert value_count <= n
         datac = <char *>data
         memcpy(datac, <char *>values, value_count)
         for i in range(value_count, n):
@@ -392,7 +477,7 @@ cdef bcf_copy_expand_array(void *src_data, int src_type, ssize_t src_values,
         raise TypeError('unsupported types')
 
 
-cdef bcf_get_value_count(VariantRecord record, int hl_type, int id, ssize_t *count, int *scalar):
+cdef bcf_get_value_count(VariantRecord record, int hl_type, int id, ssize_t *count, int *scalar, int sample):
     if record is None:
         raise ValueError('record must not be None')
 
@@ -418,7 +503,7 @@ cdef bcf_get_value_count(VariantRecord record, int hl_type, int id, ssize_t *cou
     elif length == BCF_VL_A:
         count[0] = r.n_allele - 1
     elif length == BCF_VL_G:
-        count[0] = r.n_allele * (r.n_allele + 1) // 2
+        count[0] = bcf_genotype_count(hdr, r, sample)
     elif length == BCF_VL_VAR:
         count[0] = -1
     else:
@@ -435,7 +520,7 @@ cdef object bcf_info_get_value(VariantRecord record, const bcf_info_t *z):
     cdef ssize_t count
     cdef int scalar
 
-    bcf_get_value_count(record, BCF_HL_INFO, z.key, &count, &scalar)
+    bcf_get_value_count(record, BCF_HL_INFO, z.key, &count, &scalar, -1)
 
     if z.len == 0:
         if  bcf_hdr_id2type(hdr, BCF_HL_INFO, z.key) == BCF_HT_FLAG:
@@ -466,14 +551,15 @@ cdef object bcf_info_get_value(VariantRecord record, const bcf_info_t *z):
     return value
 
 
-cdef object bcf_check_values(VariantRecord record, value, int hl_type, int ht_type,
+cdef object bcf_check_values(VariantRecord record, value, int sample,
+                             int hl_type, int ht_type,
                              int id, int bt_type, ssize_t bt_len,
                              ssize_t *value_count, int *scalar, int *realloc):
 
     if record is None:
         raise ValueError('record must not be None')
 
-    bcf_get_value_count(record, hl_type, id, value_count, scalar)
+    bcf_get_value_count(record, hl_type, id, value_count, scalar, sample)
 
     # Validate values now that we know the type and size
     values = (value,) if not isinstance(value, (list, tuple)) else value
@@ -485,11 +571,12 @@ cdef object bcf_check_values(VariantRecord record, value, int hl_type, int ht_ty
         # KBJ: htslib lies about the cardinality of GT fields-- they're really VLEN (-1)
         value_count[0] = -1
 
-    if value_count[0] != -1 and value_count[0] != len(values):
+    cdef int given = len(values)
+    if value_count[0] != -1 and value_count[0] != given:
         if scalar[0]:
-            raise TypeError('value expected to be scalar'.format(value_count[0]))
+            raise TypeError('value expected to be scalar, given len={}'.format(value_count[0], given))
         else:
-            raise TypeError('values expected to be {:d}-tuple'.format(value_count[0]))
+            raise TypeError('values expected to be {}-tuple, given len={}'.format(value_count[0], given))
 
     if ht_type == BCF_HT_REAL:
         for v in values:
@@ -572,33 +659,29 @@ cdef bcf_info_set_value(VariantRecord record, key, value):
 
     cdef bcf_hdr_t *hdr = record.header.ptr
     cdef bcf1_t *r = record.ptr
-    cdef vdict_t *d
-    cdef khiter_t k
     cdef int info_id, info_type, scalar, dst_type, realloc, vlen = 0
     cdef ssize_t i, value_count, alloc_len, alloc_size, dst_size
 
     if bcf_unpack(r, BCF_UN_INFO) < 0:
         raise ValueError('Error unpacking VariantRecord')
 
-    bkey = force_bytes(key)
+    cdef bytes bkey = force_bytes(key)
     cdef bcf_info_t *info = bcf_get_info(hdr, r, bkey)
 
     if info:
         info_id = info.key
     else:
-        d = <vdict_t *>hdr.dict[BCF_DT_ID]
-        k = kh_get_vdict(d, bkey)
+        info_id = bcf_header_get_info_id(hdr, bkey)
 
-        if k == kh_end(d) or kh_val_vdict(d, k).info[BCF_HL_INFO] & 0xF == 0xF:
-            raise KeyError('unknown INFO')
-
-        info_id = kh_val_vdict(d, k).id
+    if info_id < 0:
+        raise KeyError('unknown INFO: {}'.format(key))
 
     if not check_header_id(hdr, BCF_HL_INFO, info_id):
         raise ValueError('Invalid header')
 
     info_type = bcf_hdr_id2type(hdr, BCF_HL_INFO, info_id)
-    values = bcf_check_values(record, value, BCF_HL_INFO, info_type, info_id,
+    values = bcf_check_values(record, value, -1,
+                              BCF_HL_INFO, info_type, info_id,
                               info.type if info else -1,
                               info.len  if info else -1,
                               &value_count, &scalar, &realloc)
@@ -611,13 +694,16 @@ cdef bcf_info_set_value(VariantRecord record, key, value):
     vlen = value_count < 0
     value_count = len(values)
 
+    # DISABLED DUE TO ISSUES WITH THE CRAZY POINTERS
     # If we can, write updated values to existing allocated storage
-    if info and not realloc:
+    if 0 and info and not realloc:
         r.d.shared_dirty |= BCF1_DIRTY_INF
 
         if value_count == 0:
             info.len = 0
-            # FIXME: Check if need to free vptr if info.len > 0?
+            if not info.vptr:
+                info.vptr = <uint8_t *>&info.v1.i
+
         elif value_count == 1:
             # FIXME: Check if need to free vptr if info.len > 0?
             if info.type == BCF_BT_INT8 or info.type == BCF_BT_INT16 or info.type == BCF_BT_INT32:
@@ -626,9 +712,13 @@ cdef bcf_info_set_value(VariantRecord record, key, value):
                 bcf_object_to_array(values, &info.v1.f, BCF_BT_FLOAT, 1, vlen)
             else:
                 raise TypeError('unsupported info type code')
+
             info.len = 1
+            if not info.vptr:
+                info.vptr = <uint8_t *>&info.v1.i
         else:
             bcf_object_to_array(values, info.vptr, info.type, info.len, vlen)
+
         return
 
     alloc_len = max(1, value_count)
@@ -665,13 +755,13 @@ cdef bcf_info_del_value(VariantRecord record, key):
     if bcf_unpack(r, BCF_UN_INFO) < 0:
         raise ValueError('Error unpacking VariantRecord')
 
-    bkey = force_bytes(key)
+    cdef bytes bkey = force_bytes(key)
     cdef bcf_info_t *info = bcf_get_info(hdr, r, bkey)
 
     if not info:
         raise KeyError(key)
 
-    bcf_get_value_count(record, BCF_HL_INFO, info.key, &value_count, &scalar)
+    bcf_get_value_count(record, BCF_HL_INFO, info.key, &value_count, &scalar, -1)
 
     if value_count <= 0:
         null_value = ()
@@ -695,16 +785,16 @@ cdef bcf_format_get_value(VariantRecordSample sample, key):
     if bcf_unpack(r, BCF_UN_ALL) < 0:
         raise ValueError('Error unpacking VariantRecord')
 
-    bkey = force_bytes(key)
+    cdef bytes bkey = force_bytes(key)
     cdef bcf_fmt_t *fmt = bcf_get_fmt(hdr, r, bkey)
 
     if not fmt or not fmt.p:
-        raise KeyError('invalid FORMAT')
+        raise KeyError('invalid FORMAT: {}'.format(key))
 
     if is_gt_fmt(hdr, fmt.id):
         return bcf_format_get_allele_indices(sample)
 
-    bcf_get_value_count(sample.record, BCF_HL_FMT, fmt.id, &count, &scalar)
+    bcf_get_value_count(sample.record, BCF_HL_FMT, fmt.id, &count, &scalar, sample.index)
 
     if fmt.p and fmt.n and fmt.size:
         return bcf_array_to_object(fmt.p + sample.index * fmt.size, fmt.type, fmt.n, count, scalar)
@@ -720,6 +810,10 @@ cdef bcf_format_set_value(VariantRecordSample sample, key, value):
     if sample is None:
         raise ValueError('sample must not be None')
 
+    if key == 'phased':
+        sample.phased = bool(value)
+        return
+
     cdef bcf_hdr_t *hdr = sample.record.header.ptr
     cdef bcf1_t *r = sample.record.ptr
     cdef int fmt_id
@@ -731,7 +825,7 @@ cdef bcf_format_set_value(VariantRecordSample sample, key, value):
     if bcf_unpack(r, BCF_UN_ALL) < 0:
         raise ValueError('Error unpacking VariantRecord')
 
-    bkey = force_bytes(key)
+    cdef bytes bkey = force_bytes(key)
     cdef bcf_fmt_t *fmt = bcf_get_fmt(hdr, r, bkey)
 
     if fmt:
@@ -741,7 +835,7 @@ cdef bcf_format_set_value(VariantRecordSample sample, key, value):
         k = kh_get_vdict(d, bkey)
 
         if k == kh_end(d) or kh_val_vdict(d, k).info[BCF_HL_FMT] & 0xF == 0xF:
-            raise KeyError('unknown format')
+            raise KeyError('unknown format: {}'.format(key))
 
         fmt_id = kh_val_vdict(d, k).id
 
@@ -758,7 +852,8 @@ cdef bcf_format_set_value(VariantRecordSample sample, key, value):
         # KBJ: GT field is considered to be a string by the VCF header but BCF represents it as INT.
         fmt_type = BCF_HT_INT
 
-    values = bcf_check_values(sample.record, value, BCF_HL_FMT, fmt_type, fmt_id,
+    values = bcf_check_values(sample.record, value, sample.index,
+                              BCF_HL_FMT, fmt_type, fmt_id,
                               fmt.type if fmt else -1,
                               fmt.n    if fmt else -1,
                               &value_count, &scalar, &realloc)
@@ -776,7 +871,7 @@ cdef bcf_format_set_value(VariantRecordSample sample, key, value):
     if fmt and fmt.n > alloc_len:
         alloc_len = fmt.n
 
-    n = bcf_hdr_nsamples(hdr)
+    n = r.n_sample
     new_values = bcf_empty_array(fmt_type, n*alloc_len, vlen)
     cdef char *valp = <char *>new_values
 
@@ -816,13 +911,13 @@ cdef bcf_format_del_value(VariantRecordSample sample, key):
     if bcf_unpack(r, BCF_UN_ALL) < 0:
         raise ValueError('Error unpacking VariantRecord')
 
-    bkey = force_bytes(key)
+    cdef bytes bkey = force_bytes(key)
     cdef bcf_fmt_t *fmt = bcf_get_fmt(hdr, r, bkey)
 
     if not fmt or not fmt.p:
         raise KeyError(key)
 
-    bcf_get_value_count(sample.record, BCF_HL_FMT, fmt.id, &value_count, &scalar)
+    bcf_get_value_count(sample.record, BCF_HL_FMT, fmt.id, &value_count, &scalar, sample.index)
 
     if value_count <= 0:
         null_value = ()
@@ -840,7 +935,7 @@ cdef bcf_format_get_allele_indices(VariantRecordSample sample):
 
     cdef bcf_hdr_t *hdr = sample.record.header.ptr
     cdef bcf1_t *r = sample.record.ptr
-    cdef int32_t n = bcf_hdr_nsamples(hdr)
+    cdef int32_t n = r.n_sample
 
     if bcf_unpack(r, BCF_UN_ALL) < 0:
         raise ValueError('Error unpacking VariantRecord')
@@ -900,7 +995,7 @@ cdef bcf_format_get_alleles(VariantRecordSample sample):
 
     cdef bcf_hdr_t *hdr = sample.record.header.ptr
     cdef bcf1_t *r = sample.record.ptr
-    cdef int32_t nsamples = bcf_hdr_nsamples(hdr)
+    cdef int32_t nsamples = r.n_sample
 
     if bcf_unpack(r, BCF_UN_ALL) < 0:
         raise ValueError('Error unpacking VariantRecord')
@@ -951,7 +1046,7 @@ cdef bint bcf_sample_get_phased(VariantRecordSample sample):
 
     cdef bcf_hdr_t *hdr = sample.record.header.ptr
     cdef bcf1_t *r = sample.record.ptr
-    cdef int32_t n = bcf_hdr_nsamples(hdr)
+    cdef int32_t n = r.n_sample
 
     if bcf_unpack(r, BCF_UN_ALL) < 0:
         raise ValueError('Error unpacking VariantRecord')
@@ -1014,7 +1109,7 @@ cdef bcf_sample_set_phased(VariantRecordSample sample, bint phased):
 
     cdef bcf_hdr_t *hdr = sample.record.header.ptr
     cdef bcf1_t *r = sample.record.ptr
-    cdef int32_t n = bcf_hdr_nsamples(hdr)
+    cdef int32_t n = r.n_sample
 
     if bcf_unpack(r, BCF_UN_ALL) < 0:
         raise ValueError('Error unpacking VariantRecord')
@@ -1059,6 +1154,47 @@ cdef bcf_sample_set_phased(VariantRecordSample sample, bint phased):
                 continue
             elif i:
                 data32[i] = (data32[i] & 0xFFFFFFFE) | phased
+
+
+cdef inline bcf_sync_end(VariantRecord record):
+    cdef bcf_hdr_t *hdr = record.header.ptr
+    cdef bcf_info_t *info
+    cdef int end_id = bcf_header_get_info_id(record.header.ptr, b'END')
+    cdef int ref_len 
+
+    # allow missing ref when instantiating a new record
+    if record.ref is not None:
+        ref_len = len(record.ref)
+    else:
+        ref_len = 0
+
+    # Delete INFO/END if no alleles are present or if rlen is equal to len(ref)
+    # Always keep END for symbolic alleles
+    if not has_symbolic_allele(record) and (not record.ptr.n_allele or record.ptr.rlen == ref_len):
+        # If INFO/END is not defined in the header, it doesn't exist in the record
+        if end_id >= 0:
+            info = bcf_get_info(hdr, record.ptr, b'END')
+            if info and info.vptr:
+                if bcf_update_info(hdr, record.ptr, b'END', NULL, 0, info.type) < 0:
+                    raise ValueError('Unable to delete END')
+    else:
+        # Create END header, if not present
+        if end_id < 0:
+            record.header.info.add('END', number=1, type='Integer', description='Stop position of the interval')
+
+        # Update to reflect stop position
+        bcf_info_set_value(record, b'END', record.ptr.pos + record.ptr.rlen)
+
+
+cdef inline int has_symbolic_allele(VariantRecord record):
+    """Return index of first symbolic allele. 0 if no symbolic alleles."""
+
+    for i in range(1, record.ptr.n_allele):
+        alt = record.ptr.d.allele[i]
+        if alt[0] == b'<' and alt[len(alt) - 1] == b'>':
+            return i
+
+    return 0
 
 
 ########################################################################
@@ -1205,6 +1341,28 @@ cdef class VariantHeaderRecord(object):
         """D.values() -> list of D's values"""
         return list(self.itervalues())
 
+    def update(self, items=None, **kwargs):
+        """D.update([E, ]**F) -> None.
+
+        Update D from dict/iterable E and F.
+        """
+        for k, v in items.items():
+            self[k] = v
+
+        if kwargs:
+            for k, v in kwargs.items():
+                self[k] = v
+
+    def pop(self, key, default=_nothing):
+        try:
+            value = self[key]
+            del self[key]
+            return value
+        except KeyError:
+            if default is not _nothing:
+                return default
+            raise
+
     # Mappings are not hashable by default, but subclasses can change this
     __hash__ = None
 
@@ -1235,9 +1393,8 @@ cdef class VariantHeaderRecord(object):
         cdef bcf_hrec_t *r = self.ptr
         if not r:
             return
-        assert(r.key)
+        assert r.key
         cdef char *key = r.key if r.type == BCF_HL_GEN else r.value
-        print('Removing header type={} key={} value={} hdr={}'.format(METADATA_TYPES[r.type], r.key, r.value, key))
         bcf_hdr_remove(hdr, r.type, key)
         self.ptr = NULL
 
@@ -1358,8 +1515,8 @@ cdef class VariantMetadata(object):
 
     def remove_header(self):
         cdef bcf_hdr_t *hdr = self.header.ptr
-        cdef const char *bkey = hdr.id[BCF_DT_ID][self.id].key
-        bcf_hdr_remove(hdr, self.type, bkey)
+        cdef const char *key = hdr.id[BCF_DT_ID][self.id].key
+        bcf_hdr_remove(hdr, self.type, key)
 
 
 cdef VariantMetadata makeVariantMetadata(VariantHeader header, int type, int id):
@@ -1437,11 +1594,11 @@ cdef class VariantHeaderMetadata(object):
         cdef bcf_hdr_t *hdr = self.header.ptr
         cdef vdict_t *d = <vdict_t *>hdr.dict[BCF_DT_ID]
 
-        bkey = force_bytes(key)
+        cdef bytes bkey = force_bytes(key)
         cdef khiter_t k = kh_get_vdict(d, bkey)
 
         if k == kh_end(d) or kh_val_vdict(d, k).info[self.type] & 0xF == 0xF:
-            raise KeyError('invalid key')
+            raise KeyError('invalid key: {}'.format(key))
 
         return makeVariantMetadata(self.header, self.type, kh_val_vdict(d, k).id)
 
@@ -1449,11 +1606,11 @@ cdef class VariantHeaderMetadata(object):
         cdef bcf_hdr_t *hdr = self.header.ptr
         cdef vdict_t *d = <vdict_t *>hdr.dict[BCF_DT_ID]
 
-        bkey = force_bytes(key)
+        cdef bytes bkey = force_bytes(key)
         cdef khiter_t k = kh_get_vdict(d, bkey)
 
         if k == kh_end(d) or kh_val_vdict(d, k).info[self.type] & 0xF == 0xF:
-            raise KeyError('invalid key')
+            raise KeyError('invalid key: {}'.format(key))
 
         bcf_hdr_remove(hdr, self.type, bkey)
         #bcf_hdr_sync(hdr)
@@ -1555,7 +1712,7 @@ cdef class VariantContig(object):
         return length if length else None
 
     @property
-    def header(self):
+    def header_record(self):
         """:class:`VariantHeaderRecord` associated with this :class:`VariantContig` object"""
         cdef bcf_hdr_t *hdr = self.header.ptr
         cdef bcf_hrec_t *hrec = hdr.id[BCF_DT_CTG][self.id].val.hrec[0]
@@ -1563,8 +1720,8 @@ cdef class VariantContig(object):
 
     def remove_header(self):
         cdef bcf_hdr_t *hdr = self.header.ptr
-        cdef const char *bkey = hdr.id[BCF_DT_CTG][self.id].key
-        bcf_hdr_remove(hdr, BCF_HL_CTG, bkey)
+        cdef const char *key = hdr.id[BCF_DT_CTG][self.id].key
+        bcf_hdr_remove(hdr, BCF_HL_CTG, key)
 
 
 cdef VariantContig makeVariantContig(VariantHeader header, int id):
@@ -1607,11 +1764,11 @@ cdef class VariantHeaderContigs(object):
             return makeVariantContig(self.header, index)
 
         cdef vdict_t *d = <vdict_t *>hdr.dict[BCF_DT_CTG]
-        bkey = force_bytes(key)
+        cdef bytes bkey = force_bytes(key)
         cdef khiter_t k = kh_get_vdict(d, bkey)
 
         if k == kh_end(d):
-            raise KeyError('invalid contig')
+            raise KeyError('invalid contig: {}'.format(key))
 
         cdef int id = kh_val_vdict(d, k).id
 
@@ -1620,7 +1777,7 @@ cdef class VariantHeaderContigs(object):
     def remove_header(self, key):
         cdef bcf_hdr_t *hdr = self.header.ptr
         cdef int index
-        cdef const char *bkey
+        cdef const char *ckey
         cdef vdict_t *d
         cdef khiter_t k
 
@@ -1628,15 +1785,15 @@ cdef class VariantHeaderContigs(object):
             index = key
             if index < 0 or index >= hdr.n[BCF_DT_CTG]:
                 raise IndexError('invalid contig index')
-            bkey = hdr.id[BCF_DT_CTG][self.id].key
+            ckey = hdr.id[BCF_DT_CTG][self.id].key
         else:
             d = <vdict_t *>hdr.dict[BCF_DT_CTG]
             key = force_bytes(key)
             if kh_get_vdict(d, key) == kh_end(d):
-                raise KeyError('invalid contig')
-            bkey = key
+                raise KeyError('invalid contig: {}'.format(key))
+            ckey = key
 
-        bcf_hdr_remove(hdr, BCF_HL_CTG, bkey)
+        bcf_hdr_remove(hdr, BCF_HL_CTG, ckey)
 
     def clear_header(self):
         cdef bcf_hdr_t *hdr = self.header.ptr
@@ -1704,7 +1861,8 @@ cdef class VariantHeaderContigs(object):
         if id in self:
             raise ValueError('Header already exists for contig {}'.format(id))
 
-        items = [('ID', id)] + kwargs.items()
+        items = [('ID', id)]
+        items += kwargs.items()
         self.header.add_meta('contig', items=items)
 
 
@@ -1749,7 +1907,7 @@ cdef class VariantHeaderSamples(object):
     def __contains__(self, key):
         cdef bcf_hdr_t *hdr = self.header.ptr
         cdef vdict_t *d = <vdict_t *>hdr.dict[BCF_DT_SAMPLE]
-        bkey = force_bytes(key)
+        cdef bytes bkey = force_bytes(key)
         cdef khiter_t k = kh_get_vdict(d, bkey)
 
         return k != kh_end(d)
@@ -1796,7 +1954,6 @@ cdef class VariantHeader(object):
             self.ptr = NULL
 
     def __bool__(self):
-        # self.ptr == NULL should be impossible
         return self.ptr != NULL
 
     def copy(self):
@@ -1886,11 +2043,54 @@ cdef class VariantHeader(object):
         finally:
             free(hstr)
 
-    cpdef VariantRecord new_record(self):
-        """Create a new empty VariantRecord"""
-        r = makeVariantRecord(self, bcf_init())
-        r.ptr.n_sample = bcf_hdr_nsamples(self.ptr)
-        return r
+    def new_record(self, contig=None, start=0, stop=0, alleles=None,
+                         id=None, qual=None, filter=None, info=None, samples=None,
+                         **kwargs):
+        """Create a new empty VariantRecord.
+
+        Arguments are currently experimental.  Use with caution and expect
+        changes in upcoming releases.
+
+        """
+        rec = makeVariantRecord(self, bcf_init())
+
+        if not rec:
+            raise MemoryError('unable to allocate BCF record')
+
+        rec.ptr.n_sample = bcf_hdr_nsamples(self.ptr)
+
+        if contig is not None:
+            rec.contig  = contig
+        if alleles is not None:
+            rec.alleles = alleles
+
+        rec.start = start
+        rec.stop  = stop
+        rec.id    = id
+        rec.qual  = qual
+
+        if filter is not None:
+            if isinstance(filter, (list, tuple, VariantRecordFilter)):
+                for f in filter:
+                    rec.filter.add(f)
+            else:
+                rec.filter.add(filter)
+
+        if info:
+            rec.info.update(info)
+
+        if kwargs:
+            if 'GT' in kwargs:
+                rec.samples[0]['GT'] = kwargs.pop('GT')
+            rec.samples[0].update(kwargs)
+
+        if samples:
+            for i, sample in enumerate(samples):
+                if 'GT' in sample:
+                    rec.samples[i]['GT'] = sample.pop('GT')
+                rec.samples[i].update(sample)
+
+        return rec
 
     def add_record(self, VariantHeaderRecord record):
         """Add an existing :class:`VariantHeaderRecord` to this header"""
@@ -1963,6 +2163,23 @@ cdef VariantHeader makeVariantHeader(bcf_hdr_t *hdr):
     return header
 
 
+cdef inline int bcf_header_get_info_id(bcf_hdr_t *hdr, key) except? -2:
+    cdef vdict_t *d
+    cdef khiter_t k
+    cdef int info_id
+
+    if isinstance(key, str):
+        key = force_bytes(key)
+
+    d = <vdict_t *>hdr.dict[BCF_DT_ID]
+    k = kh_get_vdict(d, key)
+
+    if k == kh_end(d) or kh_val_vdict(d, k).info[BCF_HL_INFO] & 0xF == 0xF:
+        return -1
+
+    return kh_val_vdict(d, k).id
+
+
 ########################################################################
 ########################################################################
 ## Variant Record objects
@@ -2001,7 +2218,7 @@ cdef class VariantRecordFilter(object):
             id = bcf_hdr_id2int(hdr, BCF_DT_ID, bkey)
 
             if not check_header_id(hdr, BCF_HL_FLT, id) or not bcf_has_filter(hdr, r, bkey):
-                raise KeyError('Invalid filter')
+                raise KeyError('Invalid filter: {}'.format(key))
 
         return makeVariantMetadata(self.record.header, BCF_HL_FLT, id)
 
@@ -2014,11 +2231,11 @@ cdef class VariantRecordFilter(object):
         if key == '.':
             key = 'PASS'
 
-        bkey = force_bytes(key)
+        cdef bytes bkey = force_bytes(key)
         id = bcf_hdr_id2int(hdr, BCF_DT_ID, bkey)
 
         if not check_header_id(hdr, BCF_HL_FLT, id):
-            raise KeyError('Invalid filter')
+            raise KeyError('Invalid filter: {}'.format(key))
 
         bcf_add_filter(hdr, r, id)
 
@@ -2043,7 +2260,7 @@ cdef class VariantRecordFilter(object):
             id = bcf_hdr_id2int(hdr, BCF_DT_ID, bkey)
 
             if not check_header_id(hdr, BCF_HL_FLT, id) or not bcf_has_filter(hdr, r, bkey):
-                raise KeyError('Invalid filter')
+                raise KeyError('Invalid filter: {}'.format(key))
 
         bcf_remove_filter(hdr, r, id, 0)
 
@@ -2071,7 +2288,7 @@ cdef class VariantRecordFilter(object):
     def __contains__(self, key):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
-        bkey = force_bytes(key)
+        cdef bytes bkey = force_bytes(key)
         return bcf_has_filter(hdr, r, bkey) == 1
 
     def iterkeys(self):
@@ -2099,6 +2316,20 @@ cdef class VariantRecordFilter(object):
     def values(self):
         """D.values() -> list of D's values"""
         return list(self.itervalues())
+
+    def __richcmp__(VariantRecordFilter self not None, VariantRecordFilter other not None, int op):
+        if op != 2 and op != 3:
+            return NotImplemented
+
+        cdef bcf1_t *s = self.record.ptr
+        cdef bcf1_t *o = other.record.ptr
+
+        cdef bint cmp = (s.d.n_flt == o.d.n_flt and list(self) == list(other))
+
+        if op == 3:
+            cmp = not cmp
+
+        return cmp
 
     # Mappings are not hashable by default, but subclasses can change this
     __hash__ = None
@@ -2146,11 +2377,11 @@ cdef class VariantRecordFormat(object):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
 
-        bkey = force_bytes(key)
+        cdef bytes bkey = force_bytes(key)
         cdef bcf_fmt_t *fmt = bcf_get_fmt(hdr, r, bkey)
 
         if not fmt or not fmt.p:
-            raise KeyError('unknown format')
+            raise KeyError('unknown format: {}'.format(key))
 
         return makeVariantMetadata(self.record.header, BCF_HL_FMT, fmt.id)
 
@@ -2158,11 +2389,11 @@ cdef class VariantRecordFormat(object):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
 
-        bkey = force_bytes(key)
+        cdef bytes bkey = force_bytes(key)
         cdef bcf_fmt_t *fmt = bcf_get_fmt(hdr, r, bkey)
 
         if not fmt or not fmt.p:
-            raise KeyError('unknown format')
+            raise KeyError('unknown format: {}'.format(key))
 
         if bcf_update_format(hdr, r, bkey, fmt.p, 0, fmt.type) < 0:
             raise ValueError('Unable to delete FORMAT')
@@ -2204,7 +2435,7 @@ cdef class VariantRecordFormat(object):
     def __contains__(self, key):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
-        bkey = force_bytes(key)
+        cdef bytes bkey = force_bytes(key)
         cdef bcf_fmt_t *fmt = bcf_get_fmt(hdr, r, bkey)
         return fmt != NULL and fmt.p != NULL
 
@@ -2259,38 +2490,65 @@ cdef class VariantRecordInfo(object):
         raise TypeError('this class cannot be instantiated from Python')
 
     def __len__(self):
-        return self.record.ptr.n_info
-
-    def __bool__(self):
-        return self.record.ptr.n_info != 0
-
-    def __getitem__(self, key):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
-        cdef vdict_t *d
-        cdef khiter_t k
-        cdef info_id
+        cdef bcf_info_t *info
+        cdef const char *key
+        cdef int i, count = 0
 
         if bcf_unpack(r, BCF_UN_INFO) < 0:
             raise ValueError('Error unpacking VariantRecord')
 
-        bkey = force_bytes(key)
+        for i in range(r.n_info):
+            info = &r.d.info[i]
+            key = bcf_hdr_int2id(hdr, BCF_DT_ID, info.key)
+            if info != NULL and info.vptr != NULL and strcmp(key, b'END') != 0:
+                count += 1
+
+        return count
+
+    def __bool__(self):
+        cdef bcf_hdr_t *hdr = self.record.header.ptr
+        cdef bcf1_t *r = self.record.ptr
+        cdef bcf_info_t *info
+        cdef const char *key
+        cdef int i
+
+        if bcf_unpack(r, BCF_UN_INFO) < 0:
+            raise ValueError('Error unpacking VariantRecord')
+
+        for i in range(r.n_info):
+            info = &r.d.info[i]
+            key = bcf_hdr_int2id(hdr, BCF_DT_ID, info.key)
+            if info != NULL and info.vptr != NULL and strcmp(key, b'END') != 0:
+                return True
+
+        return False
+
+    def __getitem__(self, key):
+        cdef bcf_hdr_t *hdr = self.record.header.ptr
+        cdef bcf1_t *r = self.record.ptr
+
+        if bcf_unpack(r, BCF_UN_INFO) < 0:
+            raise ValueError('Error unpacking VariantRecord')
+
+        cdef bytes bkey = force_bytes(key)
+
+        if strcmp(bkey, b'END') == 0:
+            raise KeyError('END is a reserved attribute; access is via record.stop')
+
         cdef bcf_info_t *info = bcf_get_info(hdr, r, bkey)
 
-        if not info:
-            d = <vdict_t *>hdr.dict[BCF_DT_ID]
-            k = kh_get_vdict(d, bkey)
+        # Cannot stop here if info == NULL, since flags must return False
+        cdef int info_id = bcf_header_get_info_id(hdr, bkey) if not info else info.key
 
-            if k == kh_end(d) or kh_val_vdict(d, k).info[BCF_HL_INFO] & 0xF == 0xF:
-                raise KeyError('Unknown INFO field: {}'.format(key))
-
-            info_id = kh_val_vdict(d, k).id
-        else:
-            info_id = info.key
+        if info_id < 0:
+            raise KeyError('Unknown INFO field: {}'.format(key))
 
         if not check_header_id(hdr, BCF_HL_INFO, info_id):
             raise ValueError('Invalid header')
 
+        # Handle type=Flag values
         if bcf_hdr_id2type(hdr, BCF_HL_INFO, info_id) == BCF_HT_FLAG:
             return info != NULL and info.vptr != NULL
 
@@ -2300,17 +2558,41 @@ cdef class VariantRecordInfo(object):
         return bcf_info_get_value(self.record, info)
 
     def __setitem__(self, key, value):
+        cdef bytes bkey = force_bytes(key)
+
+        if strcmp(bkey, b'END') == 0:
+            raise KeyError('END is a reserved attribute; access is via record.stop')
+
+        if bcf_unpack(self.record.ptr, BCF_UN_INFO) < 0:
+            raise ValueError('Error unpacking VariantRecord')
+
         bcf_info_set_value(self.record, key, value)
 
     def __delitem__(self, key):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
 
+        cdef bytes bkey = force_bytes(key)
+        if strcmp(bkey, b'END') == 0:
+            raise KeyError('END is a reserved attribute; access is via record.stop')
+
         if bcf_unpack(r, BCF_UN_INFO) < 0:
             raise ValueError('Error unpacking VariantRecord')
 
-        bkey = force_bytes(key)
         cdef bcf_info_t *info = bcf_get_info(hdr, r, bkey)
+
+        # Cannot stop here if info == NULL, since flags must return False
+        cdef int info_id = bcf_header_get_info_id(hdr, bkey) if not info else info.key
+
+        if info_id < 0:
+            raise KeyError('Unknown INFO field: {}'.format(key))
+
+        if not check_header_id(hdr, BCF_HL_INFO, info_id):
+            raise ValueError('Invalid header')
+
+        # Handle flags
+        if bcf_hdr_id2type(hdr, BCF_HL_INFO, info_id) == BCF_HT_FLAG and (not info or not info.vptr):
+            return
 
         if not info or not info.vptr:
             raise KeyError('Unknown INFO field: {}'.format(key))
@@ -2333,6 +2615,8 @@ cdef class VariantRecordInfo(object):
             info = &r.d.info[i]
             if info and info.vptr:
                 key = bcf_hdr_int2id(hdr, BCF_DT_ID, info.key)
+                if strcmp(key, b'END') == 0:
+                    continue
                 if bcf_update_info(hdr, r, key, NULL, 0, info.type) < 0:
                     raise ValueError('Unable to delete INFO')
 
@@ -2340,19 +2624,48 @@ cdef class VariantRecordInfo(object):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
         cdef bcf_info_t *info
+        cdef const char *key
         cdef int i
+
+        if bcf_unpack(r, BCF_UN_INFO) < 0:
+            raise ValueError('Error unpacking VariantRecord')
 
         for i in range(r.n_info):
             info = &r.d.info[i]
             if info and info.vptr:
-                yield bcf_str_cache_get_charptr(bcf_hdr_int2id(hdr, BCF_DT_ID, info.key))
+                key = bcf_hdr_int2id(hdr, BCF_DT_ID, info.key)
+                if strcmp(key, b'END') != 0:
+                    yield bcf_str_cache_get_charptr(key)
 
     def get(self, key, default=None):
         """D.get(k[,d]) -> D[k] if k in D, else d.  d defaults to None."""
-        try:
-            return self[key]
-        except KeyError:
+        cdef bcf_hdr_t *hdr = self.record.header.ptr
+        cdef bcf1_t *r = self.record.ptr
+
+        if bcf_unpack(r, BCF_UN_INFO) < 0:
+            raise ValueError('Error unpacking VariantRecord')
+
+        cdef bytes bkey = force_bytes(key)
+
+        if strcmp(bkey, b'END') == 0:
             return default
+
+        cdef bcf_info_t *info = bcf_get_info(hdr, r, bkey)
+
+        # Cannot stop here if info == NULL, since flags must return False
+        cdef int info_id = bcf_header_get_info_id(hdr, bkey) if not info else info.key
+
+        if not check_header_id(hdr, BCF_HL_INFO, info_id):
+            raise ValueError('Invalid header')
+
+        # Handle flags
+        if bcf_hdr_id2type(hdr, BCF_HL_INFO, info_id) == BCF_HT_FLAG:
+            return info != NULL and info.vptr != NULL
+
+        if not info or not info.vptr:
+            return default
+
+        return bcf_info_get_value(self.record, info)
 
     def __contains__(self, key):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
@@ -2361,10 +2674,14 @@ cdef class VariantRecordInfo(object):
         if bcf_unpack(r, BCF_UN_INFO) < 0:
             raise ValueError('Error unpacking VariantRecord')
 
-        bkey = force_bytes(key)
+        cdef bytes bkey = force_bytes(key)
+
+        if strcmp(bkey, b'END') == 0:
+            return False
+
         cdef bcf_info_t *info = bcf_get_info(hdr, r, bkey)
 
-        return info != NULL
+        return info != NULL and info.vptr != NULL
 
     def iterkeys(self):
         """D.iterkeys() -> an iterator over the keys of D"""
@@ -2372,28 +2689,40 @@ cdef class VariantRecordInfo(object):
 
     def itervalues(self):
         """D.itervalues() -> an iterator over the values of D"""
+        cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
         cdef bcf_info_t *info
+        cdef const char *key
         cdef int i
+
+        if bcf_unpack(r, BCF_UN_INFO) < 0:
+            raise ValueError('Error unpacking VariantRecord')
 
         for i in range(r.n_info):
             info = &r.d.info[i]
             if info and info.vptr:
-                yield bcf_info_get_value(self.record, info)
+                key = bcf_hdr_int2id(hdr, BCF_DT_ID, info.key)
+                if strcmp(key, b'END') != 0:
+                    yield bcf_info_get_value(self.record, info)
 
     def iteritems(self):
         """D.iteritems() -> an iterator over the (key, value) items of D"""
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
         cdef bcf_info_t *info
+        cdef const char *key
         cdef int i
+
+        if bcf_unpack(r, BCF_UN_INFO) < 0:
+            raise ValueError('Error unpacking VariantRecord')
 
         for i in range(r.n_info):
             info = &r.d.info[i]
             if info and info.vptr:
                 key = bcf_hdr_int2id(hdr, BCF_DT_ID, info.key)
-                value = bcf_info_get_value(self.record, info)
-                yield bcf_str_cache_get_charptr(key), value
+                if strcmp(key, b'END') != 0:
+                    value = bcf_info_get_value(self.record, info)
+                    yield bcf_str_cache_get_charptr(key), value
 
     def keys(self):
         """D.keys() -> list of D's keys"""
@@ -2407,10 +2736,74 @@ cdef class VariantRecordInfo(object):
         """D.values() -> list of D's values"""
         return list(self.itervalues())
 
+    def update(self, items=None, **kwargs):
+        """D.update([E, ]**F) -> None.
+
+        Update D from dict/iterable E and F.
+        """
+        for k, v in items.items():
+            if k != 'END':
+                self[k] = v
+
+        if kwargs:
+            kwargs.pop('END', None)
+            for k, v in kwargs.items():
+                self[k] = v
+
+    def pop(self, key, default=_nothing):
+        cdef bcf_hdr_t *hdr = self.record.header.ptr
+        cdef bcf1_t *r = self.record.ptr
+
+        if bcf_unpack(r, BCF_UN_INFO) < 0:
+            raise ValueError('Error unpacking VariantRecord')
+
+        cdef bytes bkey = force_bytes(key)
+        cdef bcf_info_t *info = bcf_get_info(hdr, r, bkey)
+
+        # Cannot stop here if info == NULL, since flags must return False
+        cdef int info_id = bcf_header_get_info_id(hdr, bkey) if not info else info.key
+
+        if info_id < 0:
+            if default is _nothing:
+                raise KeyError('Unknown INFO field: {}'.format(key))
+            return default
+
+        if not check_header_id(hdr, BCF_HL_INFO, info_id):
+            raise ValueError('Invalid header')
+
+        # Handle flags
+        if bcf_hdr_id2type(hdr, BCF_HL_INFO, info_id) == BCF_HT_FLAG and (not info or not info.vptr):
+            return
+
+        if not info or not info.vptr:
+            if default is _nothing:
+                raise KeyError('Unknown INFO field: {}'.format(key))
+            return default
+
+        value = bcf_info_get_value(self.record, info)
+
+        if bcf_update_info(hdr, r, bkey, NULL, 0, info.type) < 0:
+            raise ValueError('Unable to delete INFO')
+
+        return value
+
+    def __richcmp__(VariantRecordInfo self not None, VariantRecordInfo other not None, int op):
+        if op != 2 and op != 3:
+            return NotImplemented
+
+        cdef bcf1_t *s = self.record.ptr
+        cdef bcf1_t *o = other.record.ptr
+
+        # Cannot use n_info as shortcut logic, since null values may remain
+        cdef bint cmp = dict(self) == dict(other)
+
+        if op == 3:
+            cmp = not cmp
+
+        return cmp
+
     # Mappings are not hashable by default, but subclasses can change this
     __hash__ = None
-
-    #TODO: implement __richcmp__
 
 
 cdef VariantRecordInfo makeVariantRecordInfo(VariantRecord record):
@@ -2429,15 +2822,15 @@ cdef class VariantRecordSamples(object):
         raise TypeError('this class cannot be instantiated from Python')
 
     def __len__(self):
-        return bcf_hdr_nsamples(self.record.header.ptr)
+        return self.record.ptr.n_sample  # bcf_hdr_nsamples(self.record.header.ptr)
 
     def __bool__(self):
-        return bcf_hdr_nsamples(self.record.header.ptr) != 0
+        return self.record.ptr.n_sample != 0  # bcf_hdr_nsamples(self.record.header.ptr) != 0
 
     def __getitem__(self, key):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
-        cdef int n = bcf_hdr_nsamples(hdr)
+        cdef int n = self.record.ptr.n_sample
         cdef int sample_index
         cdef vdict_t *d
         cdef khiter_t k
@@ -2448,7 +2841,7 @@ cdef class VariantRecordSamples(object):
             bkey = force_bytes(key)
             sample_index = bcf_hdr_id2int(hdr, BCF_DT_SAMPLE, bkey)
             if sample_index < 0:
-                raise KeyError('invalid sample name')
+                raise KeyError('invalid sample name: {}'.format(key))
 
         if sample_index < 0 or sample_index >= n:
             raise IndexError('invalid sample index')
@@ -2458,7 +2851,7 @@ cdef class VariantRecordSamples(object):
     def __iter__(self):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
-        cdef int32_t i, n = bcf_hdr_nsamples(hdr)
+        cdef int32_t i, n = self.record.ptr.n_sample
 
         for i in range(n):
             yield charptr_to_str(hdr.samples[i])
@@ -2473,7 +2866,7 @@ cdef class VariantRecordSamples(object):
     def __contains__(self, key):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
-        cdef int n = bcf_hdr_nsamples(hdr)
+        cdef int n = self.record.ptr.n_sample
         cdef int sample_index
         cdef vdict_t *d
         cdef khiter_t k
@@ -2484,7 +2877,7 @@ cdef class VariantRecordSamples(object):
             bkey = force_bytes(key)
             sample_index = bcf_hdr_id2int(hdr, BCF_DT_SAMPLE, bkey)
             if sample_index < 0:
-                raise KeyError('invalid sample name')
+                raise KeyError('invalid sample name: {}'.format(key))
 
         return 0 <= sample_index < n
 
@@ -2496,7 +2889,7 @@ cdef class VariantRecordSamples(object):
         """D.itervalues() -> an iterator over the values of D"""
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
-        cdef int32_t i, n = bcf_hdr_nsamples(hdr)
+        cdef int32_t i, n = self.record.ptr.n_sample
 
         for i in range(n):
             yield makeVariantRecordSample(self.record, i)
@@ -2505,7 +2898,7 @@ cdef class VariantRecordSamples(object):
         """D.iteritems() -> an iterator over the (key, value) items of D"""
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
-        cdef int32_t i, n = bcf_hdr_nsamples(hdr)
+        cdef int32_t i, n = self.record.ptr.n_sample
 
         for i in range(n):
             yield (charptr_to_str(hdr.samples[i]), makeVariantRecordSample(self.record, i))
@@ -2522,10 +2915,44 @@ cdef class VariantRecordSamples(object):
         """D.values() -> list of D's values"""
         return list(self.itervalues())
 
+    def update(self, items=None, **kwargs):
+        """D.update([E, ]**F) -> None.
+
+        Update D from dict/iterable E and F.
+        """
+        for k, v in items.items():
+            self[k] = v
+
+        if kwargs:
+            for k, v in kwargs.items():
+                self[k] = v
+
+    def pop(self, key, default=_nothing):
+        try:
+            value = self[key]
+            del self[key]
+            return value
+        except KeyError:
+            if default is not _nothing:
+                return default
+            raise
+
+    def __richcmp__(VariantRecordSamples self not None, VariantRecordSamples other not None, int op):
+        if op != 2 and op != 3:
+            return NotImplemented
+
+        cdef bcf1_t *s = self.record.ptr
+        cdef bcf1_t *o = other.record.ptr
+
+        cdef bint cmp = (s.n_sample == o.n_sample and self.values() == other.values())
+
+        if op == 3:
+            cmp = not cmp
+
+        return cmp
+
     # Mappings are not hashable by default, but subclasses can change this
     __hash__ = None
-
-    #TODO: implement __richcmp__
 
 
 cdef VariantRecordSamples makeVariantRecordSamples(VariantRecord record):
@@ -2566,6 +2993,7 @@ cdef class VariantRecord(object):
                 raise ValueError(msg.format(self.ptr.n_sample, bcf_hdr_nsamples(dst_hdr)))
 
             bcf_translate(dst_hdr, src_hdr, self.ptr)
+            self.header = dst_header
 
     @property
     def rid(self):
@@ -2627,6 +3055,7 @@ cdef class VariantRecord(object):
         if p < 1:
             raise ValueError('Position must be positive')
         self.ptr.pos = p - 1
+        bcf_sync_end(self)
 
     @property
     def start(self):
@@ -2639,6 +3068,7 @@ cdef class VariantRecord(object):
         if s < 0:
             raise ValueError('Start coordinate must be non-negative')
         self.ptr.pos = s
+        bcf_sync_end(self)
 
     @property
     def stop(self):
@@ -2648,25 +3078,21 @@ cdef class VariantRecord(object):
     @stop.setter
     def stop(self, value):
         cdef int s = value
-        if s < self.ptr.pos:
-            raise ValueError('Stop coordinate must be greater than or equal to start')
+        if s < 0:
+            raise ValueError('Stop coordinate must be non-negative')
         self.ptr.rlen = s - self.ptr.pos
-        if self.ptr.rlen != len(self.ref) or 'END' in self.info:
-            self.info['END'] = s
+        bcf_sync_end(self)
 
     @property
     def rlen(self):
-        """record length on chrom/contig (typically rec.stop - rec.start unless END info is supplied)"""
+        """record length on chrom/contig (aka rec.stop - rec.start)"""
         return self.ptr.rlen
 
     @rlen.setter
     def rlen(self, value):
         cdef int r = value
-        if r < 0:
-            raise ValueError('Reference length must be non-negative')
         self.ptr.rlen = r
-        if r != len(self.ref) or 'END' in self.info:
-            self.info['END'] = self.ptr.pos + r
+        bcf_sync_end(self)
 
     @property
     def qual(self):
@@ -2730,8 +3156,9 @@ cdef class VariantRecord(object):
             alleles = [r.d.allele[i] for i in range(r.n_allele)]
             alleles[0] = value
         else:
-            alleles = [value]
+            alleles = [value, '<NON_REF>']
         self.alleles = alleles
+        bcf_sync_end(self)
 
     @property
     def alleles(self):
@@ -2749,16 +3176,34 @@ cdef class VariantRecord(object):
         return res
 
     @alleles.setter
-    def alleles(self, value):
+    def alleles(self, values):
         cdef bcf1_t *r = self.ptr
+        
+        # Cache rlen of symbolic alleles before call to bcf_update_alleles_str
+        cdef int rlen = r.rlen
+
         if bcf_unpack(r, BCF_UN_STR) < 0:
             raise ValueError('Error unpacking VariantRecord')
-        value = [force_bytes(v) for v in value]
-        if b'' in value:
+
+        values = [force_bytes(v) for v in values]
+
+        if len(values) < 2:
+            raise ValueError('must set at least 2 alleles')
+
+        if b'' in values:
             raise ValueError('cannot set null allele')
-        value = b','.join(value)
+
+        value = b','.join(values)
+
         if bcf_update_alleles_str(self.header.ptr, r, value) < 0:
             raise ValueError('Error updating alleles')
+
+        # Reset rlen if alternate allele isn't symbolic, otherwise used cached
+        if has_symbolic_allele(self):
+            self.ptr.rlen = rlen
+        else:
+            self.ptr.rlen = len(values[0])
+        bcf_sync_end(self)
 
     @property
     def alts(self):
@@ -2814,6 +3259,32 @@ cdef class VariantRecord(object):
         if bcf_unpack(self.ptr, BCF_UN_ALL) < 0:
             raise ValueError('Error unpacking VariantRecord')
         return makeVariantRecordSamples(self)
+
+    def __richcmp__(VariantRecord self not None, VariantRecord other not None, int op):
+        if op != 2 and op != 3:
+            return NotImplemented
+
+        cdef bcf1_t *s = self.ptr
+        cdef bcf1_t *o = other.ptr
+
+        cdef bint cmp = self is other or (
+                             s.pos        == o.pos
+                        and  s.rlen       == o.rlen
+                        and ((bcf_float_is_missing(s.qual) and bcf_float_is_missing(o.qual))
+                          or s.qual       == o.qual)
+                        and  s.n_sample   == o.n_sample
+                        and  s.n_allele   == o.n_allele
+                        and  self.contig  == other.contig
+                        and  self.alleles == other.alleles
+                        and  self.id      == other.id
+                        and  self.info    == other.info
+                        and  self.filter  == other.filter
+                        and  self.samples == other.samples)
+
+        if op == 3:
+            cmp = not cmp
+
+        return cmp
 
     def __str__(self):
         cdef kstring_t line
@@ -2896,7 +3367,7 @@ cdef class VariantRecordSample(object):
         """sample name"""
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
-        cdef int32_t n = bcf_hdr_nsamples(hdr)
+        cdef int32_t n = r.n_sample
 
         if self.index < 0 or self.index >= n:
             raise ValueError('invalid sample index')
@@ -3006,7 +3477,7 @@ cdef class VariantRecordSample(object):
     def __contains__(self, key):
         cdef bcf_hdr_t *hdr = self.record.header.ptr
         cdef bcf1_t *r = self.record.ptr
-        bkey = force_bytes(key)
+        cdef bytes bkey = force_bytes(key)
         cdef bcf_fmt_t *fmt = bcf_get_fmt(hdr, r, bkey)
         return fmt != NULL and fmt.p != NULL
 
@@ -3036,10 +3507,41 @@ cdef class VariantRecordSample(object):
         """D.values() -> list of D's values"""
         return list(self.itervalues())
 
+    def update(self, items=None, **kwargs):
+        """D.update([E, ]**F) -> None.
+
+        Update D from dict/iterable E and F.
+        """
+        for k, v in items.items():
+            self[k] = v
+
+        if kwargs:
+            for k, v in kwargs.items():
+                self[k] = v
+
+    def pop(self, key, default=_nothing):
+        try:
+            value = self[key]
+            del self[key]
+            return value
+        except KeyError:
+            if default is not _nothing:
+                return default
+            raise
+
+    def __richcmp__(VariantRecordSample self not None, VariantRecordSample other not None, int op):
+        if op != 2 and op != 3:
+            return NotImplemented
+
+        cdef bint cmp = dict(self) == dict(other)
+
+        if op == 3:
+            cmp = not cmp
+
+        return cmp
+
     # Mappings are not hashable by default, but subclasses can change this
     __hash__ = None
-
-    #TODO: implement __richcmp__
 
 
 cdef VariantRecordSample makeVariantRecordSample(VariantRecord record, int32_t sample_index):
@@ -3120,6 +3622,28 @@ cdef class BaseIndex(object):
         """D.values() -> list of D's values"""
         return list(self.itervalues())
 
+    def update(self, items=None, **kwargs):
+        """D.update([E, ]**F) -> None.
+
+        Update D from dict/iterable E and F.
+        """
+        for k, v in items.items():
+            self[k] = v
+
+        if kwargs:
+            for k, v in kwargs.items():
+                self[k] = v
+
+    def pop(self, key, default=_nothing):
+        try:
+            value = self[key]
+            del self[key]
+            return value
+        except KeyError:
+            if default is not _nothing:
+                return default
+            raise
+
     # Mappings are not hashable by default, but subclasses can change this
     __hash__ = None
 
@@ -3146,8 +3670,8 @@ cdef class BCFIndex(object):
             hts_idx_destroy(self.ptr)
             self.ptr = NULL
 
-    def fetch(self, bcf, contig, start, stop, region, reopen):
-        return BCFIterator(bcf, contig, start, stop, region, reopen)
+    def fetch(self, bcf, contig, start, stop, reopen):
+        return BCFIterator(bcf, contig, start, stop, reopen)
 
 
 cdef BCFIndex makeBCFIndex(VariantHeader header, hts_idx_t *idx):
@@ -3185,8 +3709,8 @@ cdef class TabixIndex(BaseIndex):
             tbx_destroy(self.ptr)
             self.ptr = NULL
 
-    def fetch(self, bcf, contig, start, stop, region, reopen):
-        return TabixIterator(bcf, contig, start, stop, region, reopen)
+    def fetch(self, bcf, contig, start, stop, reopen):
+        return TabixIterator(bcf, contig, start, stop, reopen)
 
 
 cdef TabixIndex makeTabixIndex(tbx_t *idx):
@@ -3221,54 +3745,44 @@ cdef void _stop_BCFIterator(BCFIterator self, bcf1_t *record):
 
 
 cdef class BCFIterator(BaseIterator):
-    def __init__(self, VariantFile bcf, contig=None, start=None, stop=None, region=None, reopen=True):
+    def __init__(self, VariantFile bcf, contig=None, start=None, stop=None, reopen=True):
         if bcf is None:
             raise ValueError('bcf must not be None')
+
+        if contig is None:
+            raise ValueError('contig must be specified')
 
         if not isinstance(bcf.index, BCFIndex):
             raise ValueError('bcf index required')
 
         cdef BCFIndex index = bcf.index
-        cdef int rid, cstart, cstop
-        cdef char *cregion
-
-        if not index:
-            raise ValueError('bcf index required')
-
-        if reopen:
-            bcf = bcf.copy()
-
-        if region is not None:
-            if contig is not None or start is not None or stop is not None:
-                raise ValueError  # FIXME
-
-            bregion = force_bytes(region)
-            cregion = bregion
-            with nogil:
-                self.iter = bcf_itr_querys(index.ptr, bcf.header.ptr, cregion)
-        else:
-            if contig is None:
-                raise ValueError  # FIXME
-
-            try:
-                rid = index.refmap[contig]
-            except KeyError:
-                raise ValueError('Unknown contig specified')
-
-            if start is None:
-                start = 0
-            if stop is None:
-                stop = MAX_POS
-
-            cstart, cstop = start, stop
-
-            with nogil:
-                self.iter = bcf_itr_queryi(index.ptr, rid, cstart, cstop)
-
-        # Do not fail on self.iter == NULL, since it signifies a null query.
 
         self.bcf = bcf
         self.index = index
+
+        cdef int rid, cstart, cstop
+
+        try:
+            rid = index.refmap[contig]
+        except KeyError:
+            # A query for a non-existant contig yields an empty iterator, does not raise an error
+            self.iter = NULL
+            return
+
+        if reopen:
+            self.bcf = self.bcf.copy()
+
+        cstart = start if start is not None else 0
+        cstop  = stop  if stop  is not None else MAX_POS
+
+        with nogil:
+            self.iter = bcf_itr_queryi(index.ptr, rid, cstart, cstop)
+
+        if not self.iter:
+            if errno:
+                raise IOError(errno, strerror(errno))
+            else:
+                raise IOError('unable to fetch {}:{}-{}'.format(contig, start+1, stop))
 
     def __dealloc__(self):
         if self.iter:
@@ -3284,6 +3798,9 @@ cdef class BCFIterator(BaseIterator):
 
         cdef bcf1_t *record = bcf_init1()
 
+        if not record:
+            raise MemoryError('unable to allocate BCF record')
+
         record.pos = -1
         if self.bcf.drop_samples:
             record.max_unpack = BCF_UN_SHR
@@ -3297,8 +3814,12 @@ cdef class BCFIterator(BaseIterator):
             _stop_BCFIterator(self, record)
             if ret == -1:
                 raise StopIteration
+            elif ret == -2:
+                raise IOError('truncated file')
+            elif errno:
+                raise IOError(errno, strerror(errno))
             else:
-                raise ValueError('error reading BCF file')
+                raise IOError('unable to fetch next record')
 
         ret = bcf_subset_format(self.bcf.header.ptr, record)
 
@@ -3315,7 +3836,7 @@ cdef class TabixIterator(BaseIterator):
         self.line_buffer.m = 0
         self.line_buffer.s = NULL
 
-    def __init__(self, VariantFile bcf, contig=None, start=None, stop=None, region=None, reopen=True):
+    def __init__(self, VariantFile bcf, contig=None, start=None, stop=None, reopen=True):
         if bcf is None:
             raise ValueError('bcf must not be None')
 
@@ -3324,34 +3845,31 @@ cdef class TabixIterator(BaseIterator):
 
         cdef TabixIndex index = bcf.index
 
-        if not index:
-            raise ValueError('bcf index required')
-
-        if reopen:
-            bcf = bcf.copy()
-
-        if region is not None:
-            if contig is not None or start is not None or stop is not None:
-                raise ValueError  # FIXME
-
-            self.iter = tbx_itr_querys(index.ptr, region)
-        else:
-            if contig is None:
-                raise ValueError  # FIXME
-
-            rid = index.refmap.get(contig, -1)
-
-            if start is None:
-                start = 0
-            if stop is None:
-                stop = MAX_POS
-
-            self.iter = tbx_itr_queryi(index.ptr, rid, start, stop)
-
-        # Do not fail on self.iter == NULL, since it signifies a null query.
-
         self.bcf = bcf
         self.index = index
+
+        cdef int rid, cstart, cstop
+
+        try:
+            rid = index.refmap[contig]
+        except KeyError:
+            # A query for a non-existant contig yields an empty iterator, does not raise an error
+            self.iter = NULL
+            return
+
+        if reopen:
+            self.bcf = self.bcf.copy()
+
+        cstart = start if start is not None else 0
+        cstop  = stop  if stop  is not None else MAX_POS
+
+        self.iter = tbx_itr_queryi(index.ptr, rid, start, stop)
+
+        if not self.iter:
+            if errno:
+                raise IOError(errno, strerror(errno))
+            else:
+                raise IOError('unable to fetch {}:{}-{}'.format(contig, start+1, stop))
 
     def __dealloc__(self):
         if self.iter:
@@ -3382,10 +3900,17 @@ cdef class TabixIterator(BaseIterator):
             self.iter = NULL
             if ret == -1:
                 raise StopIteration
+            elif ret == -2:
+                raise IOError('truncated file')
+            elif errno:
+                raise IOError(errno, strerror(errno))
             else:
-                raise ValueError('error reading indexed VCF file')
+                raise IOError('unable to fetch next record')
 
         cdef bcf1_t *record = bcf_init1()
+
+        if not record:
+            raise MemoryError('unable to allocate BCF record')
 
         record.pos = -1
         if self.bcf.drop_samples:
@@ -3409,7 +3934,7 @@ cdef class TabixIterator(BaseIterator):
 
 cdef class VariantFile(HTSFile):
     """*(filename, mode=None, index_filename=None, header=None, drop_samples=False,
-    duplicate_filehandle=True)*
+    duplicate_filehandle=True, ignore_truncation=False, threads=1)*
 
     A :term:`VCF`/:term:`BCF` formatted file. The file is automatically
     opened.
@@ -3451,13 +3976,23 @@ cdef class VariantFile(HTSFile):
     drop_samples: bool
         Ignore sample information when reading.
 
-    duplicate_filehandle: bool 
+    duplicate_filehandle: bool
         By default, file handles passed either directly or through
         File-like objects will be duplicated before passing them to
         htslib. The duplication prevents issues where the same stream
         will be closed by htslib and through destruction of the
         high-level python object. Set to False to turn off
         duplication.
+
+    ignore_truncation: bool
+        Issue a warning, instead of raising an error if the current file
+        appears to be truncated due to a missing EOF marker.  Only applies
+        to bgzipped formats. (Default=False)
+
+    threads: integer
+        Number of threads to use for compressing/decompressing VCF/BCF files.
+        Setting threads to > 1 cannot be combined with `ignore_truncation`.
+        (Default=1)
 
     """
     def __cinit__(self, *args, **kwargs):
@@ -3468,6 +4003,7 @@ cdef class VariantFile(HTSFile):
         self.index          = None
         self.filename       = None
         self.mode           = None
+        self.threads        = 1
         self.index_filename = None
         self.is_stream      = False
         self.is_remote      = False
@@ -3478,26 +4014,46 @@ cdef class VariantFile(HTSFile):
 
         self.open(*args, **kwargs)
 
-    def close(self):
-        """closes the :class:`pysam.VariantFile`."""
-        cdef int ret = 0
-        self.header = self.index = None
-        if self.htsfile:
-            # Write header if no records were written
-            if self.htsfile.is_write and not self.header_written:
-                self.header_written = True
-                with nogil:
-                    bcf_hdr_write(self.htsfile, self.header.ptr)
+    def __dealloc__(self):
+        if not self.htsfile or not self.header:
+            return
 
-            ret = hts_close(self.htsfile)
-            self.htsfile = NULL
+        # Write header if no records were written
+        if self.htsfile.is_write and not self.header_written:
+            with nogil:
+                bcf_hdr_write(self.htsfile, self.header.ptr)
+
+        cdef int ret = hts_close(self.htsfile)
+        self.htsfile = NULL
+        self.header = self.index = None
 
         if ret < 0:
             global errno
             if errno == EPIPE:
                 errno = 0
             else:
-                raise OSError(errno, force_str(strerror(errno)))
+                raise IOError(errno, force_str(strerror(errno)))
+
+    def close(self):
+        """closes the :class:`pysam.VariantFile`."""
+        if not self.htsfile:
+            return
+
+        # Write header if no records were written
+        if self.htsfile.is_write and not self.header_written:
+            with nogil:
+                bcf_hdr_write(self.htsfile, self.header.ptr)
+
+        cdef int ret = hts_close(self.htsfile)
+        self.htsfile = NULL
+        self.header = self.index = None
+
+        if ret < 0:
+            global errno
+            if errno == EPIPE:
+                errno = 0
+            else:
+                raise IOError(errno, force_str(strerror(errno)))
 
     def __iter__(self):
         if not self.is_open:
@@ -3513,6 +4069,9 @@ cdef class VariantFile(HTSFile):
         cdef int ret
         cdef bcf1_t *record = bcf_init1()
 
+        if not record:
+            raise MemoryError('unable to allocate BCF record')
+
         record.pos = -1
         if self.drop_samples:
             record.max_unpack = BCF_UN_SHR
@@ -3526,8 +4085,10 @@ cdef class VariantFile(HTSFile):
                 raise StopIteration
             elif ret == -2:
                 raise IOError('truncated file')
+            elif errno:
+                raise IOError(errno, strerror(errno))
             else:
-                raise ValueError('Variant read failed')
+                raise IOError('unable to fetch next record')
 
         return makeVariantRecord(self.header, record)
 
@@ -3551,6 +4112,7 @@ cdef class VariantFile(HTSFile):
 
         vars.filename       = self.filename
         vars.mode           = self.mode
+        vars.threads        = self.threads
         vars.index_filename = self.index_filename
         vars.drop_samples   = self.drop_samples
         vars.is_stream      = self.is_stream
@@ -3572,7 +4134,9 @@ cdef class VariantFile(HTSFile):
              index_filename=None,
              VariantHeader header=None,
              drop_samples=False,
-             duplicate_filehandle=True):
+             duplicate_filehandle=True,
+             ignore_truncation=False,
+             threads=1):
         """open a vcf/bcf file.
 
         If open is called on an existing VariantFile, the current file will be
@@ -3585,6 +4149,15 @@ cdef class VariantFile(HTSFile):
         cdef char *cfilename
         cdef char *cindex_filename = NULL
         cdef char *cmode
+
+        if threads > 1 and ignore_truncation:
+            # This won't raise errors if reaching a truncated alignment,
+            # because bgzf_mt_reader in htslib does not deal with
+            # bgzf_mt_read_block returning non-zero values, contrary
+            # to bgzf_read (https://github.com/samtools/htslib/blob/1.7/bgzf.c#L888)
+            # Better to avoid this (for now) than to produce seemingly correct results.
+            raise ValueError('Cannot add extra threads when "ignore_truncation" is True')
+        self.threads = threads
 
         # close a previously opened file
         if self.is_open:
@@ -3656,22 +4229,18 @@ cdef class VariantFile(HTSFile):
 
         elif mode.startswith(b'r'):
             # open file for reading
-            
-            if not self._exists():
-                raise IOError('file `{}` not found'.format(filename))
-
             self.htsfile = self._open_htsfile()
 
             if not self.htsfile:
-                raise ValueError("could not open file `{}` (mode='{}') - is it VCF/BCF format?".format(filename, mode))
+                if errno:
+                    raise IOError(errno, 'could not open variant file `{}`: {}'.format(filename, force_str(strerror(errno))))
+                else:
+                    raise ValueError('could not open variant file `{}`'.format(filename))
 
             if self.htsfile.format.format not in (bcf, vcf):
-                raise ValueError("invalid file `{}` (mode='{}') - is it VCF/BCF format?".format(filename, mode))
+                raise ValueError('invalid file `{}` (mode=`{}`) - is it VCF/BCF format?'.format(filename, mode))
 
-            if self.htsfile.format.compression == bgzf:
-                bgzfp = hts_get_bgzfp(self.htsfile)
-                if bgzfp and bgzf_check_EOF(bgzfp) == 0:
-                    warn('[%s] Warning: no BGZF EOF marker; file may be truncated'.format(filename))
+            self.check_truncation(ignore_truncation)
 
             with nogil:
                 hdr = bcf_hdr_read(self.htsfile)
@@ -3679,7 +4248,7 @@ cdef class VariantFile(HTSFile):
             try:
                 self.header = makeVariantHeader(hdr)
             except ValueError:
-                raise ValueError("file `{}` does not have valid header (mode='{}') - is it VCF/BCF format?".format(filename, mode))
+                raise ValueError('file `{}` does not have valid header (mode=`{}`) - is it VCF/BCF format?'.format(filename, mode))
 
             if isinstance(self.filename, bytes):
                 cfilename = self.filename
@@ -3704,14 +4273,54 @@ cdef class VariantFile(HTSFile):
             if not self.is_stream:
                 self.start_offset = self.tell()
         else:
-            raise ValueError("unknown mode {}".format(mode))
+            raise ValueError('unknown mode {}'.format(mode))
 
     def reset(self):
         """reset file position to beginning of file just after the header."""
         return self.seek(self.start_offset)
 
+    def is_valid_tid(self, tid):
+        """
+        return True if the numerical :term:`tid` is valid; False otherwise.
 
-    def fetch(self, contig=None, start=None, stop=None, region=None, reopen=False):
+        returns -1 if reference is not known.
+        """
+        if not self.is_open:
+            raise ValueError('I/O operation on closed file')
+
+        cdef bcf_hdr_t *hdr = self.header.ptr
+        cdef int rid = tid
+        return 0 <= rid < hdr.n[BCF_DT_CTG]
+
+    def get_tid(self, reference):
+        """
+        return the numerical :term:`tid` corresponding to
+        :term:`reference`
+
+        returns -1 if reference is not known.
+        """
+        if not self.is_open:
+            raise ValueError('I/O operation on closed file')
+
+        cdef vdict_t *d = <vdict_t*>self.header.ptr.dict[BCF_DT_CTG]
+        reference = force_bytes(reference)
+        cdef khint_t k = kh_get_vdict(d, reference)
+        return kh_val_vdict(d, k).id if k != kh_end(d) else -1
+
+    def get_reference_name(self, tid):
+        """
+        return :term:`reference` name corresponding to numerical :term:`tid`
+        """
+        if not self.is_open:
+            raise ValueError('I/O operation on closed file')
+
+        cdef bcf_hdr_t *hdr = self.header.ptr
+        cdef int rid = tid
+        if rid < 0 or rid >= hdr.n[BCF_DT_CTG]:
+            raise ValueError('Invalid tid')
+        return bcf_str_cache_get_charptr(bcf_hdr_id2name(hdr, rid))
+
+    def fetch(self, contig=None, start=None, stop=None, region=None, reopen=False, end=None, reference=None):
         """fetch records in a :term:`region` using 0-based indexing. The
         region is specified by :term:`contig`, *start* and *end*.
         Alternatively, a samtools :term:`region` string can be supplied.
@@ -3747,12 +4356,21 @@ cdef class VariantFile(HTSFile):
         if not self.index:
             raise ValueError('fetch requires an index')
 
-        self.is_reading = 1
-        return self.index.fetch(self, contig, start, stop, region, reopen)
+        _, tid, start, stop = self.parse_region(contig, start, stop, region,
+                                                None, end=end, reference=reference)
 
-    cpdef VariantRecord new_record(self):
-        """Create a new empty VariantRecord"""
-        return self.header.new_record()
+        if contig is None:
+            contig = self.get_reference_name(tid)
+
+        self.is_reading = 1
+        return self.index.fetch(self, contig, start, stop, reopen)
+
+    def new_record(self, *args, **kwargs):
+        """Create a new empty :class:`VariantRecord`.
+
+        See :meth:`VariantHeader.new_record`
+        """
+        return self.header.new_record(*args, **kwargs)
 
     cpdef int write(self, VariantRecord record) except -1:
         """
@@ -3781,6 +4399,9 @@ cdef class VariantFile(HTSFile):
         if record.ptr.n_sample != bcf_hdr_nsamples(self.header.ptr):
             msg = 'Invalid VariantRecord.  Number of samples does not match header ({} vs {})'
             raise ValueError(msg.format(record.ptr.n_sample, bcf_hdr_nsamples(self.header.ptr)))
+
+        # Sync END annotation before writing
+        bcf_sync_end(record)
 
         cdef int ret
 

@@ -1,4 +1,4 @@
-#include "pysam.h"
+#include "samtools.pysam.h"
 
 /*  bedcov.c -- bedcov subcommand.
 
@@ -35,6 +35,7 @@ DEALINGS IN THE SOFTWARE.  */
 #include <unistd.h>
 #include "htslib/kstring.h"
 #include "htslib/sam.h"
+#include "htslib/thread_pool.h"
 #include "sam_opts.h"
 
 #include "htslib/kseq.h"
@@ -76,7 +77,7 @@ int main_bedcov(int argc, char *argv[])
 
     sam_global_args ga = SAM_GLOBAL_ARGS_INIT;
     static const struct option lopts[] = {
-        SAM_OPT_GLOBAL_OPTIONS('-', 0, '-', '-', 0),
+        SAM_OPT_GLOBAL_OPTIONS('-', 0, '-', '-', 0, '-'),
         { NULL, 0, NULL, 0 }
     };
 
@@ -90,9 +91,10 @@ int main_bedcov(int argc, char *argv[])
         if (usage) break;
     }
     if (usage || optind + 2 > argc) {
-        fprintf(pysam_stderr, "Usage: samtools bedcov [options] <in.bed> <in1.bam> [...]\n\n");
-        fprintf(pysam_stderr, "  -Q INT       Only count bases of at least INT quality [0]\n");
-        sam_global_opt_help(pysam_stderr, "-.--.");
+        fprintf(samtools_stderr, "Usage: samtools bedcov [options] <in.bed> <in1.bam> [...]\n\n");
+        fprintf(samtools_stderr, "Options:\n");
+        fprintf(samtools_stderr, "   -Q <int>            mapping quality threshold [0]\n");
+        sam_global_opt_help(samtools_stderr, "-.--.-");
         return 1;
     }
     memset(&str, 0, sizeof(kstring_t));
@@ -106,13 +108,13 @@ int main_bedcov(int argc, char *argv[])
         if (aux[i]->fp)
             idx[i] = sam_index_load(aux[i]->fp, argv[i+optind+1]);
         if (aux[i]->fp == 0 || idx[i] == 0) {
-            fprintf(pysam_stderr, "ERROR: fail to open index BAM file '%s'\n", argv[i+optind+1]);
+            fprintf(samtools_stderr, "ERROR: fail to open index BAM file '%s'\n", argv[i+optind+1]);
             return 2;
         }
         // TODO bgzf_set_cache_size(aux[i]->fp, 20);
         aux[i]->header = sam_hdr_read(aux[i]->fp);
         if (aux[i]->header == NULL) {
-            fprintf(pysam_stderr, "ERROR: failed to read header for '%s'\n",
+            fprintf(samtools_stderr, "ERROR: failed to read header for '%s'\n",
                     argv[i+optind+1]);
             return 2;
         }
@@ -128,6 +130,12 @@ int main_bedcov(int argc, char *argv[])
         int tid, beg, end, pos;
         bam_mplp_t mplp;
 
+        if (str.l == 0 || *str.s == '#') continue; /* empty or comment line */
+        /* Track and browser lines.  Also look for a trailing *space* in
+           case someone has badly-chosen a chromosome name (it would
+           be followed by a tab in that case). */
+        if (strncmp(str.s, "track ", 6) == 0) continue;
+        if (strncmp(str.s, "browser ", 8) == 0) continue;
         for (p = q = str.s; *p && *p != '\t'; ++p);
         if (*p != '\t') goto bed_error;
         *p = 0; tid = bam_name2id(aux[0]->header, q); *p = '\t';
@@ -155,12 +163,12 @@ int main_bedcov(int argc, char *argv[])
             kputc('\t', &str);
             kputl(cnt[i], &str);
         }
-        fputs(str.s, pysam_stdout) & fputc('\n', pysam_stdout);
+        fputs(str.s, samtools_stdout) & fputc('\n', samtools_stdout);
         bam_mplp_destroy(mplp);
         continue;
 
 bed_error:
-        fprintf(pysam_stderr, "Errors in BED line '%s'\n", str.s);
+        fprintf(samtools_stderr, "Errors in BED line '%s'\n", str.s);
     }
     free(n_plp); free(plp);
     ks_destroy(ks);

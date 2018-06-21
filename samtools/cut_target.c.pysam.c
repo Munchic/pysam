@@ -1,9 +1,9 @@
-#include "pysam.h"
+#include "samtools.pysam.h"
 
 /*  cut_target.c -- targetcut subcommand.
 
     Copyright (C) 2011 Broad Institute.
-    Copyright (C) 2012-2013, 2015 Genome Research Ltd.
+    Copyright (C) 2012-2013, 2015, 2016 Genome Research Ltd.
 
     Author: Heng Li <lh3@sanger.ac.uk>
 
@@ -30,9 +30,10 @@ DEALINGS IN THE SOFTWARE.  */
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include "htslib/hts.h"
 #include "htslib/sam.h"
-#include "errmod.h"
 #include "htslib/faidx.h"
+#include "samtools.h"
 #include "sam_opts.h"
 
 #define ERR_DEP 0.83
@@ -124,22 +125,22 @@ static void process_cns(bam_hdr_t *h, int tid, int l, uint16_t *cns)
         s = b[i]>>s&1;
     }
     // print
-    for (i = 0, s = -1; i <= l; ++i) {
+    for (i = 0, s = -1; i < INT_MAX && i <= l; ++i) {
         if (i == l || ((b[i]>>2&3) == 0 && s >= 0)) {
             if (s >= 0) {
                 int j;
-                fprintf(pysam_stdout, "%s:%d-%d\t0\t%s\t%d\t60\t%dM\t*\t0\t0\t", h->target_name[tid], s+1, i, h->target_name[tid], s+1, i-s);
+                fprintf(samtools_stdout, "%s:%d-%d\t0\t%s\t%d\t60\t%dM\t*\t0\t0\t", h->target_name[tid], s+1, i, h->target_name[tid], s+1, i-s);
                 for (j = s; j < i; ++j) {
                     int c = cns[j]>>8;
-                    if (c == 0) fputc('N', pysam_stdout);
-                    else fputc("ACGT"[c&3], pysam_stdout);
+                    if (c == 0) fputc('N', samtools_stdout);
+                    else fputc("ACGT"[c&3], samtools_stdout);
                 }
-                fputc('\t', pysam_stdout);
+                fputc('\t', samtools_stdout);
                 for (j = s; j < i; ++j)
-                    fputc(33 + (cns[j]>>8>>2), pysam_stdout);
-                fputc('\n', pysam_stdout);
+                    fputc(33 + (cns[j]>>8>>2), samtools_stdout);
+                fputc('\n', samtools_stdout);
             }
-            //if (s >= 0) fprintf(pysam_stdout, "%s\t%d\t%d\t%d\n", h->target_name[tid], s, i, i - s);
+            //if (s >= 0) fprintf(samtools_stdout, "%s\t%d\t%d\t%d\n", h->target_name[tid], s, i, i - s);
             s = -1;
         } else if ((b[i]>>2&3) && s < 0) s = i;
     }
@@ -148,7 +149,6 @@ static void process_cns(bam_hdr_t *h, int tid, int l, uint16_t *cns)
 
 static int read_aln(void *data, bam1_t *b)
 {
-    extern int bam_prob_realn_core(bam1_t *b, const char *ref, int ref_len, int flag);
     ct_t *g = (ct_t*)data;
     int ret;
     while (1)
@@ -162,7 +162,7 @@ static int read_aln(void *data, bam1_t *b)
                 g->ref = fai_fetch(g->fai, g->h->target_name[b->core.tid], &g->len);
                 g->tid = b->core.tid;
             }
-            bam_prob_realn_core(b, g->ref, g->len, 1<<1|1);
+            sam_prob_realn(b, g->ref, g->len, 1<<1|1);
         }
         break;
     }
@@ -179,7 +179,7 @@ int main_cut_target(int argc, char *argv[])
 
     sam_global_args ga = SAM_GLOBAL_ARGS_INIT;
     static const struct option lopts[] = {
-        SAM_OPT_GLOBAL_OPTIONS('-', 0, '-', '-', 'f'),
+        SAM_OPT_GLOBAL_OPTIONS('-', 0, '-', '-', 'f', '-'),
         { NULL, 0, NULL, 0 }
     };
 
@@ -199,18 +199,23 @@ int main_cut_target(int argc, char *argv[])
     }
     if (ga.reference) {
         g.fai = fai_load(ga.reference);
-        if (g.fai == 0) fprintf(pysam_stderr, "[%s] fail to load the fasta index.\n", __func__);
+        if (g.fai == 0) fprintf(samtools_stderr, "[%s] fail to load the fasta index.\n", __func__);
     }
     if (usage || argc == optind) {
-        fprintf(pysam_stderr, "Usage: samtools targetcut [-Q minQ] [-i inPen] [-0 em0] [-1 em1] [-2 em2] <in.bam>\n");
-        sam_global_opt_help(pysam_stderr, "-.--f");
+        fprintf(samtools_stderr, "Usage: samtools targetcut [-Q minQ] [-i inPen] [-0 em0] [-1 em1] [-2 em2] <in.bam>\n");
+        sam_global_opt_help(samtools_stderr, "-.--f-");
         return 1;
     }
     l = max_l = 0; cns = 0;
     g.fp = sam_open_format(argv[optind], "r", &ga.in);
+    if (g.fp == NULL) {
+        print_error_errno("targetcut", "can't open \"%s\"", argv[optind]);
+        return 1;
+    }
+
     g.h = sam_hdr_read(g.fp);
     if (g.h == NULL) {
-        fprintf(pysam_stderr, "Couldn't read header for '%s'\n", argv[optind]);
+        print_error("targetcut", "couldn't read header for \"%s\"", argv[optind]);
         sam_close(g.fp);
         return 1;
     }

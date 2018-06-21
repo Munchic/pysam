@@ -565,9 +565,10 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include <string.h>
 #include <stdio.h>
 #include "pythread.h"
-#include "pysam_util.h"
 #include <stdlib.h>
 #include <fcntl.h>
+#include "samtools.pysam.h"
+#include "bcftools.pysam.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -1658,6 +1659,10 @@ static CYTHON_INLINE int __pyx_f_7cpython_5array_extend_buffer(arrayobject *, ch
 
 /* Module declarations from 'posix.fcntl' */
 
+/* Module declarations from 'pysam.libcsamtools' */
+
+/* Module declarations from 'pysam.libcbcftools' */
+
 /* Module declarations from 'pysam.libcutils' */
 static int __pyx_v_5pysam_9libcutils_MAX_POS;
 static int __pyx_v_5pysam_9libcutils_IS_PYTHON3;
@@ -1678,7 +1683,6 @@ static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_OverflowError;
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_IOError;
-static PyObject *__pyx_builtin_OSError;
 static PyObject *__pyx_builtin_open;
 static PyObject *__pyx_builtin_UnicodeDecodeError;
 static PyObject *__pyx_builtin_MemoryError;
@@ -1740,12 +1744,12 @@ static const char __pyx_k_remove[] = "remove";
 static const char __pyx_k_retval[] = "retval";
 static const char __pyx_k_string[] = "string";
 static const char __pyx_k_IOError[] = "IOError";
-static const char __pyx_k_OSError[] = "OSError";
 static const char __pyx_k_collect[] = "_collect";
 static const char __pyx_k_mkstemp[] = "mkstemp";
 static const char __pyx_k_mpileup[] = "mpileup";
 static const char __pyx_k_bcftools[] = "bcftools";
 static const char __pyx_k_fsencode[] = "fsencode";
+static const char __pyx_k_is_usage[] = "is_usage";
 static const char __pyx_k_kprobaln[] = "kprobaln";
 static const char __pyx_k_samtools[] = "samtools";
 static const char __pyx_k_stderr_f[] = "stderr_f";
@@ -1798,7 +1802,6 @@ static PyObject *__pyx_n_s_IOError;
 static PyObject *__pyx_n_s_MAP_STDOUT_OPTIONS;
 static PyObject *__pyx_n_s_MemoryError;
 static PyObject *__pyx_kp_s_No_such_file_or_directory_s;
-static PyObject *__pyx_n_s_OSError;
 static PyObject *__pyx_n_s_OverflowError;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_n_s_UnicodeDecodeError;
@@ -1849,6 +1852,7 @@ static PyObject *__pyx_n_s_inf;
 static PyObject *__pyx_n_s_input_str;
 static PyObject *__pyx_kp_s_invalid_region_start_i_end_i;
 static PyObject *__pyx_n_s_io;
+static PyObject *__pyx_n_s_is_usage;
 static PyObject *__pyx_n_s_join;
 static PyObject *__pyx_n_b_kprobaln;
 static PyObject *__pyx_n_s_l;
@@ -1906,7 +1910,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_2array_to_qualitystring(CYTHON_UNUSE
 static PyObject *__pyx_pf_5pysam_9libcutils_4qualities_to_qualitystring(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_qualities, int __pyx_v_offset); /* proto */
 static PyObject *__pyx_pf_5pysam_9libcutils_6parse_region(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_reference, PyObject *__pyx_v_start, PyObject *__pyx_v_end, PyObject *__pyx_v_region); /* proto */
 static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_fn); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_collection, PyObject *__pyx_v_method, PyObject *__pyx_v_args, PyObject *__pyx_v_catch_stdout, PyObject *__pyx_v_save_stdout); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_collection, PyObject *__pyx_v_method, PyObject *__pyx_v_args, PyObject *__pyx_v_catch_stdout, PyObject *__pyx_v_is_usage, PyObject *__pyx_v_save_stdout); /* proto */
 static int __pyx_pf_7cpython_5array_5array___getbuffer__(arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info, CYTHON_UNUSED int __pyx_v_flags); /* proto */
 static void __pyx_pf_7cpython_5array_5array_2__releasebuffer__(CYTHON_UNUSED arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static PyObject *__pyx_int_0;
@@ -1924,7 +1928,7 @@ static PyObject *__pyx_codeobj__11;
 static PyObject *__pyx_codeobj__13;
 /* Late includes */
 
-/* "pysam/libcutils.pyx":25
+/* "pysam/libcutils.pyx":31
  * #################################################################
  * # Utility functions for quality string conversions
  * cpdef c_array.array qualitystring_to_array(input_str, int offset=33):             # <<<<<<<<<<<<<<
@@ -1955,7 +1959,7 @@ static arrayobject *__pyx_f_5pysam_9libcutils_qualitystring_to_array(PyObject *_
     }
   }
 
-  /* "pysam/libcutils.pyx":27
+  /* "pysam/libcutils.pyx":33
  * cpdef c_array.array qualitystring_to_array(input_str, int offset=33):
  *     """convert a qualitystring to an array of quality values."""
  *     if input_str is None:             # <<<<<<<<<<<<<<
@@ -1966,7 +1970,7 @@ static arrayobject *__pyx_f_5pysam_9libcutils_qualitystring_to_array(PyObject *_
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":28
+    /* "pysam/libcutils.pyx":34
  *     """convert a qualitystring to an array of quality values."""
  *     if input_str is None:
  *         return None             # <<<<<<<<<<<<<<
@@ -1977,7 +1981,7 @@ static arrayobject *__pyx_f_5pysam_9libcutils_qualitystring_to_array(PyObject *_
     __pyx_r = ((arrayobject *)Py_None); __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":27
+    /* "pysam/libcutils.pyx":33
  * cpdef c_array.array qualitystring_to_array(input_str, int offset=33):
  *     """convert a qualitystring to an array of quality values."""
  *     if input_str is None:             # <<<<<<<<<<<<<<
@@ -1986,19 +1990,19 @@ static arrayobject *__pyx_f_5pysam_9libcutils_qualitystring_to_array(PyObject *_
  */
   }
 
-  /* "pysam/libcutils.pyx":29
+  /* "pysam/libcutils.pyx":35
  *     if input_str is None:
  *         return None
  *     qs = force_bytes(input_str)             # <<<<<<<<<<<<<<
  *     cdef char i
  *     return c_array.array('B', [i - offset for i in qs])
  */
-  __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_input_str, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_input_str, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_v_qs = ((PyObject*)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "pysam/libcutils.pyx":31
+  /* "pysam/libcutils.pyx":37
  *     qs = force_bytes(input_str)
  *     cdef char i
  *     return c_array.array('B', [i - offset for i in qs])             # <<<<<<<<<<<<<<
@@ -2006,11 +2010,11 @@ static arrayobject *__pyx_f_5pysam_9libcutils_qualitystring_to_array(PyObject *_
  * 
  */
   __Pyx_XDECREF(((PyObject *)__pyx_r));
-  __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   if (unlikely(__pyx_v_qs == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' is not iterable");
-    __PYX_ERR(0, 31, __pyx_L1_error)
+    __PYX_ERR(0, 37, __pyx_L1_error)
   }
   __Pyx_INCREF(__pyx_v_qs);
   __pyx_t_4 = __pyx_v_qs;
@@ -2019,13 +2023,13 @@ static arrayobject *__pyx_f_5pysam_9libcutils_qualitystring_to_array(PyObject *_
   for (__pyx_t_8 = __pyx_t_6; __pyx_t_8 < __pyx_t_7; __pyx_t_8++) {
     __pyx_t_5 = __pyx_t_8;
     __pyx_v_i = (__pyx_t_5[0]);
-    __pyx_t_9 = __Pyx_PyInt_From_int((__pyx_v_i - __pyx_v_offset)); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 31, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_int((__pyx_v_i - __pyx_v_offset)); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 37, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_9))) __PYX_ERR(0, 31, __pyx_L1_error)
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_9))) __PYX_ERR(0, 37, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = PyTuple_New(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_9 = PyTuple_New(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_INCREF(__pyx_n_s_B);
   __Pyx_GIVEREF(__pyx_n_s_B);
@@ -2033,14 +2037,14 @@ static arrayobject *__pyx_f_5pysam_9libcutils_qualitystring_to_array(PyObject *_
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_9, 1, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_9, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_9, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   __pyx_r = ((arrayobject *)__pyx_t_3);
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcutils.pyx":25
+  /* "pysam/libcutils.pyx":31
  * #################################################################
  * # Utility functions for quality string conversions
  * cpdef c_array.array qualitystring_to_array(input_str, int offset=33):             # <<<<<<<<<<<<<<
@@ -2098,7 +2102,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_1qualitystring_to_array(PyObject *__
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "qualitystring_to_array") < 0)) __PYX_ERR(0, 25, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "qualitystring_to_array") < 0)) __PYX_ERR(0, 31, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2111,14 +2115,14 @@ static PyObject *__pyx_pw_5pysam_9libcutils_1qualitystring_to_array(PyObject *__
     }
     __pyx_v_input_str = values[0];
     if (values[1]) {
-      __pyx_v_offset = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 25, __pyx_L3_error)
+      __pyx_v_offset = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 31, __pyx_L3_error)
     } else {
       __pyx_v_offset = ((int)33);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("qualitystring_to_array", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 25, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("qualitystring_to_array", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 31, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcutils.qualitystring_to_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2140,7 +2144,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_qualitystring_to_array(CYTHON_UNUSED
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.offset = __pyx_v_offset;
-  __pyx_t_1 = ((PyObject *)__pyx_f_5pysam_9libcutils_qualitystring_to_array(__pyx_v_input_str, 0, &__pyx_t_2)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 25, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_5pysam_9libcutils_qualitystring_to_array(__pyx_v_input_str, 0, &__pyx_t_2)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2157,7 +2161,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_qualitystring_to_array(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":34
+/* "pysam/libcutils.pyx":40
  * 
  * 
  * cpdef array_to_qualitystring(c_array.array qualities, int offset=33):             # <<<<<<<<<<<<<<
@@ -2185,7 +2189,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_array_to_qualitystring(arrayobject *_
     }
   }
 
-  /* "pysam/libcutils.pyx":36
+  /* "pysam/libcutils.pyx":42
  * cpdef array_to_qualitystring(c_array.array qualities, int offset=33):
  *     """convert an array of quality values to a string."""
  *     if qualities is None:             # <<<<<<<<<<<<<<
@@ -2196,7 +2200,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_array_to_qualitystring(arrayobject *_
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":37
+    /* "pysam/libcutils.pyx":43
  *     """convert an array of quality values to a string."""
  *     if qualities is None:
  *         return None             # <<<<<<<<<<<<<<
@@ -2207,7 +2211,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_array_to_qualitystring(arrayobject *_
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":36
+    /* "pysam/libcutils.pyx":42
  * cpdef array_to_qualitystring(c_array.array qualities, int offset=33):
  *     """convert an array of quality values to a string."""
  *     if qualities is None:             # <<<<<<<<<<<<<<
@@ -2216,7 +2220,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_array_to_qualitystring(arrayobject *_
  */
   }
 
-  /* "pysam/libcutils.pyx":41
+  /* "pysam/libcutils.pyx":47
  * 
  *     cdef c_array.array result
  *     result = c_array.clone(qualities, len(qualities), zero=False)             # <<<<<<<<<<<<<<
@@ -2225,15 +2229,15 @@ static PyObject *__pyx_f_5pysam_9libcutils_array_to_qualitystring(arrayobject *_
  */
   if (unlikely(((PyObject *)__pyx_v_qualities) == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 41, __pyx_L1_error)
+    __PYX_ERR(0, 47, __pyx_L1_error)
   }
-  __pyx_t_3 = Py_SIZE(((PyObject *)__pyx_v_qualities)); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 41, __pyx_L1_error)
-  __pyx_t_4 = ((PyObject *)__pyx_f_7cpython_5array_clone(__pyx_v_qualities, __pyx_t_3, 0)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_3 = Py_SIZE(((PyObject *)__pyx_v_qualities)); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_t_4 = ((PyObject *)__pyx_f_7cpython_5array_clone(__pyx_v_qualities, __pyx_t_3, 0)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 47, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_v_result = ((arrayobject *)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "pysam/libcutils.pyx":43
+  /* "pysam/libcutils.pyx":49
  *     result = c_array.clone(qualities, len(qualities), zero=False)
  * 
  *     for x from 0 <= x < len(qualities):             # <<<<<<<<<<<<<<
@@ -2242,31 +2246,31 @@ static PyObject *__pyx_f_5pysam_9libcutils_array_to_qualitystring(arrayobject *_
  */
   if (unlikely(((PyObject *)__pyx_v_qualities) == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 43, __pyx_L1_error)
+    __PYX_ERR(0, 49, __pyx_L1_error)
   }
-  __pyx_t_3 = Py_SIZE(((PyObject *)__pyx_v_qualities)); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_3 = Py_SIZE(((PyObject *)__pyx_v_qualities)); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 49, __pyx_L1_error)
   for (__pyx_v_x = 0; __pyx_v_x < __pyx_t_3; __pyx_v_x++) {
 
-    /* "pysam/libcutils.pyx":44
+    /* "pysam/libcutils.pyx":50
  * 
  *     for x from 0 <= x < len(qualities):
  *         result[x] = qualities[x] + offset             # <<<<<<<<<<<<<<
  *     return force_str(result.tostring())
  * 
  */
-    __pyx_t_4 = __Pyx_GetItemInt(((PyObject *)__pyx_v_qualities), __pyx_v_x, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 44, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt(((PyObject *)__pyx_v_qualities), __pyx_v_x, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 50, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_offset); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 44, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_offset); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 50, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = PyNumber_Add(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 44, __pyx_L1_error)
+    __pyx_t_6 = PyNumber_Add(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 50, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(__Pyx_SetItemInt(((PyObject *)__pyx_v_result), __pyx_v_x, __pyx_t_6, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) __PYX_ERR(0, 44, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt(((PyObject *)__pyx_v_result), __pyx_v_x, __pyx_t_6, int, 1, __Pyx_PyInt_From_int, 0, 1, 1) < 0)) __PYX_ERR(0, 50, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
 
-  /* "pysam/libcutils.pyx":45
+  /* "pysam/libcutils.pyx":51
  *     for x from 0 <= x < len(qualities):
  *         result[x] = qualities[x] + offset
  *     return force_str(result.tostring())             # <<<<<<<<<<<<<<
@@ -2274,7 +2278,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_array_to_qualitystring(arrayobject *_
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_result), __pyx_n_s_tostring); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_result), __pyx_n_s_tostring); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
@@ -2287,21 +2291,21 @@ static PyObject *__pyx_f_5pysam_9libcutils_array_to_qualitystring(arrayobject *_
     }
   }
   if (__pyx_t_4) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 51, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   } else {
-    __pyx_t_6 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 51, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __pyx_f_5pysam_9libcutils_force_str(__pyx_t_6, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_5 = __pyx_f_5pysam_9libcutils_force_str(__pyx_t_6, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_r = __pyx_t_5;
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcutils.pyx":34
+  /* "pysam/libcutils.pyx":40
  * 
  * 
  * cpdef array_to_qualitystring(c_array.array qualities, int offset=33):             # <<<<<<<<<<<<<<
@@ -2359,7 +2363,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_3array_to_qualitystring(PyObject *__
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "array_to_qualitystring") < 0)) __PYX_ERR(0, 34, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "array_to_qualitystring") < 0)) __PYX_ERR(0, 40, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2372,20 +2376,20 @@ static PyObject *__pyx_pw_5pysam_9libcutils_3array_to_qualitystring(PyObject *__
     }
     __pyx_v_qualities = ((arrayobject *)values[0]);
     if (values[1]) {
-      __pyx_v_offset = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L3_error)
+      __pyx_v_offset = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 40, __pyx_L3_error)
     } else {
       __pyx_v_offset = ((int)33);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("array_to_qualitystring", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 34, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("array_to_qualitystring", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 40, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcutils.array_to_qualitystring", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_qualities), __pyx_ptype_7cpython_5array_array, 1, "qualities", 0))) __PYX_ERR(0, 34, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_qualities), __pyx_ptype_7cpython_5array_array, 1, "qualities", 0))) __PYX_ERR(0, 40, __pyx_L1_error)
   __pyx_r = __pyx_pf_5pysam_9libcutils_2array_to_qualitystring(__pyx_self, __pyx_v_qualities, __pyx_v_offset);
 
   /* function exit code */
@@ -2406,7 +2410,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_2array_to_qualitystring(CYTHON_UNUSE
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.offset = __pyx_v_offset;
-  __pyx_t_1 = __pyx_f_5pysam_9libcutils_array_to_qualitystring(__pyx_v_qualities, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5pysam_9libcutils_array_to_qualitystring(__pyx_v_qualities, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2423,7 +2427,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_2array_to_qualitystring(CYTHON_UNUSE
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":48
+/* "pysam/libcutils.pyx":54
  * 
  * 
  * cpdef qualities_to_qualitystring(qualities, int offset=33):             # <<<<<<<<<<<<<<
@@ -2454,7 +2458,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_qualities_to_qualitystring(PyObject *
     }
   }
 
-  /* "pysam/libcutils.pyx":65
+  /* "pysam/libcutils.pyx":71
  *     """
  *     cdef char x
  *     if qualities is None:             # <<<<<<<<<<<<<<
@@ -2465,7 +2469,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_qualities_to_qualitystring(PyObject *
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":66
+    /* "pysam/libcutils.pyx":72
  *     cdef char x
  *     if qualities is None:
  *         return None             # <<<<<<<<<<<<<<
@@ -2476,7 +2480,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_qualities_to_qualitystring(PyObject *
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":65
+    /* "pysam/libcutils.pyx":71
  *     """
  *     cdef char x
  *     if qualities is None:             # <<<<<<<<<<<<<<
@@ -2485,7 +2489,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_qualities_to_qualitystring(PyObject *
  */
   }
 
-  /* "pysam/libcutils.pyx":67
+  /* "pysam/libcutils.pyx":73
  *     if qualities is None:
  *         return None
  *     elif isinstance(qualities, c_array.array):             # <<<<<<<<<<<<<<
@@ -2496,7 +2500,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_qualities_to_qualitystring(PyObject *
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcutils.pyx":68
+    /* "pysam/libcutils.pyx":74
  *         return None
  *     elif isinstance(qualities, c_array.array):
  *         return array_to_qualitystring(qualities, offset=offset)             # <<<<<<<<<<<<<<
@@ -2504,16 +2508,16 @@ static PyObject *__pyx_f_5pysam_9libcutils_qualities_to_qualitystring(PyObject *
  *         # tuples and lists
  */
     __Pyx_XDECREF(__pyx_r);
-    if (!(likely(((__pyx_v_qualities) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_qualities, __pyx_ptype_7cpython_5array_array))))) __PYX_ERR(0, 68, __pyx_L1_error)
+    if (!(likely(((__pyx_v_qualities) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_qualities, __pyx_ptype_7cpython_5array_array))))) __PYX_ERR(0, 74, __pyx_L1_error)
     __pyx_t_4.__pyx_n = 1;
     __pyx_t_4.offset = __pyx_v_offset;
-    __pyx_t_3 = __pyx_f_5pysam_9libcutils_array_to_qualitystring(((arrayobject *)__pyx_v_qualities), 0, &__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 68, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_5pysam_9libcutils_array_to_qualitystring(((arrayobject *)__pyx_v_qualities), 0, &__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 74, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_r = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":67
+    /* "pysam/libcutils.pyx":73
  *     if qualities is None:
  *         return None
  *     elif isinstance(qualities, c_array.array):             # <<<<<<<<<<<<<<
@@ -2522,7 +2526,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_qualities_to_qualitystring(PyObject *
  */
   }
 
-  /* "pysam/libcutils.pyx":71
+  /* "pysam/libcutils.pyx":77
  *     else:
  *         # tuples and lists
  *         return force_str("".join([chr(x + offset) for x in qualities]))             # <<<<<<<<<<<<<<
@@ -2531,32 +2535,32 @@ static PyObject *__pyx_f_5pysam_9libcutils_qualities_to_qualitystring(PyObject *
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 77, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     if (likely(PyList_CheckExact(__pyx_v_qualities)) || PyTuple_CheckExact(__pyx_v_qualities)) {
       __pyx_t_5 = __pyx_v_qualities; __Pyx_INCREF(__pyx_t_5); __pyx_t_6 = 0;
       __pyx_t_7 = NULL;
     } else {
-      __pyx_t_6 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_v_qualities); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 71, __pyx_L1_error)
+      __pyx_t_6 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_v_qualities); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 77, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_7 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 71, __pyx_L1_error)
+      __pyx_t_7 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 77, __pyx_L1_error)
     }
     for (;;) {
       if (likely(!__pyx_t_7)) {
         if (likely(PyList_CheckExact(__pyx_t_5))) {
           if (__pyx_t_6 >= PyList_GET_SIZE(__pyx_t_5)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_8 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_6); __Pyx_INCREF(__pyx_t_8); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 71, __pyx_L1_error)
+          __pyx_t_8 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_6); __Pyx_INCREF(__pyx_t_8); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 77, __pyx_L1_error)
           #else
-          __pyx_t_8 = PySequence_ITEM(__pyx_t_5, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 71, __pyx_L1_error)
+          __pyx_t_8 = PySequence_ITEM(__pyx_t_5, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 77, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_8);
           #endif
         } else {
           if (__pyx_t_6 >= PyTuple_GET_SIZE(__pyx_t_5)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_8 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_6); __Pyx_INCREF(__pyx_t_8); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 71, __pyx_L1_error)
+          __pyx_t_8 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_6); __Pyx_INCREF(__pyx_t_8); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 77, __pyx_L1_error)
           #else
-          __pyx_t_8 = PySequence_ITEM(__pyx_t_5, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 71, __pyx_L1_error)
+          __pyx_t_8 = PySequence_ITEM(__pyx_t_5, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 77, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_8);
           #endif
         }
@@ -2566,28 +2570,28 @@ static PyObject *__pyx_f_5pysam_9libcutils_qualities_to_qualitystring(PyObject *
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 71, __pyx_L1_error)
+            else __PYX_ERR(0, 77, __pyx_L1_error)
           }
           break;
         }
         __Pyx_GOTREF(__pyx_t_8);
       }
-      __pyx_t_9 = __Pyx_PyInt_As_char(__pyx_t_8); if (unlikely((__pyx_t_9 == (char)-1) && PyErr_Occurred())) __PYX_ERR(0, 71, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_As_char(__pyx_t_8); if (unlikely((__pyx_t_9 == (char)-1) && PyErr_Occurred())) __PYX_ERR(0, 77, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       __pyx_v_x = __pyx_t_9;
-      __pyx_t_8 = __Pyx_PyInt_From_int((__pyx_v_x + __pyx_v_offset)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 71, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyInt_From_int((__pyx_v_x + __pyx_v_offset)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 77, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_10 = __Pyx_PyObject_CallOneArg(__pyx_builtin_chr, __pyx_t_8); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 71, __pyx_L1_error)
+      __pyx_t_10 = __Pyx_PyObject_CallOneArg(__pyx_builtin_chr, __pyx_t_8); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 77, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_10))) __PYX_ERR(0, 71, __pyx_L1_error)
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_10))) __PYX_ERR(0, 77, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     }
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyString_Join(__pyx_kp_s_, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyString_Join(__pyx_kp_s_, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 77, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_str(__pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_str(__pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 77, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __pyx_r = __pyx_t_3;
@@ -2595,7 +2599,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_qualities_to_qualitystring(PyObject *
     goto __pyx_L0;
   }
 
-  /* "pysam/libcutils.pyx":48
+  /* "pysam/libcutils.pyx":54
  * 
  * 
  * cpdef qualities_to_qualitystring(qualities, int offset=33):             # <<<<<<<<<<<<<<
@@ -2653,7 +2657,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_5qualities_to_qualitystring(PyObject
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "qualities_to_qualitystring") < 0)) __PYX_ERR(0, 48, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "qualities_to_qualitystring") < 0)) __PYX_ERR(0, 54, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2666,14 +2670,14 @@ static PyObject *__pyx_pw_5pysam_9libcutils_5qualities_to_qualitystring(PyObject
     }
     __pyx_v_qualities = values[0];
     if (values[1]) {
-      __pyx_v_offset = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 48, __pyx_L3_error)
+      __pyx_v_offset = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 54, __pyx_L3_error)
     } else {
       __pyx_v_offset = ((int)33);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("qualities_to_qualitystring", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 48, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("qualities_to_qualitystring", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 54, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcutils.qualities_to_qualitystring", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2695,7 +2699,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_4qualities_to_qualitystring(CYTHON_U
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.offset = __pyx_v_offset;
-  __pyx_t_1 = __pyx_f_5pysam_9libcutils_qualities_to_qualitystring(__pyx_v_qualities, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5pysam_9libcutils_qualities_to_qualitystring(__pyx_v_qualities, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 54, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2712,7 +2716,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_4qualities_to_qualitystring(CYTHON_U
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":82
+/* "pysam/libcutils.pyx":88
  * cdef bint IS_PYTHON3 = PY_MAJOR_VERSION >= 3
  * 
  * cdef from_string_and_size(const char* s, size_t length):             # <<<<<<<<<<<<<<
@@ -2727,7 +2731,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_from_string_and_size(char const *__py
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("from_string_and_size", 0);
 
-  /* "pysam/libcutils.pyx":83
+  /* "pysam/libcutils.pyx":89
  * 
  * cdef from_string_and_size(const char* s, size_t length):
  *     if IS_PYTHON3:             # <<<<<<<<<<<<<<
@@ -2737,7 +2741,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_from_string_and_size(char const *__py
   __pyx_t_1 = (__pyx_v_5pysam_9libcutils_IS_PYTHON3 != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcutils.pyx":84
+    /* "pysam/libcutils.pyx":90
  * cdef from_string_and_size(const char* s, size_t length):
  *     if IS_PYTHON3:
  *         return s[:length].decode("ascii")             # <<<<<<<<<<<<<<
@@ -2745,13 +2749,13 @@ static PyObject *__pyx_f_5pysam_9libcutils_from_string_and_size(char const *__py
  *         return s[:length]
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_decode_c_string(__pyx_v_s, 0, __pyx_v_length, NULL, NULL, PyUnicode_DecodeASCII); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 84, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_decode_c_string(__pyx_v_s, 0, __pyx_v_length, NULL, NULL, PyUnicode_DecodeASCII); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 90, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_r = __pyx_t_2;
     __pyx_t_2 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":83
+    /* "pysam/libcutils.pyx":89
  * 
  * cdef from_string_and_size(const char* s, size_t length):
  *     if IS_PYTHON3:             # <<<<<<<<<<<<<<
@@ -2760,7 +2764,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_from_string_and_size(char const *__py
  */
   }
 
-  /* "pysam/libcutils.pyx":86
+  /* "pysam/libcutils.pyx":92
  *         return s[:length].decode("ascii")
  *     else:
  *         return s[:length]             # <<<<<<<<<<<<<<
@@ -2769,14 +2773,14 @@ static PyObject *__pyx_f_5pysam_9libcutils_from_string_and_size(char const *__py
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_s + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_s + 0, __pyx_v_length - 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 92, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_r = __pyx_t_2;
     __pyx_t_2 = 0;
     goto __pyx_L0;
   }
 
-  /* "pysam/libcutils.pyx":82
+  /* "pysam/libcutils.pyx":88
  * cdef bint IS_PYTHON3 = PY_MAJOR_VERSION >= 3
  * 
  * cdef from_string_and_size(const char* s, size_t length):             # <<<<<<<<<<<<<<
@@ -2795,7 +2799,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_from_string_and_size(char const *__py
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":93
+/* "pysam/libcutils.pyx":99
  * 
  * 
  * cdef bytes encode_filename(object filename):             # <<<<<<<<<<<<<<
@@ -2814,7 +2818,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("encode_filename", 0);
 
-  /* "pysam/libcutils.pyx":95
+  /* "pysam/libcutils.pyx":101
  * cdef bytes encode_filename(object filename):
  *     """Make sure a filename is 8-bit encoded (or None)."""
  *     if filename is None:             # <<<<<<<<<<<<<<
@@ -2825,7 +2829,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":96
+    /* "pysam/libcutils.pyx":102
  *     """Make sure a filename is 8-bit encoded (or None)."""
  *     if filename is None:
  *         return None             # <<<<<<<<<<<<<<
@@ -2836,7 +2840,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
     __pyx_r = ((PyObject*)Py_None); __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":95
+    /* "pysam/libcutils.pyx":101
  * cdef bytes encode_filename(object filename):
  *     """Make sure a filename is 8-bit encoded (or None)."""
  *     if filename is None:             # <<<<<<<<<<<<<<
@@ -2845,7 +2849,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
  */
   }
 
-  /* "pysam/libcutils.pyx":97
+  /* "pysam/libcutils.pyx":103
  *     if filename is None:
  *         return None
  *     elif PY_MAJOR_VERSION >= 3 and PY_MINOR_VERSION >= 2:             # <<<<<<<<<<<<<<
@@ -2863,7 +2867,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":99
+    /* "pysam/libcutils.pyx":105
  *     elif PY_MAJOR_VERSION >= 3 and PY_MINOR_VERSION >= 2:
  *         # Added to support path-like objects
  *         return os.fsencode(filename)             # <<<<<<<<<<<<<<
@@ -2871,9 +2875,9 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
  *         return filename
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 105, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_fsencode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_fsencode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 105, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __pyx_t_4 = NULL;
@@ -2887,13 +2891,13 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
       }
     }
     if (!__pyx_t_4) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 99, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 105, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_5)) {
         PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filename};
-        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 99, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 105, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
@@ -2901,30 +2905,30 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
         PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filename};
-        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 99, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 105, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
       #endif
       {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 99, __pyx_L1_error)
+        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 105, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
         __Pyx_INCREF(__pyx_v_filename);
         __Pyx_GIVEREF(__pyx_v_filename);
         PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_filename);
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 99, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 105, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (!(likely(PyBytes_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 99, __pyx_L1_error)
+    if (!(likely(PyBytes_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 105, __pyx_L1_error)
     __pyx_r = ((PyObject*)__pyx_t_3);
     __pyx_t_3 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":97
+    /* "pysam/libcutils.pyx":103
  *     if filename is None:
  *         return None
  *     elif PY_MAJOR_VERSION >= 3 and PY_MINOR_VERSION >= 2:             # <<<<<<<<<<<<<<
@@ -2933,7 +2937,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
  */
   }
 
-  /* "pysam/libcutils.pyx":100
+  /* "pysam/libcutils.pyx":106
  *         # Added to support path-like objects
  *         return os.fsencode(filename)
  *     elif PyBytes_Check(filename):             # <<<<<<<<<<<<<<
@@ -2943,7 +2947,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
   __pyx_t_2 = (PyBytes_Check(__pyx_v_filename) != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":101
+    /* "pysam/libcutils.pyx":107
  *         return os.fsencode(filename)
  *     elif PyBytes_Check(filename):
  *         return filename             # <<<<<<<<<<<<<<
@@ -2951,12 +2955,12 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
  *         return filename.encode(FILENAME_ENCODING)
  */
     __Pyx_XDECREF(__pyx_r);
-    if (!(likely(PyBytes_CheckExact(__pyx_v_filename))||((__pyx_v_filename) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_v_filename)->tp_name), 0))) __PYX_ERR(0, 101, __pyx_L1_error)
+    if (!(likely(PyBytes_CheckExact(__pyx_v_filename))||((__pyx_v_filename) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_v_filename)->tp_name), 0))) __PYX_ERR(0, 107, __pyx_L1_error)
     __Pyx_INCREF(__pyx_v_filename);
     __pyx_r = ((PyObject*)__pyx_v_filename);
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":100
+    /* "pysam/libcutils.pyx":106
  *         # Added to support path-like objects
  *         return os.fsencode(filename)
  *     elif PyBytes_Check(filename):             # <<<<<<<<<<<<<<
@@ -2965,7 +2969,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
  */
   }
 
-  /* "pysam/libcutils.pyx":102
+  /* "pysam/libcutils.pyx":108
  *     elif PyBytes_Check(filename):
  *         return filename
  *     elif PyUnicode_Check(filename):             # <<<<<<<<<<<<<<
@@ -2975,7 +2979,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
   __pyx_t_2 = (PyUnicode_Check(__pyx_v_filename) != 0);
   if (likely(__pyx_t_2)) {
 
-    /* "pysam/libcutils.pyx":103
+    /* "pysam/libcutils.pyx":109
  *         return filename
  *     elif PyUnicode_Check(filename):
  *         return filename.encode(FILENAME_ENCODING)             # <<<<<<<<<<<<<<
@@ -2983,7 +2987,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
  *         raise TypeError("Argument must be string or unicode.")
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_filename, __pyx_n_s_encode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 103, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_filename, __pyx_n_s_encode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_6 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
@@ -2996,13 +3000,13 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
       }
     }
     if (!__pyx_t_6) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_5pysam_9libcutils_FILENAME_ENCODING); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 103, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_5pysam_9libcutils_FILENAME_ENCODING); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 109, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_5)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_5pysam_9libcutils_FILENAME_ENCODING};
-        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 103, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
@@ -3010,30 +3014,30 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_5pysam_9libcutils_FILENAME_ENCODING};
-        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 103, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
       #endif
       {
-        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 103, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_6); __pyx_t_6 = NULL;
         __Pyx_INCREF(__pyx_v_5pysam_9libcutils_FILENAME_ENCODING);
         __Pyx_GIVEREF(__pyx_v_5pysam_9libcutils_FILENAME_ENCODING);
         PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_5pysam_9libcutils_FILENAME_ENCODING);
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 103, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (!(likely(PyBytes_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 103, __pyx_L1_error)
+    if (!(likely(PyBytes_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 109, __pyx_L1_error)
     __pyx_r = ((PyObject*)__pyx_t_3);
     __pyx_t_3 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":102
+    /* "pysam/libcutils.pyx":108
  *     elif PyBytes_Check(filename):
  *         return filename
  *     elif PyUnicode_Check(filename):             # <<<<<<<<<<<<<<
@@ -3042,7 +3046,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
  */
   }
 
-  /* "pysam/libcutils.pyx":105
+  /* "pysam/libcutils.pyx":111
  *         return filename.encode(FILENAME_ENCODING)
  *     else:
  *         raise TypeError("Argument must be string or unicode.")             # <<<<<<<<<<<<<<
@@ -3050,14 +3054,14 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
  * 
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 105, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 111, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 105, __pyx_L1_error)
+    __PYX_ERR(0, 111, __pyx_L1_error)
   }
 
-  /* "pysam/libcutils.pyx":93
+  /* "pysam/libcutils.pyx":99
  * 
  * 
  * cdef bytes encode_filename(object filename):             # <<<<<<<<<<<<<<
@@ -3079,7 +3083,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_encode_filename(PyObject *__pyx_v_fil
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":108
+/* "pysam/libcutils.pyx":114
  * 
  * 
  * cdef bytes force_bytes(object s, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3104,7 +3108,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
     }
   }
 
-  /* "pysam/libcutils.pyx":112
+  /* "pysam/libcutils.pyx":118
  *     ascii encoding.
  *     """
  *     if s is None:             # <<<<<<<<<<<<<<
@@ -3115,7 +3119,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":113
+    /* "pysam/libcutils.pyx":119
  *     """
  *     if s is None:
  *         return None             # <<<<<<<<<<<<<<
@@ -3126,7 +3130,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
     __pyx_r = ((PyObject*)Py_None); __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":112
+    /* "pysam/libcutils.pyx":118
  *     ascii encoding.
  *     """
  *     if s is None:             # <<<<<<<<<<<<<<
@@ -3135,7 +3139,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
  */
   }
 
-  /* "pysam/libcutils.pyx":114
+  /* "pysam/libcutils.pyx":120
  *     if s is None:
  *         return None
  *     elif PyBytes_Check(s):             # <<<<<<<<<<<<<<
@@ -3145,7 +3149,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
   __pyx_t_2 = (PyBytes_Check(__pyx_v_s) != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":115
+    /* "pysam/libcutils.pyx":121
  *         return None
  *     elif PyBytes_Check(s):
  *         return s             # <<<<<<<<<<<<<<
@@ -3153,12 +3157,12 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
  *         return s.encode(encoding)
  */
     __Pyx_XDECREF(__pyx_r);
-    if (!(likely(PyBytes_CheckExact(__pyx_v_s))||((__pyx_v_s) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_v_s)->tp_name), 0))) __PYX_ERR(0, 115, __pyx_L1_error)
+    if (!(likely(PyBytes_CheckExact(__pyx_v_s))||((__pyx_v_s) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_v_s)->tp_name), 0))) __PYX_ERR(0, 121, __pyx_L1_error)
     __Pyx_INCREF(__pyx_v_s);
     __pyx_r = ((PyObject*)__pyx_v_s);
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":114
+    /* "pysam/libcutils.pyx":120
  *     if s is None:
  *         return None
  *     elif PyBytes_Check(s):             # <<<<<<<<<<<<<<
@@ -3167,7 +3171,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
  */
   }
 
-  /* "pysam/libcutils.pyx":116
+  /* "pysam/libcutils.pyx":122
  *     elif PyBytes_Check(s):
  *         return s
  *     elif PyUnicode_Check(s):             # <<<<<<<<<<<<<<
@@ -3177,7 +3181,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
   __pyx_t_2 = (PyUnicode_Check(__pyx_v_s) != 0);
   if (likely(__pyx_t_2)) {
 
-    /* "pysam/libcutils.pyx":117
+    /* "pysam/libcutils.pyx":123
  *         return s
  *     elif PyUnicode_Check(s):
  *         return s.encode(encoding)             # <<<<<<<<<<<<<<
@@ -3185,7 +3189,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
  *         raise TypeError("Argument must be string, bytes or unicode.")
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 117, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 123, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
@@ -3198,13 +3202,13 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
       }
     }
     if (!__pyx_t_5) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_encoding); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 117, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_encoding); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 123, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_encoding};
-        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 117, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 123, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
@@ -3212,30 +3216,30 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_encoding};
-        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 117, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 123, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
       #endif
       {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 117, __pyx_L1_error)
+        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 123, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
         __Pyx_INCREF(__pyx_v_encoding);
         __Pyx_GIVEREF(__pyx_v_encoding);
         PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_encoding);
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 117, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 123, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(PyBytes_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 117, __pyx_L1_error)
+    if (!(likely(PyBytes_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 123, __pyx_L1_error)
     __pyx_r = ((PyObject*)__pyx_t_3);
     __pyx_t_3 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":116
+    /* "pysam/libcutils.pyx":122
  *     elif PyBytes_Check(s):
  *         return s
  *     elif PyUnicode_Check(s):             # <<<<<<<<<<<<<<
@@ -3244,7 +3248,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
  */
   }
 
-  /* "pysam/libcutils.pyx":119
+  /* "pysam/libcutils.pyx":125
  *         return s.encode(encoding)
  *     else:
  *         raise TypeError("Argument must be string, bytes or unicode.")             # <<<<<<<<<<<<<<
@@ -3252,14 +3256,14 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
  * 
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 119, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 125, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 119, __pyx_L1_error)
+    __PYX_ERR(0, 125, __pyx_L1_error)
   }
 
-  /* "pysam/libcutils.pyx":108
+  /* "pysam/libcutils.pyx":114
  * 
  * 
  * cdef bytes force_bytes(object s, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3281,7 +3285,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_bytes(PyObject *__pyx_v_s, stru
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":122
+/* "pysam/libcutils.pyx":128
  * 
  * 
  * cdef charptr_to_str(const char* s, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3305,7 +3309,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
     }
   }
 
-  /* "pysam/libcutils.pyx":123
+  /* "pysam/libcutils.pyx":129
  * 
  * cdef charptr_to_str(const char* s, encoding="ascii"):
  *     if s == NULL:             # <<<<<<<<<<<<<<
@@ -3315,7 +3319,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
   __pyx_t_1 = ((__pyx_v_s == NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcutils.pyx":124
+    /* "pysam/libcutils.pyx":130
  * cdef charptr_to_str(const char* s, encoding="ascii"):
  *     if s == NULL:
  *         return None             # <<<<<<<<<<<<<<
@@ -3326,7 +3330,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":123
+    /* "pysam/libcutils.pyx":129
  * 
  * cdef charptr_to_str(const char* s, encoding="ascii"):
  *     if s == NULL:             # <<<<<<<<<<<<<<
@@ -3335,7 +3339,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
  */
   }
 
-  /* "pysam/libcutils.pyx":125
+  /* "pysam/libcutils.pyx":131
  *     if s == NULL:
  *         return None
  *     if PY_MAJOR_VERSION < 3:             # <<<<<<<<<<<<<<
@@ -3345,7 +3349,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
   __pyx_t_1 = ((PY_MAJOR_VERSION < 3) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcutils.pyx":126
+    /* "pysam/libcutils.pyx":132
  *         return None
  *     if PY_MAJOR_VERSION < 3:
  *         return s             # <<<<<<<<<<<<<<
@@ -3353,13 +3357,13 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
  *         return s.decode(encoding)
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_s); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 126, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_s); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 132, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_r = __pyx_t_2;
     __pyx_t_2 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":125
+    /* "pysam/libcutils.pyx":131
  *     if s == NULL:
  *         return None
  *     if PY_MAJOR_VERSION < 3:             # <<<<<<<<<<<<<<
@@ -3368,7 +3372,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
  */
   }
 
-  /* "pysam/libcutils.pyx":128
+  /* "pysam/libcutils.pyx":134
  *         return s
  *     else:
  *         return s.decode(encoding)             # <<<<<<<<<<<<<<
@@ -3377,9 +3381,9 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_3 = __Pyx_PyBytes_FromString(__pyx_v_s); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBytes_FromString(__pyx_v_s); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 134, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_decode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_decode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 134, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_3 = NULL;
@@ -3393,13 +3397,13 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
       }
     }
     if (!__pyx_t_3) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_encoding); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 128, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_encoding); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 134, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_encoding};
-        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 134, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_GOTREF(__pyx_t_2);
       } else
@@ -3407,19 +3411,19 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_encoding};
-        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 134, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_GOTREF(__pyx_t_2);
       } else
       #endif
       {
-        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 134, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
         __Pyx_INCREF(__pyx_v_encoding);
         __Pyx_GIVEREF(__pyx_v_encoding);
         PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_encoding);
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 134, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       }
@@ -3430,7 +3434,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
     goto __pyx_L0;
   }
 
-  /* "pysam/libcutils.pyx":122
+  /* "pysam/libcutils.pyx":128
  * 
  * 
  * cdef charptr_to_str(const char* s, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3452,7 +3456,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str(char const *__pyx_v_s,
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":131
+/* "pysam/libcutils.pyx":137
  * 
  * 
  * cdef charptr_to_str_w_len(const char* s, size_t n, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3476,7 +3480,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
     }
   }
 
-  /* "pysam/libcutils.pyx":132
+  /* "pysam/libcutils.pyx":138
  * 
  * cdef charptr_to_str_w_len(const char* s, size_t n, encoding="ascii"):
  *     if s == NULL:             # <<<<<<<<<<<<<<
@@ -3486,7 +3490,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
   __pyx_t_1 = ((__pyx_v_s == NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcutils.pyx":133
+    /* "pysam/libcutils.pyx":139
  * cdef charptr_to_str_w_len(const char* s, size_t n, encoding="ascii"):
  *     if s == NULL:
  *         return None             # <<<<<<<<<<<<<<
@@ -3497,7 +3501,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":132
+    /* "pysam/libcutils.pyx":138
  * 
  * cdef charptr_to_str_w_len(const char* s, size_t n, encoding="ascii"):
  *     if s == NULL:             # <<<<<<<<<<<<<<
@@ -3506,7 +3510,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
  */
   }
 
-  /* "pysam/libcutils.pyx":134
+  /* "pysam/libcutils.pyx":140
  *     if s == NULL:
  *         return None
  *     if PY_MAJOR_VERSION < 3:             # <<<<<<<<<<<<<<
@@ -3516,7 +3520,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
   __pyx_t_1 = ((PY_MAJOR_VERSION < 3) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcutils.pyx":135
+    /* "pysam/libcutils.pyx":141
  *         return None
  *     if PY_MAJOR_VERSION < 3:
  *         return s[:n]             # <<<<<<<<<<<<<<
@@ -3524,13 +3528,13 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
  *         return s[:n].decode(encoding)
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_s + 0, __pyx_v_n - 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 135, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_s + 0, __pyx_v_n - 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 141, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_r = __pyx_t_2;
     __pyx_t_2 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":134
+    /* "pysam/libcutils.pyx":140
  *     if s == NULL:
  *         return None
  *     if PY_MAJOR_VERSION < 3:             # <<<<<<<<<<<<<<
@@ -3539,7 +3543,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
  */
   }
 
-  /* "pysam/libcutils.pyx":137
+  /* "pysam/libcutils.pyx":143
  *         return s[:n]
  *     else:
  *         return s[:n].decode(encoding)             # <<<<<<<<<<<<<<
@@ -3548,9 +3552,9 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_3 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_s + 0, __pyx_v_n - 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 137, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_s + 0, __pyx_v_n - 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_decode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 137, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_decode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_3 = NULL;
@@ -3564,13 +3568,13 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
       }
     }
     if (!__pyx_t_3) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_encoding); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 137, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_encoding); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 143, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_encoding};
-        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 137, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 143, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_GOTREF(__pyx_t_2);
       } else
@@ -3578,19 +3582,19 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_encoding};
-        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 137, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 143, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_GOTREF(__pyx_t_2);
       } else
       #endif
       {
-        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 137, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 143, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
         __Pyx_INCREF(__pyx_v_encoding);
         __Pyx_GIVEREF(__pyx_v_encoding);
         PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_encoding);
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 137, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 143, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       }
@@ -3601,7 +3605,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
     goto __pyx_L0;
   }
 
-  /* "pysam/libcutils.pyx":131
+  /* "pysam/libcutils.pyx":137
  * 
  * 
  * cdef charptr_to_str_w_len(const char* s, size_t n, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3623,7 +3627,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_str_w_len(char const *__py
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":140
+/* "pysam/libcutils.pyx":146
  * 
  * 
  * cdef bytes charptr_to_bytes(const char* s, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3640,7 +3644,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_bytes(char const *__pyx_v_
   if (__pyx_optional_args) {
   }
 
-  /* "pysam/libcutils.pyx":141
+  /* "pysam/libcutils.pyx":147
  * 
  * cdef bytes charptr_to_bytes(const char* s, encoding="ascii"):
  *     if s == NULL:             # <<<<<<<<<<<<<<
@@ -3650,7 +3654,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_bytes(char const *__pyx_v_
   __pyx_t_1 = ((__pyx_v_s == NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcutils.pyx":142
+    /* "pysam/libcutils.pyx":148
  * cdef bytes charptr_to_bytes(const char* s, encoding="ascii"):
  *     if s == NULL:
  *         return None             # <<<<<<<<<<<<<<
@@ -3661,7 +3665,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_bytes(char const *__pyx_v_
     __pyx_r = ((PyObject*)Py_None); __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":141
+    /* "pysam/libcutils.pyx":147
  * 
  * cdef bytes charptr_to_bytes(const char* s, encoding="ascii"):
  *     if s == NULL:             # <<<<<<<<<<<<<<
@@ -3670,7 +3674,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_bytes(char const *__pyx_v_
  */
   }
 
-  /* "pysam/libcutils.pyx":144
+  /* "pysam/libcutils.pyx":150
  *         return None
  *     else:
  *         return s             # <<<<<<<<<<<<<<
@@ -3679,14 +3683,14 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_bytes(char const *__pyx_v_
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_s); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 144, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_s); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_r = ((PyObject*)__pyx_t_2);
     __pyx_t_2 = 0;
     goto __pyx_L0;
   }
 
-  /* "pysam/libcutils.pyx":140
+  /* "pysam/libcutils.pyx":146
  * 
  * 
  * cdef bytes charptr_to_bytes(const char* s, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3705,7 +3709,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_charptr_to_bytes(char const *__pyx_v_
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":147
+/* "pysam/libcutils.pyx":153
  * 
  * 
  * cdef force_str(object s, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3730,7 +3734,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
     }
   }
 
-  /* "pysam/libcutils.pyx":150
+  /* "pysam/libcutils.pyx":156
  *     """Return s converted to str type of current Python
  *     (bytes in Py2, unicode in Py3)"""
  *     if s is None:             # <<<<<<<<<<<<<<
@@ -3741,7 +3745,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":151
+    /* "pysam/libcutils.pyx":157
  *     (bytes in Py2, unicode in Py3)"""
  *     if s is None:
  *         return None             # <<<<<<<<<<<<<<
@@ -3752,7 +3756,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":150
+    /* "pysam/libcutils.pyx":156
  *     """Return s converted to str type of current Python
  *     (bytes in Py2, unicode in Py3)"""
  *     if s is None:             # <<<<<<<<<<<<<<
@@ -3761,7 +3765,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
  */
   }
 
-  /* "pysam/libcutils.pyx":152
+  /* "pysam/libcutils.pyx":158
  *     if s is None:
  *         return None
  *     if PY_MAJOR_VERSION < 3:             # <<<<<<<<<<<<<<
@@ -3771,7 +3775,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
   __pyx_t_2 = ((PY_MAJOR_VERSION < 3) != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":153
+    /* "pysam/libcutils.pyx":159
  *         return None
  *     if PY_MAJOR_VERSION < 3:
  *         return s             # <<<<<<<<<<<<<<
@@ -3783,7 +3787,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
     __pyx_r = __pyx_v_s;
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":152
+    /* "pysam/libcutils.pyx":158
  *     if s is None:
  *         return None
  *     if PY_MAJOR_VERSION < 3:             # <<<<<<<<<<<<<<
@@ -3792,7 +3796,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
  */
   }
 
-  /* "pysam/libcutils.pyx":154
+  /* "pysam/libcutils.pyx":160
  *     if PY_MAJOR_VERSION < 3:
  *         return s
  *     elif PyBytes_Check(s):             # <<<<<<<<<<<<<<
@@ -3802,7 +3806,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
   __pyx_t_2 = (PyBytes_Check(__pyx_v_s) != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":155
+    /* "pysam/libcutils.pyx":161
  *         return s
  *     elif PyBytes_Check(s):
  *         return s.decode(encoding)             # <<<<<<<<<<<<<<
@@ -3810,7 +3814,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
  *         # assume unicode
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_decode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_decode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 161, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
@@ -3823,13 +3827,13 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
       }
     }
     if (!__pyx_t_5) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_encoding); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_encoding); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 161, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_encoding};
-        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 161, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
@@ -3837,19 +3841,19 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_encoding};
-        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 161, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
       #endif
       {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
+        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 161, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
         __Pyx_INCREF(__pyx_v_encoding);
         __Pyx_GIVEREF(__pyx_v_encoding);
         PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_encoding);
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 161, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
@@ -3859,7 +3863,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
     __pyx_t_3 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":154
+    /* "pysam/libcutils.pyx":160
  *     if PY_MAJOR_VERSION < 3:
  *         return s
  *     elif PyBytes_Check(s):             # <<<<<<<<<<<<<<
@@ -3868,7 +3872,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
  */
   }
 
-  /* "pysam/libcutils.pyx":158
+  /* "pysam/libcutils.pyx":164
  *     else:
  *         # assume unicode
  *         return s             # <<<<<<<<<<<<<<
@@ -3882,7 +3886,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
     goto __pyx_L0;
   }
 
-  /* "pysam/libcutils.pyx":147
+  /* "pysam/libcutils.pyx":153
  * 
  * 
  * cdef force_str(object s, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3904,7 +3908,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_force_str(PyObject *__pyx_v_s, struct
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":161
+/* "pysam/libcutils.pyx":167
  * 
  * 
  * cpdef parse_region(reference=None,             # <<<<<<<<<<<<<<
@@ -3916,7 +3920,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_7parse_region(PyObject *__pyx_self, 
 static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcutils_parse_region *__pyx_optional_args) {
   PyObject *__pyx_v_reference = ((PyObject *)Py_None);
 
-  /* "pysam/libcutils.pyx":162
+  /* "pysam/libcutils.pyx":168
  * 
  * cpdef parse_region(reference=None,
  *                    start=None,             # <<<<<<<<<<<<<<
@@ -3925,7 +3929,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
   PyObject *__pyx_v_start = ((PyObject *)Py_None);
 
-  /* "pysam/libcutils.pyx":163
+  /* "pysam/libcutils.pyx":169
  * cpdef parse_region(reference=None,
  *                    start=None,
  *                    end=None,             # <<<<<<<<<<<<<<
@@ -3934,7 +3938,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
   PyObject *__pyx_v_end = ((PyObject *)Py_None);
 
-  /* "pysam/libcutils.pyx":164
+  /* "pysam/libcutils.pyx":170
  *                    start=None,
  *                    end=None,
  *                    region=None):             # <<<<<<<<<<<<<<
@@ -3942,7 +3946,6 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  *     either be specified by :term:`reference`, `start` and
  */
   PyObject *__pyx_v_region = ((PyObject *)Py_None);
-  CYTHON_UNUSED int __pyx_v_rtid;
   PY_LONG_LONG __pyx_v_rstart;
   PY_LONG_LONG __pyx_v_rend;
   PyObject *__pyx_v_parts = NULL;
@@ -3979,26 +3982,17 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
   __Pyx_INCREF(__pyx_v_reference);
   __Pyx_INCREF(__pyx_v_region);
 
-  /* "pysam/libcutils.pyx":195
+  /* "pysam/libcutils.pyx":198
  *     cdef long long rend
  * 
- *     rtid = -1             # <<<<<<<<<<<<<<
- *     rstart = 0
- *     rend = MAX_POS
- */
-  __pyx_v_rtid = -1;
-
-  /* "pysam/libcutils.pyx":196
- * 
- *     rtid = -1
  *     rstart = 0             # <<<<<<<<<<<<<<
  *     rend = MAX_POS
  *     if start != None:
  */
   __pyx_v_rstart = 0;
 
-  /* "pysam/libcutils.pyx":197
- *     rtid = -1
+  /* "pysam/libcutils.pyx":199
+ * 
  *     rstart = 0
  *     rend = MAX_POS             # <<<<<<<<<<<<<<
  *     if start != None:
@@ -4006,19 +4000,19 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
   __pyx_v_rend = __pyx_v_5pysam_9libcutils_MAX_POS;
 
-  /* "pysam/libcutils.pyx":198
+  /* "pysam/libcutils.pyx":200
  *     rstart = 0
  *     rend = MAX_POS
  *     if start != None:             # <<<<<<<<<<<<<<
  *         try:
  *             rstart = start
  */
-  __pyx_t_1 = PyObject_RichCompare(__pyx_v_start, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 198, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 198, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_v_start, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 200, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":199
+    /* "pysam/libcutils.pyx":201
  *     rend = MAX_POS
  *     if start != None:
  *         try:             # <<<<<<<<<<<<<<
@@ -4034,17 +4028,17 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
       __Pyx_XGOTREF(__pyx_t_5);
       /*try:*/ {
 
-        /* "pysam/libcutils.pyx":200
+        /* "pysam/libcutils.pyx":202
  *     if start != None:
  *         try:
  *             rstart = start             # <<<<<<<<<<<<<<
  *         except OverflowError:
  *             raise ValueError('start out of range (%i)' % start)
  */
-        __pyx_t_6 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_v_start); if (unlikely((__pyx_t_6 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 200, __pyx_L4_error)
+        __pyx_t_6 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_v_start); if (unlikely((__pyx_t_6 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 202, __pyx_L4_error)
         __pyx_v_rstart = __pyx_t_6;
 
-        /* "pysam/libcutils.pyx":199
+        /* "pysam/libcutils.pyx":201
  *     rend = MAX_POS
  *     if start != None:
  *         try:             # <<<<<<<<<<<<<<
@@ -4059,7 +4053,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
       __pyx_L4_error:;
       __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-      /* "pysam/libcutils.pyx":201
+      /* "pysam/libcutils.pyx":203
  *         try:
  *             rstart = start
  *         except OverflowError:             # <<<<<<<<<<<<<<
@@ -4069,31 +4063,31 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
       __pyx_t_7 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_OverflowError);
       if (__pyx_t_7) {
         __Pyx_AddTraceback("pysam.libcutils.parse_region", __pyx_clineno, __pyx_lineno, __pyx_filename);
-        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_8, &__pyx_t_9) < 0) __PYX_ERR(0, 201, __pyx_L6_except_error)
+        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_8, &__pyx_t_9) < 0) __PYX_ERR(0, 203, __pyx_L6_except_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_GOTREF(__pyx_t_8);
         __Pyx_GOTREF(__pyx_t_9);
 
-        /* "pysam/libcutils.pyx":202
+        /* "pysam/libcutils.pyx":204
  *             rstart = start
  *         except OverflowError:
  *             raise ValueError('start out of range (%i)' % start)             # <<<<<<<<<<<<<<
  * 
  *     if end != None:
  */
-        __pyx_t_10 = __Pyx_PyString_Format(__pyx_kp_s_start_out_of_range_i, __pyx_v_start); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 202, __pyx_L6_except_error)
+        __pyx_t_10 = __Pyx_PyString_Format(__pyx_kp_s_start_out_of_range_i, __pyx_v_start); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 204, __pyx_L6_except_error)
         __Pyx_GOTREF(__pyx_t_10);
-        __pyx_t_11 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_10); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 202, __pyx_L6_except_error)
+        __pyx_t_11 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_10); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 204, __pyx_L6_except_error)
         __Pyx_GOTREF(__pyx_t_11);
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_Raise(__pyx_t_11, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-        __PYX_ERR(0, 202, __pyx_L6_except_error)
+        __PYX_ERR(0, 204, __pyx_L6_except_error)
       }
       goto __pyx_L6_except_error;
       __pyx_L6_except_error:;
 
-      /* "pysam/libcutils.pyx":199
+      /* "pysam/libcutils.pyx":201
  *     rend = MAX_POS
  *     if start != None:
  *         try:             # <<<<<<<<<<<<<<
@@ -4108,7 +4102,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
       __pyx_L9_try_end:;
     }
 
-    /* "pysam/libcutils.pyx":198
+    /* "pysam/libcutils.pyx":200
  *     rstart = 0
  *     rend = MAX_POS
  *     if start != None:             # <<<<<<<<<<<<<<
@@ -4117,19 +4111,19 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
   }
 
-  /* "pysam/libcutils.pyx":204
+  /* "pysam/libcutils.pyx":206
  *             raise ValueError('start out of range (%i)' % start)
  * 
  *     if end != None:             # <<<<<<<<<<<<<<
  *         try:
  *             rend = end
  */
-  __pyx_t_9 = PyObject_RichCompare(__pyx_v_end, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 204, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 204, __pyx_L1_error)
+  __pyx_t_9 = PyObject_RichCompare(__pyx_v_end, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 206, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 206, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":205
+    /* "pysam/libcutils.pyx":207
  * 
  *     if end != None:
  *         try:             # <<<<<<<<<<<<<<
@@ -4145,17 +4139,17 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
       __Pyx_XGOTREF(__pyx_t_3);
       /*try:*/ {
 
-        /* "pysam/libcutils.pyx":206
+        /* "pysam/libcutils.pyx":208
  *     if end != None:
  *         try:
  *             rend = end             # <<<<<<<<<<<<<<
  *         except OverflowError:
  *             raise ValueError('end out of range (%i)' % end)
  */
-        __pyx_t_6 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_v_end); if (unlikely((__pyx_t_6 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 206, __pyx_L13_error)
+        __pyx_t_6 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_v_end); if (unlikely((__pyx_t_6 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 208, __pyx_L13_error)
         __pyx_v_rend = __pyx_t_6;
 
-        /* "pysam/libcutils.pyx":205
+        /* "pysam/libcutils.pyx":207
  * 
  *     if end != None:
  *         try:             # <<<<<<<<<<<<<<
@@ -4174,7 +4168,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
       __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-      /* "pysam/libcutils.pyx":207
+      /* "pysam/libcutils.pyx":209
  *         try:
  *             rend = end
  *         except OverflowError:             # <<<<<<<<<<<<<<
@@ -4184,31 +4178,31 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
       __pyx_t_7 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_OverflowError);
       if (__pyx_t_7) {
         __Pyx_AddTraceback("pysam.libcutils.parse_region", __pyx_clineno, __pyx_lineno, __pyx_filename);
-        if (__Pyx_GetException(&__pyx_t_9, &__pyx_t_8, &__pyx_t_1) < 0) __PYX_ERR(0, 207, __pyx_L15_except_error)
+        if (__Pyx_GetException(&__pyx_t_9, &__pyx_t_8, &__pyx_t_1) < 0) __PYX_ERR(0, 209, __pyx_L15_except_error)
         __Pyx_GOTREF(__pyx_t_9);
         __Pyx_GOTREF(__pyx_t_8);
         __Pyx_GOTREF(__pyx_t_1);
 
-        /* "pysam/libcutils.pyx":208
+        /* "pysam/libcutils.pyx":210
  *             rend = end
  *         except OverflowError:
  *             raise ValueError('end out of range (%i)' % end)             # <<<<<<<<<<<<<<
  * 
  *     if region:
  */
-        __pyx_t_11 = __Pyx_PyString_Format(__pyx_kp_s_end_out_of_range_i, __pyx_v_end); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 208, __pyx_L15_except_error)
+        __pyx_t_11 = __Pyx_PyString_Format(__pyx_kp_s_end_out_of_range_i, __pyx_v_end); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 210, __pyx_L15_except_error)
         __Pyx_GOTREF(__pyx_t_11);
-        __pyx_t_10 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_11); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 208, __pyx_L15_except_error)
+        __pyx_t_10 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_11); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 210, __pyx_L15_except_error)
         __Pyx_GOTREF(__pyx_t_10);
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
         __Pyx_Raise(__pyx_t_10, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-        __PYX_ERR(0, 208, __pyx_L15_except_error)
+        __PYX_ERR(0, 210, __pyx_L15_except_error)
       }
       goto __pyx_L15_except_error;
       __pyx_L15_except_error:;
 
-      /* "pysam/libcutils.pyx":205
+      /* "pysam/libcutils.pyx":207
  * 
  *     if end != None:
  *         try:             # <<<<<<<<<<<<<<
@@ -4223,7 +4217,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
       __pyx_L18_try_end:;
     }
 
-    /* "pysam/libcutils.pyx":204
+    /* "pysam/libcutils.pyx":206
  *             raise ValueError('start out of range (%i)' % start)
  * 
  *     if end != None:             # <<<<<<<<<<<<<<
@@ -4232,38 +4226,38 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
   }
 
-  /* "pysam/libcutils.pyx":210
+  /* "pysam/libcutils.pyx":212
  *             raise ValueError('end out of range (%i)' % end)
  * 
  *     if region:             # <<<<<<<<<<<<<<
  *         region = force_str(region)
  *         parts = re.split("[:-]", region)
  */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_region); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 210, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_region); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 212, __pyx_L1_error)
   if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":211
+    /* "pysam/libcutils.pyx":213
  * 
  *     if region:
  *         region = force_str(region)             # <<<<<<<<<<<<<<
  *         parts = re.split("[:-]", region)
  *         reference = parts[0]
  */
-    __pyx_t_1 = __pyx_f_5pysam_9libcutils_force_str(__pyx_v_region, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 211, __pyx_L1_error)
+    __pyx_t_1 = __pyx_f_5pysam_9libcutils_force_str(__pyx_v_region, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 213, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF_SET(__pyx_v_region, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "pysam/libcutils.pyx":212
+    /* "pysam/libcutils.pyx":214
  *     if region:
  *         region = force_str(region)
  *         parts = re.split("[:-]", region)             # <<<<<<<<<<<<<<
  *         reference = parts[0]
  *         if len(parts) >= 2:
  */
-    __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_re); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 212, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_re); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 214, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_split); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 212, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_split); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 214, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __pyx_t_8 = NULL;
@@ -4281,7 +4275,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_9)) {
       PyObject *__pyx_temp[3] = {__pyx_t_8, __pyx_kp_s__4, __pyx_v_region};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_9, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 212, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_9, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 214, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
@@ -4289,13 +4283,13 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_9)) {
       PyObject *__pyx_temp[3] = {__pyx_t_8, __pyx_kp_s__4, __pyx_v_region};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_9, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 212, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_9, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 214, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
     #endif
     {
-      __pyx_t_10 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 212, __pyx_L1_error)
+      __pyx_t_10 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 214, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
       if (__pyx_t_8) {
         __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_8); __pyx_t_8 = NULL;
@@ -4306,7 +4300,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
       __Pyx_INCREF(__pyx_v_region);
       __Pyx_GIVEREF(__pyx_v_region);
       PyTuple_SET_ITEM(__pyx_t_10, 1+__pyx_t_7, __pyx_v_region);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_10, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 212, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_10, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 214, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     }
@@ -4314,49 +4308,49 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
     __pyx_v_parts = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "pysam/libcutils.pyx":213
+    /* "pysam/libcutils.pyx":215
  *         region = force_str(region)
  *         parts = re.split("[:-]", region)
  *         reference = parts[0]             # <<<<<<<<<<<<<<
  *         if len(parts) >= 2:
  *             rstart = int(parts[1]) - 1
  */
-    __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_parts, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 213, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_parts, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 215, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF_SET(__pyx_v_reference, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "pysam/libcutils.pyx":214
+    /* "pysam/libcutils.pyx":216
  *         parts = re.split("[:-]", region)
  *         reference = parts[0]
  *         if len(parts) >= 2:             # <<<<<<<<<<<<<<
  *             rstart = int(parts[1]) - 1
  *         if len(parts) >= 3:
  */
-    __pyx_t_12 = PyObject_Length(__pyx_v_parts); if (unlikely(__pyx_t_12 == ((Py_ssize_t)-1))) __PYX_ERR(0, 214, __pyx_L1_error)
+    __pyx_t_12 = PyObject_Length(__pyx_v_parts); if (unlikely(__pyx_t_12 == ((Py_ssize_t)-1))) __PYX_ERR(0, 216, __pyx_L1_error)
     __pyx_t_2 = ((__pyx_t_12 >= 2) != 0);
     if (__pyx_t_2) {
 
-      /* "pysam/libcutils.pyx":215
+      /* "pysam/libcutils.pyx":217
  *         reference = parts[0]
  *         if len(parts) >= 2:
  *             rstart = int(parts[1]) - 1             # <<<<<<<<<<<<<<
  *         if len(parts) >= 3:
  *             rend = int(parts[2])
  */
-      __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_parts, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 215, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_parts, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_9 = __Pyx_PyNumber_Int(__pyx_t_1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 215, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyNumber_Int(__pyx_t_1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 217, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyInt_SubtractObjC(__pyx_t_9, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 215, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyInt_SubtractObjC(__pyx_t_9, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      __pyx_t_6 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_t_1); if (unlikely((__pyx_t_6 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 215, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_t_1); if (unlikely((__pyx_t_6 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 217, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_v_rstart = __pyx_t_6;
 
-      /* "pysam/libcutils.pyx":214
+      /* "pysam/libcutils.pyx":216
  *         parts = re.split("[:-]", region)
  *         reference = parts[0]
  *         if len(parts) >= 2:             # <<<<<<<<<<<<<<
@@ -4365,34 +4359,34 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
     }
 
-    /* "pysam/libcutils.pyx":216
+    /* "pysam/libcutils.pyx":218
  *         if len(parts) >= 2:
  *             rstart = int(parts[1]) - 1
  *         if len(parts) >= 3:             # <<<<<<<<<<<<<<
  *             rend = int(parts[2])
  * 
  */
-    __pyx_t_12 = PyObject_Length(__pyx_v_parts); if (unlikely(__pyx_t_12 == ((Py_ssize_t)-1))) __PYX_ERR(0, 216, __pyx_L1_error)
+    __pyx_t_12 = PyObject_Length(__pyx_v_parts); if (unlikely(__pyx_t_12 == ((Py_ssize_t)-1))) __PYX_ERR(0, 218, __pyx_L1_error)
     __pyx_t_2 = ((__pyx_t_12 >= 3) != 0);
     if (__pyx_t_2) {
 
-      /* "pysam/libcutils.pyx":217
+      /* "pysam/libcutils.pyx":219
  *             rstart = int(parts[1]) - 1
  *         if len(parts) >= 3:
  *             rend = int(parts[2])             # <<<<<<<<<<<<<<
  * 
  *     if not reference:
  */
-      __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_parts, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_parts, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 219, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_9 = __Pyx_PyNumber_Int(__pyx_t_1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 217, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyNumber_Int(__pyx_t_1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 219, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_6 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_t_9); if (unlikely((__pyx_t_6 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 217, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_t_9); if (unlikely((__pyx_t_6 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 219, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __pyx_v_rend = __pyx_t_6;
 
-      /* "pysam/libcutils.pyx":216
+      /* "pysam/libcutils.pyx":218
  *         if len(parts) >= 2:
  *             rstart = int(parts[1]) - 1
  *         if len(parts) >= 3:             # <<<<<<<<<<<<<<
@@ -4401,7 +4395,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
     }
 
-    /* "pysam/libcutils.pyx":210
+    /* "pysam/libcutils.pyx":212
  *             raise ValueError('end out of range (%i)' % end)
  * 
  *     if region:             # <<<<<<<<<<<<<<
@@ -4410,18 +4404,18 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
   }
 
-  /* "pysam/libcutils.pyx":219
+  /* "pysam/libcutils.pyx":221
  *             rend = int(parts[2])
  * 
  *     if not reference:             # <<<<<<<<<<<<<<
  *         return None, 0, 0
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_reference); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_reference); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 221, __pyx_L1_error)
   __pyx_t_13 = ((!__pyx_t_2) != 0);
   if (__pyx_t_13) {
 
-    /* "pysam/libcutils.pyx":220
+    /* "pysam/libcutils.pyx":222
  * 
  *     if not reference:
  *         return None, 0, 0             # <<<<<<<<<<<<<<
@@ -4433,7 +4427,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
     __pyx_r = __pyx_tuple__5;
     goto __pyx_L0;
 
-    /* "pysam/libcutils.pyx":219
+    /* "pysam/libcutils.pyx":221
  *             rend = int(parts[2])
  * 
  *     if not reference:             # <<<<<<<<<<<<<<
@@ -4442,7 +4436,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
   }
 
-  /* "pysam/libcutils.pyx":222
+  /* "pysam/libcutils.pyx":224
  *         return None, 0, 0
  * 
  *     if not 0 <= rstart < MAX_POS:             # <<<<<<<<<<<<<<
@@ -4456,26 +4450,26 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
   __pyx_t_2 = ((!(__pyx_t_13 != 0)) != 0);
   if (unlikely(__pyx_t_2)) {
 
-    /* "pysam/libcutils.pyx":223
+    /* "pysam/libcutils.pyx":225
  * 
  *     if not 0 <= rstart < MAX_POS:
  *         raise ValueError('start out of range (%i)' % rstart)             # <<<<<<<<<<<<<<
  *     if not 0 <= rend <= MAX_POS:
  *         raise ValueError('end out of range (%i)' % rend)
  */
-    __pyx_t_9 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstart); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 223, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstart); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 225, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_start_out_of_range_i, __pyx_t_9); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 223, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_start_out_of_range_i, __pyx_t_9); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 225, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __pyx_t_9 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 223, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 225, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_Raise(__pyx_t_9, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __PYX_ERR(0, 223, __pyx_L1_error)
+    __PYX_ERR(0, 225, __pyx_L1_error)
 
-    /* "pysam/libcutils.pyx":222
+    /* "pysam/libcutils.pyx":224
  *         return None, 0, 0
  * 
  *     if not 0 <= rstart < MAX_POS:             # <<<<<<<<<<<<<<
@@ -4484,7 +4478,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
   }
 
-  /* "pysam/libcutils.pyx":224
+  /* "pysam/libcutils.pyx":226
  *     if not 0 <= rstart < MAX_POS:
  *         raise ValueError('start out of range (%i)' % rstart)
  *     if not 0 <= rend <= MAX_POS:             # <<<<<<<<<<<<<<
@@ -4498,26 +4492,26 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
   __pyx_t_13 = ((!(__pyx_t_2 != 0)) != 0);
   if (unlikely(__pyx_t_13)) {
 
-    /* "pysam/libcutils.pyx":225
+    /* "pysam/libcutils.pyx":227
  *         raise ValueError('start out of range (%i)' % rstart)
  *     if not 0 <= rend <= MAX_POS:
  *         raise ValueError('end out of range (%i)' % rend)             # <<<<<<<<<<<<<<
  *     if rstart > rend:
  *         raise ValueError(
  */
-    __pyx_t_9 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rend); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 225, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rend); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 227, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_end_out_of_range_i, __pyx_t_9); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 225, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_end_out_of_range_i, __pyx_t_9); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 227, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __pyx_t_9 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 225, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 227, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_Raise(__pyx_t_9, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __PYX_ERR(0, 225, __pyx_L1_error)
+    __PYX_ERR(0, 227, __pyx_L1_error)
 
-    /* "pysam/libcutils.pyx":224
+    /* "pysam/libcutils.pyx":226
  *     if not 0 <= rstart < MAX_POS:
  *         raise ValueError('start out of range (%i)' % rstart)
  *     if not 0 <= rend <= MAX_POS:             # <<<<<<<<<<<<<<
@@ -4526,7 +4520,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
   }
 
-  /* "pysam/libcutils.pyx":226
+  /* "pysam/libcutils.pyx":228
  *     if not 0 <= rend <= MAX_POS:
  *         raise ValueError('end out of range (%i)' % rend)
  *     if rstart > rend:             # <<<<<<<<<<<<<<
@@ -4536,18 +4530,18 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
   __pyx_t_13 = ((__pyx_v_rstart > __pyx_v_rend) != 0);
   if (unlikely(__pyx_t_13)) {
 
-    /* "pysam/libcutils.pyx":228
+    /* "pysam/libcutils.pyx":230
  *     if rstart > rend:
  *         raise ValueError(
  *             'invalid region: start (%i) > end (%i)' % (rstart, rend))             # <<<<<<<<<<<<<<
  * 
  *     return force_bytes(reference), rstart, rend
  */
-    __pyx_t_9 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstart); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 228, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstart); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 230, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_1 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rend); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 228, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rend); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 228, __pyx_L1_error)
+    __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 230, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_GIVEREF(__pyx_t_9);
     PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_9);
@@ -4555,25 +4549,25 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
     PyTuple_SET_ITEM(__pyx_t_10, 1, __pyx_t_1);
     __pyx_t_9 = 0;
     __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_invalid_region_start_i_end_i, __pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 228, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_invalid_region_start_i_end_i, __pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-    /* "pysam/libcutils.pyx":227
+    /* "pysam/libcutils.pyx":229
  *         raise ValueError('end out of range (%i)' % rend)
  *     if rstart > rend:
  *         raise ValueError(             # <<<<<<<<<<<<<<
  *             'invalid region: start (%i) > end (%i)' % (rstart, rend))
  * 
  */
-    __pyx_t_10 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 227, __pyx_L1_error)
+    __pyx_t_10 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 229, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_Raise(__pyx_t_10, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    __PYX_ERR(0, 227, __pyx_L1_error)
+    __PYX_ERR(0, 229, __pyx_L1_error)
 
-    /* "pysam/libcutils.pyx":226
+    /* "pysam/libcutils.pyx":228
  *     if not 0 <= rend <= MAX_POS:
  *         raise ValueError('end out of range (%i)' % rend)
  *     if rstart > rend:             # <<<<<<<<<<<<<<
@@ -4582,7 +4576,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  */
   }
 
-  /* "pysam/libcutils.pyx":230
+  /* "pysam/libcutils.pyx":232
  *             'invalid region: start (%i) > end (%i)' % (rstart, rend))
  * 
  *     return force_bytes(reference), rstart, rend             # <<<<<<<<<<<<<<
@@ -4590,13 +4584,13 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_10 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_reference, NULL); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 230, __pyx_L1_error)
+  __pyx_t_10 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_reference, NULL); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 232, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_1 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstart); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstart); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 232, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_9 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rend); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 230, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rend); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 232, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 230, __pyx_L1_error)
+  __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 232, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_GIVEREF(__pyx_t_10);
   PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_10);
@@ -4611,7 +4605,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
   __pyx_t_8 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcutils.pyx":161
+  /* "pysam/libcutils.pyx":167
  * 
  * 
  * cpdef parse_region(reference=None,             # <<<<<<<<<<<<<<
@@ -4639,7 +4633,7 @@ static PyObject *__pyx_f_5pysam_9libcutils_parse_region(CYTHON_UNUSED int __pyx_
 
 /* Python wrapper */
 static PyObject *__pyx_pw_5pysam_9libcutils_7parse_region(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libcutils_6parse_region[] = "parse alternative ways to specify a genomic region. A region can\n    either be specified by :term:`reference`, `start` and\n    `end`. `start` and `end` denote 0-based, half-open\n    intervals.\n\n    Alternatively, a samtools :term:`region` string can be\n    supplied.\n\n    If any of the coordinates are missing they will be replaced by the\n    minimum (`start`) or maximum (`end`) coordinate.\n\n    Note that region strings are 1-based, while `start` and `end` denote\n    an interval in python coordinates.\n\n    Returns\n    -------\n\n    tuple :  a tuple of `reference`, `start` and `end`.\n\n    Raises\n    ------\n\n    ValueError\n       for invalid or out of bounds regions.\n\n    ";
+static char __pyx_doc_5pysam_9libcutils_6parse_region[] = "parse alternative ways to specify a genomic region. A region can\n    either be specified by :term:`reference`, `start` and\n    `end`. `start` and `end` denote 0-based, half-open intervals.\n\n    Alternatively, a samtools :term:`region` string can be supplied.\n\n    If any of the coordinates are missing they will be replaced by the\n    minimum (`start`) or maximum (`end`) coordinate.\n\n    Note that region strings are 1-based, while `start` and `end`\n    denote an interval in python coordinates.\n\n    Returns\n    -------\n\n    tuple :  a tuple of `reference`, `start` and `end`.\n\n    Raises\n    ------\n\n    ValueError\n       for invalid or out of bounds regions.\n\n    ";
 static PyObject *__pyx_pw_5pysam_9libcutils_7parse_region(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_reference = 0;
   PyObject *__pyx_v_start = 0;
@@ -4653,7 +4647,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_7parse_region(PyObject *__pyx_self, 
     PyObject* values[4] = {0,0,0,0};
     values[0] = ((PyObject *)Py_None);
 
-    /* "pysam/libcutils.pyx":162
+    /* "pysam/libcutils.pyx":168
  * 
  * cpdef parse_region(reference=None,
  *                    start=None,             # <<<<<<<<<<<<<<
@@ -4662,7 +4656,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_7parse_region(PyObject *__pyx_self, 
  */
     values[1] = ((PyObject *)Py_None);
 
-    /* "pysam/libcutils.pyx":163
+    /* "pysam/libcutils.pyx":169
  * cpdef parse_region(reference=None,
  *                    start=None,
  *                    end=None,             # <<<<<<<<<<<<<<
@@ -4671,7 +4665,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_7parse_region(PyObject *__pyx_self, 
  */
     values[2] = ((PyObject *)Py_None);
 
-    /* "pysam/libcutils.pyx":164
+    /* "pysam/libcutils.pyx":170
  *                    start=None,
  *                    end=None,
  *                    region=None):             # <<<<<<<<<<<<<<
@@ -4721,7 +4715,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_7parse_region(PyObject *__pyx_self, 
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "parse_region") < 0)) __PYX_ERR(0, 161, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "parse_region") < 0)) __PYX_ERR(0, 167, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -4744,7 +4738,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_7parse_region(PyObject *__pyx_self, 
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("parse_region", 0, 0, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 161, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("parse_region", 0, 0, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 167, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcutils.parse_region", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4752,7 +4746,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_7parse_region(PyObject *__pyx_self, 
   __pyx_L4_argument_unpacking_done:;
   __pyx_r = __pyx_pf_5pysam_9libcutils_6parse_region(__pyx_self, __pyx_v_reference, __pyx_v_start, __pyx_v_end, __pyx_v_region);
 
-  /* "pysam/libcutils.pyx":161
+  /* "pysam/libcutils.pyx":167
  * 
  * 
  * cpdef parse_region(reference=None,             # <<<<<<<<<<<<<<
@@ -4777,7 +4771,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_6parse_region(CYTHON_UNUSED PyObject
   __pyx_t_2.start = __pyx_v_start;
   __pyx_t_2.end = __pyx_v_end;
   __pyx_t_2.region = __pyx_v_region;
-  __pyx_t_1 = __pyx_f_5pysam_9libcutils_parse_region(0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 161, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5pysam_9libcutils_parse_region(0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 167, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4794,7 +4788,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_6parse_region(CYTHON_UNUSED PyObject
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":233
+/* "pysam/libcutils.pyx":235
  * 
  * 
  * def _pysam_dispatch(collection,             # <<<<<<<<<<<<<<
@@ -4804,51 +4798,63 @@ static PyObject *__pyx_pf_5pysam_9libcutils_6parse_region(CYTHON_UNUSED PyObject
 
 /* Python wrapper */
 static PyObject *__pyx_pw_5pysam_9libcutils_9_pysam_dispatch(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libcutils_8_pysam_dispatch[] = "call ``method`` in samtools/bcftools providing arguments in args.\n    \n    Catching of stdout can be turned off by setting *catch_stdout* to\n    False.\n\n    ";
+static char __pyx_doc_5pysam_9libcutils_8_pysam_dispatch[] = "call ``method`` in samtools/bcftools providing arguments in args.\n    \n    By default, stdout is redirected to a temporary file using the patched\n    C sources except for a few commands that have an explicit output option\n    (typically: -o). In these commands (such as samtools view), this explicit\n    option is used. If *is_usage* is True, then these explicit output options\n    will not be used.\n\n    Catching of stdout can be turned off by setting *catch_stdout* to\n    False.\n    ";
 static PyMethodDef __pyx_mdef_5pysam_9libcutils_9_pysam_dispatch = {"_pysam_dispatch", (PyCFunction)__pyx_pw_5pysam_9libcutils_9_pysam_dispatch, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libcutils_8_pysam_dispatch};
 static PyObject *__pyx_pw_5pysam_9libcutils_9_pysam_dispatch(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_collection = 0;
   PyObject *__pyx_v_method = 0;
   PyObject *__pyx_v_args = 0;
   PyObject *__pyx_v_catch_stdout = 0;
+  PyObject *__pyx_v_is_usage = 0;
   PyObject *__pyx_v_save_stdout = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_pysam_dispatch (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_collection,&__pyx_n_s_method,&__pyx_n_s_args,&__pyx_n_s_catch_stdout,&__pyx_n_s_save_stdout,0};
-    PyObject* values[5] = {0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_collection,&__pyx_n_s_method,&__pyx_n_s_args,&__pyx_n_s_catch_stdout,&__pyx_n_s_is_usage,&__pyx_n_s_save_stdout,0};
+    PyObject* values[6] = {0,0,0,0,0,0};
 
-    /* "pysam/libcutils.pyx":235
+    /* "pysam/libcutils.pyx":237
  * def _pysam_dispatch(collection,
  *                     method,
  *                     args=None,             # <<<<<<<<<<<<<<
  *                     catch_stdout=True,
- *                     save_stdout=None):
+ *                     is_usage=False,
  */
     values[2] = ((PyObject *)Py_None);
 
-    /* "pysam/libcutils.pyx":236
+    /* "pysam/libcutils.pyx":238
  *                     method,
  *                     args=None,
  *                     catch_stdout=True,             # <<<<<<<<<<<<<<
+ *                     is_usage=False,
  *                     save_stdout=None):
- *     '''call ``method`` in samtools/bcftools providing arguments in args.
  */
     values[3] = ((PyObject *)Py_True);
 
-    /* "pysam/libcutils.pyx":237
+    /* "pysam/libcutils.pyx":239
  *                     args=None,
  *                     catch_stdout=True,
+ *                     is_usage=False,             # <<<<<<<<<<<<<<
+ *                     save_stdout=None):
+ *     '''call ``method`` in samtools/bcftools providing arguments in args.
+ */
+    values[4] = ((PyObject *)Py_False);
+
+    /* "pysam/libcutils.pyx":240
+ *                     catch_stdout=True,
+ *                     is_usage=False,
  *                     save_stdout=None):             # <<<<<<<<<<<<<<
  *     '''call ``method`` in samtools/bcftools providing arguments in args.
  * 
  */
-    values[4] = ((PyObject *)Py_None);
+    values[5] = ((PyObject *)Py_None);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
         case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
         CYTHON_FALLTHROUGH;
         case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
@@ -4871,7 +4877,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_9_pysam_dispatch(PyObject *__pyx_sel
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_method)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_pysam_dispatch", 0, 2, 5, 1); __PYX_ERR(0, 233, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_pysam_dispatch", 0, 2, 6, 1); __PYX_ERR(0, 235, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -4888,15 +4894,23 @@ static PyObject *__pyx_pw_5pysam_9libcutils_9_pysam_dispatch(PyObject *__pyx_sel
         CYTHON_FALLTHROUGH;
         case  4:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_save_stdout);
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_is_usage);
           if (value) { values[4] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  5:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_save_stdout);
+          if (value) { values[5] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_pysam_dispatch") < 0)) __PYX_ERR(0, 233, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_pysam_dispatch") < 0)) __PYX_ERR(0, 235, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
         case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
         CYTHON_FALLTHROUGH;
         case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
@@ -4913,19 +4927,20 @@ static PyObject *__pyx_pw_5pysam_9libcutils_9_pysam_dispatch(PyObject *__pyx_sel
     __pyx_v_method = values[1];
     __pyx_v_args = values[2];
     __pyx_v_catch_stdout = values[3];
-    __pyx_v_save_stdout = values[4];
+    __pyx_v_is_usage = values[4];
+    __pyx_v_save_stdout = values[5];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_pysam_dispatch", 0, 2, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 233, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_pysam_dispatch", 0, 2, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 235, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcutils._pysam_dispatch", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libcutils_8_pysam_dispatch(__pyx_self, __pyx_v_collection, __pyx_v_method, __pyx_v_args, __pyx_v_catch_stdout, __pyx_v_save_stdout);
+  __pyx_r = __pyx_pf_5pysam_9libcutils_8_pysam_dispatch(__pyx_self, __pyx_v_collection, __pyx_v_method, __pyx_v_args, __pyx_v_catch_stdout, __pyx_v_is_usage, __pyx_v_save_stdout);
 
-  /* "pysam/libcutils.pyx":233
+  /* "pysam/libcutils.pyx":235
  * 
  * 
  * def _pysam_dispatch(collection,             # <<<<<<<<<<<<<<
@@ -4938,7 +4953,7 @@ static PyObject *__pyx_pw_5pysam_9libcutils_9_pysam_dispatch(PyObject *__pyx_sel
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":345
+/* "pysam/libcutils.pyx":361
  * 
  *     # get error messages
  *     def _collect(fn):             # <<<<<<<<<<<<<<
@@ -4987,19 +5002,19 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
   char const *__pyx_t_20;
   __Pyx_RefNannySetupContext("_collect", 0);
 
-  /* "pysam/libcutils.pyx":346
+  /* "pysam/libcutils.pyx":362
  *     # get error messages
  *     def _collect(fn):
  *         out = []             # <<<<<<<<<<<<<<
  *         try:
  *             with open(fn, "r") as inf:
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 346, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 362, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_out = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "pysam/libcutils.pyx":347
+  /* "pysam/libcutils.pyx":363
  *     def _collect(fn):
  *         out = []
  *         try:             # <<<<<<<<<<<<<<
@@ -5016,7 +5031,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
       __Pyx_XGOTREF(__pyx_t_4);
       /*try:*/ {
 
-        /* "pysam/libcutils.pyx":348
+        /* "pysam/libcutils.pyx":364
  *         out = []
  *         try:
  *             with open(fn, "r") as inf:             # <<<<<<<<<<<<<<
@@ -5024,7 +5039,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
  *         except UnicodeDecodeError:
  */
         /*with:*/ {
-          __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 348, __pyx_L6_error)
+          __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 364, __pyx_L6_error)
           __Pyx_GOTREF(__pyx_t_1);
           __Pyx_INCREF(__pyx_v_fn);
           __Pyx_GIVEREF(__pyx_v_fn);
@@ -5032,12 +5047,12 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
           __Pyx_INCREF(__pyx_n_s_r);
           __Pyx_GIVEREF(__pyx_n_s_r);
           PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_n_s_r);
-          __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_t_1, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 348, __pyx_L6_error)
+          __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_t_1, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 364, __pyx_L6_error)
           __Pyx_GOTREF(__pyx_t_5);
           __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-          __pyx_t_6 = __Pyx_PyObject_LookupSpecial(__pyx_t_5, __pyx_n_s_exit); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 348, __pyx_L6_error)
+          __pyx_t_6 = __Pyx_PyObject_LookupSpecial(__pyx_t_5, __pyx_n_s_exit); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 364, __pyx_L6_error)
           __Pyx_GOTREF(__pyx_t_6);
-          __pyx_t_7 = __Pyx_PyObject_LookupSpecial(__pyx_t_5, __pyx_n_s_enter); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 348, __pyx_L12_error)
+          __pyx_t_7 = __Pyx_PyObject_LookupSpecial(__pyx_t_5, __pyx_n_s_enter); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 364, __pyx_L12_error)
           __Pyx_GOTREF(__pyx_t_7);
           __pyx_t_8 = NULL;
           if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_7))) {
@@ -5050,10 +5065,10 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
             }
           }
           if (__pyx_t_8) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 348, __pyx_L12_error)
+            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 364, __pyx_L12_error)
             __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
           } else {
-            __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 348, __pyx_L12_error)
+            __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 364, __pyx_L12_error)
           }
           __Pyx_GOTREF(__pyx_t_1);
           __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
@@ -5072,14 +5087,14 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
                 __pyx_v_inf = __pyx_t_7;
                 __pyx_t_7 = 0;
 
-                /* "pysam/libcutils.pyx":349
+                /* "pysam/libcutils.pyx":365
  *         try:
  *             with open(fn, "r") as inf:
  *                 out = inf.read()             # <<<<<<<<<<<<<<
  *         except UnicodeDecodeError:
  *             with open(fn, "rb") as inf:
  */
-                __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_inf, __pyx_n_s_read); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 349, __pyx_L16_error)
+                __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_inf, __pyx_n_s_read); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 365, __pyx_L16_error)
                 __Pyx_GOTREF(__pyx_t_5);
                 __pyx_t_1 = NULL;
                 if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
@@ -5092,17 +5107,17 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
                   }
                 }
                 if (__pyx_t_1) {
-                  __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 349, __pyx_L16_error)
+                  __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 365, __pyx_L16_error)
                   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
                 } else {
-                  __pyx_t_7 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 349, __pyx_L16_error)
+                  __pyx_t_7 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 365, __pyx_L16_error)
                 }
                 __Pyx_GOTREF(__pyx_t_7);
                 __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
                 __Pyx_DECREF_SET(__pyx_v_out, __pyx_t_7);
                 __pyx_t_7 = 0;
 
-                /* "pysam/libcutils.pyx":348
+                /* "pysam/libcutils.pyx":364
  *         out = []
  *         try:
  *             with open(fn, "r") as inf:             # <<<<<<<<<<<<<<
@@ -5121,20 +5136,20 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
               __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
               /*except:*/ {
                 __Pyx_AddTraceback("pysam.libcutils._pysam_dispatch._collect", __pyx_clineno, __pyx_lineno, __pyx_filename);
-                if (__Pyx_GetException(&__pyx_t_7, &__pyx_t_5, &__pyx_t_1) < 0) __PYX_ERR(0, 348, __pyx_L18_except_error)
+                if (__Pyx_GetException(&__pyx_t_7, &__pyx_t_5, &__pyx_t_1) < 0) __PYX_ERR(0, 364, __pyx_L18_except_error)
                 __Pyx_GOTREF(__pyx_t_7);
                 __Pyx_GOTREF(__pyx_t_5);
                 __Pyx_GOTREF(__pyx_t_1);
-                __pyx_t_8 = PyTuple_Pack(3, __pyx_t_7, __pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 348, __pyx_L18_except_error)
+                __pyx_t_8 = PyTuple_Pack(3, __pyx_t_7, __pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 364, __pyx_L18_except_error)
                 __Pyx_GOTREF(__pyx_t_8);
                 __pyx_t_12 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_8, NULL);
                 __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
                 __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-                if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 348, __pyx_L18_except_error)
+                if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 364, __pyx_L18_except_error)
                 __Pyx_GOTREF(__pyx_t_12);
                 __pyx_t_13 = __Pyx_PyObject_IsTrue(__pyx_t_12);
                 __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-                if (__pyx_t_13 < 0) __PYX_ERR(0, 348, __pyx_L18_except_error)
+                if (__pyx_t_13 < 0) __PYX_ERR(0, 364, __pyx_L18_except_error)
                 __pyx_t_14 = ((!(__pyx_t_13 != 0)) != 0);
                 if (__pyx_t_14) {
                   __Pyx_GIVEREF(__pyx_t_7);
@@ -5142,7 +5157,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
                   __Pyx_XGIVEREF(__pyx_t_1);
                   __Pyx_ErrRestoreWithState(__pyx_t_7, __pyx_t_5, __pyx_t_1);
                   __pyx_t_7 = 0; __pyx_t_5 = 0; __pyx_t_1 = 0; 
-                  __PYX_ERR(0, 348, __pyx_L18_except_error)
+                  __PYX_ERR(0, 364, __pyx_L18_except_error)
                 }
                 __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
                 __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -5168,7 +5183,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
               if (__pyx_t_6) {
                 __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_tuple__6, NULL);
                 __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-                if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 348, __pyx_L6_error)
+                if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 364, __pyx_L6_error)
                 __Pyx_GOTREF(__pyx_t_11);
                 __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
               }
@@ -5183,7 +5198,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
           __pyx_L25:;
         }
 
-        /* "pysam/libcutils.pyx":347
+        /* "pysam/libcutils.pyx":363
  *     def _collect(fn):
  *         out = []
  *         try:             # <<<<<<<<<<<<<<
@@ -5201,7 +5216,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-      /* "pysam/libcutils.pyx":350
+      /* "pysam/libcutils.pyx":366
  *             with open(fn, "r") as inf:
  *                 out = inf.read()
  *         except UnicodeDecodeError:             # <<<<<<<<<<<<<<
@@ -5211,12 +5226,12 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
       __pyx_t_15 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_UnicodeDecodeError);
       if (__pyx_t_15) {
         __Pyx_AddTraceback("pysam.libcutils._pysam_dispatch._collect", __pyx_clineno, __pyx_lineno, __pyx_filename);
-        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_5, &__pyx_t_7) < 0) __PYX_ERR(0, 350, __pyx_L8_except_error)
+        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_5, &__pyx_t_7) < 0) __PYX_ERR(0, 366, __pyx_L8_except_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_GOTREF(__pyx_t_7);
 
-        /* "pysam/libcutils.pyx":351
+        /* "pysam/libcutils.pyx":367
  *                 out = inf.read()
  *         except UnicodeDecodeError:
  *             with open(fn, "rb") as inf:             # <<<<<<<<<<<<<<
@@ -5224,7 +5239,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
  *                 out = inf.read()
  */
         /*with:*/ {
-          __pyx_t_8 = PyTuple_New(2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 351, __pyx_L8_except_error)
+          __pyx_t_8 = PyTuple_New(2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 367, __pyx_L8_except_error)
           __Pyx_GOTREF(__pyx_t_8);
           __Pyx_INCREF(__pyx_v_fn);
           __Pyx_GIVEREF(__pyx_v_fn);
@@ -5232,12 +5247,12 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
           __Pyx_INCREF(__pyx_n_s_rb);
           __Pyx_GIVEREF(__pyx_n_s_rb);
           PyTuple_SET_ITEM(__pyx_t_8, 1, __pyx_n_s_rb);
-          __pyx_t_16 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_t_8, NULL); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 351, __pyx_L8_except_error)
+          __pyx_t_16 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_t_8, NULL); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 367, __pyx_L8_except_error)
           __Pyx_GOTREF(__pyx_t_16);
           __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-          __pyx_t_6 = __Pyx_PyObject_LookupSpecial(__pyx_t_16, __pyx_n_s_exit); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 351, __pyx_L8_except_error)
+          __pyx_t_6 = __Pyx_PyObject_LookupSpecial(__pyx_t_16, __pyx_n_s_exit); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 367, __pyx_L8_except_error)
           __Pyx_GOTREF(__pyx_t_6);
-          __pyx_t_17 = __Pyx_PyObject_LookupSpecial(__pyx_t_16, __pyx_n_s_enter); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 351, __pyx_L28_error)
+          __pyx_t_17 = __Pyx_PyObject_LookupSpecial(__pyx_t_16, __pyx_n_s_enter); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 367, __pyx_L28_error)
           __Pyx_GOTREF(__pyx_t_17);
           __pyx_t_18 = NULL;
           if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_17))) {
@@ -5250,10 +5265,10 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
             }
           }
           if (__pyx_t_18) {
-            __pyx_t_8 = __Pyx_PyObject_CallOneArg(__pyx_t_17, __pyx_t_18); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 351, __pyx_L28_error)
+            __pyx_t_8 = __Pyx_PyObject_CallOneArg(__pyx_t_17, __pyx_t_18); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 367, __pyx_L28_error)
             __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
           } else {
-            __pyx_t_8 = __Pyx_PyObject_CallNoArg(__pyx_t_17); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 351, __pyx_L28_error)
+            __pyx_t_8 = __Pyx_PyObject_CallNoArg(__pyx_t_17); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 367, __pyx_L28_error)
           }
           __Pyx_GOTREF(__pyx_t_8);
           __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
@@ -5272,14 +5287,14 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
                 __Pyx_XDECREF_SET(__pyx_v_inf, __pyx_t_17);
                 __pyx_t_17 = 0;
 
-                /* "pysam/libcutils.pyx":353
+                /* "pysam/libcutils.pyx":369
  *             with open(fn, "rb") as inf:
  *                 # read binary output
  *                 out = inf.read()             # <<<<<<<<<<<<<<
  *         finally:
  *             os.remove(fn)
  */
-                __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_v_inf, __pyx_n_s_read); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 353, __pyx_L34_error)
+                __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_v_inf, __pyx_n_s_read); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 369, __pyx_L34_error)
                 __Pyx_GOTREF(__pyx_t_16);
                 __pyx_t_8 = NULL;
                 if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_16))) {
@@ -5292,17 +5307,17 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
                   }
                 }
                 if (__pyx_t_8) {
-                  __pyx_t_17 = __Pyx_PyObject_CallOneArg(__pyx_t_16, __pyx_t_8); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 353, __pyx_L34_error)
+                  __pyx_t_17 = __Pyx_PyObject_CallOneArg(__pyx_t_16, __pyx_t_8); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 369, __pyx_L34_error)
                   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
                 } else {
-                  __pyx_t_17 = __Pyx_PyObject_CallNoArg(__pyx_t_16); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 353, __pyx_L34_error)
+                  __pyx_t_17 = __Pyx_PyObject_CallNoArg(__pyx_t_16); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 369, __pyx_L34_error)
                 }
                 __Pyx_GOTREF(__pyx_t_17);
                 __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
                 __Pyx_DECREF_SET(__pyx_v_out, __pyx_t_17);
                 __pyx_t_17 = 0;
 
-                /* "pysam/libcutils.pyx":351
+                /* "pysam/libcutils.pyx":367
  *                 out = inf.read()
  *         except UnicodeDecodeError:
  *             with open(fn, "rb") as inf:             # <<<<<<<<<<<<<<
@@ -5321,20 +5336,20 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
               __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
               /*except:*/ {
                 __Pyx_AddTraceback("pysam.libcutils._pysam_dispatch._collect", __pyx_clineno, __pyx_lineno, __pyx_filename);
-                if (__Pyx_GetException(&__pyx_t_17, &__pyx_t_16, &__pyx_t_8) < 0) __PYX_ERR(0, 351, __pyx_L36_except_error)
+                if (__Pyx_GetException(&__pyx_t_17, &__pyx_t_16, &__pyx_t_8) < 0) __PYX_ERR(0, 367, __pyx_L36_except_error)
                 __Pyx_GOTREF(__pyx_t_17);
                 __Pyx_GOTREF(__pyx_t_16);
                 __Pyx_GOTREF(__pyx_t_8);
-                __pyx_t_18 = PyTuple_Pack(3, __pyx_t_17, __pyx_t_16, __pyx_t_8); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 351, __pyx_L36_except_error)
+                __pyx_t_18 = PyTuple_Pack(3, __pyx_t_17, __pyx_t_16, __pyx_t_8); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 367, __pyx_L36_except_error)
                 __Pyx_GOTREF(__pyx_t_18);
                 __pyx_t_12 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_18, NULL);
                 __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
                 __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
-                if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 351, __pyx_L36_except_error)
+                if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 367, __pyx_L36_except_error)
                 __Pyx_GOTREF(__pyx_t_12);
                 __pyx_t_14 = __Pyx_PyObject_IsTrue(__pyx_t_12);
                 __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-                if (__pyx_t_14 < 0) __PYX_ERR(0, 351, __pyx_L36_except_error)
+                if (__pyx_t_14 < 0) __PYX_ERR(0, 367, __pyx_L36_except_error)
                 __pyx_t_13 = ((!(__pyx_t_14 != 0)) != 0);
                 if (__pyx_t_13) {
                   __Pyx_GIVEREF(__pyx_t_17);
@@ -5342,7 +5357,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
                   __Pyx_XGIVEREF(__pyx_t_8);
                   __Pyx_ErrRestoreWithState(__pyx_t_17, __pyx_t_16, __pyx_t_8);
                   __pyx_t_17 = 0; __pyx_t_16 = 0; __pyx_t_8 = 0; 
-                  __PYX_ERR(0, 351, __pyx_L36_except_error)
+                  __PYX_ERR(0, 367, __pyx_L36_except_error)
                 }
                 __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
                 __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
@@ -5368,7 +5383,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
               if (__pyx_t_6) {
                 __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_tuple__7, NULL);
                 __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-                if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 351, __pyx_L8_except_error)
+                if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 367, __pyx_L8_except_error)
                 __Pyx_GOTREF(__pyx_t_9);
                 __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
               }
@@ -5390,7 +5405,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
       goto __pyx_L8_except_error;
       __pyx_L8_except_error:;
 
-      /* "pysam/libcutils.pyx":347
+      /* "pysam/libcutils.pyx":363
  *     def _collect(fn):
  *         out = []
  *         try:             # <<<<<<<<<<<<<<
@@ -5411,7 +5426,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
     }
   }
 
-  /* "pysam/libcutils.pyx":355
+  /* "pysam/libcutils.pyx":371
  *                 out = inf.read()
  *         finally:
  *             os.remove(fn)             # <<<<<<<<<<<<<<
@@ -5420,9 +5435,9 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
  */
   /*finally:*/ {
     /*normal exit:*/{
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 355, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 371, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_remove); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 355, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_remove); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 371, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_t_5 = NULL;
@@ -5436,13 +5451,13 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
         }
       }
       if (!__pyx_t_5) {
-        __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_fn); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 355, __pyx_L1_error)
+        __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_fn); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 371, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
       } else {
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_1)) {
           PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_fn};
-          __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 355, __pyx_L1_error)
+          __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 371, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
           __Pyx_GOTREF(__pyx_t_7);
         } else
@@ -5450,19 +5465,19 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
           PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_fn};
-          __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 355, __pyx_L1_error)
+          __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 371, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
           __Pyx_GOTREF(__pyx_t_7);
         } else
         #endif
         {
-          __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 355, __pyx_L1_error)
+          __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 371, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_8);
           __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_5); __pyx_t_5 = NULL;
           __Pyx_INCREF(__pyx_v_fn);
           __Pyx_GIVEREF(__pyx_v_fn);
           PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_v_fn);
-          __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_8, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 355, __pyx_L1_error)
+          __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_8, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 371, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
         }
@@ -5493,9 +5508,9 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
       __Pyx_XGOTREF(__pyx_t_10);
       __pyx_t_15 = __pyx_lineno; __pyx_t_19 = __pyx_clineno; __pyx_t_20 = __pyx_filename;
       {
-        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 355, __pyx_L47_error)
+        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 371, __pyx_L47_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_remove); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 355, __pyx_L47_error)
+        __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_remove); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 371, __pyx_L47_error)
         __Pyx_GOTREF(__pyx_t_8);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         __pyx_t_1 = NULL;
@@ -5509,13 +5524,13 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
           }
         }
         if (!__pyx_t_1) {
-          __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_v_fn); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 355, __pyx_L47_error)
+          __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_v_fn); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 371, __pyx_L47_error)
           __Pyx_GOTREF(__pyx_t_7);
         } else {
           #if CYTHON_FAST_PYCALL
           if (PyFunction_Check(__pyx_t_8)) {
             PyObject *__pyx_temp[2] = {__pyx_t_1, __pyx_v_fn};
-            __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_8, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 355, __pyx_L47_error)
+            __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_8, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 371, __pyx_L47_error)
             __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
             __Pyx_GOTREF(__pyx_t_7);
           } else
@@ -5523,19 +5538,19 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
           #if CYTHON_FAST_PYCCALL
           if (__Pyx_PyFastCFunction_Check(__pyx_t_8)) {
             PyObject *__pyx_temp[2] = {__pyx_t_1, __pyx_v_fn};
-            __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_8, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 355, __pyx_L47_error)
+            __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_8, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 371, __pyx_L47_error)
             __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
             __Pyx_GOTREF(__pyx_t_7);
           } else
           #endif
           {
-            __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 355, __pyx_L47_error)
+            __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 371, __pyx_L47_error)
             __Pyx_GOTREF(__pyx_t_5);
             __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1); __pyx_t_1 = NULL;
             __Pyx_INCREF(__pyx_v_fn);
             __Pyx_GIVEREF(__pyx_v_fn);
             PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_fn);
-            __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_5, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 355, __pyx_L47_error)
+            __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_5, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 371, __pyx_L47_error)
             __Pyx_GOTREF(__pyx_t_7);
             __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
           }
@@ -5572,19 +5587,19 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
     __pyx_L5:;
   }
 
-  /* "pysam/libcutils.pyx":356
+  /* "pysam/libcutils.pyx":372
  *         finally:
  *             os.remove(fn)
  *         return out             # <<<<<<<<<<<<<<
  * 
- *     pysam_unset_stderr()
+ *     samtools_unset_stderr()
  */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_out);
   __pyx_r = __pyx_v_out;
   goto __pyx_L0;
 
-  /* "pysam/libcutils.pyx":345
+  /* "pysam/libcutils.pyx":361
  * 
  *     # get error messages
  *     def _collect(fn):             # <<<<<<<<<<<<<<
@@ -5611,7 +5626,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
   return __pyx_r;
 }
 
-/* "pysam/libcutils.pyx":233
+/* "pysam/libcutils.pyx":235
  * 
  * 
  * def _pysam_dispatch(collection,             # <<<<<<<<<<<<<<
@@ -5619,7 +5634,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(CYTHON_UN
  *                     args=None,
  */
 
-static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_collection, PyObject *__pyx_v_method, PyObject *__pyx_v_args, PyObject *__pyx_v_catch_stdout, PyObject *__pyx_v_save_stdout) {
+static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_collection, PyObject *__pyx_v_method, PyObject *__pyx_v_args, PyObject *__pyx_v_catch_stdout, PyObject *__pyx_v_is_usage, PyObject *__pyx_v_save_stdout) {
   PyObject *__pyx_v_stderr_h = NULL;
   PyObject *__pyx_v_stderr_f = NULL;
   PyObject *__pyx_v_stdout_f = NULL;
@@ -5639,175 +5654,184 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
-  PyObject *__pyx_t_2 = NULL;
+  int __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
-  int __pyx_t_7;
-  PyObject *(*__pyx_t_8)(PyObject *);
-  int __pyx_t_9;
-  char *__pyx_t_10;
-  char const *__pyx_t_11;
-  int __pyx_t_12;
-  PyObject *__pyx_t_13 = NULL;
-  Py_ssize_t __pyx_t_14;
-  PyObject *(*__pyx_t_15)(PyObject *);
-  char const *__pyx_t_16;
+  PyObject *__pyx_t_7 = NULL;
+  int __pyx_t_8;
+  PyObject *(*__pyx_t_9)(PyObject *);
+  int __pyx_t_10;
+  char *__pyx_t_11;
+  char const *__pyx_t_12;
+  char const *__pyx_t_13;
+  PyObject *__pyx_t_14 = NULL;
+  Py_ssize_t __pyx_t_15;
+  PyObject *(*__pyx_t_16)(PyObject *);
+  char const *__pyx_t_17;
   __Pyx_RefNannySetupContext("_pysam_dispatch", 0);
   __Pyx_INCREF(__pyx_v_collection);
   __Pyx_INCREF(__pyx_v_method);
   __Pyx_INCREF(__pyx_v_args);
 
-  /* "pysam/libcutils.pyx":245
+  /* "pysam/libcutils.pyx":253
  *     '''
  * 
  *     if method == "index":             # <<<<<<<<<<<<<<
- *         if not os.path.exists(args[0]):
+ *         if args and not os.path.exists(args[0]):
  *             raise IOError("No such file or directory: '%s'" % args[0])
  */
-  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_method, __pyx_n_s_index, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 245, __pyx_L1_error)
+  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_method, __pyx_n_s_index, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 253, __pyx_L1_error)
   if (__pyx_t_1) {
 
-    /* "pysam/libcutils.pyx":246
+    /* "pysam/libcutils.pyx":254
  * 
  *     if method == "index":
- *         if not os.path.exists(args[0]):             # <<<<<<<<<<<<<<
+ *         if args and not os.path.exists(args[0]):             # <<<<<<<<<<<<<<
  *             raise IOError("No such file or directory: '%s'" % args[0])
  * 
  */
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 246, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 246, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_args); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 254, __pyx_L1_error)
+    if (__pyx_t_2) {
+    } else {
+      __pyx_t_1 = __pyx_t_2;
+      goto __pyx_L5_bool_binop_done;
+    }
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 254, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_exists); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 246, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_path); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 254, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_args, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 246, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_exists); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 254, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
-      __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_3);
-      if (likely(__pyx_t_5)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-        __Pyx_INCREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_args, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 254, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_4);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+        __Pyx_INCREF(__pyx_t_6);
         __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_3, function);
+        __Pyx_DECREF_SET(__pyx_t_4, function);
       }
     }
-    if (!__pyx_t_5) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 246, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_2);
+    if (!__pyx_t_6) {
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 254, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_GOTREF(__pyx_t_3);
     } else {
       #if CYTHON_FAST_PYCALL
-      if (PyFunction_Check(__pyx_t_3)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_4};
-        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 246, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      if (PyFunction_Check(__pyx_t_4)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 254, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else
       #endif
       #if CYTHON_FAST_PYCCALL
-      if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_4};
-        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 246, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 254, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else
       #endif
       {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 246, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
-        __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
-        __Pyx_GIVEREF(__pyx_t_4);
-        PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_t_4);
-        __pyx_t_4 = 0;
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 246, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 254, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
+        __Pyx_GIVEREF(__pyx_t_5);
+        PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
+        __pyx_t_5 = 0;
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 254, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
     }
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 254, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 246, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_7 = ((!__pyx_t_1) != 0);
-    if (unlikely(__pyx_t_7)) {
+    __pyx_t_8 = ((!__pyx_t_2) != 0);
+    __pyx_t_1 = __pyx_t_8;
+    __pyx_L5_bool_binop_done:;
+    if (unlikely(__pyx_t_1)) {
 
-      /* "pysam/libcutils.pyx":247
+      /* "pysam/libcutils.pyx":255
  *     if method == "index":
- *         if not os.path.exists(args[0]):
+ *         if args and not os.path.exists(args[0]):
  *             raise IOError("No such file or directory: '%s'" % args[0])             # <<<<<<<<<<<<<<
  * 
  *     if args is None:
  */
-      __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_args, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 247, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_No_such_file_or_directory_s, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 247, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_args, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 255, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 247, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_No_such_file_or_directory_s, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 255, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_Raise(__pyx_t_2, 0, 0, 0);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __PYX_ERR(0, 247, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 255, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __PYX_ERR(0, 255, __pyx_L1_error)
 
-      /* "pysam/libcutils.pyx":246
+      /* "pysam/libcutils.pyx":254
  * 
  *     if method == "index":
- *         if not os.path.exists(args[0]):             # <<<<<<<<<<<<<<
+ *         if args and not os.path.exists(args[0]):             # <<<<<<<<<<<<<<
  *             raise IOError("No such file or directory: '%s'" % args[0])
  * 
  */
     }
 
-    /* "pysam/libcutils.pyx":245
+    /* "pysam/libcutils.pyx":253
  *     '''
  * 
  *     if method == "index":             # <<<<<<<<<<<<<<
- *         if not os.path.exists(args[0]):
+ *         if args and not os.path.exists(args[0]):
  *             raise IOError("No such file or directory: '%s'" % args[0])
  */
   }
 
-  /* "pysam/libcutils.pyx":249
+  /* "pysam/libcutils.pyx":257
  *             raise IOError("No such file or directory: '%s'" % args[0])
  * 
  *     if args is None:             # <<<<<<<<<<<<<<
  *         args = []
  *     else:
  */
-  __pyx_t_7 = (__pyx_v_args == Py_None);
-  __pyx_t_1 = (__pyx_t_7 != 0);
-  if (__pyx_t_1) {
+  __pyx_t_1 = (__pyx_v_args == Py_None);
+  __pyx_t_8 = (__pyx_t_1 != 0);
+  if (__pyx_t_8) {
 
-    /* "pysam/libcutils.pyx":250
+    /* "pysam/libcutils.pyx":258
  * 
  *     if args is None:
  *         args = []             # <<<<<<<<<<<<<<
  *     else:
  *         args = list(args)
  */
-    __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 250, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF_SET(__pyx_v_args, __pyx_t_2);
-    __pyx_t_2 = 0;
+    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 258, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF_SET(__pyx_v_args, __pyx_t_3);
+    __pyx_t_3 = 0;
 
-    /* "pysam/libcutils.pyx":249
+    /* "pysam/libcutils.pyx":257
  *             raise IOError("No such file or directory: '%s'" % args[0])
  * 
  *     if args is None:             # <<<<<<<<<<<<<<
  *         args = []
  *     else:
  */
-    goto __pyx_L5;
+    goto __pyx_L7;
   }
 
-  /* "pysam/libcutils.pyx":252
+  /* "pysam/libcutils.pyx":260
  *         args = []
  *     else:
  *         args = list(args)             # <<<<<<<<<<<<<<
@@ -5815,115 +5839,125 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  *     # redirect stderr to file
  */
   /*else*/ {
-    __pyx_t_2 = PySequence_List(__pyx_v_args); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 252, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF_SET(__pyx_v_args, __pyx_t_2);
-    __pyx_t_2 = 0;
+    __pyx_t_3 = PySequence_List(__pyx_v_args); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 260, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF_SET(__pyx_v_args, __pyx_t_3);
+    __pyx_t_3 = 0;
   }
-  __pyx_L5:;
+  __pyx_L7:;
 
-  /* "pysam/libcutils.pyx":255
+  /* "pysam/libcutils.pyx":263
  * 
  *     # redirect stderr to file
  *     stderr_h, stderr_f = tempfile.mkstemp()             # <<<<<<<<<<<<<<
- *     pysam_set_stderr(stderr_h)
- * 
+ *     samtools_set_stderr(stderr_h)
+ *     bcftools_set_stderr(stderr_h)
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_tempfile); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 255, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_mkstemp); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 255, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_6))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_6);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
-      __Pyx_INCREF(__pyx_t_3);
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_tempfile); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 263, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_mkstemp); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 263, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
+    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_7);
+    if (likely(__pyx_t_4)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
+      __Pyx_INCREF(__pyx_t_4);
       __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_6, function);
+      __Pyx_DECREF_SET(__pyx_t_7, function);
     }
   }
-  if (__pyx_t_3) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 255, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (__pyx_t_4) {
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 263, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   } else {
-    __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 255, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 263, __pyx_L1_error)
   }
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if ((likely(PyTuple_CheckExact(__pyx_t_2))) || (PyList_CheckExact(__pyx_t_2))) {
-    PyObject* sequence = __pyx_t_2;
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  if ((likely(PyTuple_CheckExact(__pyx_t_3))) || (PyList_CheckExact(__pyx_t_3))) {
+    PyObject* sequence = __pyx_t_3;
     Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
     if (unlikely(size != 2)) {
       if (size > 2) __Pyx_RaiseTooManyValuesError(2);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 255, __pyx_L1_error)
+      __PYX_ERR(0, 263, __pyx_L1_error)
     }
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
     if (likely(PyTuple_CheckExact(sequence))) {
-      __pyx_t_6 = PyTuple_GET_ITEM(sequence, 0); 
-      __pyx_t_3 = PyTuple_GET_ITEM(sequence, 1); 
+      __pyx_t_7 = PyTuple_GET_ITEM(sequence, 0); 
+      __pyx_t_4 = PyTuple_GET_ITEM(sequence, 1); 
     } else {
-      __pyx_t_6 = PyList_GET_ITEM(sequence, 0); 
-      __pyx_t_3 = PyList_GET_ITEM(sequence, 1); 
+      __pyx_t_7 = PyList_GET_ITEM(sequence, 0); 
+      __pyx_t_4 = PyList_GET_ITEM(sequence, 1); 
     }
-    __Pyx_INCREF(__pyx_t_6);
-    __Pyx_INCREF(__pyx_t_3);
+    __Pyx_INCREF(__pyx_t_7);
+    __Pyx_INCREF(__pyx_t_4);
     #else
-    __pyx_t_6 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 255, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 255, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_7 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 263, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 263, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
     #endif
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_4 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 255, __pyx_L1_error)
+    __pyx_t_5 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 263, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_9 = Py_TYPE(__pyx_t_5)->tp_iternext;
+    index = 0; __pyx_t_7 = __pyx_t_9(__pyx_t_5); if (unlikely(!__pyx_t_7)) goto __pyx_L8_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_7);
+    index = 1; __pyx_t_4 = __pyx_t_9(__pyx_t_5); if (unlikely(!__pyx_t_4)) goto __pyx_L8_unpacking_failed;
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_8 = Py_TYPE(__pyx_t_4)->tp_iternext;
-    index = 0; __pyx_t_6 = __pyx_t_8(__pyx_t_4); if (unlikely(!__pyx_t_6)) goto __pyx_L6_unpacking_failed;
-    __Pyx_GOTREF(__pyx_t_6);
-    index = 1; __pyx_t_3 = __pyx_t_8(__pyx_t_4); if (unlikely(!__pyx_t_3)) goto __pyx_L6_unpacking_failed;
-    __Pyx_GOTREF(__pyx_t_3);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_4), 2) < 0) __PYX_ERR(0, 255, __pyx_L1_error)
-    __pyx_t_8 = NULL;
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    goto __pyx_L7_unpacking_done;
-    __pyx_L6_unpacking_failed:;
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_8 = NULL;
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_9(__pyx_t_5), 2) < 0) __PYX_ERR(0, 263, __pyx_L1_error)
+    __pyx_t_9 = NULL;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    goto __pyx_L9_unpacking_done;
+    __pyx_L8_unpacking_failed:;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_9 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 255, __pyx_L1_error)
-    __pyx_L7_unpacking_done:;
+    __PYX_ERR(0, 263, __pyx_L1_error)
+    __pyx_L9_unpacking_done:;
   }
-  __pyx_v_stderr_h = __pyx_t_6;
-  __pyx_t_6 = 0;
-  __pyx_v_stderr_f = __pyx_t_3;
-  __pyx_t_3 = 0;
+  __pyx_v_stderr_h = __pyx_t_7;
+  __pyx_t_7 = 0;
+  __pyx_v_stderr_f = __pyx_t_4;
+  __pyx_t_4 = 0;
 
-  /* "pysam/libcutils.pyx":256
+  /* "pysam/libcutils.pyx":264
  *     # redirect stderr to file
  *     stderr_h, stderr_f = tempfile.mkstemp()
- *     pysam_set_stderr(stderr_h)             # <<<<<<<<<<<<<<
+ *     samtools_set_stderr(stderr_h)             # <<<<<<<<<<<<<<
+ *     bcftools_set_stderr(stderr_h)
+ * 
+ */
+  __pyx_t_10 = __Pyx_PyInt_As_int(__pyx_v_stderr_h); if (unlikely((__pyx_t_10 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 264, __pyx_L1_error)
+  samtools_set_stderr(__pyx_t_10);
+
+  /* "pysam/libcutils.pyx":265
+ *     stderr_h, stderr_f = tempfile.mkstemp()
+ *     samtools_set_stderr(stderr_h)
+ *     bcftools_set_stderr(stderr_h)             # <<<<<<<<<<<<<<
  * 
  *     # redirect stdout to file
  */
-  __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_v_stderr_h); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 256, __pyx_L1_error)
-  pysam_set_stderr(__pyx_t_9);
+  __pyx_t_10 = __Pyx_PyInt_As_int(__pyx_v_stderr_h); if (unlikely((__pyx_t_10 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 265, __pyx_L1_error)
+  bcftools_set_stderr(__pyx_t_10);
 
-  /* "pysam/libcutils.pyx":259
+  /* "pysam/libcutils.pyx":268
  * 
  *     # redirect stdout to file
  *     if save_stdout:             # <<<<<<<<<<<<<<
  *         stdout_f = save_stdout
  *         stdout_h = c_open(force_bytes(stdout_f),
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_save_stdout); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 259, __pyx_L1_error)
-  if (__pyx_t_1) {
+  __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_save_stdout); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 268, __pyx_L1_error)
+  if (__pyx_t_8) {
 
-    /* "pysam/libcutils.pyx":260
+    /* "pysam/libcutils.pyx":269
  *     # redirect stdout to file
  *     if save_stdout:
  *         stdout_f = save_stdout             # <<<<<<<<<<<<<<
@@ -5933,284 +5967,311 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
     __Pyx_INCREF(__pyx_v_save_stdout);
     __pyx_v_stdout_f = __pyx_v_save_stdout;
 
-    /* "pysam/libcutils.pyx":261
+    /* "pysam/libcutils.pyx":270
  *     if save_stdout:
  *         stdout_f = save_stdout
  *         stdout_h = c_open(force_bytes(stdout_f),             # <<<<<<<<<<<<<<
  *                           O_WRONLY)
  *         if stdout_h == -1:
  */
-    __pyx_t_2 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_stdout_f, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 261, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    if (unlikely(__pyx_t_2 == Py_None)) {
+    __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_stdout_f, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 270, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    if (unlikely(__pyx_t_3 == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-      __PYX_ERR(0, 261, __pyx_L1_error)
+      __PYX_ERR(0, 270, __pyx_L1_error)
     }
-    __pyx_t_10 = __Pyx_PyBytes_AsWritableString(__pyx_t_2); if (unlikely((!__pyx_t_10) && PyErr_Occurred())) __PYX_ERR(0, 261, __pyx_L1_error)
+    __pyx_t_11 = __Pyx_PyBytes_AsWritableString(__pyx_t_3); if (unlikely((!__pyx_t_11) && PyErr_Occurred())) __PYX_ERR(0, 270, __pyx_L1_error)
 
-    /* "pysam/libcutils.pyx":262
+    /* "pysam/libcutils.pyx":271
  *         stdout_f = save_stdout
  *         stdout_h = c_open(force_bytes(stdout_f),
  *                           O_WRONLY)             # <<<<<<<<<<<<<<
  *         if stdout_h == -1:
- *             raise OSError("error while opening {} for writing".format(stdout_f))
+ *             raise IOError("error while opening {} for writing".format(stdout_f))
  */
-    __pyx_t_3 = __Pyx_PyInt_From_int(open(__pyx_t_10, O_WRONLY)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 261, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_v_stdout_h = __pyx_t_3;
-    __pyx_t_3 = 0;
+    __pyx_t_4 = __Pyx_PyInt_From_int(open(__pyx_t_11, O_WRONLY)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 270, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_v_stdout_h = __pyx_t_4;
+    __pyx_t_4 = 0;
 
-    /* "pysam/libcutils.pyx":263
+    /* "pysam/libcutils.pyx":272
  *         stdout_h = c_open(force_bytes(stdout_f),
  *                           O_WRONLY)
  *         if stdout_h == -1:             # <<<<<<<<<<<<<<
- *             raise OSError("error while opening {} for writing".format(stdout_f))
+ *             raise IOError("error while opening {} for writing".format(stdout_f))
  * 
  */
-    __pyx_t_3 = __Pyx_PyInt_EqObjC(__pyx_v_stdout_h, __pyx_int_neg_1, -1L, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 263, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 263, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(__pyx_t_1)) {
+    __pyx_t_4 = __Pyx_PyInt_EqObjC(__pyx_v_stdout_h, __pyx_int_neg_1, -1L, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 272, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 272, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    if (unlikely(__pyx_t_8)) {
 
-      /* "pysam/libcutils.pyx":264
+      /* "pysam/libcutils.pyx":273
  *                           O_WRONLY)
  *         if stdout_h == -1:
- *             raise OSError("error while opening {} for writing".format(stdout_f))             # <<<<<<<<<<<<<<
+ *             raise IOError("error while opening {} for writing".format(stdout_f))             # <<<<<<<<<<<<<<
  * 
- *         pysam_set_stdout_fn(force_bytes(stdout_f))
+ *         samtools_set_stdout_fn(force_bytes(stdout_f))
  */
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_error_while_opening_for_writing, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 264, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_6 = NULL;
-      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
-        __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_2);
-        if (likely(__pyx_t_6)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-          __Pyx_INCREF(__pyx_t_6);
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_error_while_opening_for_writing, __pyx_n_s_format); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 273, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_7 = NULL;
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_3);
+        if (likely(__pyx_t_7)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_7);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_2, function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
         }
       }
-      if (!__pyx_t_6) {
-        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_stdout_f); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 264, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
+      if (!__pyx_t_7) {
+        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_stdout_f); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 273, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
       } else {
         #if CYTHON_FAST_PYCALL
-        if (PyFunction_Check(__pyx_t_2)) {
-          PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_stdout_f};
-          __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 264, __pyx_L1_error)
-          __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-          __Pyx_GOTREF(__pyx_t_3);
+        if (PyFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_stdout_f};
+          __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 273, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+          __Pyx_GOTREF(__pyx_t_4);
         } else
         #endif
         #if CYTHON_FAST_PYCCALL
-        if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-          PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_stdout_f};
-          __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 264, __pyx_L1_error)
-          __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-          __Pyx_GOTREF(__pyx_t_3);
+        if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_stdout_f};
+          __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 273, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+          __Pyx_GOTREF(__pyx_t_4);
         } else
         #endif
         {
-          __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 264, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_6); __pyx_t_6 = NULL;
+          __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 273, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_7); __pyx_t_7 = NULL;
           __Pyx_INCREF(__pyx_v_stdout_f);
           __Pyx_GIVEREF(__pyx_v_stdout_f);
-          PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_stdout_f);
-          __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 264, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_stdout_f);
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 273, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         }
       }
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_OSError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 264, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_Raise(__pyx_t_2, 0, 0, 0);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __PYX_ERR(0, 264, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 273, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __PYX_ERR(0, 273, __pyx_L1_error)
 
-      /* "pysam/libcutils.pyx":263
+      /* "pysam/libcutils.pyx":272
  *         stdout_h = c_open(force_bytes(stdout_f),
  *                           O_WRONLY)
  *         if stdout_h == -1:             # <<<<<<<<<<<<<<
- *             raise OSError("error while opening {} for writing".format(stdout_f))
+ *             raise IOError("error while opening {} for writing".format(stdout_f))
  * 
  */
     }
 
-    /* "pysam/libcutils.pyx":266
- *             raise OSError("error while opening {} for writing".format(stdout_f))
+    /* "pysam/libcutils.pyx":275
+ *             raise IOError("error while opening {} for writing".format(stdout_f))
  * 
- *         pysam_set_stdout_fn(force_bytes(stdout_f))             # <<<<<<<<<<<<<<
- *         pysam_set_stdout(stdout_h)
- *     elif catch_stdout:
+ *         samtools_set_stdout_fn(force_bytes(stdout_f))             # <<<<<<<<<<<<<<
+ *         samtools_set_stdout(stdout_h)
+ *         bcftools_set_stdout_fn(force_bytes(stdout_f))
  */
-    __pyx_t_2 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_stdout_f, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 266, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    if (unlikely(__pyx_t_2 == Py_None)) {
+    __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_stdout_f, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 275, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    if (unlikely(__pyx_t_3 == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-      __PYX_ERR(0, 266, __pyx_L1_error)
+      __PYX_ERR(0, 275, __pyx_L1_error)
     }
-    __pyx_t_11 = __Pyx_PyBytes_AsString(__pyx_t_2); if (unlikely((!__pyx_t_11) && PyErr_Occurred())) __PYX_ERR(0, 266, __pyx_L1_error)
-    pysam_set_stdout_fn(__pyx_t_11);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_12 = __Pyx_PyBytes_AsString(__pyx_t_3); if (unlikely((!__pyx_t_12) && PyErr_Occurred())) __PYX_ERR(0, 275, __pyx_L1_error)
+    samtools_set_stdout_fn(__pyx_t_12);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "pysam/libcutils.pyx":267
+    /* "pysam/libcutils.pyx":276
  * 
- *         pysam_set_stdout_fn(force_bytes(stdout_f))
- *         pysam_set_stdout(stdout_h)             # <<<<<<<<<<<<<<
- *     elif catch_stdout:
- *         stdout_h, stdout_f = tempfile.mkstemp()
+ *         samtools_set_stdout_fn(force_bytes(stdout_f))
+ *         samtools_set_stdout(stdout_h)             # <<<<<<<<<<<<<<
+ *         bcftools_set_stdout_fn(force_bytes(stdout_f))
+ *         bcftools_set_stdout(stdout_h)
  */
-    __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_v_stdout_h); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 267, __pyx_L1_error)
-    pysam_set_stdout(__pyx_t_9);
+    __pyx_t_10 = __Pyx_PyInt_As_int(__pyx_v_stdout_h); if (unlikely((__pyx_t_10 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L1_error)
+    samtools_set_stdout(__pyx_t_10);
 
-    /* "pysam/libcutils.pyx":259
+    /* "pysam/libcutils.pyx":277
+ *         samtools_set_stdout_fn(force_bytes(stdout_f))
+ *         samtools_set_stdout(stdout_h)
+ *         bcftools_set_stdout_fn(force_bytes(stdout_f))             # <<<<<<<<<<<<<<
+ *         bcftools_set_stdout(stdout_h)
+ * 
+ */
+    __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_stdout_f, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 277, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    if (unlikely(__pyx_t_3 == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
+      __PYX_ERR(0, 277, __pyx_L1_error)
+    }
+    __pyx_t_13 = __Pyx_PyBytes_AsString(__pyx_t_3); if (unlikely((!__pyx_t_13) && PyErr_Occurred())) __PYX_ERR(0, 277, __pyx_L1_error)
+    bcftools_set_stdout_fn(__pyx_t_13);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+    /* "pysam/libcutils.pyx":278
+ *         samtools_set_stdout(stdout_h)
+ *         bcftools_set_stdout_fn(force_bytes(stdout_f))
+ *         bcftools_set_stdout(stdout_h)             # <<<<<<<<<<<<<<
+ * 
+ *     elif catch_stdout:
+ */
+    __pyx_t_10 = __Pyx_PyInt_As_int(__pyx_v_stdout_h); if (unlikely((__pyx_t_10 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 278, __pyx_L1_error)
+    bcftools_set_stdout(__pyx_t_10);
+
+    /* "pysam/libcutils.pyx":268
  * 
  *     # redirect stdout to file
  *     if save_stdout:             # <<<<<<<<<<<<<<
  *         stdout_f = save_stdout
  *         stdout_h = c_open(force_bytes(stdout_f),
  */
-    goto __pyx_L8;
+    goto __pyx_L10;
   }
 
-  /* "pysam/libcutils.pyx":268
- *         pysam_set_stdout_fn(force_bytes(stdout_f))
- *         pysam_set_stdout(stdout_h)
+  /* "pysam/libcutils.pyx":280
+ *         bcftools_set_stdout(stdout_h)
+ * 
  *     elif catch_stdout:             # <<<<<<<<<<<<<<
  *         stdout_h, stdout_f = tempfile.mkstemp()
- * 
- */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_catch_stdout); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 268, __pyx_L1_error)
-  if (__pyx_t_1) {
-
-    /* "pysam/libcutils.pyx":269
- *         pysam_set_stdout(stdout_h)
- *     elif catch_stdout:
- *         stdout_h, stdout_f = tempfile.mkstemp()             # <<<<<<<<<<<<<<
- * 
  *         MAP_STDOUT_OPTIONS = {
  */
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_tempfile); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 269, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_mkstemp); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 269, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_catch_stdout); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 280, __pyx_L1_error)
+  if (__pyx_t_8) {
+
+    /* "pysam/libcutils.pyx":281
+ * 
+ *     elif catch_stdout:
+ *         stdout_h, stdout_f = tempfile.mkstemp()             # <<<<<<<<<<<<<<
+ *         MAP_STDOUT_OPTIONS = {
+ *         "samtools": {
+ */
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_tempfile); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 281, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = NULL;
-    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-      __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_4);
-      if (likely(__pyx_t_3)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-        __Pyx_INCREF(__pyx_t_3);
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_mkstemp); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 281, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_4 = NULL;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
+      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_5);
+      if (likely(__pyx_t_4)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+        __Pyx_INCREF(__pyx_t_4);
         __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_4, function);
+        __Pyx_DECREF_SET(__pyx_t_5, function);
       }
     }
-    if (__pyx_t_3) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 269, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    if (__pyx_t_4) {
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 281, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     } else {
-      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 269, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 281, __pyx_L1_error)
     }
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if ((likely(PyTuple_CheckExact(__pyx_t_2))) || (PyList_CheckExact(__pyx_t_2))) {
-      PyObject* sequence = __pyx_t_2;
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    if ((likely(PyTuple_CheckExact(__pyx_t_3))) || (PyList_CheckExact(__pyx_t_3))) {
+      PyObject* sequence = __pyx_t_3;
       Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 269, __pyx_L1_error)
+        __PYX_ERR(0, 281, __pyx_L1_error)
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
       if (likely(PyTuple_CheckExact(sequence))) {
-        __pyx_t_4 = PyTuple_GET_ITEM(sequence, 0); 
-        __pyx_t_3 = PyTuple_GET_ITEM(sequence, 1); 
+        __pyx_t_5 = PyTuple_GET_ITEM(sequence, 0); 
+        __pyx_t_4 = PyTuple_GET_ITEM(sequence, 1); 
       } else {
-        __pyx_t_4 = PyList_GET_ITEM(sequence, 0); 
-        __pyx_t_3 = PyList_GET_ITEM(sequence, 1); 
+        __pyx_t_5 = PyList_GET_ITEM(sequence, 0); 
+        __pyx_t_4 = PyList_GET_ITEM(sequence, 1); 
       }
+      __Pyx_INCREF(__pyx_t_5);
       __Pyx_INCREF(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_3);
       #else
-      __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 269, __pyx_L1_error)
+      __pyx_t_5 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 281, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 281, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 269, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
       #endif
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_6 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 269, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_8 = Py_TYPE(__pyx_t_6)->tp_iternext;
-      index = 0; __pyx_t_4 = __pyx_t_8(__pyx_t_6); if (unlikely(!__pyx_t_4)) goto __pyx_L10_unpacking_failed;
+      __pyx_t_7 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 281, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_9 = Py_TYPE(__pyx_t_7)->tp_iternext;
+      index = 0; __pyx_t_5 = __pyx_t_9(__pyx_t_7); if (unlikely(!__pyx_t_5)) goto __pyx_L12_unpacking_failed;
+      __Pyx_GOTREF(__pyx_t_5);
+      index = 1; __pyx_t_4 = __pyx_t_9(__pyx_t_7); if (unlikely(!__pyx_t_4)) goto __pyx_L12_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_4);
-      index = 1; __pyx_t_3 = __pyx_t_8(__pyx_t_6); if (unlikely(!__pyx_t_3)) goto __pyx_L10_unpacking_failed;
-      __Pyx_GOTREF(__pyx_t_3);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_6), 2) < 0) __PYX_ERR(0, 269, __pyx_L1_error)
-      __pyx_t_8 = NULL;
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      goto __pyx_L11_unpacking_done;
-      __pyx_L10_unpacking_failed:;
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_8 = NULL;
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_9(__pyx_t_7), 2) < 0) __PYX_ERR(0, 281, __pyx_L1_error)
+      __pyx_t_9 = NULL;
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      goto __pyx_L13_unpacking_done;
+      __pyx_L12_unpacking_failed:;
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_9 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 269, __pyx_L1_error)
-      __pyx_L11_unpacking_done:;
+      __PYX_ERR(0, 281, __pyx_L1_error)
+      __pyx_L13_unpacking_done:;
     }
-    __pyx_v_stdout_h = __pyx_t_4;
+    __pyx_v_stdout_h = __pyx_t_5;
+    __pyx_t_5 = 0;
+    __pyx_v_stdout_f = __pyx_t_4;
     __pyx_t_4 = 0;
-    __pyx_v_stdout_f = __pyx_t_3;
-    __pyx_t_3 = 0;
 
-    /* "pysam/libcutils.pyx":272
- * 
+    /* "pysam/libcutils.pyx":283
+ *         stdout_h, stdout_f = tempfile.mkstemp()
  *         MAP_STDOUT_OPTIONS = {
- *             "samtools": {             # <<<<<<<<<<<<<<
- *                 "view": "-o {}",
- *                 "mpileup": "-o {}",
+ *         "samtools": {             # <<<<<<<<<<<<<<
+ *             "view": "-o {}",
+ *             "mpileup": "-o {}",
  */
-    __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 272, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-
-    /* "pysam/libcutils.pyx":273
- *         MAP_STDOUT_OPTIONS = {
- *             "samtools": {
- *                 "view": "-o {}",             # <<<<<<<<<<<<<<
- *                 "mpileup": "-o {}",
- *                 "depad": "-o {}",
- */
-    __pyx_t_3 = __Pyx_PyDict_NewPresized(4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 273, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 283, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_view, __pyx_kp_s_o) < 0) __PYX_ERR(0, 273, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_mpileup, __pyx_kp_s_o) < 0) __PYX_ERR(0, 273, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_depad, __pyx_kp_s_o) < 0) __PYX_ERR(0, 273, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_calmd, __pyx_kp_s_) < 0) __PYX_ERR(0, 273, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_samtools, __pyx_t_3) < 0) __PYX_ERR(0, 272, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "pysam/libcutils.pyx":278
- *                 "calmd": "",  # uses pysam_stdout_fn
- *             },
+    /* "pysam/libcutils.pyx":284
+ *         MAP_STDOUT_OPTIONS = {
+ *         "samtools": {
+ *             "view": "-o {}",             # <<<<<<<<<<<<<<
+ *             "mpileup": "-o {}",
+ *             "depad": "-o {}",
+ */
+    __pyx_t_4 = __Pyx_PyDict_NewPresized(4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 284, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_view, __pyx_kp_s_o) < 0) __PYX_ERR(0, 284, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_mpileup, __pyx_kp_s_o) < 0) __PYX_ERR(0, 284, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_depad, __pyx_kp_s_o) < 0) __PYX_ERR(0, 284, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_calmd, __pyx_kp_s_) < 0) __PYX_ERR(0, 284, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_samtools, __pyx_t_4) < 0) __PYX_ERR(0, 283, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+    /* "pysam/libcutils.pyx":289
+ *             "calmd": "",  # uses pysam_stdout_fn
+ *         },
  *             "bcftools": {}             # <<<<<<<<<<<<<<
  *         }
  * 
  */
-    __pyx_t_3 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 278, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_bcftools, __pyx_t_3) < 0) __PYX_ERR(0, 272, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_v_MAP_STDOUT_OPTIONS = ((PyObject*)__pyx_t_2);
-    __pyx_t_2 = 0;
+    __pyx_t_4 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 289, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_bcftools, __pyx_t_4) < 0) __PYX_ERR(0, 283, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_v_MAP_STDOUT_OPTIONS = ((PyObject*)__pyx_t_3);
+    __pyx_t_3 = 0;
 
-    /* "pysam/libcutils.pyx":281
+    /* "pysam/libcutils.pyx":292
  *         }
  * 
  *         stdout_option = None             # <<<<<<<<<<<<<<
@@ -6220,17 +6281,17 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
     __Pyx_INCREF(Py_None);
     __pyx_v_stdout_option = Py_None;
 
-    /* "pysam/libcutils.pyx":282
+    /* "pysam/libcutils.pyx":293
  * 
  *         stdout_option = None
  *         if collection == "bcftools":             # <<<<<<<<<<<<<<
  *             # in bcftools, most methods accept -o, the exceptions
  *             # are below:
  */
-    __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_collection, __pyx_n_s_bcftools, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 282, __pyx_L1_error)
-    if (__pyx_t_1) {
+    __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_v_collection, __pyx_n_s_bcftools, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 293, __pyx_L1_error)
+    if (__pyx_t_8) {
 
-      /* "pysam/libcutils.pyx":285
+      /* "pysam/libcutils.pyx":296
  *             # in bcftools, most methods accept -o, the exceptions
  *             # are below:
  *             if method not in ("index", "roh", "stats"):             # <<<<<<<<<<<<<<
@@ -6238,27 +6299,27 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  *         elif method in MAP_STDOUT_OPTIONS[collection]:
  */
       __Pyx_INCREF(__pyx_v_method);
-      __pyx_t_2 = __pyx_v_method;
-      __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_t_2, __pyx_n_s_index, Py_NE)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 285, __pyx_L1_error)
-      if (__pyx_t_7) {
+      __pyx_t_3 = __pyx_v_method;
+      __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_t_3, __pyx_n_s_index, Py_NE)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 296, __pyx_L1_error)
+      if (__pyx_t_1) {
       } else {
-        __pyx_t_1 = __pyx_t_7;
-        goto __pyx_L14_bool_binop_done;
+        __pyx_t_8 = __pyx_t_1;
+        goto __pyx_L16_bool_binop_done;
       }
-      __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_t_2, __pyx_n_s_roh, Py_NE)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 285, __pyx_L1_error)
-      if (__pyx_t_7) {
+      __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_t_3, __pyx_n_s_roh, Py_NE)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 296, __pyx_L1_error)
+      if (__pyx_t_1) {
       } else {
-        __pyx_t_1 = __pyx_t_7;
-        goto __pyx_L14_bool_binop_done;
+        __pyx_t_8 = __pyx_t_1;
+        goto __pyx_L16_bool_binop_done;
       }
-      __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_t_2, __pyx_n_s_stats, Py_NE)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 285, __pyx_L1_error)
-      __pyx_t_1 = __pyx_t_7;
-      __pyx_L14_bool_binop_done:;
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_7 = (__pyx_t_1 != 0);
-      if (__pyx_t_7) {
+      __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_t_3, __pyx_n_s_stats, Py_NE)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 296, __pyx_L1_error)
+      __pyx_t_8 = __pyx_t_1;
+      __pyx_L16_bool_binop_done:;
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_1 = (__pyx_t_8 != 0);
+      if (__pyx_t_1) {
 
-        /* "pysam/libcutils.pyx":286
+        /* "pysam/libcutils.pyx":297
  *             # are below:
  *             if method not in ("index", "roh", "stats"):
  *                 stdout_option = "-o {}"             # <<<<<<<<<<<<<<
@@ -6268,7 +6329,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
         __Pyx_INCREF(__pyx_kp_s_o);
         __Pyx_DECREF_SET(__pyx_v_stdout_option, __pyx_kp_s_o);
 
-        /* "pysam/libcutils.pyx":285
+        /* "pysam/libcutils.pyx":296
  *             # in bcftools, most methods accept -o, the exceptions
  *             # are below:
  *             if method not in ("index", "roh", "stats"):             # <<<<<<<<<<<<<<
@@ -6277,66 +6338,66 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  */
       }
 
-      /* "pysam/libcutils.pyx":282
+      /* "pysam/libcutils.pyx":293
  * 
  *         stdout_option = None
  *         if collection == "bcftools":             # <<<<<<<<<<<<<<
  *             # in bcftools, most methods accept -o, the exceptions
  *             # are below:
  */
-      goto __pyx_L12;
+      goto __pyx_L14;
     }
 
-    /* "pysam/libcutils.pyx":287
+    /* "pysam/libcutils.pyx":298
  *             if method not in ("index", "roh", "stats"):
  *                 stdout_option = "-o {}"
  *         elif method in MAP_STDOUT_OPTIONS[collection]:             # <<<<<<<<<<<<<<
  *             # special case - samtools view -c outputs on stdout
  *             if not(method == "view" and "-c" in args):
  */
-    __pyx_t_2 = __Pyx_PyDict_GetItem(__pyx_v_MAP_STDOUT_OPTIONS, __pyx_v_collection); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_7 = (__Pyx_PySequence_ContainsTF(__pyx_v_method, __pyx_t_2, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 287, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_1 = (__pyx_t_7 != 0);
-    if (__pyx_t_1) {
+    __pyx_t_3 = __Pyx_PyDict_GetItem(__pyx_v_MAP_STDOUT_OPTIONS, __pyx_v_collection); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 298, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_1 = (__Pyx_PySequence_ContainsTF(__pyx_v_method, __pyx_t_3, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 298, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_8 = (__pyx_t_1 != 0);
+    if (__pyx_t_8) {
 
-      /* "pysam/libcutils.pyx":289
+      /* "pysam/libcutils.pyx":300
  *         elif method in MAP_STDOUT_OPTIONS[collection]:
  *             # special case - samtools view -c outputs on stdout
  *             if not(method == "view" and "-c" in args):             # <<<<<<<<<<<<<<
  *                 stdout_option = MAP_STDOUT_OPTIONS[collection][method]
  * 
  */
-      __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_v_method, __pyx_n_s_view, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 289, __pyx_L1_error)
-      if (__pyx_t_7) {
+      __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_method, __pyx_n_s_view, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 300, __pyx_L1_error)
+      if (__pyx_t_1) {
       } else {
-        __pyx_t_1 = __pyx_t_7;
-        goto __pyx_L18_bool_binop_done;
+        __pyx_t_8 = __pyx_t_1;
+        goto __pyx_L20_bool_binop_done;
       }
-      __pyx_t_7 = (__Pyx_PySequence_ContainsTF(__pyx_kp_s_c, __pyx_v_args, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 289, __pyx_L1_error)
-      __pyx_t_12 = (__pyx_t_7 != 0);
-      __pyx_t_1 = __pyx_t_12;
-      __pyx_L18_bool_binop_done:;
-      __pyx_t_12 = ((!__pyx_t_1) != 0);
-      if (__pyx_t_12) {
+      __pyx_t_1 = (__Pyx_PySequence_ContainsTF(__pyx_kp_s_c, __pyx_v_args, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 300, __pyx_L1_error)
+      __pyx_t_2 = (__pyx_t_1 != 0);
+      __pyx_t_8 = __pyx_t_2;
+      __pyx_L20_bool_binop_done:;
+      __pyx_t_2 = ((!__pyx_t_8) != 0);
+      if (__pyx_t_2) {
 
-        /* "pysam/libcutils.pyx":290
+        /* "pysam/libcutils.pyx":301
  *             # special case - samtools view -c outputs on stdout
  *             if not(method == "view" and "-c" in args):
  *                 stdout_option = MAP_STDOUT_OPTIONS[collection][method]             # <<<<<<<<<<<<<<
  * 
- *         if stdout_option is not None:
+ *         if stdout_option is not None and not is_usage:
  */
-        __pyx_t_2 = __Pyx_PyDict_GetItem(__pyx_v_MAP_STDOUT_OPTIONS, __pyx_v_collection); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 290, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_t_2, __pyx_v_method); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 290, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyDict_GetItem(__pyx_v_MAP_STDOUT_OPTIONS, __pyx_v_collection); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 301, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __Pyx_DECREF_SET(__pyx_v_stdout_option, __pyx_t_3);
-        __pyx_t_3 = 0;
+        __pyx_t_4 = __Pyx_PyObject_GetItem(__pyx_t_3, __pyx_v_method); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 301, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_DECREF_SET(__pyx_v_stdout_option, __pyx_t_4);
+        __pyx_t_4 = 0;
 
-        /* "pysam/libcutils.pyx":289
+        /* "pysam/libcutils.pyx":300
  *         elif method in MAP_STDOUT_OPTIONS[collection]:
  *             # special case - samtools view -c outputs on stdout
  *             if not(method == "view" and "-c" in args):             # <<<<<<<<<<<<<<
@@ -6345,7 +6406,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  */
       }
 
-      /* "pysam/libcutils.pyx":287
+      /* "pysam/libcutils.pyx":298
  *             if method not in ("index", "roh", "stats"):
  *                 stdout_option = "-o {}"
  *         elif method in MAP_STDOUT_OPTIONS[collection]:             # <<<<<<<<<<<<<<
@@ -6353,340 +6414,385 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  *             if not(method == "view" and "-c" in args):
  */
     }
-    __pyx_L12:;
+    __pyx_L14:;
 
-    /* "pysam/libcutils.pyx":292
+    /* "pysam/libcutils.pyx":303
  *                 stdout_option = MAP_STDOUT_OPTIONS[collection][method]
  * 
- *         if stdout_option is not None:             # <<<<<<<<<<<<<<
+ *         if stdout_option is not None and not is_usage:             # <<<<<<<<<<<<<<
  *             os.close(stdout_h)
- *             pysam_set_stdout_fn(force_bytes(stdout_f))
+ *             samtools_set_stdout_fn(force_bytes(stdout_f))
  */
-    __pyx_t_12 = (__pyx_v_stdout_option != Py_None);
-    __pyx_t_1 = (__pyx_t_12 != 0);
+    __pyx_t_8 = (__pyx_v_stdout_option != Py_None);
+    __pyx_t_1 = (__pyx_t_8 != 0);
     if (__pyx_t_1) {
+    } else {
+      __pyx_t_2 = __pyx_t_1;
+      goto __pyx_L23_bool_binop_done;
+    }
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_is_usage); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 303, __pyx_L1_error)
+    __pyx_t_8 = ((!__pyx_t_1) != 0);
+    __pyx_t_2 = __pyx_t_8;
+    __pyx_L23_bool_binop_done:;
+    if (__pyx_t_2) {
 
-      /* "pysam/libcutils.pyx":293
+      /* "pysam/libcutils.pyx":304
  * 
- *         if stdout_option is not None:
+ *         if stdout_option is not None and not is_usage:
  *             os.close(stdout_h)             # <<<<<<<<<<<<<<
- *             pysam_set_stdout_fn(force_bytes(stdout_f))
- *             args.extend(stdout_option.format(stdout_f).split(" "))
+ *             samtools_set_stdout_fn(force_bytes(stdout_f))
+ *             bcftools_set_stdout_fn(force_bytes(stdout_f))
  */
-      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 293, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_close); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 293, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = NULL;
-      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-        __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_4);
-        if (likely(__pyx_t_2)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-          __Pyx_INCREF(__pyx_t_2);
+      __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 304, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_close); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 304, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_3 = NULL;
+      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
+        __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_5);
+        if (likely(__pyx_t_3)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+          __Pyx_INCREF(__pyx_t_3);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_4, function);
+          __Pyx_DECREF_SET(__pyx_t_5, function);
         }
       }
-      if (!__pyx_t_2) {
-        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_stdout_h); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 293, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
+      if (!__pyx_t_3) {
+        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_stdout_h); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 304, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
       } else {
         #if CYTHON_FAST_PYCALL
-        if (PyFunction_Check(__pyx_t_4)) {
-          PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_v_stdout_h};
-          __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 293, __pyx_L1_error)
-          __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __Pyx_GOTREF(__pyx_t_3);
+        if (PyFunction_Check(__pyx_t_5)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_stdout_h};
+          __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 304, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+          __Pyx_GOTREF(__pyx_t_4);
         } else
         #endif
         #if CYTHON_FAST_PYCCALL
-        if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-          PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_v_stdout_h};
-          __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 293, __pyx_L1_error)
-          __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __Pyx_GOTREF(__pyx_t_3);
+        if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_stdout_h};
+          __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 304, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+          __Pyx_GOTREF(__pyx_t_4);
         } else
         #endif
         {
-          __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 293, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_6);
-          __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_2); __pyx_t_2 = NULL;
+          __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 304, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_7);
+          __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3); __pyx_t_3 = NULL;
           __Pyx_INCREF(__pyx_v_stdout_h);
           __Pyx_GIVEREF(__pyx_v_stdout_h);
-          PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_stdout_h);
-          __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 293, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+          PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_stdout_h);
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 304, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
         }
       }
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "pysam/libcutils.pyx":294
- *         if stdout_option is not None:
+      /* "pysam/libcutils.pyx":305
+ *         if stdout_option is not None and not is_usage:
  *             os.close(stdout_h)
- *             pysam_set_stdout_fn(force_bytes(stdout_f))             # <<<<<<<<<<<<<<
+ *             samtools_set_stdout_fn(force_bytes(stdout_f))             # <<<<<<<<<<<<<<
+ *             bcftools_set_stdout_fn(force_bytes(stdout_f))
+ *             args.extend(stdout_option.format(stdout_f).split(" "))
+ */
+      __pyx_t_4 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_stdout_f, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 305, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      if (unlikely(__pyx_t_4 == Py_None)) {
+        PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
+        __PYX_ERR(0, 305, __pyx_L1_error)
+      }
+      __pyx_t_12 = __Pyx_PyBytes_AsString(__pyx_t_4); if (unlikely((!__pyx_t_12) && PyErr_Occurred())) __PYX_ERR(0, 305, __pyx_L1_error)
+      samtools_set_stdout_fn(__pyx_t_12);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+      /* "pysam/libcutils.pyx":306
+ *             os.close(stdout_h)
+ *             samtools_set_stdout_fn(force_bytes(stdout_f))
+ *             bcftools_set_stdout_fn(force_bytes(stdout_f))             # <<<<<<<<<<<<<<
  *             args.extend(stdout_option.format(stdout_f).split(" "))
  *         else:
  */
-      __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_stdout_f, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 294, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      if (unlikely(__pyx_t_3 == Py_None)) {
+      __pyx_t_4 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_stdout_f, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 306, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      if (unlikely(__pyx_t_4 == Py_None)) {
         PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-        __PYX_ERR(0, 294, __pyx_L1_error)
+        __PYX_ERR(0, 306, __pyx_L1_error)
       }
-      __pyx_t_11 = __Pyx_PyBytes_AsString(__pyx_t_3); if (unlikely((!__pyx_t_11) && PyErr_Occurred())) __PYX_ERR(0, 294, __pyx_L1_error)
-      pysam_set_stdout_fn(__pyx_t_11);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_13 = __Pyx_PyBytes_AsString(__pyx_t_4); if (unlikely((!__pyx_t_13) && PyErr_Occurred())) __PYX_ERR(0, 306, __pyx_L1_error)
+      bcftools_set_stdout_fn(__pyx_t_13);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "pysam/libcutils.pyx":295
- *             os.close(stdout_h)
- *             pysam_set_stdout_fn(force_bytes(stdout_f))
+      /* "pysam/libcutils.pyx":307
+ *             samtools_set_stdout_fn(force_bytes(stdout_f))
+ *             bcftools_set_stdout_fn(force_bytes(stdout_f))
  *             args.extend(stdout_option.format(stdout_f).split(" "))             # <<<<<<<<<<<<<<
  *         else:
- *             pysam_set_stdout(stdout_h)
+ *             samtools_set_stdout(stdout_h)
  */
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_args, __pyx_n_s_extend); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 295, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_stdout_option, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 295, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_5 = NULL;
-      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
-        __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_2);
-        if (likely(__pyx_t_5)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-          __Pyx_INCREF(__pyx_t_5);
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_args, __pyx_n_s_extend); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 307, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_stdout_option, __pyx_n_s_format); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 307, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_6 = NULL;
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_3);
+        if (likely(__pyx_t_6)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_6);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_2, function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
         }
       }
-      if (!__pyx_t_5) {
-        __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_stdout_f); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 295, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
+      if (!__pyx_t_6) {
+        __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_stdout_f); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 307, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
       } else {
         #if CYTHON_FAST_PYCALL
-        if (PyFunction_Check(__pyx_t_2)) {
-          PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_stdout_f};
-          __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-          __Pyx_GOTREF(__pyx_t_6);
+        if (PyFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_stdout_f};
+          __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 307, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+          __Pyx_GOTREF(__pyx_t_7);
         } else
         #endif
         #if CYTHON_FAST_PYCCALL
-        if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-          PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_stdout_f};
-          __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-          __Pyx_GOTREF(__pyx_t_6);
+        if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_stdout_f};
+          __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 307, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+          __Pyx_GOTREF(__pyx_t_7);
         } else
         #endif
         {
-          __pyx_t_13 = PyTuple_New(1+1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_13);
-          __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_5); __pyx_t_5 = NULL;
+          __pyx_t_14 = PyTuple_New(1+1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 307, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_14);
+          __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_14, 0, __pyx_t_6); __pyx_t_6 = NULL;
           __Pyx_INCREF(__pyx_v_stdout_f);
           __Pyx_GIVEREF(__pyx_v_stdout_f);
-          PyTuple_SET_ITEM(__pyx_t_13, 0+1, __pyx_v_stdout_f);
-          __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_13, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_6);
-          __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+          PyTuple_SET_ITEM(__pyx_t_14, 0+1, __pyx_v_stdout_f);
+          __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_14, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 307, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_7);
+          __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
         }
       }
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_split); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 295, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 295, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = NULL;
-      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
-        __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_4);
-        if (likely(__pyx_t_2)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-          __Pyx_INCREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_split); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 307, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 307, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_3 = NULL;
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
+        __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_5);
+        if (likely(__pyx_t_3)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+          __Pyx_INCREF(__pyx_t_3);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_4, function);
+          __Pyx_DECREF_SET(__pyx_t_5, function);
         }
       }
-      if (!__pyx_t_2) {
-        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 295, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __Pyx_GOTREF(__pyx_t_3);
+      if (!__pyx_t_3) {
+        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 307, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __Pyx_GOTREF(__pyx_t_4);
       } else {
         #if CYTHON_FAST_PYCALL
-        if (PyFunction_Check(__pyx_t_4)) {
-          PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_6};
-          __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+        if (PyFunction_Check(__pyx_t_5)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_7};
+          __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 307, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
         } else
         #endif
         #if CYTHON_FAST_PYCCALL
-        if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-          PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_6};
-          __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+        if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_7};
+          __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 307, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
         } else
         #endif
         {
-          __pyx_t_13 = PyTuple_New(1+1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_13);
-          __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_2); __pyx_t_2 = NULL;
-          __Pyx_GIVEREF(__pyx_t_6);
-          PyTuple_SET_ITEM(__pyx_t_13, 0+1, __pyx_t_6);
-          __pyx_t_6 = 0;
-          __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_13, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+          __pyx_t_14 = PyTuple_New(1+1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 307, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_14);
+          __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_14, 0, __pyx_t_3); __pyx_t_3 = NULL;
+          __Pyx_GIVEREF(__pyx_t_7);
+          PyTuple_SET_ITEM(__pyx_t_14, 0+1, __pyx_t_7);
+          __pyx_t_7 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_14, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 307, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
         }
       }
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "pysam/libcutils.pyx":292
+      /* "pysam/libcutils.pyx":303
  *                 stdout_option = MAP_STDOUT_OPTIONS[collection][method]
  * 
- *         if stdout_option is not None:             # <<<<<<<<<<<<<<
+ *         if stdout_option is not None and not is_usage:             # <<<<<<<<<<<<<<
  *             os.close(stdout_h)
- *             pysam_set_stdout_fn(force_bytes(stdout_f))
+ *             samtools_set_stdout_fn(force_bytes(stdout_f))
  */
-      goto __pyx_L20;
+      goto __pyx_L22;
     }
 
-    /* "pysam/libcutils.pyx":297
+    /* "pysam/libcutils.pyx":309
  *             args.extend(stdout_option.format(stdout_f).split(" "))
  *         else:
- *             pysam_set_stdout(stdout_h)             # <<<<<<<<<<<<<<
+ *             samtools_set_stdout(stdout_h)             # <<<<<<<<<<<<<<
+ *             bcftools_set_stdout(stdout_h)
  *     else:
- *         pysam_set_stdout_fn("-")
  */
     /*else*/ {
-      __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_v_stdout_h); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 297, __pyx_L1_error)
-      pysam_set_stdout(__pyx_t_9);
-    }
-    __pyx_L20:;
+      __pyx_t_10 = __Pyx_PyInt_As_int(__pyx_v_stdout_h); if (unlikely((__pyx_t_10 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 309, __pyx_L1_error)
+      samtools_set_stdout(__pyx_t_10);
 
-    /* "pysam/libcutils.pyx":268
- *         pysam_set_stdout_fn(force_bytes(stdout_f))
- *         pysam_set_stdout(stdout_h)
+      /* "pysam/libcutils.pyx":310
+ *         else:
+ *             samtools_set_stdout(stdout_h)
+ *             bcftools_set_stdout(stdout_h)             # <<<<<<<<<<<<<<
+ *     else:
+ *         samtools_set_stdout_fn("-")
+ */
+      __pyx_t_10 = __Pyx_PyInt_As_int(__pyx_v_stdout_h); if (unlikely((__pyx_t_10 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 310, __pyx_L1_error)
+      bcftools_set_stdout(__pyx_t_10);
+    }
+    __pyx_L22:;
+
+    /* "pysam/libcutils.pyx":280
+ *         bcftools_set_stdout(stdout_h)
+ * 
  *     elif catch_stdout:             # <<<<<<<<<<<<<<
  *         stdout_h, stdout_f = tempfile.mkstemp()
- * 
+ *         MAP_STDOUT_OPTIONS = {
  */
-    goto __pyx_L8;
+    goto __pyx_L10;
   }
 
-  /* "pysam/libcutils.pyx":299
- *             pysam_set_stdout(stdout_h)
+  /* "pysam/libcutils.pyx":312
+ *             bcftools_set_stdout(stdout_h)
  *     else:
- *         pysam_set_stdout_fn("-")             # <<<<<<<<<<<<<<
+ *         samtools_set_stdout_fn("-")             # <<<<<<<<<<<<<<
+ *         bcftools_set_stdout_fn("-")
+ * 
+ */
+  /*else*/ {
+    samtools_set_stdout_fn(((char const *)"-"));
+
+    /* "pysam/libcutils.pyx":313
+ *     else:
+ *         samtools_set_stdout_fn("-")
+ *         bcftools_set_stdout_fn("-")             # <<<<<<<<<<<<<<
  * 
  *     # setup the function call to samtools/bcftools main
  */
-  /*else*/ {
-    pysam_set_stdout_fn(((char const *)"-"));
+    bcftools_set_stdout_fn(((char const *)"-"));
   }
-  __pyx_L8:;
+  __pyx_L10:;
 
-  /* "pysam/libcutils.pyx":304
+  /* "pysam/libcutils.pyx":318
  *     cdef char ** cargs
  *     cdef int i, n, retval, l
  *     n = len(args)             # <<<<<<<<<<<<<<
  *     method = force_bytes(method)
  *     collection = force_bytes(collection)
  */
-  __pyx_t_14 = PyObject_Length(__pyx_v_args); if (unlikely(__pyx_t_14 == ((Py_ssize_t)-1))) __PYX_ERR(0, 304, __pyx_L1_error)
-  __pyx_v_n = __pyx_t_14;
+  __pyx_t_15 = PyObject_Length(__pyx_v_args); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 318, __pyx_L1_error)
+  __pyx_v_n = __pyx_t_15;
 
-  /* "pysam/libcutils.pyx":305
+  /* "pysam/libcutils.pyx":319
  *     cdef int i, n, retval, l
  *     n = len(args)
  *     method = force_bytes(method)             # <<<<<<<<<<<<<<
  *     collection = force_bytes(collection)
  *     args = [force_bytes(a) for a in args]
  */
-  __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_method, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 305, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF_SET(__pyx_v_method, __pyx_t_3);
-  __pyx_t_3 = 0;
+  __pyx_t_4 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_method, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 319, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF_SET(__pyx_v_method, __pyx_t_4);
+  __pyx_t_4 = 0;
 
-  /* "pysam/libcutils.pyx":306
+  /* "pysam/libcutils.pyx":320
  *     n = len(args)
  *     method = force_bytes(method)
  *     collection = force_bytes(collection)             # <<<<<<<<<<<<<<
  *     args = [force_bytes(a) for a in args]
  * 
  */
-  __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_collection, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 306, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF_SET(__pyx_v_collection, __pyx_t_3);
-  __pyx_t_3 = 0;
+  __pyx_t_4 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_collection, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 320, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF_SET(__pyx_v_collection, __pyx_t_4);
+  __pyx_t_4 = 0;
 
-  /* "pysam/libcutils.pyx":307
+  /* "pysam/libcutils.pyx":321
  *     method = force_bytes(method)
  *     collection = force_bytes(collection)
  *     args = [force_bytes(a) for a in args]             # <<<<<<<<<<<<<<
  * 
  *     # allocate two more for first (dummy) argument (contains command)
  */
-  __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 307, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = PyList_New(0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 321, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   if (likely(PyList_CheckExact(__pyx_v_args)) || PyTuple_CheckExact(__pyx_v_args)) {
-    __pyx_t_4 = __pyx_v_args; __Pyx_INCREF(__pyx_t_4); __pyx_t_14 = 0;
-    __pyx_t_15 = NULL;
+    __pyx_t_5 = __pyx_v_args; __Pyx_INCREF(__pyx_t_5); __pyx_t_15 = 0;
+    __pyx_t_16 = NULL;
   } else {
-    __pyx_t_14 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_args); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 307, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_15 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 307, __pyx_L1_error)
+    __pyx_t_15 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_v_args); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 321, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_16 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 321, __pyx_L1_error)
   }
   for (;;) {
-    if (likely(!__pyx_t_15)) {
-      if (likely(PyList_CheckExact(__pyx_t_4))) {
-        if (__pyx_t_14 >= PyList_GET_SIZE(__pyx_t_4)) break;
+    if (likely(!__pyx_t_16)) {
+      if (likely(PyList_CheckExact(__pyx_t_5))) {
+        if (__pyx_t_15 >= PyList_GET_SIZE(__pyx_t_5)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_13 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_14); __Pyx_INCREF(__pyx_t_13); __pyx_t_14++; if (unlikely(0 < 0)) __PYX_ERR(0, 307, __pyx_L1_error)
+        __pyx_t_14 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_15); __Pyx_INCREF(__pyx_t_14); __pyx_t_15++; if (unlikely(0 < 0)) __PYX_ERR(0, 321, __pyx_L1_error)
         #else
-        __pyx_t_13 = PySequence_ITEM(__pyx_t_4, __pyx_t_14); __pyx_t_14++; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 307, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_13);
+        __pyx_t_14 = PySequence_ITEM(__pyx_t_5, __pyx_t_15); __pyx_t_15++; if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 321, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_14);
         #endif
       } else {
-        if (__pyx_t_14 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
+        if (__pyx_t_15 >= PyTuple_GET_SIZE(__pyx_t_5)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_13 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_14); __Pyx_INCREF(__pyx_t_13); __pyx_t_14++; if (unlikely(0 < 0)) __PYX_ERR(0, 307, __pyx_L1_error)
+        __pyx_t_14 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_15); __Pyx_INCREF(__pyx_t_14); __pyx_t_15++; if (unlikely(0 < 0)) __PYX_ERR(0, 321, __pyx_L1_error)
         #else
-        __pyx_t_13 = PySequence_ITEM(__pyx_t_4, __pyx_t_14); __pyx_t_14++; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 307, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_13);
+        __pyx_t_14 = PySequence_ITEM(__pyx_t_5, __pyx_t_15); __pyx_t_15++; if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 321, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_14);
         #endif
       }
     } else {
-      __pyx_t_13 = __pyx_t_15(__pyx_t_4);
-      if (unlikely(!__pyx_t_13)) {
+      __pyx_t_14 = __pyx_t_16(__pyx_t_5);
+      if (unlikely(!__pyx_t_14)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 307, __pyx_L1_error)
+          else __PYX_ERR(0, 321, __pyx_L1_error)
         }
         break;
       }
-      __Pyx_GOTREF(__pyx_t_13);
+      __Pyx_GOTREF(__pyx_t_14);
     }
-    __Pyx_XDECREF_SET(__pyx_v_a, __pyx_t_13);
-    __pyx_t_13 = 0;
-    __pyx_t_13 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_a, NULL); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 307, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_13);
-    if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_13))) __PYX_ERR(0, 307, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_a, __pyx_t_14);
+    __pyx_t_14 = 0;
+    __pyx_t_14 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_a, NULL); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 321, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_4, (PyObject*)__pyx_t_14))) __PYX_ERR(0, 321, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
   }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF_SET(__pyx_v_args, __pyx_t_3);
-  __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF_SET(__pyx_v_args, __pyx_t_4);
+  __pyx_t_4 = 0;
 
-  /* "pysam/libcutils.pyx":310
+  /* "pysam/libcutils.pyx":324
  * 
  *     # allocate two more for first (dummy) argument (contains command)
  *     cdef int extra_args = 0             # <<<<<<<<<<<<<<
@@ -6695,17 +6801,17 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  */
   __pyx_v_extra_args = 0;
 
-  /* "pysam/libcutils.pyx":311
+  /* "pysam/libcutils.pyx":325
  *     # allocate two more for first (dummy) argument (contains command)
  *     cdef int extra_args = 0
  *     if method == b"index":             # <<<<<<<<<<<<<<
  *         extra_args = 1
  *     # add extra arguments for commands accepting optional arguments
  */
-  __pyx_t_1 = (__Pyx_PyBytes_Equals(__pyx_v_method, __pyx_n_b_index, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 311, __pyx_L1_error)
-  if (__pyx_t_1) {
+  __pyx_t_2 = (__Pyx_PyBytes_Equals(__pyx_v_method, __pyx_n_b_index, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 325, __pyx_L1_error)
+  if (__pyx_t_2) {
 
-    /* "pysam/libcutils.pyx":312
+    /* "pysam/libcutils.pyx":326
  *     cdef int extra_args = 0
  *     if method == b"index":
  *         extra_args = 1             # <<<<<<<<<<<<<<
@@ -6714,7 +6820,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  */
     __pyx_v_extra_args = 1;
 
-    /* "pysam/libcutils.pyx":311
+    /* "pysam/libcutils.pyx":325
  *     # allocate two more for first (dummy) argument (contains command)
  *     cdef int extra_args = 0
  *     if method == b"index":             # <<<<<<<<<<<<<<
@@ -6723,7 +6829,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  */
   }
 
-  /* "pysam/libcutils.pyx":315
+  /* "pysam/libcutils.pyx":329
  *     # add extra arguments for commands accepting optional arguments
  *     # such as 'samtools index x.bam [out.index]'
  *     cargs = <char**>calloc(n + 2 + extra_args, sizeof(char *))             # <<<<<<<<<<<<<<
@@ -6732,50 +6838,50 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  */
   __pyx_v_cargs = ((char **)calloc(((__pyx_v_n + 2) + __pyx_v_extra_args), (sizeof(char *))));
 
-  /* "pysam/libcutils.pyx":316
+  /* "pysam/libcutils.pyx":330
  *     # such as 'samtools index x.bam [out.index]'
  *     cargs = <char**>calloc(n + 2 + extra_args, sizeof(char *))
  *     cargs[0] = collection             # <<<<<<<<<<<<<<
  *     cargs[1] = method
  * 
  */
-  __pyx_t_10 = __Pyx_PyObject_AsWritableString(__pyx_v_collection); if (unlikely((!__pyx_t_10) && PyErr_Occurred())) __PYX_ERR(0, 316, __pyx_L1_error)
-  (__pyx_v_cargs[0]) = __pyx_t_10;
+  __pyx_t_11 = __Pyx_PyObject_AsWritableString(__pyx_v_collection); if (unlikely((!__pyx_t_11) && PyErr_Occurred())) __PYX_ERR(0, 330, __pyx_L1_error)
+  (__pyx_v_cargs[0]) = __pyx_t_11;
 
-  /* "pysam/libcutils.pyx":317
+  /* "pysam/libcutils.pyx":331
  *     cargs = <char**>calloc(n + 2 + extra_args, sizeof(char *))
  *     cargs[0] = collection
  *     cargs[1] = method             # <<<<<<<<<<<<<<
  * 
  *     # create copies of strings - getopt for long options permutes
  */
-  __pyx_t_10 = __Pyx_PyObject_AsWritableString(__pyx_v_method); if (unlikely((!__pyx_t_10) && PyErr_Occurred())) __PYX_ERR(0, 317, __pyx_L1_error)
-  (__pyx_v_cargs[1]) = __pyx_t_10;
+  __pyx_t_11 = __Pyx_PyObject_AsWritableString(__pyx_v_method); if (unlikely((!__pyx_t_11) && PyErr_Occurred())) __PYX_ERR(0, 331, __pyx_L1_error)
+  (__pyx_v_cargs[1]) = __pyx_t_11;
 
-  /* "pysam/libcutils.pyx":321
+  /* "pysam/libcutils.pyx":335
  *     # create copies of strings - getopt for long options permutes
  *     # arguments
  *     for i from 0 <= i < n:             # <<<<<<<<<<<<<<
  *         l = len(args[i])
  *         cargs[i + 2] = <char *>calloc(l + 1, sizeof(char))
  */
-  __pyx_t_9 = __pyx_v_n;
-  for (__pyx_v_i = 0; __pyx_v_i < __pyx_t_9; __pyx_v_i++) {
+  __pyx_t_10 = __pyx_v_n;
+  for (__pyx_v_i = 0; __pyx_v_i < __pyx_t_10; __pyx_v_i++) {
 
-    /* "pysam/libcutils.pyx":322
+    /* "pysam/libcutils.pyx":336
  *     # arguments
  *     for i from 0 <= i < n:
  *         l = len(args[i])             # <<<<<<<<<<<<<<
  *         cargs[i + 2] = <char *>calloc(l + 1, sizeof(char))
  *         strncpy(cargs[i + 2], args[i], l)
  */
-    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_args, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 322, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_14 = PyObject_Length(__pyx_t_3); if (unlikely(__pyx_t_14 == ((Py_ssize_t)-1))) __PYX_ERR(0, 322, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_v_l = __pyx_t_14;
+    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_args, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 336, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_15 = PyObject_Length(__pyx_t_4); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 336, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_v_l = __pyx_t_15;
 
-    /* "pysam/libcutils.pyx":323
+    /* "pysam/libcutils.pyx":337
  *     for i from 0 <= i < n:
  *         l = len(args[i])
  *         cargs[i + 2] = <char *>calloc(l + 1, sizeof(char))             # <<<<<<<<<<<<<<
@@ -6784,102 +6890,120 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  */
     (__pyx_v_cargs[(__pyx_v_i + 2)]) = ((char *)calloc((__pyx_v_l + 1), (sizeof(char))));
 
-    /* "pysam/libcutils.pyx":324
+    /* "pysam/libcutils.pyx":338
  *         l = len(args[i])
  *         cargs[i + 2] = <char *>calloc(l + 1, sizeof(char))
  *         strncpy(cargs[i + 2], args[i], l)             # <<<<<<<<<<<<<<
  * 
  *     # reset getopt. On OsX there getopt reset is different
  */
-    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_args, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 324, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_16 = __Pyx_PyObject_AsString(__pyx_t_3); if (unlikely((!__pyx_t_16) && PyErr_Occurred())) __PYX_ERR(0, 324, __pyx_L1_error)
-    (void)(strncpy((__pyx_v_cargs[(__pyx_v_i + 2)]), __pyx_t_16, __pyx_v_l));
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_args, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 338, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_17 = __Pyx_PyObject_AsString(__pyx_t_4); if (unlikely((!__pyx_t_17) && PyErr_Occurred())) __PYX_ERR(0, 338, __pyx_L1_error)
+    (void)(strncpy((__pyx_v_cargs[(__pyx_v_i + 2)]), __pyx_t_17, __pyx_v_l));
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
 
-  /* "pysam/libcutils.pyx":328
+  /* "pysam/libcutils.pyx":342
  *     # reset getopt. On OsX there getopt reset is different
  *     # between getopt and getopt_long
  *     if method in [b'index', b'cat', b'quickcheck',             # <<<<<<<<<<<<<<
  *                   b'faidx', b'kprobaln']:
- *         set_optind(1)
+ *         samtools_set_optind(1)
  */
   __Pyx_INCREF(__pyx_v_method);
-  __pyx_t_3 = __pyx_v_method;
-  __pyx_t_12 = (__Pyx_PyBytes_Equals(__pyx_t_3, __pyx_n_b_index, Py_EQ)); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 328, __pyx_L1_error)
-  if (!__pyx_t_12) {
+  __pyx_t_4 = __pyx_v_method;
+  __pyx_t_8 = (__Pyx_PyBytes_Equals(__pyx_t_4, __pyx_n_b_index, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 342, __pyx_L1_error)
+  if (!__pyx_t_8) {
   } else {
-    __pyx_t_1 = __pyx_t_12;
-    goto __pyx_L27_bool_binop_done;
+    __pyx_t_2 = __pyx_t_8;
+    goto __pyx_L31_bool_binop_done;
   }
-  __pyx_t_12 = (__Pyx_PyBytes_Equals(__pyx_t_3, __pyx_n_b_cat, Py_EQ)); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 328, __pyx_L1_error)
-  if (!__pyx_t_12) {
+  __pyx_t_8 = (__Pyx_PyBytes_Equals(__pyx_t_4, __pyx_n_b_cat, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 342, __pyx_L1_error)
+  if (!__pyx_t_8) {
   } else {
-    __pyx_t_1 = __pyx_t_12;
-    goto __pyx_L27_bool_binop_done;
+    __pyx_t_2 = __pyx_t_8;
+    goto __pyx_L31_bool_binop_done;
   }
-  __pyx_t_12 = (__Pyx_PyBytes_Equals(__pyx_t_3, __pyx_n_b_quickcheck, Py_EQ)); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 328, __pyx_L1_error)
-  if (!__pyx_t_12) {
+  __pyx_t_8 = (__Pyx_PyBytes_Equals(__pyx_t_4, __pyx_n_b_quickcheck, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 342, __pyx_L1_error)
+  if (!__pyx_t_8) {
   } else {
-    __pyx_t_1 = __pyx_t_12;
-    goto __pyx_L27_bool_binop_done;
+    __pyx_t_2 = __pyx_t_8;
+    goto __pyx_L31_bool_binop_done;
   }
-  __pyx_t_12 = (__Pyx_PyBytes_Equals(__pyx_t_3, __pyx_n_b_faidx, Py_EQ)); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 328, __pyx_L1_error)
-  if (!__pyx_t_12) {
+  __pyx_t_8 = (__Pyx_PyBytes_Equals(__pyx_t_4, __pyx_n_b_faidx, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 342, __pyx_L1_error)
+  if (!__pyx_t_8) {
   } else {
-    __pyx_t_1 = __pyx_t_12;
-    goto __pyx_L27_bool_binop_done;
+    __pyx_t_2 = __pyx_t_8;
+    goto __pyx_L31_bool_binop_done;
   }
-  __pyx_t_12 = (__Pyx_PyBytes_Equals(__pyx_t_3, __pyx_n_b_kprobaln, Py_EQ)); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 328, __pyx_L1_error)
-  __pyx_t_1 = __pyx_t_12;
-  __pyx_L27_bool_binop_done:;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_12 = (__pyx_t_1 != 0);
-  if (__pyx_t_12) {
+  __pyx_t_8 = (__Pyx_PyBytes_Equals(__pyx_t_4, __pyx_n_b_kprobaln, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 342, __pyx_L1_error)
+  __pyx_t_2 = __pyx_t_8;
+  __pyx_L31_bool_binop_done:;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_8 = (__pyx_t_2 != 0);
+  if (__pyx_t_8) {
 
-    /* "pysam/libcutils.pyx":330
+    /* "pysam/libcutils.pyx":344
  *     if method in [b'index', b'cat', b'quickcheck',
  *                   b'faidx', b'kprobaln']:
- *         set_optind(1)             # <<<<<<<<<<<<<<
+ *         samtools_set_optind(1)             # <<<<<<<<<<<<<<
+ *         bcftools_set_optind(1)
  *     else:
- *         set_optind(0)
  */
-    set_optind(1);
+    samtools_set_optind(1);
 
-    /* "pysam/libcutils.pyx":328
+    /* "pysam/libcutils.pyx":345
+ *                   b'faidx', b'kprobaln']:
+ *         samtools_set_optind(1)
+ *         bcftools_set_optind(1)             # <<<<<<<<<<<<<<
+ *     else:
+ *         samtools_set_optind(0)
+ */
+    bcftools_set_optind(1);
+
+    /* "pysam/libcutils.pyx":342
  *     # reset getopt. On OsX there getopt reset is different
  *     # between getopt and getopt_long
  *     if method in [b'index', b'cat', b'quickcheck',             # <<<<<<<<<<<<<<
  *                   b'faidx', b'kprobaln']:
- *         set_optind(1)
+ *         samtools_set_optind(1)
  */
-    goto __pyx_L26;
+    goto __pyx_L30;
   }
 
-  /* "pysam/libcutils.pyx":332
- *         set_optind(1)
+  /* "pysam/libcutils.pyx":347
+ *         bcftools_set_optind(1)
  *     else:
- *         set_optind(0)             # <<<<<<<<<<<<<<
+ *         samtools_set_optind(0)             # <<<<<<<<<<<<<<
+ *         bcftools_set_optind(0)
+ * 
+ */
+  /*else*/ {
+    samtools_set_optind(0);
+
+    /* "pysam/libcutils.pyx":348
+ *     else:
+ *         samtools_set_optind(0)
+ *         bcftools_set_optind(0)             # <<<<<<<<<<<<<<
  * 
  *     # call samtools/bcftools
  */
-  /*else*/ {
-    set_optind(0);
+    bcftools_set_optind(0);
   }
-  __pyx_L26:;
+  __pyx_L30:;
 
-  /* "pysam/libcutils.pyx":335
+  /* "pysam/libcutils.pyx":351
  * 
  *     # call samtools/bcftools
  *     if collection == b"samtools":             # <<<<<<<<<<<<<<
  *         retval = samtools_main(n + 2, cargs)
  *     elif collection == b"bcftools":
  */
-  __pyx_t_12 = (__Pyx_PyBytes_Equals(__pyx_v_collection, __pyx_n_b_samtools, Py_EQ)); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 335, __pyx_L1_error)
-  if (__pyx_t_12) {
+  __pyx_t_8 = (__Pyx_PyBytes_Equals(__pyx_v_collection, __pyx_n_b_samtools, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 351, __pyx_L1_error)
+  if (__pyx_t_8) {
 
-    /* "pysam/libcutils.pyx":336
+    /* "pysam/libcutils.pyx":352
  *     # call samtools/bcftools
  *     if collection == b"samtools":
  *         retval = samtools_main(n + 2, cargs)             # <<<<<<<<<<<<<<
@@ -6888,27 +7012,27 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  */
     __pyx_v_retval = samtools_main((__pyx_v_n + 2), __pyx_v_cargs);
 
-    /* "pysam/libcutils.pyx":335
+    /* "pysam/libcutils.pyx":351
  * 
  *     # call samtools/bcftools
  *     if collection == b"samtools":             # <<<<<<<<<<<<<<
  *         retval = samtools_main(n + 2, cargs)
  *     elif collection == b"bcftools":
  */
-    goto __pyx_L32;
+    goto __pyx_L36;
   }
 
-  /* "pysam/libcutils.pyx":337
+  /* "pysam/libcutils.pyx":353
  *     if collection == b"samtools":
  *         retval = samtools_main(n + 2, cargs)
  *     elif collection == b"bcftools":             # <<<<<<<<<<<<<<
  *         retval = bcftools_main(n + 2, cargs)
  * 
  */
-  __pyx_t_12 = (__Pyx_PyBytes_Equals(__pyx_v_collection, __pyx_n_b_bcftools, Py_EQ)); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 337, __pyx_L1_error)
-  if (__pyx_t_12) {
+  __pyx_t_8 = (__Pyx_PyBytes_Equals(__pyx_v_collection, __pyx_n_b_bcftools, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 353, __pyx_L1_error)
+  if (__pyx_t_8) {
 
-    /* "pysam/libcutils.pyx":338
+    /* "pysam/libcutils.pyx":354
  *         retval = samtools_main(n + 2, cargs)
  *     elif collection == b"bcftools":
  *         retval = bcftools_main(n + 2, cargs)             # <<<<<<<<<<<<<<
@@ -6917,7 +7041,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  */
     __pyx_v_retval = bcftools_main((__pyx_v_n + 2), __pyx_v_cargs);
 
-    /* "pysam/libcutils.pyx":337
+    /* "pysam/libcutils.pyx":353
  *     if collection == b"samtools":
  *         retval = samtools_main(n + 2, cargs)
  *     elif collection == b"bcftools":             # <<<<<<<<<<<<<<
@@ -6925,19 +7049,19 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  * 
  */
   }
-  __pyx_L32:;
+  __pyx_L36:;
 
-  /* "pysam/libcutils.pyx":340
+  /* "pysam/libcutils.pyx":356
  *         retval = bcftools_main(n + 2, cargs)
  * 
  *     for i from 0 <= i < n:             # <<<<<<<<<<<<<<
  *         free(cargs[i + 2])
  *     free(cargs)
  */
-  __pyx_t_9 = __pyx_v_n;
-  for (__pyx_v_i = 0; __pyx_v_i < __pyx_t_9; __pyx_v_i++) {
+  __pyx_t_10 = __pyx_v_n;
+  for (__pyx_v_i = 0; __pyx_v_i < __pyx_t_10; __pyx_v_i++) {
 
-    /* "pysam/libcutils.pyx":341
+    /* "pysam/libcutils.pyx":357
  * 
  *     for i from 0 <= i < n:
  *         free(cargs[i + 2])             # <<<<<<<<<<<<<<
@@ -6947,7 +7071,7 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
     free((__pyx_v_cargs[(__pyx_v_i + 2)]));
   }
 
-  /* "pysam/libcutils.pyx":342
+  /* "pysam/libcutils.pyx":358
  *     for i from 0 <= i < n:
  *         free(cargs[i + 2])
  *     free(cargs)             # <<<<<<<<<<<<<<
@@ -6956,121 +7080,157 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  */
   free(__pyx_v_cargs);
 
-  /* "pysam/libcutils.pyx":345
+  /* "pysam/libcutils.pyx":361
  * 
  *     # get error messages
  *     def _collect(fn):             # <<<<<<<<<<<<<<
  *         out = []
  *         try:
  */
-  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libcutils_15_pysam_dispatch_1_collect, 0, __pyx_n_s_pysam_dispatch_locals__collect, NULL, __pyx_n_s_pysam_libcutils, __pyx_d, ((PyObject *)__pyx_codeobj__11)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 345, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_v__collect = __pyx_t_3;
-  __pyx_t_3 = 0;
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libcutils_15_pysam_dispatch_1_collect, 0, __pyx_n_s_pysam_dispatch_locals__collect, NULL, __pyx_n_s_pysam_libcutils, __pyx_d, ((PyObject *)__pyx_codeobj__11)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 361, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_v__collect = __pyx_t_4;
+  __pyx_t_4 = 0;
 
-  /* "pysam/libcutils.pyx":358
+  /* "pysam/libcutils.pyx":374
  *         return out
  * 
- *     pysam_unset_stderr()             # <<<<<<<<<<<<<<
- *     out_stderr = _collect(stderr_f)
+ *     samtools_unset_stderr()             # <<<<<<<<<<<<<<
+ *     bcftools_unset_stderr()
  * 
  */
-  pysam_unset_stderr();
+  samtools_unset_stderr();
 
-  /* "pysam/libcutils.pyx":359
+  /* "pysam/libcutils.pyx":375
  * 
- *     pysam_unset_stderr()
+ *     samtools_unset_stderr()
+ *     bcftools_unset_stderr()             # <<<<<<<<<<<<<<
+ * 
+ *     if save_stdout or catch_stdout:
+ */
+  bcftools_unset_stderr();
+
+  /* "pysam/libcutils.pyx":377
+ *     bcftools_unset_stderr()
+ * 
+ *     if save_stdout or catch_stdout:             # <<<<<<<<<<<<<<
+ *         samtools_unset_stdout()
+ *         bcftools_unset_stdout()
+ */
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_save_stdout); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 377, __pyx_L1_error)
+  if (!__pyx_t_2) {
+  } else {
+    __pyx_t_8 = __pyx_t_2;
+    goto __pyx_L40_bool_binop_done;
+  }
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_catch_stdout); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 377, __pyx_L1_error)
+  __pyx_t_8 = __pyx_t_2;
+  __pyx_L40_bool_binop_done:;
+  if (__pyx_t_8) {
+
+    /* "pysam/libcutils.pyx":378
+ * 
+ *     if save_stdout or catch_stdout:
+ *         samtools_unset_stdout()             # <<<<<<<<<<<<<<
+ *         bcftools_unset_stdout()
+ * 
+ */
+    samtools_unset_stdout();
+
+    /* "pysam/libcutils.pyx":379
+ *     if save_stdout or catch_stdout:
+ *         samtools_unset_stdout()
+ *         bcftools_unset_stdout()             # <<<<<<<<<<<<<<
+ * 
+ *     out_stderr = _collect(stderr_f)
+ */
+    bcftools_unset_stdout();
+
+    /* "pysam/libcutils.pyx":377
+ *     bcftools_unset_stderr()
+ * 
+ *     if save_stdout or catch_stdout:             # <<<<<<<<<<<<<<
+ *         samtools_unset_stdout()
+ *         bcftools_unset_stdout()
+ */
+  }
+
+  /* "pysam/libcutils.pyx":381
+ *         bcftools_unset_stdout()
+ * 
  *     out_stderr = _collect(stderr_f)             # <<<<<<<<<<<<<<
- * 
  *     if save_stdout:
- */
-  __pyx_t_3 = __pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(__pyx_v__collect, __pyx_v_stderr_f); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 359, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_v_out_stderr = __pyx_t_3;
-  __pyx_t_3 = 0;
-
-  /* "pysam/libcutils.pyx":361
- *     out_stderr = _collect(stderr_f)
- * 
- *     if save_stdout:             # <<<<<<<<<<<<<<
- *         pysam_unset_stdout()
  *         out_stdout = None
  */
-  __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_v_save_stdout); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 361, __pyx_L1_error)
-  if (__pyx_t_12) {
+  __pyx_t_4 = __pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(__pyx_v__collect, __pyx_v_stderr_f); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 381, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_v_out_stderr = __pyx_t_4;
+  __pyx_t_4 = 0;
 
-    /* "pysam/libcutils.pyx":362
+  /* "pysam/libcutils.pyx":382
  * 
- *     if save_stdout:
- *         pysam_unset_stdout()             # <<<<<<<<<<<<<<
+ *     out_stderr = _collect(stderr_f)
+ *     if save_stdout:             # <<<<<<<<<<<<<<
  *         out_stdout = None
  *     elif catch_stdout:
  */
-    pysam_unset_stdout();
+  __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_save_stdout); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 382, __pyx_L1_error)
+  if (__pyx_t_8) {
 
-    /* "pysam/libcutils.pyx":363
+    /* "pysam/libcutils.pyx":383
+ *     out_stderr = _collect(stderr_f)
  *     if save_stdout:
- *         pysam_unset_stdout()
  *         out_stdout = None             # <<<<<<<<<<<<<<
  *     elif catch_stdout:
- *         pysam_unset_stdout()
+ *         out_stdout = _collect(stdout_f)
  */
     __Pyx_INCREF(Py_None);
     __pyx_v_out_stdout = Py_None;
 
-    /* "pysam/libcutils.pyx":361
- *     out_stderr = _collect(stderr_f)
+    /* "pysam/libcutils.pyx":382
  * 
+ *     out_stderr = _collect(stderr_f)
  *     if save_stdout:             # <<<<<<<<<<<<<<
- *         pysam_unset_stdout()
- *         out_stdout = None
- */
-    goto __pyx_L35;
-  }
-
-  /* "pysam/libcutils.pyx":364
- *         pysam_unset_stdout()
- *         out_stdout = None
- *     elif catch_stdout:             # <<<<<<<<<<<<<<
- *         pysam_unset_stdout()
- *         out_stdout = _collect(stdout_f)
- */
-  __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_v_catch_stdout); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 364, __pyx_L1_error)
-  if (__pyx_t_12) {
-
-    /* "pysam/libcutils.pyx":365
  *         out_stdout = None
  *     elif catch_stdout:
- *         pysam_unset_stdout()             # <<<<<<<<<<<<<<
+ */
+    goto __pyx_L42;
+  }
+
+  /* "pysam/libcutils.pyx":384
+ *     if save_stdout:
+ *         out_stdout = None
+ *     elif catch_stdout:             # <<<<<<<<<<<<<<
  *         out_stdout = _collect(stdout_f)
  *     else:
  */
-    pysam_unset_stdout();
+  __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_catch_stdout); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 384, __pyx_L1_error)
+  if (__pyx_t_8) {
 
-    /* "pysam/libcutils.pyx":366
+    /* "pysam/libcutils.pyx":385
+ *         out_stdout = None
  *     elif catch_stdout:
- *         pysam_unset_stdout()
  *         out_stdout = _collect(stdout_f)             # <<<<<<<<<<<<<<
  *     else:
  *         out_stdout = None
  */
-    if (unlikely(!__pyx_v_stdout_f)) { __Pyx_RaiseUnboundLocalError("stdout_f"); __PYX_ERR(0, 366, __pyx_L1_error) }
-    __pyx_t_3 = __pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(__pyx_v__collect, __pyx_v_stdout_f); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 366, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_v_out_stdout = __pyx_t_3;
-    __pyx_t_3 = 0;
+    if (unlikely(!__pyx_v_stdout_f)) { __Pyx_RaiseUnboundLocalError("stdout_f"); __PYX_ERR(0, 385, __pyx_L1_error) }
+    __pyx_t_4 = __pyx_pf_5pysam_9libcutils_15_pysam_dispatch__collect(__pyx_v__collect, __pyx_v_stdout_f); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 385, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_v_out_stdout = __pyx_t_4;
+    __pyx_t_4 = 0;
 
-    /* "pysam/libcutils.pyx":364
- *         pysam_unset_stdout()
+    /* "pysam/libcutils.pyx":384
+ *     if save_stdout:
  *         out_stdout = None
  *     elif catch_stdout:             # <<<<<<<<<<<<<<
- *         pysam_unset_stdout()
  *         out_stdout = _collect(stdout_f)
+ *     else:
  */
-    goto __pyx_L35;
+    goto __pyx_L42;
   }
 
-  /* "pysam/libcutils.pyx":368
+  /* "pysam/libcutils.pyx":387
  *         out_stdout = _collect(stdout_f)
  *     else:
  *         out_stdout = None             # <<<<<<<<<<<<<<
@@ -7081,9 +7241,9 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
     __Pyx_INCREF(Py_None);
     __pyx_v_out_stdout = Py_None;
   }
-  __pyx_L35:;
+  __pyx_L42:;
 
-  /* "pysam/libcutils.pyx":370
+  /* "pysam/libcutils.pyx":389
  *         out_stdout = None
  * 
  *     return retval, out_stderr, out_stdout             # <<<<<<<<<<<<<<
@@ -7091,24 +7251,24 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_retval); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 370, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 370, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_retval); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 389, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
+  __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 389, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_GIVEREF(__pyx_t_4);
+  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
   __Pyx_INCREF(__pyx_v_out_stderr);
   __Pyx_GIVEREF(__pyx_v_out_stderr);
-  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_v_out_stderr);
+  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_v_out_stderr);
   __Pyx_INCREF(__pyx_v_out_stdout);
   __Pyx_GIVEREF(__pyx_v_out_stdout);
-  PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_v_out_stdout);
-  __pyx_t_3 = 0;
-  __pyx_r = __pyx_t_4;
+  PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_v_out_stdout);
   __pyx_t_4 = 0;
+  __pyx_r = __pyx_t_5;
+  __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcutils.pyx":233
+  /* "pysam/libcutils.pyx":235
  * 
  * 
  * def _pysam_dispatch(collection,             # <<<<<<<<<<<<<<
@@ -7118,12 +7278,12 @@ static PyObject *__pyx_pf_5pysam_9libcutils_8_pysam_dispatch(CYTHON_UNUSED PyObj
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_13);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_14);
   __Pyx_AddTraceback("pysam.libcutils._pysam_dispatch", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -7830,7 +7990,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_MAP_STDOUT_OPTIONS, __pyx_k_MAP_STDOUT_OPTIONS, sizeof(__pyx_k_MAP_STDOUT_OPTIONS), 0, 0, 1, 1},
   {&__pyx_n_s_MemoryError, __pyx_k_MemoryError, sizeof(__pyx_k_MemoryError), 0, 0, 1, 1},
   {&__pyx_kp_s_No_such_file_or_directory_s, __pyx_k_No_such_file_or_directory_s, sizeof(__pyx_k_No_such_file_or_directory_s), 0, 0, 1, 0},
-  {&__pyx_n_s_OSError, __pyx_k_OSError, sizeof(__pyx_k_OSError), 0, 0, 1, 1},
   {&__pyx_n_s_OverflowError, __pyx_k_OverflowError, sizeof(__pyx_k_OverflowError), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_n_s_UnicodeDecodeError, __pyx_k_UnicodeDecodeError, sizeof(__pyx_k_UnicodeDecodeError), 0, 0, 1, 1},
@@ -7881,6 +8040,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_input_str, __pyx_k_input_str, sizeof(__pyx_k_input_str), 0, 0, 1, 1},
   {&__pyx_kp_s_invalid_region_start_i_end_i, __pyx_k_invalid_region_start_i_end_i, sizeof(__pyx_k_invalid_region_start_i_end_i), 0, 0, 1, 0},
   {&__pyx_n_s_io, __pyx_k_io, sizeof(__pyx_k_io), 0, 0, 1, 1},
+  {&__pyx_n_s_is_usage, __pyx_k_is_usage, sizeof(__pyx_k_is_usage), 0, 0, 1, 1},
   {&__pyx_n_s_join, __pyx_k_join, sizeof(__pyx_k_join), 0, 0, 1, 1},
   {&__pyx_n_b_kprobaln, __pyx_k_kprobaln, sizeof(__pyx_k_kprobaln), 0, 0, 0, 1},
   {&__pyx_n_s_l, __pyx_k_l, sizeof(__pyx_k_l), 0, 0, 1, 1},
@@ -7936,14 +8096,13 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_chr = __Pyx_GetBuiltinName(__pyx_n_s_chr); if (!__pyx_builtin_chr) __PYX_ERR(0, 71, __pyx_L1_error)
-  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(0, 105, __pyx_L1_error)
-  __pyx_builtin_OverflowError = __Pyx_GetBuiltinName(__pyx_n_s_OverflowError); if (!__pyx_builtin_OverflowError) __PYX_ERR(0, 201, __pyx_L1_error)
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 202, __pyx_L1_error)
-  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 247, __pyx_L1_error)
-  __pyx_builtin_OSError = __Pyx_GetBuiltinName(__pyx_n_s_OSError); if (!__pyx_builtin_OSError) __PYX_ERR(0, 264, __pyx_L1_error)
-  __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 348, __pyx_L1_error)
-  __pyx_builtin_UnicodeDecodeError = __Pyx_GetBuiltinName(__pyx_n_s_UnicodeDecodeError); if (!__pyx_builtin_UnicodeDecodeError) __PYX_ERR(0, 350, __pyx_L1_error)
+  __pyx_builtin_chr = __Pyx_GetBuiltinName(__pyx_n_s_chr); if (!__pyx_builtin_chr) __PYX_ERR(0, 77, __pyx_L1_error)
+  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(0, 111, __pyx_L1_error)
+  __pyx_builtin_OverflowError = __Pyx_GetBuiltinName(__pyx_n_s_OverflowError); if (!__pyx_builtin_OverflowError) __PYX_ERR(0, 203, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 204, __pyx_L1_error)
+  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 255, __pyx_L1_error)
+  __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 364, __pyx_L1_error)
+  __pyx_builtin_UnicodeDecodeError = __Pyx_GetBuiltinName(__pyx_n_s_UnicodeDecodeError); if (!__pyx_builtin_UnicodeDecodeError) __PYX_ERR(0, 366, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 109, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -7954,95 +8113,95 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "pysam/libcutils.pyx":105
+  /* "pysam/libcutils.pyx":111
  *         return filename.encode(FILENAME_ENCODING)
  *     else:
  *         raise TypeError("Argument must be string or unicode.")             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_Argument_must_be_string_or_unico); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_Argument_must_be_string_or_unico); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "pysam/libcutils.pyx":119
+  /* "pysam/libcutils.pyx":125
  *         return s.encode(encoding)
  *     else:
  *         raise TypeError("Argument must be string, bytes or unicode.")             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_Argument_must_be_string_bytes_or); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_Argument_must_be_string_bytes_or); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "pysam/libcutils.pyx":220
+  /* "pysam/libcutils.pyx":222
  * 
  *     if not reference:
  *         return None, 0, 0             # <<<<<<<<<<<<<<
  * 
  *     if not 0 <= rstart < MAX_POS:
  */
-  __pyx_tuple__5 = PyTuple_Pack(3, Py_None, __pyx_int_0, __pyx_int_0); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 220, __pyx_L1_error)
+  __pyx_tuple__5 = PyTuple_Pack(3, Py_None, __pyx_int_0, __pyx_int_0); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 222, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "pysam/libcutils.pyx":348
+  /* "pysam/libcutils.pyx":364
  *         out = []
  *         try:
  *             with open(fn, "r") as inf:             # <<<<<<<<<<<<<<
  *                 out = inf.read()
  *         except UnicodeDecodeError:
  */
-  __pyx_tuple__6 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 348, __pyx_L1_error)
+  __pyx_tuple__6 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 364, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "pysam/libcutils.pyx":351
+  /* "pysam/libcutils.pyx":367
  *                 out = inf.read()
  *         except UnicodeDecodeError:
  *             with open(fn, "rb") as inf:             # <<<<<<<<<<<<<<
  *                 # read binary output
  *                 out = inf.read()
  */
-  __pyx_tuple__7 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 351, __pyx_L1_error)
+  __pyx_tuple__7 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 367, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "pysam/libcutils.pyx":295
- *             os.close(stdout_h)
- *             pysam_set_stdout_fn(force_bytes(stdout_f))
+  /* "pysam/libcutils.pyx":307
+ *             samtools_set_stdout_fn(force_bytes(stdout_f))
+ *             bcftools_set_stdout_fn(force_bytes(stdout_f))
  *             args.extend(stdout_option.format(stdout_f).split(" "))             # <<<<<<<<<<<<<<
  *         else:
- *             pysam_set_stdout(stdout_h)
+ *             samtools_set_stdout(stdout_h)
  */
-  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s__8); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 295, __pyx_L1_error)
+  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s__8); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 307, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
 
-  /* "pysam/libcutils.pyx":345
+  /* "pysam/libcutils.pyx":361
  * 
  *     # get error messages
  *     def _collect(fn):             # <<<<<<<<<<<<<<
  *         out = []
  *         try:
  */
-  __pyx_tuple__10 = PyTuple_Pack(3, __pyx_n_s_fn, __pyx_n_s_out, __pyx_n_s_inf); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 345, __pyx_L1_error)
+  __pyx_tuple__10 = PyTuple_Pack(3, __pyx_n_s_fn, __pyx_n_s_out, __pyx_n_s_inf); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 361, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
-  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libcutils_pyx, __pyx_n_s_collect, 345, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 345, __pyx_L1_error)
+  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libcutils_pyx, __pyx_n_s_collect, 361, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 361, __pyx_L1_error)
 
-  /* "pysam/libcutils.pyx":233
+  /* "pysam/libcutils.pyx":235
  * 
  * 
  * def _pysam_dispatch(collection,             # <<<<<<<<<<<<<<
  *                     method,
  *                     args=None,
  */
-  __pyx_tuple__12 = PyTuple_Pack(22, __pyx_n_s_collection, __pyx_n_s_method, __pyx_n_s_args, __pyx_n_s_catch_stdout, __pyx_n_s_save_stdout, __pyx_n_s_stderr_h, __pyx_n_s_stderr_f, __pyx_n_s_stdout_f, __pyx_n_s_stdout_h, __pyx_n_s_MAP_STDOUT_OPTIONS, __pyx_n_s_stdout_option, __pyx_n_s_cargs, __pyx_n_s_i, __pyx_n_s_n, __pyx_n_s_retval, __pyx_n_s_l, __pyx_n_s_extra_args, __pyx_n_s_collect, __pyx_n_s_collect, __pyx_n_s_out_stderr, __pyx_n_s_out_stdout, __pyx_n_s_a); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 233, __pyx_L1_error)
+  __pyx_tuple__12 = PyTuple_Pack(23, __pyx_n_s_collection, __pyx_n_s_method, __pyx_n_s_args, __pyx_n_s_catch_stdout, __pyx_n_s_is_usage, __pyx_n_s_save_stdout, __pyx_n_s_stderr_h, __pyx_n_s_stderr_f, __pyx_n_s_stdout_f, __pyx_n_s_stdout_h, __pyx_n_s_MAP_STDOUT_OPTIONS, __pyx_n_s_stdout_option, __pyx_n_s_cargs, __pyx_n_s_i, __pyx_n_s_n, __pyx_n_s_retval, __pyx_n_s_l, __pyx_n_s_extra_args, __pyx_n_s_collect, __pyx_n_s_collect, __pyx_n_s_out_stderr, __pyx_n_s_out_stdout, __pyx_n_s_a); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 235, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
-  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(5, 0, 22, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libcutils_pyx, __pyx_n_s_pysam_dispatch, 233, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) __PYX_ERR(0, 233, __pyx_L1_error)
+  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(6, 0, 23, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libcutils_pyx, __pyx_n_s_pysam_dispatch, 235, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) __PYX_ERR(0, 235, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -8430,7 +8589,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libcutils.pyx":21
+  /* "pysam/libcutils.pyx":27
  * #####################################################################
  * # hard-coded constants
  * cdef int MAX_POS = 2 << 29             # <<<<<<<<<<<<<<
@@ -8439,7 +8598,7 @@ if (!__Pyx_RefNanny) {
  */
   __pyx_v_5pysam_9libcutils_MAX_POS = 0x40000000;
 
-  /* "pysam/libcutils.pyx":80
+  /* "pysam/libcutils.pyx":86
  * ########################################################################
  * 
  * cdef bint IS_PYTHON3 = PY_MAJOR_VERSION >= 3             # <<<<<<<<<<<<<<
@@ -8448,44 +8607,44 @@ if (!__Pyx_RefNanny) {
  */
   __pyx_v_5pysam_9libcutils_IS_PYTHON3 = (PY_MAJOR_VERSION >= 3);
 
-  /* "pysam/libcutils.pyx":90
+  /* "pysam/libcutils.pyx":96
  * 
  * # filename encoding (adapted from lxml.etree.pyx)
  * cdef str FILENAME_ENCODING = sys.getfilesystemencoding() or sys.getdefaultencoding() or 'ascii'             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_getfilesystemencoding); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_getfilesystemencoding); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 96, __pyx_L1_error)
   if (!__pyx_t_4) {
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
-    if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 90, __pyx_L1_error)
+    if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_INCREF(__pyx_t_1);
     __pyx_t_2 = __pyx_t_1;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     goto __pyx_L2_bool_binop_done;
   }
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_getdefaultencoding); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_getdefaultencoding); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 96, __pyx_L1_error)
   if (!__pyx_t_4) {
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
-    if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 90, __pyx_L1_error)
+    if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_INCREF(__pyx_t_1);
     __pyx_t_2 = __pyx_t_1;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -8499,26 +8658,26 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "pysam/libcutils.pyx":233
+  /* "pysam/libcutils.pyx":235
  * 
  * 
  * def _pysam_dispatch(collection,             # <<<<<<<<<<<<<<
  *                     method,
  *                     args=None,
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libcutils_9_pysam_dispatch, NULL, __pyx_n_s_pysam_libcutils); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 233, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libcutils_9_pysam_dispatch, NULL, __pyx_n_s_pysam_libcutils); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 235, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_pysam_dispatch, __pyx_t_2) < 0) __PYX_ERR(0, 233, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_pysam_dispatch, __pyx_t_2) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libcutils.pyx":373
+  /* "pysam/libcutils.pyx":392
  * 
  * 
  * __all__ = ["qualitystring_to_array",             # <<<<<<<<<<<<<<
  *            "array_to_qualitystring",
  *            "qualities_to_qualitystring"]
  */
-  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 373, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 392, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_qualitystring_to_array);
   __Pyx_GIVEREF(__pyx_n_s_qualitystring_to_array);
@@ -8529,7 +8688,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_n_s_qualities_to_qualitystring);
   __Pyx_GIVEREF(__pyx_n_s_qualities_to_qualitystring);
   PyList_SET_ITEM(__pyx_t_2, 2, __pyx_n_s_qualities_to_qualitystring);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_all, __pyx_t_2) < 0) __PYX_ERR(0, 373, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_all, __pyx_t_2) < 0) __PYX_ERR(0, 392, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "pysam/libcutils.pyx":1

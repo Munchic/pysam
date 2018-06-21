@@ -38,45 +38,44 @@ from pysam.libchtslib cimport *
 cdef class VariantHeader(object):
     cdef bcf_hdr_t *ptr
 
-    cpdef VariantRecord new_record(self)
     cdef _subset_samples(self, include_samples)
 
 
 cdef class VariantHeaderRecord(object):
-    cdef VariantHeader header
+    cdef readonly VariantHeader header
     cdef bcf_hrec_t *ptr
 
 
 cdef class VariantHeaderRecords(object):
-    cdef VariantHeader header
+    cdef readonly VariantHeader header
 
 
 cdef class VariantHeaderContigs(object):
-    cdef VariantHeader header
+    cdef readonly VariantHeader header
 
 
 cdef class VariantHeaderSamples(object):
-    cdef VariantHeader header
+    cdef readonly VariantHeader header
 
 
 cdef class VariantContig(object):
-    cdef VariantHeader header
+    cdef readonly VariantHeader header
     cdef int id
 
 
 cdef class VariantMetadata(object):
-    cdef VariantHeader header
+    cdef readonly VariantHeader header
     cdef int type
     cdef int id
 
 
 cdef class VariantHeaderMetadata(object):
-    cdef VariantHeader header
+    cdef readonly VariantHeader header
     cdef int32_t type
 
 
 cdef class VariantRecord(object):
-    cdef VariantHeader header
+    cdef readonly VariantHeader header
     cdef bcf1_t *ptr
 
 
@@ -107,7 +106,7 @@ cdef class BaseIndex(object):
 
 
 cdef class BCFIndex(BaseIndex):
-    cdef VariantHeader header
+    cdef readonly VariantHeader header
     cdef hts_idx_t *ptr
 
 
@@ -138,7 +137,5 @@ cdef class VariantFile(HTSFile):
     # FIXME: Temporary, use htsFormat when it is available
     cdef readonly bint       is_reading     # true if file has begun reading records
     cdef readonly bint       header_written # true if header has already been written
-
-    cpdef VariantRecord new_record(self)
 
     cpdef int write(self, VariantRecord record) except -1

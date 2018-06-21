@@ -22,17 +22,14 @@ int hts_set_verbosity(int verbosity)
   return old_verbosity;
 }
 
-int hts_get_verbosity()
+int hts_get_verbosity(void)
 {
   return hts_verbose;
 }
 
 
-int hts_get_hts_verbose();
-
-
 // taken from samtools/bam_import.c
-static inline uint8_t *alloc_data(bam1_t *b, size_t size)
+static inline uint8_t * alloc_data(bam1_t *b, size_t size)
 {
   if (b->m_data < size)
     {
@@ -47,6 +44,7 @@ static inline uint8_t *alloc_data(bam1_t *b, size_t size)
 // Adds *nbytes_new* - *nbytes_old* into the variable length data of *src* at *pos*.
 // Data within the bam1_t entry is moved so that it is
 // consistent with the data field lengths.
+// Return NULL on error (memory allocation)
 bam1_t * pysam_bam_update(bam1_t * b,
 			  const size_t nbytes_old,
 			  const size_t nbytes_new, 
@@ -55,7 +53,8 @@ bam1_t * pysam_bam_update(bam1_t * b,
   int d = nbytes_new - nbytes_old;
   int new_size;
   size_t nbytes_before;
-
+  uint8_t * retval = NULL;
+    
   // no change
   if (d == 0)
     return b;
@@ -75,7 +74,9 @@ bam1_t * pysam_bam_update(bam1_t * b,
   // increase memory if required
   if (d > 0)
     {
-      alloc_data(b, new_size);
+      retval = alloc_data(b, new_size);
+      if (retval == NULL)
+	return NULL;
       field_start = b->data + nbytes_before;
     }
   
@@ -156,6 +157,3 @@ int aux_type2size(uint8_t type)
 		return 0;
 	}
 }
-
-
-
