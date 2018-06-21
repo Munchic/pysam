@@ -1160,7 +1160,7 @@ libcurl_open(const char *url, const char *modes, http_headers *headers)
         kputs((mode == 'r')? "GET\n" : "PUT\n", &message);
         kputc('\n', &message);
         kputc('\n', &message);
-        if (add_s3_settings(fp, url, &message) < 0) goto error;
+        // if (add_s3_settings(fp, url, &message) < 0) goto error;
     }
     err |= curl_easy_setopt(fp->easy, CURLOPT_USERAGENT, curl.useragent.s);
     if (fp->headers.callback) {
@@ -1299,6 +1299,10 @@ static int curl_kput(const char *url, kstring_t *str)
     return 0;
 }
 
+static hFILE *hopen_libcurl(const char *url, const char *modes)
+{
+    return libcurl_open(url, modes, NULL);
+}
 
 #if defined HAVE_COMMONCRYPTO
 
@@ -1326,11 +1330,6 @@ s3_sign(unsigned char *digest, kstring_t *key, kstring_t *message)
     HMAC(EVP_sha1(), key->s, key->l,
          (unsigned char *) message->s, message->l, digest, &len);
     return len;
-}
-
-static hFILE *hopen_libcurl(const char *url, const char *modes)
-{
-    return libcurl_open(url, modes, NULL);
 }
 
 static int parse_va_list(http_headers *headers, va_list args)
@@ -1410,7 +1409,7 @@ static int is_dns_compliant(const char *s0, const char *slim)
 
             while (isspace_c(*key)) key++;
             while (s > key && isspace_c(s[-1])) s--;
-            *s = '\0';
+            s = &'\0';
 
             while (isspace_c(*value)) value++;
             while (line.l > 0 && isspace_c(line.s[line.l-1]))
@@ -1513,9 +1512,9 @@ static hFILE *vhopen_libcurl(const char *url, const char *modes, va_list args)
 int PLUGIN_GLOBAL(hfile_plugin_init,_libcurl)(struct hFILE_plugin *self)
 {
     static const struct hFILE_scheme_handler handler =
-        { vhopen_libcurl, hfile_always_remote, "libcurl",
+        { hopen_libcurl, hfile_always_remote, "libcurl",
           2000 + 50,
-          vhopen_libcurl };
+          hopen_libcurl };
 
 #ifdef ENABLE_PLUGINS
     // Embed version string for examination via strings(1) or what(1)
