@@ -34,6 +34,7 @@ DEALINGS IN THE SOFTWARE.  */
 #endif
 #include <assert.h>
 
+#include "hts_internal.h"
 #include "hfile_internal.h"
 #ifdef ENABLE_PLUGINS
 #include "version.h"
@@ -1148,11 +1149,18 @@ libcurl_open(const char *url, const char *modes, http_headers *headers)
 
     err |= curl_easy_setopt(fp->easy, CURLOPT_SHARE, curl.share);
     err |= curl_easy_setopt(fp->easy, CURLOPT_URL, url);
-    {
-        char* env_curl_ca_bundle = getenv("CURL_CA_BUNDLE");
-        if (env_curl_ca_bundle) {
-            err |= curl_easy_setopt(fp->easy, CURLOPT_CAINFO, env_curl_ca_bundle);
-        }
+    char* env_curl_ca_bundle = getenv("CURL_CA_BUNDLE");
+    if (env_curl_ca_bundle) {
+        err |= curl_easy_setopt(fp->easy, CURLOPT_CAINFO, env_curl_ca_bundle);
+    }
+    if (tolower_c(url[0]) == 's' && url[1] == '3') {
+        // Construct the HTTP-Method/Content-MD5/Content-Type part of the
+        // message to be signed.  This will be destroyed by add_s3_settings().
+        kstring_t message = { 0, 0, NULL };
+        kputs((mode == 'r')? "GET\n" : "PUT\n", &message);
+        kputc('\n', &message);
+        kputc('\n', &message);
+        if (add_s3_settings(fp, url, &message) < 0) goto error;
     }
     err |= curl_easy_setopt(fp->easy, CURLOPT_USERAGENT, curl.useragent.s);
     if (fp->headers.callback) {
@@ -1211,6 +1219,115 @@ early_error:
     return NULL;
 }
 
+// int PLUGIN_GLOBAL(hfile_plugin_init,_libcurl)(struct hFILE_plugin *self)
+// {
+//     static const struct hFILE_scheme_handler handler =
+//         { vhopen_libcurl, hfile_always_remote, "libcurl", 50 };
+
+// #ifdef ENABLE_PLUGINS
+//     // Embed version string for examination via strings(1) or what(1)
+//     static const char id[] = "@(#)hfile_libcurl plugin (htslib)\t" HTS_VERSION;
+//     const char *version = strchr(id, '\t')+1;
+// #else
+//     const char *version = hts_version();
+// #endif
+//     const curl_version_info_data *info;
+//     const char * const *protocol;
+//     CURLcode err;
+
+//     err = curl_global_init(CURL_GLOBAL_ALL);
+//     if (err != CURLE_OK) { errno = easy_errno(NULL, err); return -1; }
+
+//     curl.multi = curl_multi_init();
+//     if (curl.multi == NULL) { curl_global_cleanup(); errno = EIO; return -1; }
+
+//     info = curl_version_info(CURLVERSION_NOW);
+//     ksprintf(&curl.useragent, "htslib/%s libcurl/%s", version, info->version);
+
+//     curl.nrunning = 0;
+//     curl.perform_again = 0;
+//     self->name = "libcurl";
+//     self->destroy = libcurl_exit;
+
+//     for (protocol = info->protocols; *protocol; protocol++)
+//         hfile_add_scheme_handler(*protocol, &handler);
+
+//     hfile_add_scheme_handler("s3", &handler);
+//     hfile_add_scheme_handler("s3+http", &handler);
+//     if (info->features & CURL_VERSION_SSL)
+//         hfile_add_scheme_handler("s3+https", &handler);
+
+//     return 0;
+// }
+
+
+/*******************
+ * Rewrite S3 URLs *
+ *******************/
+
+static size_t kput_callback(char *ptr, size_t size, size_t nmemb, void *strv)
+{
+    kstring_t *str = (kstring_t *) strv;
+    size_t len = size * nmemb;
+    return (kputsn(ptr, len, str) >= 0)? len : 0;
+}
+
+static int curl_kput(const char *url, kstring_t *str)
+{
+    CURLcode err;
+    CURL *easy = curl_easy_init();
+    if (easy == NULL) { errno = ENOMEM; return -1; }
+
+    err  = curl_easy_setopt(easy, CURLOPT_URL, url);
+    err |= curl_easy_setopt(easy, CURLOPT_WRITEFUNCTION, kput_callback);
+    err |= curl_easy_setopt(easy, CURLOPT_WRITEDATA, str);
+    err |= curl_easy_setopt(easy, CURLOPT_USERAGENT, curl.useragent.s);
+    err |= curl_easy_setopt(easy, CURLOPT_FOLLOWLOCATION, 1L);
+    err |= curl_easy_setopt(easy, CURLOPT_FAILONERROR, 1L);
+    if (hts_verbose >= 8) err |= curl_easy_setopt(easy, CURLOPT_VERBOSE, 1L);
+    if (err != 0) { curl_easy_cleanup(easy); errno = ENOSYS; return -1; }
+
+    err = curl_easy_perform(easy);
+    if (err != CURLE_OK) {
+        int save_errno = easy_errno(easy, err);
+        curl_easy_cleanup(easy);
+        errno = save_errno;
+        return -1;
+    }
+
+    curl_easy_cleanup(easy);
+    return 0;
+}
+
+
+#if defined HAVE_COMMONCRYPTO
+
+#include <CommonCrypto/CommonHMAC.h>
+
+#define DIGEST_BUFSIZ CC_SHA1_DIGEST_LENGTH
+
+static size_t
+s3_sign(unsigned char *digest, kstring_t *key, kstring_t *message)
+{
+    CCHmac(kCCHmacAlgSHA1, key->s, key->l, message->s, message->l, digest);
+    return CC_SHA1_DIGEST_LENGTH;
+}
+
+#elif defined HAVE_HMAC
+
+#include <openssl/hmac.h>
+
+#define DIGEST_BUFSIZ EVP_MAX_MD_SIZE
+
+static size_t
+s3_sign(unsigned char *digest, kstring_t *key, kstring_t *message)
+{
+    unsigned int len;
+    HMAC(EVP_sha1(), key->s, key->l,
+         (unsigned char *) message->s, message->l, digest, &len);
+    return len;
+}
+
 static hFILE *hopen_libcurl(const char *url, const char *modes)
 {
     return libcurl_open(url, modes, NULL);
@@ -1248,6 +1365,33 @@ static int parse_va_list(http_headers *headers, va_list args)
                     headers->auth_hdr_num = -1;
             }
         }
+
+        bits -= 6;
+        kputc(base64[(x >> bits) & 63], str);
+    }
+
+    str->l -= pad;
+    kputsn("==", pad, str);
+}
+
+static int is_dns_compliant(const char *s0, const char *slim)
+{
+    int has_nondigit = 0, len = 0;
+    const char *s;
+
+    for (s = s0; s < slim; len++, s++)
+        if (islower_c(*s))
+            has_nondigit = 1;
+        else if (*s == '-') {
+            has_nondigit = 1;
+            if (s == s0 || s+1 == slim) return 0;
+        }
+        else if (isdigit_c(*s))
+            ;
+        else if (*s == '.') {
+            if (s == s0 || ! isalnum_c(s[-1])) return 0;
+            if (s+1 == slim || ! isalnum_c(s[1])) return 0;
+        }
         else if (strcmp(argtype, "httphdr_callback") == 0) {
             headers->callback = va_arg(args, const hts_httphdr_callback);
         }
@@ -1260,6 +1404,24 @@ static int parse_va_list(http_headers *headers, va_list args)
                 if (parse_va_list(headers, *args2) < 0) return -1;
             }
         }
+        else if (active && (s = strpbrk(line.s, ":=")) != NULL) {
+            const char *key = line.s, *value = &s[1], *akey;
+            va_list args;
+
+            while (isspace_c(*key)) key++;
+            while (s > key && isspace_c(s[-1])) s--;
+            *s = '\0';
+
+            while (isspace_c(*value)) value++;
+            while (line.l > 0 && isspace_c(line.s[line.l-1]))
+                line.s[--line.l] = '\0';
+
+            va_start(args, section);
+            while ((akey = va_arg(args, const char *)) != NULL) {
+                kstring_t *avar = va_arg(args, kstring_t *);
+                if (strcmp(key, akey) == 0) { kputs(value, avar); break; }
+            }
+        }
         else if (strcmp(argtype, "auth_token_enabled") == 0) {
             const char *flag = va_arg(args, const char *);
             if (strcmp(flag, "false") == 0)
@@ -1269,6 +1431,8 @@ static int parse_va_list(http_headers *headers, va_list args)
 
     return 0;
 }
+
+#endif
 
 /*
   HTTP headers to be added to the request can be passed in as extra
@@ -1321,17 +1485,35 @@ static hFILE *vhopen_libcurl(const char *url, const char *modes, va_list args)
     if (parse_va_list(&headers, args) == 0) {
         fp = libcurl_open(url, modes, &headers);
     }
+    kstring_t text = { 0, 0, NULL };
+    char *s;
+    size_t len;
 
-    if (!fp) {
-        free_headers(&headers.fixed, 1);
-    }
+    // FILE *fp = expand_tilde_open(fname, "r");
+    // if (fp == NULL) return -1;
+
+    // while (kgetline(&text, (kgets_func *) fgets, fp) >= 0)
+    //     kputc(' ', &text);
+    // fclose(fp);
+
+    // s = text.s;
+    // while (isspace_c(*s)) s++;
+    // kputsn(s, len = strcspn(s, " \t"), id);
+
+    // s += len;
+    // while (isspace_c(*s)) s++;
+    // kputsn(s, strcspn(s, " \t"), secret);
+
+    // if (!fp) {
+    //     free_headers(&headers.fixed, 1);
+    // }
     return fp;
 }
 
 int PLUGIN_GLOBAL(hfile_plugin_init,_libcurl)(struct hFILE_plugin *self)
 {
     static const struct hFILE_scheme_handler handler =
-        { hopen_libcurl, hfile_always_remote, "libcurl",
+        { vhopen_libcurl, hfile_always_remote, "libcurl",
           2000 + 50,
           vhopen_libcurl };
 

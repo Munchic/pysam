@@ -79,6 +79,8 @@ HTSLIB_ALL = \
 	$(HTSDIR)/bcf_sr_sort.h \
 	$(HTSDIR)/bgzf.c \
 	$(HTSDIR)/config.h \
+	$(HTSDIR)/crypto.h \
+	$(HTSDIR)/crypto.c \
 	$(HTSDIR)/errmod.c \
 	$(HTSDIR)/faidx.c \
 	$(HTSDIR)/hfile_internal.h \

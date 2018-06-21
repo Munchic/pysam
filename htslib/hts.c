@@ -50,6 +50,14 @@ DEALINGS IN THE SOFTWARE.  */
 #include "htslib/kseq.h"
 #include "htslib/ksort.h"
 
+#define KS_BGZF 1
+#if KS_BGZF
+    // bgzf now supports gzip-compressed files, the gzFile branch can be removed
+    KSTREAM_INIT2(, BGZF*, bgzf_read, 65536)
+#else
+    KSTREAM_INIT2(, gzFile, gzread, 16384)
+#endif
+
 KHASH_INIT2(s2i,, kh_cstr_t, int64_t, 1, kh_str_hash_func, kh_str_hash_equal)
 
 int hts_verbose = HTS_LOG_WARNING;
@@ -204,9 +212,27 @@ int hts_detect_format(hFILE *hfile, htsFormat *fmt)
     if (len >= 2 && s[0] == 0x1f && s[1] == 0x8b) {
         // The stream is either gzip-compressed or BGZF-compressed.
         // Determine which, and decompress the first few bytes.
-        fmt->compression = (len >= 18 && (s[3] & 4) &&
-                            memcmp(&s[12], "BC\2\0", 4) == 0)? bgzf : gzip;
-        len = decompress_peek(hfile, s, sizeof s);
+        if ( len<18 || !(s[3] & 4) )
+        {
+            fmt->compression = gzip;
+            len = decompress_peek(hfile, s, sizeof s);
+        }
+        else if ( memcmp(&s[12], "BC\2\0", 4) == 0 )
+        {
+            fmt->compression = bgzf;
+            len = decompress_peek(hfile, s, sizeof s);
+        }
+        else if ( !memcmp(&s[12], "EC\2\0", 4) || !memcmp(&s[12], "DC\2\0", 4) )
+        {
+            // temporary, not optimal
+            fmt->compression = bgzf;
+            BGZF *fp = bgzf_hopen(hfile, "r");
+            if ( !fp ) return -1;
+            len = bgzf_read(fp, s, sizeof s);
+            int ret = bgzf_seek(fp,0,SEEK_SET);
+            bgzf_hclose(fp);
+            if ( ret<0 ) return -1;
+        }
     }
     else {
         fmt->compression = no_compression;
@@ -2073,7 +2099,19 @@ hts_itr_t *hts_itr_query(const hts_idx_t *idx, int tid, int beg, int end, hts_re
     hts_itr_t *iter = (hts_itr_t*)calloc(1, sizeof(hts_itr_t));
     if (iter) {
         if (tid < 0) {
-            uint64_t off = hts_itr_off(idx, tid);
+            int finished0 = 0;
+            uint64_t off0 = (uint64_t)-1;
+            khint_t k;
+            if (tid == HTS_IDX_START) {
+                // Find the smallest offset, note that sequence ids may not be ordered sequentially
+                for (i=0; i<idx->n; i++)
+                {
+                    bidx = idx->bidx[i];
+                    k = kh_get(bin, bidx, META_BIN(idx));
+                    if (k == kh_end(bidx)) continue;
+                    if ( off0 > kh_val(bidx, k).list[0].u ) off0 = kh_val(bidx, k).list[0].u;
+                    uint64_t off = hts_itr_off(idx, tid);
+                }
             if (off != (uint64_t) -1) {
                 iter->read_rest = 1;
                 iter->curr_off = off;
@@ -2164,12 +2202,71 @@ hts_itr_t *hts_itr_query(const hts_idx_t *idx, int tid, int beg, int end, hts_re
             n_off = l + 1;
             iter->n_off = n_off; iter->off = off;
         }
+        if (off0 != (uint64_t)-1) {
+                iter = (hts_itr_t*)calloc(1, sizeof(hts_itr_t));
+                iter->read_rest = 1;
+                iter->finished = finished0;
+                iter->curr_off = off0;
+                iter->readrec = readrec;
+                return iter;
+            } else return 0;
+        }
+
+    if (beg < 0) beg = 0;
+    if (end < beg) return 0;
+    if (tid >= idx->n || (bidx = idx->bidx[tid]) == NULL) return 0;
+
+    iter = (hts_itr_t*)calloc(1, sizeof(hts_itr_t));
+    iter->tid = tid, iter->beg = beg, iter->end = end; iter->i = -1;
+    iter->readrec = readrec;
+
+    // compute min_off
+    bin = hts_bin_first(idx->n_lvls) + (beg>>idx->min_shift);
+    do {
+        int first;
+        k = kh_get(bin, bidx, bin);
+        if (k != kh_end(bidx)) break;
+        first = (hts_bin_parent(bin)<<3) + 1;
+        if (bin > first) --bin;
+        else bin = hts_bin_parent(bin);
+    } while (bin);
+    if (bin == 0) k = kh_get(bin, bidx, bin);
+    min_off = k != kh_end(bidx)? kh_val(bidx, k).loff : 0;
+
+    // compute max_off: a virtual offset from a bin to the right of end
+    bin = hts_bin_first(idx->n_lvls) + ((end-1) >> idx->min_shift) + 1;
+    while (1) {
+        // search for an extant bin by moving right, but moving up to the
+        // parent whenever we get to a first child (which also covers falling
+        // off the RHS, which wraps around and immediately goes up to bin 0)
+        while (bin % 8 == 1) bin = hts_bin_parent(bin);
+        if (bin == 0) { max_off = (uint64_t)-1; break; }
+        k = kh_get(bin, bidx, bin);
+        if (k != kh_end(bidx) && kh_val(bidx, k).n > 0) { max_off = kh_val(bidx, k).list[0].u; break; }
+        bin++;
+    }
+
+    // retrieve bins
+    reg2bins(beg, end, iter, idx->min_shift, idx->n_lvls);
+    for (i = n_off = 0; i < iter->bins.n; ++i)
+        if ((k = kh_get(bin, bidx, iter->bins.a[i])) != kh_end(bidx))
+            n_off += kh_value(bidx, k).n;
+    if (n_off == 0) return iter;
+    off = (hts_pair64_t*)calloc(n_off, sizeof(hts_pair64_t));
+    for (i = n_off = 0; i < iter->bins.n; ++i) {
+        if ((k = kh_get(bin, bidx, iter->bins.a[i])) != kh_end(bidx)) {
+            int j;
+            bins_t *p = &kh_value(bidx, k);
+            for (j = 0; j < p->n; ++j)
+                if (p->list[j].v > min_off && p->list[j].u < max_off)
+                    off[n_off++] = p->list[j];
+        }
     }
     return iter;
+  }
 }
 
-hts_itr_multi_t *hts_itr_multi_bam(const hts_idx_t *idx, hts_itr_multi_t *iter)
-{
+hts_itr_multi_t *hts_itr_multi_bam(const hts_idx_t *idx, hts_itr_multi_t *iter) {
     int i, j, l, n_off = 0, bin;
     hts_pair64_max_t *off = NULL;
     khint_t k;
@@ -2752,6 +2849,9 @@ static int test_and_fetch(const char *fn, const char **local_fn)
 
     if (hisremote(fn)) {
         const int buf_size = 1 * 1024 * 1024;
+        hFILE *fp_remote;
+        FILE *fp;
+        uint8_t *buf;
         int l;
         const char *p;
         for (p = fn + strlen(fn) - 1; p >= fn; --p)

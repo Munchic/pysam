@@ -58,7 +58,7 @@ noplugin_LIBS =
 # to enable libcurl you will need to implement the following elsewhere.
 ifeq "libcurl-@libcurl@" "libcurl-enabled"
 
-LIBCURL_LIBS = -lcurl
+LIBCURL_LIBS = -lcurl @CRYPTO_LIBS@
 
 plugin_OBJS += hfile_libcurl.o
 
@@ -105,3 +105,11 @@ LDFLAGS += $(noplugin_LDFLAGS)
 LIBS += $(noplugin_LIBS)
 
 endif
+
+ifeq "openssl-@openssl@" "openssl-enabled"
+
+LIBS += `pkg-config openssl --libs`
+
+endif
+
+

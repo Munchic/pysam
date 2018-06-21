@@ -25,6 +25,12 @@ pysam/config.py
 
 # linking tests
 BuildRead.c
+
+# crypto cache files
+htslib/autom4te.cache
+htslib/config.cache
+htslib/deps.mk
+
 # cython files
 pysam/libc*.c
 
