@@ -163,8 +163,7 @@ LIBHTS_OBJS = \
 	cram/rANS_static.o \
 	cram/sam_header.o \
 	cram/string_alloc.o \
-	crypto.o \
-	cram/string_alloc.o
+	crypto.o 
 
 PLUGIN_EXT  =
 PLUGIN_OBJS =
