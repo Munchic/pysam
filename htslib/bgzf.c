@@ -1,19 +1,15 @@
 /* The MIT License
-
    Copyright (c) 2008 Broad Institute / Massachusetts Institute of Technology
                  2011, 2012 Attractive Chaos <attractor@live.co.uk>
    Copyright (C) 2009, 2013-2016 Genome Research Ltd
-
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
    in the Software without restriction, including without limitation the rights
    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
    copies of the Software, and to permit persons to whom the Software is
    furnished to do so, subject to the following conditions:
-
    The above copyright notice and this permission notice shall be included in
    all copies or substantial portions of the Software.
-
    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -61,7 +57,6 @@
                 |                              |   |   |
                FLG.EXTRA                     XLEN  B   C
                                                   E/D
-
   BGZF format is compatible with GZIP. It limits the size of each compressed
   block to 2^16 bytes and adds and an extra "BC" field in the gzip header which
   records the size. 
@@ -73,7 +68,6 @@
       64 bytes), initialization vector used to encrypt the data (16 bytes), compressed
       and encrypted data (BLK_LEN - 64 - 16 bytes). When present, the "DC" block is
       first in the file.
-
 */
 static const uint8_t bc_magic[19] = "\037\213\010\4\0\0\0\0\0\377\6\0\102\103\2\0\0\0";
 static const uint8_t ec_magic[19] = "\037\213\010\4\0\0\0\0\0\377\6\0\105\103\2\0\0\0";

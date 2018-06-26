@@ -143,7 +143,6 @@ class SamtoolsTest(unittest.TestCase):
         files.
 
         '''
-
         self.check_version()
 
         if not os.path.exists(WORKDIR):
@@ -158,14 +157,20 @@ class SamtoolsTest(unittest.TestCase):
 
         return
 
+    def get_command(self, statement):
+        """return samtools command from statement"""
+        parts = statement.split(" ")
+        command = parts[0]
+        return self.map_command.get(command, command)
+
     def check_statement(self, statement):
 
         parts = statement.split(" ")
         r_samtools = {"out": self.executable}
         r_pysam = {"out": "pysam"}
 
-        command = parts[0]
-        command = self.map_command.get(command, command)
+        command = self.get_command(statement)
+
         # self.assertTrue(command in pysam.SAMTOOLS_DISPATCH)
 
         targets = [x for x in parts if "%(out)s" in x]
@@ -231,6 +236,20 @@ class SamtoolsTest(unittest.TestCase):
                 # for 3.4 and 3.5, see issue #293
                 continue
             self.check_statement(statement)
+
+    @unittest.skipIf(sys.platform == "darwin", "not supported, pattern does not match")
+    def testUsage(self):
+        if self.executable == "bcftools":
+            # bcftools usage messages end with exit(1)
+            return
+
+        for statement in self.statements:
+            command = self.get_command(statement)
+            pysam_method = getattr(self.module, command)
+            usage_msg = pysam_method.usage()
+            expected = "Usage: {} {}".format(self.executable, command)
+            
+            self.assertTrue(expected in usage_msg)
 
     def tearDown(self):
         if os.path.exists(WORKDIR):
@@ -342,7 +361,8 @@ class BcftoolsTest(SamtoolsTest):
         # "filter -s A ex1.vcf.gz  > %(out)s_ex1.filter",
         # exit
         # "gtcheck -s A ex1.vcf.gz  > %(out)s_ex1.gtcheck",
-        "roh -s A ex1.vcf.gz > %(out)s_ex1.roh",
+        # segfauld, used to work wit bcftools 1.3
+        # "roh -s A ex1.vcf.gz > %(out)s_ex1.roh",
         "stats ex1.vcf.gz > %(out)s_ex1.stats",
     ]
 

@@ -61,7 +61,7 @@ import struct
 cimport cython
 from cpython cimport array as c_array
 from cpython.version cimport PY_MAJOR_VERSION
-from cpython cimport PyErr_SetString, PyBytes_FromStringAndSize
+from cpython cimport PyBytes_FromStringAndSize
 from libc.string cimport strchr
 from cpython cimport array as c_array
 
@@ -281,6 +281,9 @@ cdef inline packTags(tags):
                          len(value)] + list(value))
 
         elif isinstance(value, array.array):
+            valuetype = value.typecode
+            if valuetype not in datatype2format:
+                valuetype = None
             # binary tags from arrays
             if valuetype is None:
                 array_typecode = map_typecode_python_to_htslib(ord(value.typecode))
@@ -325,8 +328,40 @@ cdef inline packTags(tags):
     return "".join(fmts), args
 
 
-cdef inline int32_t calculateQueryLength(bam1_t * src):
+cdef inline int32_t calculateQueryLengthWithoutHardClipping(bam1_t * src):
     """return query length computed from CIGAR alignment.
+
+    Length ignores hard-clipped bases.
+
+    Return 0 if there is no CIGAR alignment.
+    """
+
+    cdef uint32_t * cigar_p = pysam_bam_get_cigar(src)
+
+    if cigar_p == NULL:
+        return 0
+
+    cdef uint32_t k, qpos
+    cdef int op
+    qpos = 0
+
+    for k from 0 <= k < pysam_get_n_cigar(src):
+        op = cigar_p[k] & BAM_CIGAR_MASK
+
+        if op == BAM_CMATCH or \
+           op == BAM_CINS or \
+           op == BAM_CSOFT_CLIP or \
+           op == BAM_CEQUAL or \
+           op == BAM_CDIFF:
+            qpos += cigar_p[k] >> BAM_CIGAR_SHIFT
+
+    return qpos
+
+
+cdef inline int32_t calculateQueryLengthWithHardClipping(bam1_t * src):
+    """return query length computed from CIGAR alignment.
+
+    Length includes hard-clipped bases.
 
     Return 0 if there is no CIGAR alignment.
     """
@@ -356,44 +391,45 @@ cdef inline int32_t calculateQueryLength(bam1_t * src):
 
 cdef inline int32_t getQueryStart(bam1_t *src) except -1:
     cdef uint32_t * cigar_p
-    cdef uint32_t k, op
     cdef uint32_t start_offset = 0
+    cdef uint32_t k, op
 
-    if pysam_get_n_cigar(src):
-        cigar_p = pysam_bam_get_cigar(src);
-        for k from 0 <= k < pysam_get_n_cigar(src):
-            op = cigar_p[k] & BAM_CIGAR_MASK
-            if op == BAM_CHARD_CLIP:
-                if start_offset != 0 and start_offset != src.core.l_qseq:
-                    PyErr_SetString(ValueError, 'Invalid clipping in CIGAR string')
-                    return -1
-            elif op == BAM_CSOFT_CLIP:
-                start_offset += cigar_p[k] >> BAM_CIGAR_SHIFT
-            else:
-                break
+    cigar_p = pysam_bam_get_cigar(src);
+    for k from 0 <= k < pysam_get_n_cigar(src):
+        op = cigar_p[k] & BAM_CIGAR_MASK
+        if op == BAM_CHARD_CLIP:
+            if start_offset != 0 and start_offset != src.core.l_qseq:
+                raise ValueError('Invalid clipping in CIGAR string')
+        elif op == BAM_CSOFT_CLIP:
+            start_offset += cigar_p[k] >> BAM_CIGAR_SHIFT
+        else:
+            break
 
     return start_offset
 
 
 cdef inline int32_t getQueryEnd(bam1_t *src) except -1:
-    cdef uint32_t * cigar_p
-    cdef uint32_t k, op
+    cdef uint32_t * cigar_p = pysam_bam_get_cigar(src)
     cdef uint32_t end_offset = src.core.l_qseq
+    cdef uint32_t k, op
 
     # if there is no sequence, compute length from cigar string
     if end_offset == 0:
-        end_offset = calculateQueryLength(src)
-
-    # walk backwards in cigar string
-    if pysam_get_n_cigar(src) > 1:
-        cigar_p = pysam_bam_get_cigar(src);
+        for k from 0 <= k < pysam_get_n_cigar(src):
+            op = cigar_p[k] & BAM_CIGAR_MASK
+            if op == BAM_CMATCH or \
+               op == BAM_CINS or \
+               op == BAM_CEQUAL or \
+               op == BAM_CDIFF or \
+              (op == BAM_CSOFT_CLIP and end_offset == 0):
+                end_offset += cigar_p[k] >> BAM_CIGAR_SHIFT
+    else:
+        # walk backwards in cigar string
         for k from pysam_get_n_cigar(src) > k >= 1:
             op = cigar_p[k] & BAM_CIGAR_MASK
             if op == BAM_CHARD_CLIP:
-                if end_offset != 0 and end_offset != src.core.l_qseq:
-                    PyErr_SetString(ValueError,
-                                    'Invalid clipping in CIGAR string')
-                    return -1
+                if end_offset != src.core.l_qseq:
+                    raise ValueError('Invalid clipping in CIGAR string')
             elif op == BAM_CSOFT_CLIP:
                 end_offset -= cigar_p[k] >> BAM_CIGAR_SHIFT
             else:
@@ -748,10 +784,13 @@ cdef class AlignedSegment:
         if t == o:
             return 0
 
+        cdef uint8_t *a = <uint8_t*>&t.core
+        cdef uint8_t *b = <uint8_t*>&o.core
+        
         retval = memcmp(&t.core, &o.core, sizeof(bam1_core_t))
-
         if retval:
             return retval
+
         # cmp(t.l_data, o.l_data)
         retval = (t.l_data > o.l_data) - (t.l_data < o.l_data)
         if retval:
@@ -819,13 +858,15 @@ cdef class AlignedSegment:
     property query_name:
         """the query template name (None if not present)"""
         def __get__(self):
-            cdef bam1_t * src
-            src = self._delegate
-            if pysam_get_l_qname(src) == 0:
+
+            cdef bam1_t * src = self._delegate
+            if src.core.l_qname == 0:
                 return None
+
             return charptr_to_str(<char *>pysam_bam_get_qname(src))
 
         def __set__(self, qname):
+
             if qname is None or len(qname) == 0:
                 return
 
@@ -834,34 +875,41 @@ cdef class AlignedSegment:
                     len(qname)))
 
             qname = force_bytes(qname)
-            cdef bam1_t * src
-            cdef int l
-            cdef char * p
-
-            src = self._delegate
-            p = pysam_bam_get_qname(src)
-
+            cdef bam1_t * src = self._delegate
             # the qname is \0 terminated
-            l = len(qname) + 1
+            cdef uint8_t l = len(qname) + 1
+
+            cdef char * p = pysam_bam_get_qname(src)
+            cdef uint8_t l_extranul = 0
+
+            if l % 4 != 0:
+                l_extranul = 4 - l % 4
+
             pysam_bam_update(src,
-                             pysam_get_l_qname(src),
-                             l,
+                             src.core.l_qname,
+                             l + l_extranul,
                              <uint8_t*>p)
 
-            pysam_set_l_qname(src, l)
-
+            src.core.l_extranul = l_extranul
+            src.core.l_qname = l + l_extranul
+            
             # re-acquire pointer to location in memory
             # as it might have moved
             p = pysam_bam_get_qname(src)
 
             strncpy(p, qname, l)
+            # x might be > 255
+            cdef uint16_t x = 0
+
+            for x from l <= x < l + l_extranul:
+                p[x] = '\0'
 
     property flag:
         """properties flag"""
         def __get__(self):
-            return pysam_get_flag(self._delegate)
+            return self._delegate.core.flag
         def __set__(self, flag):
-            pysam_set_flag(self._delegate, flag)
+            self._delegate.core.flag = flag
 
     property reference_name:
         """:term:`reference` name (None if no AlignmentFile is associated)"""
@@ -893,19 +941,17 @@ cdef class AlignedSegment:
             src = self._delegate
             src.core.pos = pos
             if pysam_get_n_cigar(src):
-                pysam_set_bin(src,
-                              hts_reg2bin(
-                                  src.core.pos,
-                                  bam_endpos(src),
-                                  14,
-                                  5))
+                src.core.bin = hts_reg2bin(
+                    src.core.pos,
+                    bam_endpos(src),
+                    14,
+                    5)
             else:
-                pysam_set_bin(src,
-                              hts_reg2bin(
-                                  src.core.pos,
-                                  src.core.pos + 1,
-                                  14,
-                                  5))
+                src.core.bin = hts_reg2bin(
+                    src.core.pos,
+                    src.core.pos + 1,
+                    14,
+                    5)
 
     property mapping_quality:
         """mapping quality"""
@@ -1156,9 +1202,9 @@ cdef class AlignedSegment:
     property bin:
         """properties bin"""
         def __get__(self):
-            return pysam_get_bin(self._delegate)
+            return self._delegate.core.bin
         def __set__(self, bin):
-            pysam_set_bin(self._delegate, bin)
+            self._delegate.core.bin = bin
 
 
     ##########################################################
@@ -1344,14 +1390,17 @@ cdef class AlignedSegment:
 
         This the index of the first base in :attr:`seq` that is not
         soft-clipped.
-
         """
         def __get__(self):
             return getQueryStart(self._delegate)
 
     property query_alignment_end:
         """end index of the aligned query portion of the sequence (0-based,
-        exclusive)"""
+        exclusive)
+
+        This the index just past the last base in :attr:`seq` that is not
+        soft-clipped.
+        """
         def __get__(self):
             return getQueryEnd(self._delegate)
 
@@ -1408,26 +1457,25 @@ cdef class AlignedSegment:
 
         return result
 
-    def infer_query_length(self, always=True):
-        """inferred read length from CIGAR string.
+    def infer_query_length(self):
+        """infer query length from sequence or CIGAR alignment.
 
-        If *always* is set to True, the read length
-        will be always inferred. If set to False, the length
-        of the read sequence will be returned if it is
-        available.
+        This method deduces the query length from the CIGAR alignment
+        but does not include hard-clipped bases.
 
-        Returns None if CIGAR string is not present.
+        Returns None if CIGAR alignment is not present.
         """
+        return calculateQueryLengthWithoutHardClipping(self._delegate)
 
-        cdef uint32_t * cigar_p
-        cdef bam1_t * src
+    def infer_read_length(self):
+        """infer read length from CIGAR alignment.
 
-        src = self._delegate
+        This method deduces the read length from the CIGAR alignment
+        including hard-clipped bases.
 
-        if not always and src.core.l_qseq:
-            return src.core.l_qseq
-
-        return calculateQueryLength(src)
+        Returns None if CIGAR alignment is not present.
+        """
+        return calculateQueryLengthWithHardClipping(self._delegate)
 
     def get_reference_sequence(self):
         """return the reference sequence.
@@ -1823,12 +1871,11 @@ cdef class AlignedSegment:
                 k += 1
 
             ## setting the cigar string requires updating the bin
-            pysam_set_bin(src,
-                          hts_reg2bin(
-                              src.core.pos,
-                              bam_endpos(src),
-                              14,
-                              5))
+            src.core.bin = hts_reg2bin(
+                src.core.pos,
+                bam_endpos(src),
+                14,
+                5)
 
 
     cpdef set_tag(self,
@@ -2477,7 +2524,71 @@ cdef class PileupRead:
         def __get__(self):
             return self._is_refskip
 
+
+cpdef enum CIGAR_OPS:
+    CMATCH = 0
+    CINS = 1
+    CDEL = 2
+    CREF_SKIP = 3
+    CSOFT_CLIP = 4
+    CHARD_CLIP = 5
+    CPAD = 6
+    CEQUAL = 7
+    CDIFF = 8
+    CBACK = 9
+
+
+cpdef enum SAM_FLAGS:
+    # the read is paired in sequencing, no matter whether it is mapped in a pair 
+    FPAIRED = 1
+    # the read is mapped in a proper pair 
+    FPROPER_PAIR = 2
+    # the read itself is unmapped; conflictive with FPROPER_PAIR 
+    FUNMAP = 4
+    # the mate is unmapped 
+    FMUNMAP = 8
+    # the read is mapped to the reverse strand 
+    FREVERSE = 16
+    # the mate is mapped to the reverse strand 
+    FMREVERSE = 32
+    # this is read1 
+    FREAD1 = 64
+    # this is read2 
+    FREAD2 = 128
+    # not primary alignment 
+    FSECONDARY = 256
+    # QC failure 
+    FQCFAIL = 512
+    # optical or PCR duplicate 
+    FDUP = 1024
+    # supplementary alignment 
+    FSUPPLEMENTARY = 2048      
+
+
 __all__ = [
     "AlignedSegment",
     "PileupColumn",
-    "PileupRead"]
+    "PileupRead",
+    "CMATCH",
+    "CINS",
+    "CDEL",
+    "CREF_SKIP",
+    "CSOFT_CLIP",
+    "CHARD_CLIP",
+    "CPAD",
+    "CEQUAL",
+    "CDIFF",
+    "CBACK",
+    "FPAIRED",
+    "FPROPER_PAIR",
+    "FUNMAP",
+    "FMUNMAP",
+    "FREVERSE",
+    "FMREVERSE",
+    "FREAD1",
+    "FREAD2",
+    "FSECONDARY",
+    "FQCFAIL",
+    "FDUP",
+    "FSUPPLEMENTARY"]
+
