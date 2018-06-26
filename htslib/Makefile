@@ -175,7 +175,8 @@ LIBHTS_OBJS = \
 	cram/sam_header.o \
 	cram/string_alloc.o \
 	cram/vlen.o \
-	cram/zfio.o
+	cram/zfio.o \
+	crypto.o
 
 PLUGIN_EXT  =
 PLUGIN_OBJS =
@@ -274,7 +275,7 @@ libhts.dylib: $(LIBHTS_OBJS)
 	ln -sf $@ libhts.$(LIBHTS_SOVERSION).dylib
 
 cyghts-$(LIBHTS_SOVERSION).dll: $(LIBHTS_OBJS)
-	$(CC) -shared -Wl,--out-implib=libhts.dll.a -Wl,--export-all-symbols -Wl,--enable-auto-import -pthread $(LDFLAGS) -o $@ -Wl,--whole-archive $(LIBHTS_OBJS) -Wl,--no-whole-archive $(LIBS)
+	$(CC) -shared -Wl,--out-implib=libhts.dll.a -Wl,--export-all-symbols -Wl,--enable-auto-import -pthread $(LDFLAGS) -o $@ -Wl,--whole-archive $(LIBHTS_OBJS) -Wl,--no-whole-archive -lz -lm $(LIBS)
 
 
 .pico.so:
@@ -287,7 +288,7 @@ cyghts-$(LIBHTS_SOVERSION).dll: $(LIBHTS_OBJS)
 	$(CC) -shared $(LDFLAGS) -o $@ $< libhts.dll.a $(LIBS)
 
 
-bgzf.o bgzf.pico: bgzf.c config.h $(htslib_hts_h) $(htslib_bgzf_h) $(htslib_hfile_h) $(htslib_thread_pool_h) cram/pooled_alloc.h $(htslib_khash_h)
+bgzf.o bgzf.pico: bgzf.c config.h $(htslib_hts_h) $(htslib_bgzf_h) $(htslib_hfile_h) $(htslib_thread_pool_h) cram/pooled_alloc.h $(htslib_khash_h) crypto.h
 errmod.o errmod.pico: errmod.c config.h $(htslib_hts_h) $(htslib_ksort_h)
 kstring.o kstring.pico: kstring.c config.h $(htslib_kstring_h)
 knetfile.o knetfile.pico: knetfile.c config.h $(htslib_knetfile_h)
@@ -312,6 +313,7 @@ multipart.o multipart.pico: multipart.c config.h $(htslib_kstring_h) $(hts_inter
 plugin.o plugin.pico: plugin.c config.h $(hts_internal_h) $(htslib_kstring_h)
 probaln.o probaln.pico: probaln.c config.h $(htslib_hts_h)
 realn.o realn.pico: realn.c config.h $(htslib_hts_h) $(htslib_sam_h)
+crypto.o crypto.pico: crypto.c crypto.h
 textutils.o textutils.pico: textutils.c config.h $(htslib_hfile_h) $(htslib_kstring_h) $(hts_internal_h)
 
 cram/cram_codecs.o cram/cram_codecs.pico: cram/cram_codecs.c config.h $(cram_h)

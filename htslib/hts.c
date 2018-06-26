@@ -47,6 +47,14 @@ DEALINGS IN THE SOFTWARE.  */
 #include "htslib/kseq.h"
 #include "htslib/ksort.h"
 
+#define KS_BGZF 1
+#if KS_BGZF
+    // bgzf now supports gzip-compressed files, the gzFile branch can be removed
+    KSTREAM_INIT2(, BGZF*, bgzf_read, 65536)
+#else
+    KSTREAM_INIT2(, gzFile, gzread, 16384)
+#endif
+
 KHASH_INIT2(s2i,, kh_cstr_t, int64_t, 1, kh_str_hash_func, kh_str_hash_equal)
 
 int hts_verbose = 3;
@@ -201,9 +209,27 @@ int hts_detect_format(hFILE *hfile, htsFormat *fmt)
     if (len >= 2 && s[0] == 0x1f && s[1] == 0x8b) {
         // The stream is either gzip-compressed or BGZF-compressed.
         // Determine which, and decompress the first few bytes.
-        fmt->compression = (len >= 18 && (s[3] & 4) &&
-                            memcmp(&s[12], "BC\2\0", 4) == 0)? bgzf : gzip;
-        len = decompress_peek(hfile, s, sizeof s);
+        if ( len<18 || !(s[3] & 4) )
+        {
+            fmt->compression = gzip;
+            len = decompress_peek(hfile, s, sizeof s);
+        }
+        else if ( memcmp(&s[12], "BC\2\0", 4) == 0 )
+        {
+            fmt->compression = bgzf;
+            len = decompress_peek(hfile, s, sizeof s);
+        }
+        else if ( !memcmp(&s[12], "EC\2\0", 4) || !memcmp(&s[12], "DC\2\0", 4) )
+        {
+            // temporary, not optimal
+            fmt->compression = bgzf;
+            BGZF *fp = bgzf_hopen(hfile, "r");
+            if ( !fp ) return -1;
+            len = bgzf_read(fp, s, sizeof s);
+            int ret = bgzf_seek(fp,0,SEEK_SET);
+            bgzf_hclose(fp);
+            if ( ret<0 ) return -1;
+        }
     }
     else {
         fmt->compression = no_compression;

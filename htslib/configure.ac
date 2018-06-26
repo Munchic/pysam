@@ -82,6 +82,11 @@ AC_ARG_ENABLE([lzma],
                   [omit support for LZMA-compressed CRAM files])],
   [], [enable_lzma=yes])
 
+AC_ARG_ENABLE([openssl],
+  [AS_HELP_STRING([--enable-openssl],
+                  [enable openssl-based support for encrypted BGZF])],
+  [], [enable_openssl=yes])
+
 AC_ARG_ENABLE([plugins],
   [AS_HELP_STRING([--enable-plugins],
                   [enable separately-compiled plugins for file access])],
@@ -342,4 +347,15 @@ AC_SUBST([static_LDFLAGS])
 AC_SUBST([static_LIBS])
 
 AC_CONFIG_FILES([config.mk htslib.pc.tmp:htslib.pc.in])
+openssl=enabled
+if test "$enable_openssl" != no; then
+  AC_CHECK_LIB([ssl], [SSL_library_init],
+    [AC_DEFINE([USE_CRYPTO], 1, [Define if BGZF encryption using openssl is enabled.])
+     openssl=enabled],
+    [AC_MSG_ERROR([SSL development files not found])])
+  enable_openssl=yes
+fi
+AC_SUBST([openssl])
+
+AC_CONFIG_FILES(config.mk deps.mk)
 AC_OUTPUT

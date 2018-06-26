@@ -207,6 +207,17 @@ int bcf_sr_set_threads(bcf_srs_t *files, int n_threads);
 void bcf_sr_destroy_threads(bcf_srs_t *files);
 
 /**
+ * bcf_sr_set_threads() - allocates a thread-pool for use by the synced reader.
+ * @n_threads: size of thread pool
+ *
+ * Returns 0 if the call succeeded, or <0 on error.
+ */
+int bcf_sr_set_threads(bcf_srs_t *files, int n_threads);
+
+/** Deallocates thread memory, if owned by us. */
+void bcf_sr_destroy_threads(bcf_srs_t *files);
+
+/**
  *  bcf_sr_add_reader() - open new reader
  *  @readers: holder of the open readers
  *  @fname:   the VCF file

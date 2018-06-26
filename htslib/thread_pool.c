@@ -215,6 +215,7 @@ hts_tpool_result *hts_tpool_next_result_wait(hts_tpool_process *q) {
         timeout.tv_nsec = now.tv_usec * 1000;
 
         q->ref_count++;
+        pthread_cond_timedwait(&q->output_avail_c, &q->p->pool_m, &timeout);
         if (q->shutdown) {
             int rc = --q->ref_count;
             pthread_mutex_unlock(&q->p->pool_m);
@@ -222,7 +223,6 @@ hts_tpool_result *hts_tpool_next_result_wait(hts_tpool_process *q) {
                 hts_tpool_process_destroy(q);
             return NULL;
         }
-        pthread_cond_timedwait(&q->output_avail_c, &q->p->pool_m, &timeout);
 
         q->ref_count--;
     }
@@ -459,6 +459,9 @@ void hts_tpool_process_detach(hts_tpool *p, hts_tpool_process *q) {
  */
 
 #define TDIFF(t2,t1) ((t2.tv_sec-t1.tv_sec)*1000000 + t2.tv_usec-t1.tv_usec)
+
+#include <sys/syscall.h>
+#define TID (int)syscall(SYS_gettid)
 
 /*
  * A worker thread.

@@ -41,12 +41,16 @@
 #include "htslib/thread_pool.h"
 #include "cram/pooled_alloc.h"
 
+#define USE_CRYPTO 1
+#if USE_CRYPTO
+#include "crypto.h"
+#endif
+
 #define BGZF_CACHE
 #define BGZF_MT
 
 #define BLOCK_HEADER_LENGTH 18
 #define BLOCK_FOOTER_LENGTH 8
-
 
 /* BGZF/GZIP header (speciallized from RFC 1952; little endian):
  +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
@@ -56,13 +60,24 @@
                 ^                              ^   ^   ^
                 |                              |   |   |
                FLG.EXTRA                     XLEN  B   C
+                                                  E/D
 
   BGZF format is compatible with GZIP. It limits the size of each compressed
   block to 2^16 bytes and adds and an extra "BC" field in the gzip header which
-  records the size.
+  records the size. 
+  In case of encrypted data, the field "EC" or "DC" is added instead of "BC":
+    - "EC" blocks are encrypted using AES-256 after the compression.
+    - "DC" blocks in addition contain a hash digest of the key used to encrypt 
+      the data so that the correct key can be automatically selected from a 
+      list provided by the user. The "DC" blocks consist of HASH (the hash digest,
+      64 bytes), initialization vector used to encrypt the data (16 bytes), compressed
+      and encrypted data (BLK_LEN - 64 - 16 bytes). When present, the "DC" block is
+      first in the file.
 
 */
-static const uint8_t g_magic[19] = "\037\213\010\4\0\0\0\0\0\377\6\0\102\103\2\0\0\0";
+static const uint8_t bc_magic[19] = "\037\213\010\4\0\0\0\0\0\377\6\0\102\103\2\0\0\0";
+static const uint8_t ec_magic[19] = "\037\213\010\4\0\0\0\0\0\377\6\0\105\103\2\0\0\0";
+static const uint8_t dc_magic[19] = "\037\213\010\4\0\0\0\0\0\377\6\0\104\103\2\0\0\0";
 
 #ifdef BGZF_CACHE
 typedef struct {
@@ -139,6 +154,13 @@ struct __bgzidx_t
     uint64_t ublock_addr;   // offset of the current block (uncompressed data)
 };
 
+struct __bgzf_aux_t
+{
+#if USE_CRYPTO
+    crypto_t crypto;
+#endif
+};
+
 void bgzf_index_destroy(BGZF *fp);
 int bgzf_index_add_block(BGZF *fp);
 static void mt_destroy(mtaux_t *mt);
@@ -212,7 +234,41 @@ static BGZF *bgzf_read_init(hFILE *hfpr)
     if (fp->uncompressed_block == NULL) { free(fp); return NULL; }
     fp->compressed_block = (char *)fp->uncompressed_block + BGZF_MAX_BLOCK_SIZE;
     fp->is_compressed = (n==18 && magic[0]==0x1f && magic[1]==0x8b);
-    fp->is_gzip = ( !fp->is_compressed || ((magic[3]&4) && memcmp(&magic[12], "BC\2\0",4)==0) ) ? 0 : 1;
+    if ( (magic[3]&4) && (!memcmp(&magic[12], "EC\2\0",4) || !memcmp(&magic[12], "DC\2\0",4)) )
+    {
+#if USE_CRYPTO
+        fp->aux = (bgzf_aux_t*) calloc(1,sizeof(bgzf_aux_t));
+        crypto_init(&fp->aux->crypto, 'r');
+        if ( !memcmp(&magic[12], "DC\2\0",4) )
+        {
+            uint8_t *tmp = fp->uncompressed_block;
+            n = hpeek(hfpr, tmp, 19);
+            if (n < 0) return NULL;
+
+            n = hpeek(hfpr, tmp, 18 + CRYPTO_SHA2_LEN + CRYPTO_IV_LEN);
+            if (n < 0) return NULL;
+            
+            uint8_t hold = tmp[18 + CRYPTO_SHA2_LEN];
+            tmp[18 + CRYPTO_SHA2_LEN] = 0;
+            if ( crypto_set_key(&fp->aux->crypto, (const char*)tmp+18) != 0 )
+            {
+                fprintf(stderr,"The key is not available, cannot decrypt: %s\n", (char*)tmp+18);
+                fp->errcode |= BGZF_ERR_IO;
+                return NULL;
+            }
+            tmp[18 + CRYPTO_SHA2_LEN] = hold;
+            crypto_set_ivec(&fp->aux->crypto, tmp + 18 + CRYPTO_SHA2_LEN);
+        }
+#else
+        // todo: propagate the error somehow
+        fprintf(stderr,"Cannot read encrypted files, please recompile with USE_CRYPTO\n");
+        free(fp); return NULL;
+#endif
+        fp->is_gzip = 0;
+    }
+    else
+        fp->is_gzip = ( !fp->is_compressed || ((magic[3]&4) && memcmp(&magic[12], "BC\2\0",4)==0) ) ? 0 : 1;
+
 #ifdef BGZF_CACHE
     fp->cache = kh_init(cache);
 #endif
@@ -242,6 +298,7 @@ static BGZF *bgzf_write_init(const char *mode)
         return fp;
     }
     fp->is_compressed = 1;
+    fp->aux = (bgzf_aux_t*) calloc(1,sizeof(bgzf_aux_t));
 
     fp->uncompressed_block = malloc(2 * BGZF_MAX_BLOCK_SIZE);
     if (fp->uncompressed_block == NULL) goto mem_fail;
@@ -298,6 +355,9 @@ BGZF *bgzf_open(const char *path, const char *mode)
         if ((fpw = hopen(path, mode)) == 0) return 0;
         fp = bgzf_write_init(mode);
         if (fp == NULL) return NULL;
+#if USE_CRYPTO
+     crypto_init(&fp->aux->crypto, 'w');
+#endif
         fp->fp = fpw;
     }
     else { errno = EINVAL; return 0; }
@@ -321,6 +381,9 @@ BGZF *bgzf_dopen(int fd, const char *mode)
         if ((fpw = hdopen(fd, mode)) == 0) return 0;
         fp = bgzf_write_init(mode);
         if (fp == NULL) return NULL;
+#if USE_CRYPTO
+        crypto_init(&fp->aux->crypto, 'w');
+#endif
         fp->fp = fpw;
     }
     else { errno = EINVAL; return 0; }
@@ -339,6 +402,9 @@ BGZF *bgzf_hopen(hFILE *hfp, const char *mode)
     } else if (strchr(mode, 'w') || strchr(mode, 'a')) {
         fp = bgzf_write_init(mode);
         if (fp == NULL) return NULL;
+#if USE_CRYPTO
+        crypto_init(&fp->aux->crypto, 'w');
+#endif
     }
     else { errno = EINVAL; return 0; }
 
@@ -347,7 +413,14 @@ BGZF *bgzf_hopen(hFILE *hfp, const char *mode)
     return fp;
 }
 
-int bgzf_compress(void *_dst, size_t *dlen, const void *src, size_t slen, int level)
+/* 
+    _bgzf_compress is called by bgzf_write, the values are set as follows:
+        src  .. ptr to fp->uncompressed_block
+        slen .. the value in fp->block_offset
+        dst  .. ptr to fp->compressed_block
+        dlen .. BGZF_MAX_BLOCK_SIZE
+*/
+int _bgzf_compress(BGZF *fp, void *_dst, size_t *dlen, const void *src, size_t slen, int level)
 {
     uint32_t crc;
     z_stream zs;
@@ -360,6 +433,13 @@ int bgzf_compress(void *_dst, size_t *dlen, const void *src, size_t slen, int le
     zs.avail_in = slen;
     zs.next_out = dst + BLOCK_HEADER_LENGTH;
     zs.avail_out = *dlen - BLOCK_HEADER_LENGTH - BLOCK_FOOTER_LENGTH;
+#if USE_CRYPTO
+    if ( fp && fp->aux->crypto.attach_key )
+    {
+        zs.next_out  += CRYPTO_SHA2_LEN + CRYPTO_IV_LEN;
+        zs.avail_out -= CRYPTO_SHA2_LEN + CRYPTO_IV_LEN;
+    }
+#endif
     int ret = deflateInit2(&zs, level, Z_DEFLATED, -15, 8, Z_DEFAULT_STRATEGY); // -15 to disable zlib header/footer
     if (ret!=Z_OK) {
         if (hts_verbose >= 1) {
@@ -382,15 +462,41 @@ int bgzf_compress(void *_dst, size_t *dlen, const void *src, size_t slen, int le
         }
         return -1;
     }
-    *dlen = zs.total_out + BLOCK_HEADER_LENGTH + BLOCK_FOOTER_LENGTH;
+    const uint8_t *magic = bc_magic;
+    int padding = BLOCK_HEADER_LENGTH;
+#if USE_CRYPTO
+    if ( slen && fp && fp->aux->crypto.active )
+    {
+        if ( fp->aux->crypto.attach_key )
+        {
+            padding += CRYPTO_SHA2_LEN + CRYPTO_IV_LEN;
+            dst[BLOCK_HEADER_LENGTH] = CRYPTO_SHA2_LEN;
+            memcpy(dst+BLOCK_HEADER_LENGTH, fp->aux->crypto.hashed_key, CRYPTO_SHA2_LEN);
+            memcpy(dst+BLOCK_HEADER_LENGTH + CRYPTO_SHA2_LEN, fp->aux->crypto.ivec, CRYPTO_IV_LEN);
+            magic = dc_magic;
+            fp->aux->crypto.attach_key = 0;
+        }
+        else
+            magic = ec_magic;
+
+        padding += encrypt_buffer(&fp->aux->crypto, fp->block_address, dst + padding, zs.total_out);
+    }
+#endif
+    *dlen = zs.total_out + padding + BLOCK_FOOTER_LENGTH;
     // write the header
-    memcpy(dst, g_magic, BLOCK_HEADER_LENGTH); // the last two bytes are a place holder for the length of the block
+    memcpy(dst, magic, BLOCK_HEADER_LENGTH); // the last two bytes are a place holder for the length of the block
     packInt16(&dst[16], *dlen - 1); // write the compressed length; -1 to fit 2 bytes
     // write the footer
     crc = crc32(crc32(0L, NULL, 0L), (Bytef*)src, slen);
     packInt32((uint8_t*)&dst[*dlen - 8], crc);
     packInt32((uint8_t*)&dst[*dlen - 4], slen);
     return 0;
+}
+
+// this is a low level function, should it really be exposed?
+int bgzf_compress(void *_dst, size_t *dlen, const void *src, size_t slen, int level)
+{
+    return _bgzf_compress(NULL,_dst,dlen,src,slen,level);
 }
 
 static int bgzf_gzip_compress(BGZF *fp, void *_dst, size_t *dlen, const void *src, size_t slen, int level)
@@ -427,7 +533,7 @@ static int deflate_block(BGZF *fp, int block_length)
     size_t comp_size = BGZF_MAX_BLOCK_SIZE;
     int ret;
     if ( !fp->is_gzip )
-        ret = bgzf_compress(fp->compressed_block, &comp_size, fp->uncompressed_block, block_length, fp->compress_level);
+        ret = _bgzf_compress(fp, fp->compressed_block, &comp_size, fp->uncompressed_block, block_length, fp->compress_level);
     else
         ret = bgzf_gzip_compress(fp, fp->compressed_block, &comp_size, fp->uncompressed_block, block_length, fp->compress_level);
 
@@ -488,15 +594,47 @@ static int bgzf_uncompress(uint8_t *dst, size_t *dlen, const uint8_t *src, size_
 // Inflate the block in fp->compressed_block into fp->uncompressed_block
 static int inflate_block(BGZF* fp, int block_length)
 {
-    size_t dlen = BGZF_MAX_BLOCK_SIZE;
-    int ret = bgzf_uncompress(fp->uncompressed_block, &dlen,
-                              (Bytef*)fp->compressed_block + 18, block_length - 18);
-    if (ret < 0) {
+    z_stream zs;
+    zs.zalloc = NULL;
+    zs.zfree = NULL;
+    zs.msg = NULL;
+    zs.next_in = (Bytef*)fp->compressed_block + 18;
+    zs.avail_in = block_length - 16;
+    zs.next_out = (Bytef*)fp->uncompressed_block;
+    zs.avail_out = BGZF_MAX_BLOCK_SIZE;
+
+    int ret = inflateInit2(&zs, -15);
+    if (ret != Z_OK) {
+        if (hts_verbose >= 1) {
+            fprintf(stderr, "[E::%s] inflateInit2 failed: %s\n",
+                    __func__, bgzf_zerr(ret, &zs));
+        }
         fp->errcode |= BGZF_ERR_ZLIB;
         return -1;
     }
-
-    return dlen;
+    if ((ret = inflate(&zs, Z_FINISH)) != Z_STREAM_END) {
+        if (hts_verbose >= 1) {
+            fprintf(stderr, "[E::%s] inflate failed: %s\n",
+                    __func__, bgzf_zerr(ret, ret == Z_DATA_ERROR ? &zs : NULL));
+        }
+        if ((ret = inflateEnd(&zs)) != Z_OK) {
+            if (hts_verbose >= 2) {
+                fprintf(stderr, "[E::%s] inflateEnd failed: %s\n",
+                        __func__, bgzf_zerr(ret, NULL));
+            }
+        }
+        fp->errcode |= BGZF_ERR_ZLIB;
+        return -1;
+    }
+    if ((ret = inflateEnd(&zs)) != Z_OK) {
+        if (hts_verbose >= 1) {
+            fprintf(stderr, "[E::%s] inflateEnd failed: %s\n",
+                    __func__, bgzf_zerr(ret, NULL));
+        }
+        fp->errcode |= BGZF_ERR_ZLIB;
+        return -1;
+    }
+    return zs.total_out;
 }
 
 static int inflate_gzip_block(BGZF *fp, int cached)
@@ -542,7 +680,7 @@ static int check_header(const uint8_t *header)
     if ( header[0] != 31 || header[1] != 139 || header[2] != 8 ) return -2;
     return ((header[3] & 4) != 0
             && unpackInt16((uint8_t*)&header[10]) == 6
-            && header[12] == 'B' && header[13] == 'C'
+            && (header[12] == 'B' || header[12] == 'E' || header[12] == 'D') && header[13] == 'C'
             && unpackInt16((uint8_t*)&header[14]) == 2) ? 0 : -1;
 }
 
@@ -851,8 +989,58 @@ int bgzf_read_block(BGZF *fp)
             fp->errcode |= BGZF_ERR_ZLIB;
             return -1;
         }
-        fp->last_block_eof = (count == 0);
-        if ( count ) break;     // otherwise an empty bgzf block
+        fp->block_length = count;
+        fp->block_address = block_address;
+        if ( fp->idx_build_otf ) return -1; // cannot build index for gzip
+        return 0;
+    }
+    size = count;
+    block_length = unpackInt16((uint8_t*)&header[16]) + 1; // +1 because when writing this number, we used "-1"
+    compressed_block = (uint8_t*)fp->compressed_block;
+    memcpy(compressed_block, header, BLOCK_HEADER_LENGTH);
+#if USE_CRYPTO
+    if ( header[12]=='D' )  // the block contains the hash digest and the initialization vector
+    {
+        uint8_t *tmp = compressed_block + BLOCK_HEADER_LENGTH;
+        if ( hread(fp->fp, tmp, CRYPTO_SHA2_LEN) != CRYPTO_SHA2_LEN )
+        {
+            fp->errcode |= BGZF_ERR_IO;
+            return -1;
+        }
+        tmp[CRYPTO_SHA2_LEN] = 0;
+        if ( crypto_set_key(&fp->aux->crypto, (const char*)tmp) != 0 )
+        {
+            fprintf(stderr,"The key is not available, cannot decrypt: %s\n", (char*)tmp);
+            fp->errcode |= BGZF_ERR_IO;
+            return -1;
+        }
+        if ( hread(fp->fp, tmp, CRYPTO_IV_LEN) != CRYPTO_IV_LEN )
+        {
+            fp->errcode |= BGZF_ERR_IO;
+            return -1;
+        }
+        crypto_set_ivec(&fp->aux->crypto, tmp);
+        block_length -= CRYPTO_SHA2_LEN + CRYPTO_IV_LEN;
+    }
+#endif
+    remaining = block_length - BLOCK_HEADER_LENGTH;
+    count = hread(fp->fp, &compressed_block[BLOCK_HEADER_LENGTH], remaining);
+    if (count != remaining) {
+        fp->errcode |= BGZF_ERR_IO;
+        return -1;
+    }
+    size += count;
+#if USE_CRYPTO
+    if ( header[12]!='B' )
+    {
+        int aes_padding = decrypt_buffer(&fp->aux->crypto, block_address, compressed_block + BLOCK_HEADER_LENGTH, remaining - BLOCK_FOOTER_LENGTH);
+        block_length -= aes_padding;
+    }
+#endif
+    if ((count = inflate_block(fp, block_length)) < 0) {
+        if (hts_verbose >= 2) fprintf(stderr, "[E::%s] inflate_block error %d\n", __func__, count);
+        fp->errcode |= BGZF_ERR_ZLIB;
+        return -1;
     }
     if (fp->block_length != 0) fp->block_offset = 0; // Do not reset offset if this read follows a seek.
     fp->block_address = block_address;
@@ -900,7 +1088,10 @@ ssize_t bgzf_read(BGZF *fp, void *data, size_t length)
             fp->block_offset = fp->block_length = 0;
         }
     }
-
+    if (fp->block_offset == fp->block_length) {
+        fp->block_address = bgzf_htell(fp);
+        fp->block_offset = fp->block_length = 0;
+    }
     fp->uncompressed_address += bytes_read;
 
     return bytes_read;
@@ -1141,18 +1332,21 @@ restart:
 
         case HAS_EOF:
             bgzf_mt_eof(fp);
+            pthread_mutex_unlock(&mt->command_m);
             break;
 
         case CLOSE:
             pthread_cond_signal(&mt->command_c);
             pthread_mutex_unlock(&mt->command_m);
-            hts_tpool_process_destroy(mt->out_queue);
             pthread_exit(NULL);
 
         default:
             break;
         }
         pthread_mutex_unlock(&mt->command_m);
+
+        // Dispatch
+        hts_tpool_dispatch(mt->pool, mt->out_queue, bgzf_decode_func, j);
 
         // Allocate buffer for next block
         pthread_mutex_lock(&mt->job_pool_m);
@@ -1287,11 +1481,10 @@ static void mt_destroy(mtaux_t *mt)
     pthread_cond_destroy(&mt->command_c);
     if (mt->curr_job)
         pool_free(mt->job_pool, mt->curr_job);
+    pool_destroy(mt->job_pool);
 
     if (mt->own_pool)
         hts_tpool_destroy(mt->pool);
-
-    pool_destroy(mt->job_pool);
 
     free(mt);
     fflush(stderr);
@@ -1461,7 +1654,7 @@ ssize_t bgzf_raw_write(BGZF *fp, const void *data, size_t length)
     return ret;
 }
 
-int bgzf_close(BGZF* fp)
+int bgzf_hclose(BGZF *fp)
 {
     int ret, block_length;
     if (fp == 0) return -1;
@@ -1497,12 +1690,23 @@ int bgzf_close(BGZF* fp)
                     __func__, bgzf_zerr(ret, NULL));
         free(fp->gz_stream);
     }
-    ret = hclose(fp->fp);
-    if (ret != 0) return -1;
     bgzf_index_destroy(fp);
     free(fp->uncompressed_block);
     free_cache(fp);
+#if USE_CRYPTO
+    crypto_destroy(&fp->aux->crypto);
+#endif
+    free(fp->aux);
     free(fp);
+    return 0;
+}
+
+int bgzf_close(BGZF* fp)
+{
+    hFILE *hfp = fp->fp;
+    bgzf_hclose(fp);
+    int ret = hclose(hfp);
+    if (ret != 0) return -1;
     return 0;
 }
 
@@ -1592,12 +1796,9 @@ int bgzf_is_bgzf(const char *fn)
     n = hread(fp, buf, 16);
     if (hclose(fp) < 0) return 0;
     if (n != 16) return 0;
-    return check_header(buf) == 0? 1 : 0;
-}
-
-int bgzf_compression(BGZF *fp)
-{
-    return (!fp->is_compressed)? no_compression : (fp->is_gzip)? gzip : bgzf;
+    if ( !memcmp(bc_magic, buf, 16) ) return 1;
+    if ( !memcmp(dc_magic, buf, 16) ) return 1;
+    return 0;
 }
 
 int bgzf_getc(BGZF *fp)

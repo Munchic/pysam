@@ -1,0 +1,23 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:2.7.15
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "34:1e:25:71:88:8d:c9:1f:1e:5a:43:a4:c7:18:56:71"
+      - run:
+          name: Installing pysam
+          command: |
+            echo Installing pysam
+            python setup.py install --user
+      - run:
+          name: Testing reading encrypted BGZF
+          command: |
+            cd tests
+            echo Retrieving public and private keys library
+            export HTS_KEYS="crypto_read/hts-keys.txt"
+            echo Running python script
+            python crypto_read.py

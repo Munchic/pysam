@@ -2428,6 +2428,7 @@ void cram_update_curr_slice(cram_container *c) {
     c->curr_slice++;
 }
 
+
 /*
  * Handles creation of a new container or new slice, flushing any
  * existing containers when appropriate. 
