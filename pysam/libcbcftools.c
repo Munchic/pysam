@@ -562,6 +562,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #define __PYX_HAVE__pysam__libcbcftools
 #define __PYX_HAVE_API__pysam__libcbcftools
 /* Early includes */
+
 #include "bcftools.pysam.h"
 #ifdef _OPENMP
 #include <omp.h>
