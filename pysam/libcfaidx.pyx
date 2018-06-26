@@ -13,7 +13,7 @@
 # of the internal API. These are:
 #
 # class FastqProxy
-# class PersistentFastqProxy
+# class FastxRecord
 #
 # For backwards compatibility, the following classes are also defined:
 #
@@ -48,6 +48,11 @@
 import sys
 import os
 import re
+
+
+from libc.errno  cimport errno
+from libc.string cimport strerror
+
 from cpython cimport array
 
 from cpython cimport PyErr_SetString, \
@@ -58,7 +63,7 @@ from cpython cimport PyErr_SetString, \
 from cpython.version cimport PY_MAJOR_VERSION
 
 from pysam.libchtslib cimport \
-    faidx_nseq, fai_load, fai_destroy, fai_fetch, \
+    faidx_nseq, fai_load, fai_load3, fai_destroy, fai_fetch, \
     faidx_seq_len, faidx_iseq, faidx_seq_len, \
     faidx_fetch_seq, hisremote, \
     bgzf_open, bgzf_close
@@ -94,6 +99,10 @@ cdef class FastaFile:
         Optional, filename of the index. By default this is
         the filename + ".fai".
 
+    filepath_index_compressed : string
+        Optional, filename of the index if fasta file is. By default this is
+        the filename + ".gzi".
+
     Raises
     ------
 
@@ -123,7 +132,7 @@ cdef class FastaFile:
 
         return faidx_nseq(self.fastafile)
 
-    def _open(self, filename, filepath_index=None):
+    def _open(self, filename, filepath_index=None, filepath_index_compressed=None):
         '''open an indexed fasta file.
 
         This method expects an indexed fasta file.
@@ -135,24 +144,43 @@ cdef class FastaFile:
 
         self._filename = encode_filename(filename)
         cdef char *cfilename = self._filename
+        cdef char *cindexname = NULL
+        cdef char *cindexname_compressed = NULL
         self.is_remote = hisremote(cfilename)
-
-        if filepath_index is not None:
-            raise NotImplementedError(
-                "setting an explicit path for the index "
-                "is not implemented")
-
+        
         # open file for reading
         if (self._filename != b"-"
             and not self.is_remote
             and not os.path.exists(filename)):
             raise IOError("file `%s` not found" % filename)
 
-        with nogil:
-            self.fastafile = fai_load(cfilename)
+        # 3 modes to open:
+        # compressed fa: fai_load3 with filename, index_fai and index_gzi
+        # uncompressed fa: fai_load3 with filename and index_fai
+        # uncompressed fa: fai_load with default index name
+        if filepath_index:
+            # when opening, set flags to 0 - do not automatically
+            # build index if it does not exist.
+
+            if not os.path.exists(filepath_index):
+                raise IOError("filename {} does not exist".format(filepath_index))
+            cindexname = bindex_filename = encode_filename(filepath_index)
+            
+            if filepath_index_compressed:
+                if not os.path.exists(filepath_index_compressed):
+                    raise IOError("filename {} does not exist".format(filepath_index_compressed))
+                cindexname_compressed = bindex_filename_compressed = encode_filename(filepath_index_compressed)
+                with nogil:
+                    self.fastafile = fai_load3(cfilename, cindexname, cindexname_compressed, 0)
+            else:
+                with nogil:
+                    self.fastafile = fai_load3(cfilename, cindexname, NULL, 0)
+        else:
+            with nogil:
+                self.fastafile = fai_load(cfilename)
 
         if self.fastafile == NULL:
-            raise IOError("could not open file `%s`" % filename)
+            raise IOError("error when opening file `%s`" % filename)
 
         cdef int nreferences = faidx_nseq(self.fastafile)
         cdef int x
@@ -283,24 +311,35 @@ cdef class FastaFile:
                                   rend-1,
                                   &length)
 
-        if seq == NULL:
-            raise ValueError(
-                "failure when retrieving sequence on '%s'" % reference)
+        if not seq:
+            if errno:
+                raise IOError(errno, strerror(errno))
+            else:
+                raise ValueError("failure when retrieving sequence on '%s'" % reference)
 
         try:
             return charptr_to_str(seq)
         finally:
             free(seq)
 
-    cdef char * _fetch(self, char * reference, int start, int end, int * length):
+    cdef char *_fetch(self, char *reference, int start, int end, int *length) except? NULL:
         '''fetch sequence for reference, start and end'''
 
+        cdef char *seq
         with nogil:
-            return faidx_fetch_seq(self.fastafile,
-                                   reference,
-                                   start,
-                                   end-1,
-                                   length)
+            seq = faidx_fetch_seq(self.fastafile,
+                                  reference,
+                                  start,
+                                  end-1,
+                                  length)
+
+        if not seq:
+            if errno:
+                raise IOError(errno, strerror(errno))
+            else:
+                raise ValueError("failure when retrieving sequence on '%s'" % reference)
+
+        return seq
 
     def get_reference_length(self, reference):
         '''return the length of reference.'''
@@ -343,7 +382,7 @@ cdef class FastqProxy:
             else:
                 return None
 
-    cdef cython.str tostring(self):
+    cdef cython.str to_string(self):
         if self.comment is None:
             comment = ""
         else:
@@ -354,9 +393,13 @@ cdef class FastqProxy:
         else:
             return "@%s%s\n%s\n+\n%s" % (self.name, comment,
                                          self.sequence, self.quality)
-
+    
+    cdef cython.str tostring(self):
+        """deprecated : use :meth:`to_string`"""
+        return self.to_string()
+    
     def __str__(self):
-        return self.tostring()
+        return self.to_string()
 
     cpdef array.array get_quality_array(self, int offset=33):
         '''return quality values as integer array after subtracting offset.'''
@@ -365,18 +408,43 @@ cdef class FastqProxy:
         return qualitystring_to_array(force_bytes(self.quality),
                                       offset=offset)
 
-cdef class PersistentFastqProxy:
-    """
-    Python container for pysam.libcfaidx.FastqProxy with persistence.
-    Needed to compare multiple fastq records from the same file.
-    """
-    def __init__(self, FastqProxy FastqRead):
-        self.comment = FastqRead.comment
-        self.quality = FastqRead.quality
-        self.sequence = FastqRead.sequence
-        self.name = FastqRead.name
+cdef class FastxRecord:
+    """A fasta/fastq record.
 
-    cdef cython.str tostring(self):
+    A record must contain a name and a sequence. If either of them are
+    None, a ValueError is raised on writing.
+
+    """
+    def __init__(self,
+                 name=None,
+                 comment=None,
+                 sequence=None,
+                 quality=None,
+                 FastqProxy proxy=None):
+        if proxy is not None:
+            self.comment = proxy.comment
+            self.quality = proxy.quality
+            self.sequence = proxy.sequence
+            self.name = proxy.name
+        else:
+            self.comment = comment
+            self.quality = quality
+            self.sequence = sequence
+            self.name = name
+
+    def __copy__(self):
+        return FastxRecord(self.name, self.comment, self.sequence, self.quality)
+
+    def __deepcopy__(self, memo):
+        return FastxRecord(self.name, self.comment, self.sequence, self.quality)
+
+    cdef cython.str to_string(self):
+        if self.name is None:
+            raise ValueError("can not write record without name")
+
+        if self.sequence is None:
+            raise ValueError("can not write record without a sequence")
+        
         if self.comment is None:
             comment = ""
         else:
@@ -387,9 +455,35 @@ cdef class PersistentFastqProxy:
         else:
             return "@%s%s\n%s\n+\n%s" % (self.name, comment,
                                          self.sequence, self.quality)
+        
+    cdef cython.str tostring(self):
+        """deprecated : use :meth:`to_string`"""
+        return self.to_string()
+
+    def set_name(self, name):
+        if name is None:
+            raise ValueError("FastxRecord must have a name and not None")
+        self.name = name
+
+    def set_comment(self, comment):
+        self.comment = comment    
+        
+    def set_sequence(self, sequence, quality=None):
+        """set sequence of this record.
+
+        """
+        self.sequence = sequence
+        if quality is not None:
+            if len(sequence) != len(quality):
+                raise ValueError("sequence and quality length do not match: {} vs {}".format(
+                    len(sequence), len(quality)))
+
+            self.quality = quality
+        else:
+            self.quality = None
 
     def __str__(self):
-        return self.tostring()
+        return self.to_string()
 
     cpdef array.array get_quality_array(self, int offset=33):
         '''return quality values as array after subtracting offset.'''
@@ -421,12 +515,12 @@ cdef class FastxFile:
 
         If True (default) make a copy of the entry in the file during
         iteration. If set to False, no copy will be made. This will
-        permit faster iteration, but an entry will not persist when
-        the iteration continues.
+        permit much faster iteration, but an entry will not persist
+        when the iteration continues and an entry is read-only.
 
     Notes
     -----
-    Prior to version 0.8.2, this was called FastqFile.
+    Prior to version 0.8.2, this class was called FastqFile.
 
     Raises
     ------
@@ -443,6 +537,9 @@ cdef class FastxFile:
     ...        print(entry.sequence)
     ...        print(entry.comment)
     ...        print(entry.quality)
+    >>> with pysam.FastxFile(filename) as fin, open(out_filename, mode='w') as fout:
+    ...    for entry in fin:
+    ...        fout.write(str(entry))
 
     """
     def __cinit__(self, *args, **kwargs):
@@ -546,7 +643,7 @@ cdef class FastxFile:
             l = kseq_read(self.entry)
         if (l >= 0):
             if self.persist:
-                return PersistentFastqProxy(makeFastqProxy(self.entry))
+                return FastxRecord(proxy=makeFastqProxy(self.entry))
             return makeFastqProxy(self.entry)
         else:
             raise StopIteration
@@ -565,4 +662,5 @@ __all__ = ["FastaFile",
            "FastqFile",
            "FastxFile",
            "Fastafile",
+           "FastxRecord",
            "FastqProxy"]

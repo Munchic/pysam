@@ -1,5 +1,5 @@
 /* 
-    Copyright (C) 2014-2016 Genome Research Ltd.
+    Copyright (C) 2014-2017 Genome Research Ltd.
 
     Author: Petr Danecek <pd3@sanger.ac.uk>
 
@@ -22,6 +22,7 @@
     THE SOFTWARE.
 */
 
+#include <strings.h>
 #include <htslib/hts.h>
 #include <htslib/kstring.h>
 #include <htslib/kseq.h>
@@ -170,7 +171,7 @@ inline int regidx_push(regidx_t *idx, char *chr_beg, char *chr_end, uint32_t beg
     if ( idx->payload_size )
     {
         if ( mreg != list->mreg ) list->dat = realloc(list->dat,idx->payload_size*list->mreg);
-        memcpy(list->dat + idx->payload_size*(list->nreg-1), payload, idx->payload_size);
+        memcpy((char *)list->dat + idx->payload_size*(list->nreg-1), payload, idx->payload_size);
     }
     if ( !list->unsorted && list->nreg>1 && cmp_regs(&list->reg[list->nreg-2],&list->reg[list->nreg-1])>0 ) list->unsorted = 1;
     return 0;
@@ -186,6 +187,35 @@ int regidx_insert(regidx_t *idx, char *line)
     if ( ret==-1 ) return 0;    // skip the line
     regidx_push(idx, chr_from,chr_to,beg,end,idx->payload);
     return 0;
+}
+
+regidx_t *regidx_init_string(const char *str, regidx_parse_f parser, regidx_free_f free_f, size_t payload_size, void *usr_dat)
+{
+    regidx_t *idx = (regidx_t*) calloc(1,sizeof(regidx_t));
+    if ( !idx ) return NULL;
+
+    idx->free  = free_f;
+    idx->parse = parser ? parser : regidx_parse_tab;
+    idx->usr   = usr_dat;
+    idx->seq2regs = khash_str2int_init();
+    idx->payload_size = payload_size;
+    if ( payload_size ) idx->payload = malloc(payload_size);
+
+    kstring_t tmp = {0,0,0};
+    const char *ss = str;
+    while ( *ss )
+    {
+        while ( *ss && isspace(*ss) ) ss++;
+        const char *se = ss;
+        while ( *se && *se!='\r' && *se!='\n' ) se++;
+        tmp.l = 0;
+        kputsn(ss, se-ss, &tmp);
+        regidx_insert(idx,tmp.s);
+        while ( *se && isspace(*se) ) se++;
+        ss = se;
+    }
+    free(tmp.s);
+    return idx;
 }
 
 regidx_t *regidx_init(const char *fname, regidx_parse_f parser, regidx_free_f free_f, size_t payload_size, void *usr_dat)
@@ -247,7 +277,7 @@ void regidx_destroy(regidx_t *idx)
         if ( idx->free )
         {
             for (j=0; j<list->nreg; j++)
-                idx->free(list->dat + idx->payload_size*j);
+                idx->free((char *)list->dat + idx->payload_size*j);
         }
         free(list->dat);
         free(list->reg);
@@ -278,7 +308,9 @@ int _reglist_build_index(regidx_t *regidx, reglist_t *list)
             for (i=0; i<list->nreg; i++)
             {
                 size_t iori = ptr[i] - list->reg;
-                memcpy(tmp_dat+i*regidx->payload_size, list->dat+iori*regidx->payload_size, regidx->payload_size);
+                memcpy((char *)tmp_dat+i*regidx->payload_size,
+                       (char *)list->dat+iori*regidx->payload_size,
+                       regidx->payload_size);
             }
             free(list->dat);
             list->dat = tmp_dat;
@@ -386,7 +418,7 @@ int regidx_overlap(regidx_t *regidx, const char *chr, uint32_t beg, uint32_t end
     regitr->beg = list->reg[ireg].beg;
     regitr->end = list->reg[ireg].end;
     if ( regidx->payload_size )
-        regitr->payload = list->dat + regidx->payload_size*ireg;
+        regitr->payload = (char *)list->dat + regidx->payload_size*ireg;
 
     return 1;
 }
@@ -554,7 +586,7 @@ int regitr_overlap(regitr_t *regitr)
     regitr->beg = list->reg[i].beg;
     regitr->end = list->reg[i].end;
     if ( itr->ridx->payload_size )
-        regitr->payload = list->dat + itr->ridx->payload_size*i;
+        regitr->payload = (char *)list->dat + itr->ridx->payload_size*i;
 
     return 1;
 }
@@ -585,11 +617,20 @@ int regitr_loop(regitr_t *regitr)
     regitr->beg = itr->list->reg[itr->ireg].beg;
     regitr->end = itr->list->reg[itr->ireg].end;
     if ( regidx->payload_size )
-        regitr->payload = itr->list->dat + regidx->payload_size*itr->ireg;
+        regitr->payload = (char *)itr->list->dat + regidx->payload_size*itr->ireg;
     itr->ireg++;
 
     return 1;
 }
 
+
+void regitr_copy(regitr_t *dst, regitr_t *src)
+{
+    _itr_t *dst_itr = (_itr_t*) dst->itr;
+    _itr_t *src_itr = (_itr_t*) src->itr;
+    *dst_itr = *src_itr;
+    *dst = *src;
+    dst->itr = dst_itr;
+}
 
 

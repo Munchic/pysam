@@ -22,6 +22,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.  */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -56,6 +57,7 @@ int main_plugin(int argc, char *argv[]);
 int main_consensus(int argc, char *argv[]);
 int main_csq(int argc, char *argv[]);
 int bam_mpileup(int argc, char *argv[]);
+int main_sort(int argc, char *argv[]);
 
 typedef struct
 {
@@ -110,7 +112,12 @@ static cmd_t cmds[] =
     },
     { .func  = main_plugin,
       .alias = "plugin",
+#ifdef ENABLE_BCF_PLUGINS
       .help  = "user-defined plugins"
+#else
+      /* Do not advertise when plugins disabled. */
+      .help  = "-user-defined plugins"
+#endif
     },
     { .func  = main_vcfquery,
       .alias = "query",
@@ -119,6 +126,10 @@ static cmd_t cmds[] =
     { .func  = main_reheader,
       .alias = "reheader",
       .help  = "modify VCF/BCF header, change sample names"
+    },
+    { .func  = main_sort,
+      .alias = "sort",
+      .help  = "sort VCF/BCF file"
     },
     { .func  = main_vcfview,
       .alias = "view",

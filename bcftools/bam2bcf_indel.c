@@ -357,23 +357,26 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
                     }
                     free(qq);
                 }
-/*
+#if 0
                 for (l = 0; l < tend - tbeg + abs(types[t]); ++l)
                     fputc("ACGTN"[(int)ref2[tbeg-left+l]], stderr);
                 fputc('\n', stderr);
                 for (l = 0; l < qend - qbeg; ++l) fputc("ACGTN"[(int)query[l]], stderr);
                 fputc('\n', stderr);
-                fprintf(stderr, "pos=%d type=%d read=%d:%d name=%s qbeg=%d tbeg=%d score=%d\n", pos, types[t], s, i, bam1_qname(p->b), qbeg, tbeg, sc);
-*/
+                fprintf(stderr, "pos=%d type=%d read=%d:%d name=%s qbeg=%d tbeg=%d score=%d\n", pos, types[t], s, i, bam_get_qname(p->b), qbeg, tbeg, sc);
+#endif
             }
         }
     }
     free(ref2); free(query);
     { // compute indelQ
-        int *sc, tmp, *sumq;
-        sc   = (int*) alloca(n_types * sizeof(int));
-        sumq = (int*) alloca(n_types * sizeof(int));
-        memset(sumq, 0, sizeof(int) * n_types);
+        int sc_a[16], sumq_a[16];
+        int tmp, *sc = sc_a, *sumq = sumq_a;
+        if (n_types > 16) {
+            sc   = (int *)malloc(n_types * sizeof(int));
+            sumq = (int *)malloc(n_types * sizeof(int));
+        }
+        memset(sumq, 0, n_types * sizeof(int));
         for (s = K = 0; s < n; ++s) {
             for (i = 0; i < n_plp[s]; ++i, ++K) {
                 bam_pileup1_t *p = plp[s] + i;
@@ -451,9 +454,12 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
                     if (x == bca->indel_types[j]) break;
                 p->aux = j<<16 | (j == 4? 0 : (p->aux&0xffff));
                 if ((p->aux>>16&0x3f) > 0) ++n_alt;
-                //fprintf(stderr, "X pos=%d read=%d:%d name=%s call=%d type=%d seqQ=%d indelQ=%d\n", pos, s, i, bam1_qname(p->b), (p->aux>>16)&0x3f, bca->indel_types[(p->aux>>16)&0x3f], (p->aux>>8)&0xff, p->aux&0xff);
+                //fprintf(stderr, "X pos=%d read=%d:%d name=%s call=%d type=%d seqQ=%d indelQ=%d\n", pos, s, i, bam_get_qname(p->b), (p->aux>>16)&0x3f, bca->indel_types[(p->aux>>16)&0x3f], (p->aux>>8)&0xff, p->aux&0xff);
             }
         }
+
+        if (sc   != sc_a)   free(sc);
+        if (sumq != sumq_a) free(sumq);
     }
     free(score1); free(score2);
     // free

@@ -78,14 +78,15 @@ open_next:
     if (fp->currentfp == NULL) {
         if (fp->current < fp->nparts) {
             const hfile_part *p = &fp->parts[fp->current];
-            if (hts_verbose >= 5)
-                fprintf(stderr, "[M::multipart_read] opening part #%zu of %zu:"
-                        " \"%.120s%s\"\n", fp->current+1, fp->nparts, p->url,
-                        (strlen(p->url) > 120)? "..." : "");
+            hts_log_debug("Opening part #%zu of %zu: \"%.120s%s\"",
+                fp->current+1, fp->nparts, p->url,
+                (strlen(p->url) > 120)? "..." : "");
 
             fp->currentfp = p->headers?
-                  hopen(p->url, "r:", "httphdr:v", p->headers, NULL)
-                : hopen(p->url, "r");
+                  hopen(p->url, "r:",
+                        "httphdr:v", p->headers,
+                        "auth_token_enabled", "false", NULL)
+                : hopen(p->url, "r:", "auth_token_enabled", "false", NULL);
 
             if (fp->currentfp == NULL) return -1;
         }
@@ -145,8 +146,8 @@ static const struct hFILE_backend multipart_backend =
 // not the type expected for a particular GA4GH field, or it may be '?' or
 // '\0' which should be propagated.
 static char
-parse_ga4gh_redirect_json(hFILE_multipart *fp, hFILE *json,
-                          kstring_t *b, kstring_t *header)
+parse_ga4gh_body_json(hFILE_multipart *fp, hFILE *json,
+                      kstring_t *b, kstring_t *header)
 {
     hts_json_token t;
 
@@ -201,11 +202,34 @@ parse_ga4gh_redirect_json(hFILE_multipart *fp, hFILE *json,
         else if (strcmp(t.str, "format") == 0) {
             if (hts_json_fnext(json, &t, b) != 's') return t.type;
 
-            if (hts_verbose >= 5)
-                fprintf(stderr, "[M::multipart_open] GA4GH JSON redirection "
-                        "to multipart %s data\n", t.str);
+            hts_log_debug("GA4GH JSON redirection to multipart %s data", t.str);
         }
         else if (hts_json_fskip_value(json, '\0') != 'v') return '?';
+    }
+
+    return 'v';
+}
+
+// Returns 'v' (valid value), 'i' (invalid; required GA4GH field missing),
+// or upon encountering an unexpected token, that token's type.
+// Explicit `return '?'` means a JSON parsing error, typically a member key
+// that is not a string.  An unexpected token may be a valid token that was
+// not the type expected for a particular GA4GH field, or it may be '?' or
+// '\0' which should be propagated.
+static char
+parse_ga4gh_redirect_json(hFILE_multipart *fp, hFILE *json,
+                          kstring_t *b, kstring_t *header) {
+    hts_json_token t;
+
+    if (hts_json_fnext(json, &t, b) != '{') return t.type;
+    while (hts_json_fnext(json, &t, b) != '}') {
+        if (t.type != 's') return '?';
+
+        if (strcmp(t.str, "htsget") == 0) {
+            char ret = parse_ga4gh_body_json(fp, json, b, header);
+            if (ret != 'v') return ret;
+        }
+        else return '?';
     }
 
     if (hts_json_fnext(json, &t, b) != '\0') return '?';
@@ -213,7 +237,7 @@ parse_ga4gh_redirect_json(hFILE_multipart *fp, hFILE *json,
     return 'v';
 }
 
-hFILE *hopen_json_redirect(hFILE *hfile, const char *mode)
+hFILE *hopen_htsget_redirect(hFILE *hfile, const char *mode)
 {
     hFILE_multipart *fp;
     kstring_t s1 = { 0, 0, NULL }, s2 = { 0, 0, NULL };

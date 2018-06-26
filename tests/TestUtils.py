@@ -1,12 +1,34 @@
 import sys
 import os
-import pysam
+import glob
 import difflib
 import gzip
+import contextlib
 import inspect
 import tempfile
+import pysam
+
+WORKDIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                       "pysam_test_work"))
+
+BAM_DATADIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                           "pysam_data"))
+
+TABIX_DATADIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                             "tabix_data"))
+
+CBCF_DATADIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                            "cbcf_data"))
+
+LINKDIR = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), "..", "linker_tests"))
+
+
+TESTS_TEMPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "tmp"))
+
 
 IS_PYTHON3 = sys.version_info[0] >= 3
+
 
 if IS_PYTHON3:
     from itertools import zip_longest
@@ -22,6 +44,7 @@ if IS_PYTHON3:
             return s.decode('ascii')
         except AttributeError:
             return s
+
     def force_bytes(s):
         try:
             return s.encode('ascii')
@@ -30,6 +53,7 @@ if IS_PYTHON3:
 else:
     def force_str(s):
         return s
+
     def force_bytes(s):
         return s
 
@@ -78,7 +102,6 @@ def check_samtools_view_equal(
     '''return true if the two files are equal in their
     content through samtools view.
     '''
-
     # strip MD and NM tags, as not preserved in CRAM files
     args = ["-x", "MD", "-x", "NM"]
     if not without_header:
@@ -99,9 +122,9 @@ def check_samtools_view_equal(
             l1 = sorted(l1[:-1].split("\t"))
             l2 = sorted(l2[:-1].split("\t"))
             if l1 != l2:
-                print ("mismatch in line %i" % n)
-                print (l1)
-                print (l2)
+                print("mismatch in line %i" % n)
+                print(l1)
+                print(l2)
                 return False
         else:
             return False
@@ -109,7 +132,7 @@ def check_samtools_view_equal(
     return True
 
 
-def checkURL(url):
+def check_url(url):
     '''return True if URL is available.
 
     A URL might not be available if it is the wrong URL
@@ -178,10 +201,67 @@ def check_lines_equal(cls, a, b, sort=False, filter_f=None, msg=None):
 
 def get_temp_filename(suffix=""):
     caller_name = inspect.getouterframes(inspect.currentframe(), 2)[1][3]
+    try:
+        os.makedirs(TESTS_TEMPDIR)
+    except OSError:
+        pass
+
     f = tempfile.NamedTemporaryFile(
-        prefix="tmp_{}_".format(caller_name),
+        prefix="pysamtests_tmp_{}_".format(caller_name),
         suffix=suffix,
         delete=False,
-        dir=".")
+        dir=TESTS_TEMPDIR)
+
     f.close()
     return f.name
+
+@contextlib.contextmanager
+def get_temp_context(suffix="", keep=False):
+    caller_name = inspect.getouterframes(inspect.currentframe(), 3)[1][3]
+    try:
+        os.makedirs(TESTS_TEMPDIR)
+    except OSError:
+        pass
+
+    f = tempfile.NamedTemporaryFile(
+        prefix="pysamtests_tmp_{}_".format(caller_name),
+        suffix=suffix,
+        delete=False,
+        dir=TESTS_TEMPDIR)
+
+    f.close()
+    yield f.name
+    
+    if not keep:
+        # clear up any indices as well
+        for f in glob.glob(f.name + "*"):
+            os.unlink(f)
+
+
+def load_and_convert(filename, encode=True):
+    '''load data from filename and convert all fields to string.
+
+    Filename can be either plain or compressed (ending in .gz).
+    '''
+    data = []
+    if filename.endswith(".gz"):
+        with gzip.open(filename) as inf:
+            for line in inf:
+                line = line.decode("ascii")
+                if line.startswith("#"):
+                    continue
+                d = line.strip().split("\t")
+                data.append(d)
+    else:
+        with open(filename) as f:
+            for line in f:
+                if line.startswith("#"):
+                    continue
+                d = line.strip().split("\t")
+                data.append(d)
+
+    return data
+
+
+def flatten_nested_list(l):
+    return [i for ll in l for i in ll]

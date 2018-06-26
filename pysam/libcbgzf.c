@@ -567,8 +567,8 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include <stdlib.h>
 #include <stdio.h>
 #include "pythread.h"
-#include "pysam_util.h"
 #include <sys/types.h>
+#include "stdarg.h"
 #include "htslib/kstring.h"
 #include "htslib_util.h"
 #include "htslib/hfile.h"
@@ -579,6 +579,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "htslib/tbx.h"
 #include "htslib/vcf.h"
 #include "htslib/vcfutils.h"
+#include "htslib/cram.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -919,7 +920,7 @@ struct __pyx_opt_args_5pysam_9libcutils_force_bytes {
   PyObject *encoding;
 };
 
-/* "pysam/libchtslib.pxd":1904
+/* "pysam/libchtslib.pxd":2590
  * 
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
@@ -933,6 +934,7 @@ struct __pyx_obj_5pysam_10libchtslib_HTSFile {
   int64_t start_offset;
   PyObject *filename;
   PyObject *mode;
+  PyObject *threads;
   PyObject *index_filename;
   int is_stream;
   int is_remote;
@@ -940,7 +942,7 @@ struct __pyx_obj_5pysam_10libchtslib_HTSFile {
 };
 
 
-/* "pysam/libcbgzf.pyx":27
+/* "pysam/libcbgzf.pyx":28
  * 
  * 
  * cdef class BGZFile(object):             # <<<<<<<<<<<<<<
@@ -956,7 +958,7 @@ struct __pyx_obj_5pysam_8libcbgzf_BGZFile {
 
 
 
-/* "pysam/libchtslib.pxd":1904
+/* "pysam/libchtslib.pxd":2590
  * 
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
@@ -1505,10 +1507,8 @@ static PyTypeObject *__pyx_ptype_7cpython_5array_array = 0;
 static CYTHON_INLINE int __pyx_f_7cpython_5array_extend_buffer(arrayobject *, char *, Py_ssize_t); /*proto*/
 
 /* Module declarations from 'pysam.libcutils' */
-static PyObject *(*__pyx_f_5pysam_9libcutils_charptr_to_str)(char const *, struct __pyx_opt_args_5pysam_9libcutils_charptr_to_str *__pyx_optional_args); /*proto*/
-static PyObject *(*__pyx_f_5pysam_9libcutils_charptr_to_str_w_len)(char const *, size_t, struct __pyx_opt_args_5pysam_9libcutils_charptr_to_str_w_len *__pyx_optional_args); /*proto*/
-static PyObject *(*__pyx_f_5pysam_9libcutils_force_str)(PyObject *, struct __pyx_opt_args_5pysam_9libcutils_force_str *__pyx_optional_args); /*proto*/
 static PyObject *(*__pyx_f_5pysam_9libcutils_force_bytes)(PyObject *, struct __pyx_opt_args_5pysam_9libcutils_force_bytes *__pyx_optional_args); /*proto*/
+static PyObject *(*__pyx_f_5pysam_9libcutils_encode_filename)(PyObject *); /*proto*/
 
 /* Module declarations from 'posix.types' */
 
@@ -1524,8 +1524,8 @@ int __pyx_module_is_main_pysam__libcbgzf = 0;
 /* Implementation of 'pysam.libcbgzf' */
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_IOError;
-static PyObject *__pyx_builtin_OSError;
 static PyObject *__pyx_builtin_AttributeError;
+static PyObject *__pyx_builtin_StopIteration;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_MemoryError;
 static const char __pyx_k_U[] = "U";
@@ -1557,10 +1557,10 @@ static const char __pyx_k_reduce[] = "__reduce__";
 static const char __pyx_k_whence[] = "whence";
 static const char __pyx_k_BGZFile[] = "BGZFile";
 static const char __pyx_k_IOError[] = "IOError";
-static const char __pyx_k_OSError[] = "OSError";
 static const char __pyx_k_SEEK_SET[] = "SEEK_SET";
 static const char __pyx_k_filename[] = "filename";
 static const char __pyx_k_getstate[] = "__getstate__";
+static const char __pyx_k_readline[] = "readline";
 static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
@@ -1569,6 +1569,7 @@ static const char __pyx_k_memoryview[] = "memoryview";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static const char __pyx_k_BUFFER_SIZE[] = "BUFFER_SIZE";
 static const char __pyx_k_MemoryError[] = "MemoryError";
+static const char __pyx_k_StopIteration[] = "StopIteration";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_AttributeError[] = "AttributeError";
 static const char __pyx_k_Invalid_mode_r[] = "Invalid mode: {!r}";
@@ -1588,6 +1589,7 @@ static const char __pyx_k_read_on_closed_BGZFile_object[] = "read() on closed BG
 static const char __pyx_k_seek_on_closed_BGZFile_object[] = "seek() on closed BGZFile object";
 static const char __pyx_k_write_on_closed_BGZFile_object[] = "write() on closed BGZFile object";
 static const char __pyx_k_rewind_on_closed_BGZFile_object[] = "rewind() on closed BGZFile object";
+static const char __pyx_k_Error_in_tell_on_BGZFFile_object[] = "Error in tell on BGZFFile object";
 static const char __pyx_k_Error_reading_line_in_BGZFFile_o[] = "Error reading line in BGZFFile object";
 static const char __pyx_k_Functions_that_read_and_write_bl[] = "Functions that read and write block gzipped files.\n\nThe user of the file doesn't have to worry about the compression\nand random access is allowed if an index file is present.";
 static const char __pyx_k_read_on_write_only_BGZFile_objec[] = "read() on write-only BGZFile object";
@@ -1606,15 +1608,16 @@ static PyObject *__pyx_n_s_EBADF;
 static PyObject *__pyx_kp_s_Error_building_bgzf_index;
 static PyObject *__pyx_kp_s_Error_closing_BGZFile_object;
 static PyObject *__pyx_kp_s_Error_flushing_BGZFile_object;
+static PyObject *__pyx_kp_s_Error_in_tell_on_BGZFFile_object;
 static PyObject *__pyx_kp_s_Error_reading_from_BGZFile;
 static PyObject *__pyx_kp_s_Error_reading_line_in_BGZFFile_o;
 static PyObject *__pyx_kp_s_Error_seeking_BGZFFile_object;
 static PyObject *__pyx_n_s_IOError;
 static PyObject *__pyx_kp_s_Invalid_mode_r;
 static PyObject *__pyx_n_s_MemoryError;
-static PyObject *__pyx_n_s_OSError;
 static PyObject *__pyx_n_s_SEEK_SET;
 static PyObject *__pyx_kp_s_Seek_from_end_not_supported;
+static PyObject *__pyx_n_s_StopIteration;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_n_s_U;
 static PyObject *__pyx_n_s_ValueError;
@@ -1643,6 +1646,7 @@ static PyObject *__pyx_n_s_rb;
 static PyObject *__pyx_kp_s_read_on_closed_BGZFile_object;
 static PyObject *__pyx_kp_s_read_on_write_only_BGZFile_objec;
 static PyObject *__pyx_kp_s_readable_on_closed_BGZFile_objec;
+static PyObject *__pyx_n_s_readline;
 static PyObject *__pyx_kp_s_readline_on_closed_BGZFile_objec;
 static PyObject *__pyx_n_s_reduce;
 static PyObject *__pyx_n_s_reduce_cython;
@@ -1675,16 +1679,21 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_18rewind(struct __pyx_obj_5p
 static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_20readable(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_22writable(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_24seekable(CYTHON_UNUSED struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, PyObject *__pyx_v_offset, PyObject *__pyx_v_whence); /* proto */
-static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_28readline(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_size); /* proto */
-static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_30__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_32__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26tell(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_28seek(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, PyObject *__pyx_v_offset, PyObject *__pyx_v_whence); /* proto */
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_30readline(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_size); /* proto */
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_32__iter__(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_34__next__(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_4name___get__(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_5index___get__(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_36__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_38__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_pf_7cpython_5array_5array___getbuffer__(arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info, CYTHON_UNUSED int __pyx_v_flags); /* proto */
 static void __pyx_pf_7cpython_5array_5array_2__releasebuffer__(CYTHON_UNUSED arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static PyObject *__pyx_tp_new_5pysam_8libcbgzf_BGZFile(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_neg_1;
-static PyObject *__pyx_k__17;
+static PyObject *__pyx_k__19;
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
 static PyObject *__pyx_tuple__3;
@@ -1700,17 +1709,19 @@ static PyObject *__pyx_tuple__13;
 static PyObject *__pyx_tuple__14;
 static PyObject *__pyx_tuple__15;
 static PyObject *__pyx_tuple__16;
+static PyObject *__pyx_tuple__17;
 static PyObject *__pyx_tuple__18;
-static PyObject *__pyx_tuple__19;
 static PyObject *__pyx_tuple__20;
 static PyObject *__pyx_tuple__21;
 static PyObject *__pyx_tuple__22;
 static PyObject *__pyx_tuple__23;
 static PyObject *__pyx_tuple__24;
+static PyObject *__pyx_tuple__25;
+static PyObject *__pyx_tuple__26;
 /* Late includes */
 
-/* "pysam/libcbgzf.pyx":37
- *     cdef bytes name, index
+/* "pysam/libcbgzf.pyx":38
+ *     cdef readonly object name, index
  * 
  *     def __init__(self, filename, mode=None, index=None):             # <<<<<<<<<<<<<<
  *         """Constructor for the BGZFile class.
@@ -1767,7 +1778,7 @@ static int __pyx_pw_5pysam_8libcbgzf_7BGZFile_1__init__(PyObject *__pyx_v_self, 
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 37, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 38, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -1786,7 +1797,7 @@ static int __pyx_pw_5pysam_8libcbgzf_7BGZFile_1__init__(PyObject *__pyx_v_self, 
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 37, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 38, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcbgzf.BGZFile.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1814,40 +1825,40 @@ static int __pyx_pf_5pysam_8libcbgzf_7BGZFile___init__(struct __pyx_obj_5pysam_8
   __Pyx_RefNannySetupContext("__init__", 0);
   __Pyx_INCREF(__pyx_v_mode);
 
-  /* "pysam/libcbgzf.pyx":46
+  /* "pysam/libcbgzf.pyx":47
  *         'wb', 'a' and 'ab', and 'x' and 'xb'.
  *         """
  *         if mode and ('t' in mode or 'U' in mode):             # <<<<<<<<<<<<<<
  *             raise ValueError("Invalid mode: {!r}".format(mode))
  *         if not mode:
  */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_mode); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_mode); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 47, __pyx_L1_error)
   if (__pyx_t_2) {
   } else {
     __pyx_t_1 = __pyx_t_2;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_t, __pyx_v_mode, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_t, __pyx_v_mode, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 47, __pyx_L1_error)
   __pyx_t_3 = (__pyx_t_2 != 0);
   if (!__pyx_t_3) {
   } else {
     __pyx_t_1 = __pyx_t_3;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_3 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_U, __pyx_v_mode, Py_EQ)); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_t_3 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_U, __pyx_v_mode, Py_EQ)); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 47, __pyx_L1_error)
   __pyx_t_2 = (__pyx_t_3 != 0);
   __pyx_t_1 = __pyx_t_2;
   __pyx_L4_bool_binop_done:;
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":47
+    /* "pysam/libcbgzf.pyx":48
  *         """
  *         if mode and ('t' in mode or 'U' in mode):
  *             raise ValueError("Invalid mode: {!r}".format(mode))             # <<<<<<<<<<<<<<
  *         if not mode:
  *             mode = 'rb'
  */
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Invalid_mode_r, __pyx_n_s_format); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 47, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Invalid_mode_r, __pyx_n_s_format); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 48, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_6 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
@@ -1860,13 +1871,13 @@ static int __pyx_pf_5pysam_8libcbgzf_7BGZFile___init__(struct __pyx_obj_5pysam_8
       }
     }
     if (!__pyx_t_6) {
-      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_mode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 47, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_mode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 48, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_5)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_mode};
-        __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 47, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 48, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_4);
       } else
@@ -1874,32 +1885,32 @@ static int __pyx_pf_5pysam_8libcbgzf_7BGZFile___init__(struct __pyx_obj_5pysam_8
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_mode};
-        __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 47, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 48, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_4);
       } else
       #endif
       {
-        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 47, __pyx_L1_error)
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 48, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
         __Pyx_INCREF(__pyx_v_mode);
         __Pyx_GIVEREF(__pyx_v_mode);
         PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_mode);
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 47, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 48, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 47, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 48, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_Raise(__pyx_t_5, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __PYX_ERR(0, 47, __pyx_L1_error)
+    __PYX_ERR(0, 48, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":46
+    /* "pysam/libcbgzf.pyx":47
  *         'wb', 'a' and 'ab', and 'x' and 'xb'.
  *         """
  *         if mode and ('t' in mode or 'U' in mode):             # <<<<<<<<<<<<<<
@@ -1908,101 +1919,115 @@ static int __pyx_pf_5pysam_8libcbgzf_7BGZFile___init__(struct __pyx_obj_5pysam_8
  */
   }
 
-  /* "pysam/libcbgzf.pyx":48
+  /* "pysam/libcbgzf.pyx":49
  *         if mode and ('t' in mode or 'U' in mode):
  *             raise ValueError("Invalid mode: {!r}".format(mode))
  *         if not mode:             # <<<<<<<<<<<<<<
  *             mode = 'rb'
- *         if mode and 'b' not in mode:
+ *         elif mode and 'b' not in mode:
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_mode); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_mode); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 49, __pyx_L1_error)
   __pyx_t_2 = ((!__pyx_t_1) != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcbgzf.pyx":49
+    /* "pysam/libcbgzf.pyx":50
  *             raise ValueError("Invalid mode: {!r}".format(mode))
  *         if not mode:
  *             mode = 'rb'             # <<<<<<<<<<<<<<
- *         if mode and 'b' not in mode:
+ *         elif mode and 'b' not in mode:
  *             mode += 'b'
  */
     __Pyx_INCREF(__pyx_n_s_rb);
     __Pyx_DECREF_SET(__pyx_v_mode, __pyx_n_s_rb);
 
-    /* "pysam/libcbgzf.pyx":48
+    /* "pysam/libcbgzf.pyx":49
  *         if mode and ('t' in mode or 'U' in mode):
  *             raise ValueError("Invalid mode: {!r}".format(mode))
  *         if not mode:             # <<<<<<<<<<<<<<
  *             mode = 'rb'
- *         if mode and 'b' not in mode:
+ *         elif mode and 'b' not in mode:
  */
+    goto __pyx_L7;
   }
 
-  /* "pysam/libcbgzf.pyx":50
+  /* "pysam/libcbgzf.pyx":51
  *         if not mode:
  *             mode = 'rb'
- *         if mode and 'b' not in mode:             # <<<<<<<<<<<<<<
+ *         elif mode and 'b' not in mode:             # <<<<<<<<<<<<<<
  *             mode += 'b'
- *         self.name = force_bytes(filename)
+ * 
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_mode); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_mode); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 51, __pyx_L1_error)
   if (__pyx_t_1) {
   } else {
     __pyx_t_2 = __pyx_t_1;
-    goto __pyx_L9_bool_binop_done;
+    goto __pyx_L8_bool_binop_done;
   }
-  __pyx_t_1 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_b, __pyx_v_mode, Py_NE)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_t_1 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_b, __pyx_v_mode, Py_NE)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 51, __pyx_L1_error)
   __pyx_t_3 = (__pyx_t_1 != 0);
   __pyx_t_2 = __pyx_t_3;
-  __pyx_L9_bool_binop_done:;
+  __pyx_L8_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "pysam/libcbgzf.pyx":51
+    /* "pysam/libcbgzf.pyx":52
  *             mode = 'rb'
- *         if mode and 'b' not in mode:
+ *         elif mode and 'b' not in mode:
  *             mode += 'b'             # <<<<<<<<<<<<<<
- *         self.name = force_bytes(filename)
- *         self.index = force_bytes(index) if index is not None else None
+ * 
+ *         mode = force_bytes(mode)
  */
-    __pyx_t_5 = PyNumber_InPlaceAdd(__pyx_v_mode, __pyx_n_s_b); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 51, __pyx_L1_error)
+    __pyx_t_5 = PyNumber_InPlaceAdd(__pyx_v_mode, __pyx_n_s_b); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 52, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF_SET(__pyx_v_mode, __pyx_t_5);
     __pyx_t_5 = 0;
 
-    /* "pysam/libcbgzf.pyx":50
+    /* "pysam/libcbgzf.pyx":51
  *         if not mode:
  *             mode = 'rb'
- *         if mode and 'b' not in mode:             # <<<<<<<<<<<<<<
+ *         elif mode and 'b' not in mode:             # <<<<<<<<<<<<<<
  *             mode += 'b'
- *         self.name = force_bytes(filename)
+ * 
  */
   }
+  __pyx_L7:;
 
-  /* "pysam/libcbgzf.pyx":52
- *         if mode and 'b' not in mode:
+  /* "pysam/libcbgzf.pyx":54
  *             mode += 'b'
- *         self.name = force_bytes(filename)             # <<<<<<<<<<<<<<
- *         self.index = force_bytes(index) if index is not None else None
- *         self.bgzf = bgzf_open(self.name, mode)
+ * 
+ *         mode = force_bytes(mode)             # <<<<<<<<<<<<<<
+ * 
+ *         self.name = encode_filename(filename)
  */
-  __pyx_t_5 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_filename, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_5 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_mode, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF_SET(__pyx_v_mode, __pyx_t_5);
+  __pyx_t_5 = 0;
+
+  /* "pysam/libcbgzf.pyx":56
+ *         mode = force_bytes(mode)
+ * 
+ *         self.name = encode_filename(filename)             # <<<<<<<<<<<<<<
+ *         self.index = encode_filename(index) if index is not None else None
+ * 
+ */
+  __pyx_t_5 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_5);
   __Pyx_GOTREF(__pyx_v_self->name);
   __Pyx_DECREF(__pyx_v_self->name);
-  __pyx_v_self->name = ((PyObject*)__pyx_t_5);
+  __pyx_v_self->name = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "pysam/libcbgzf.pyx":53
- *             mode += 'b'
- *         self.name = force_bytes(filename)
- *         self.index = force_bytes(index) if index is not None else None             # <<<<<<<<<<<<<<
- *         self.bgzf = bgzf_open(self.name, mode)
+  /* "pysam/libcbgzf.pyx":57
  * 
+ *         self.name = encode_filename(filename)
+ *         self.index = encode_filename(index) if index is not None else None             # <<<<<<<<<<<<<<
+ * 
+ *         self.bgzf = bgzf_open(self.name, mode)
  */
   __pyx_t_2 = (__pyx_v_index != Py_None);
   if ((__pyx_t_2 != 0)) {
-    __pyx_t_4 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_index, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __pyx_t_4 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_index); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 57, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = __pyx_t_4;
     __pyx_t_4 = 0;
@@ -2013,25 +2038,21 @@ static int __pyx_pf_5pysam_8libcbgzf_7BGZFile___init__(struct __pyx_obj_5pysam_8
   __Pyx_GIVEREF(__pyx_t_5);
   __Pyx_GOTREF(__pyx_v_self->index);
   __Pyx_DECREF(__pyx_v_self->index);
-  __pyx_v_self->index = ((PyObject*)__pyx_t_5);
+  __pyx_v_self->index = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "pysam/libcbgzf.pyx":54
- *         self.name = force_bytes(filename)
- *         self.index = force_bytes(index) if index is not None else None
+  /* "pysam/libcbgzf.pyx":59
+ *         self.index = encode_filename(index) if index is not None else None
+ * 
  *         self.bgzf = bgzf_open(self.name, mode)             # <<<<<<<<<<<<<<
  * 
  *         if self.bgzf.is_write and index is not None and bgzf_index_build_init(self.bgzf) < 0:
  */
-  if (unlikely(__pyx_v_self->name == Py_None)) {
-    PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-    __PYX_ERR(0, 54, __pyx_L1_error)
-  }
-  __pyx_t_8 = __Pyx_PyBytes_AsString(__pyx_v_self->name); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) __PYX_ERR(0, 54, __pyx_L1_error)
-  __pyx_t_9 = __Pyx_PyObject_AsString(__pyx_v_mode); if (unlikely((!__pyx_t_9) && PyErr_Occurred())) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_AsString(__pyx_v_self->name); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_AsString(__pyx_v_mode); if (unlikely((!__pyx_t_9) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L1_error)
   __pyx_v_self->bgzf = bgzf_open(__pyx_t_8, __pyx_t_9);
 
-  /* "pysam/libcbgzf.pyx":56
+  /* "pysam/libcbgzf.pyx":61
  *         self.bgzf = bgzf_open(self.name, mode)
  * 
  *         if self.bgzf.is_write and index is not None and bgzf_index_build_init(self.bgzf) < 0:             # <<<<<<<<<<<<<<
@@ -2042,34 +2063,34 @@ static int __pyx_pf_5pysam_8libcbgzf_7BGZFile___init__(struct __pyx_obj_5pysam_8
   if (__pyx_t_3) {
   } else {
     __pyx_t_2 = __pyx_t_3;
-    goto __pyx_L12_bool_binop_done;
+    goto __pyx_L11_bool_binop_done;
   }
   __pyx_t_3 = (__pyx_v_index != Py_None);
   __pyx_t_1 = (__pyx_t_3 != 0);
   if (__pyx_t_1) {
   } else {
     __pyx_t_2 = __pyx_t_1;
-    goto __pyx_L12_bool_binop_done;
+    goto __pyx_L11_bool_binop_done;
   }
   __pyx_t_1 = ((bgzf_index_build_init(__pyx_v_self->bgzf) < 0) != 0);
   __pyx_t_2 = __pyx_t_1;
-  __pyx_L12_bool_binop_done:;
+  __pyx_L11_bool_binop_done:;
   if (unlikely(__pyx_t_2)) {
 
-    /* "pysam/libcbgzf.pyx":57
+    /* "pysam/libcbgzf.pyx":62
  * 
  *         if self.bgzf.is_write and index is not None and bgzf_index_build_init(self.bgzf) < 0:
  *             raise IOError('Error building bgzf index')             # <<<<<<<<<<<<<<
  * 
  *     def __dealloc__(self):
  */
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 57, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 62, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_Raise(__pyx_t_5, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __PYX_ERR(0, 57, __pyx_L1_error)
+    __PYX_ERR(0, 62, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":56
+    /* "pysam/libcbgzf.pyx":61
  *         self.bgzf = bgzf_open(self.name, mode)
  * 
  *         if self.bgzf.is_write and index is not None and bgzf_index_build_init(self.bgzf) < 0:             # <<<<<<<<<<<<<<
@@ -2078,8 +2099,8 @@ static int __pyx_pf_5pysam_8libcbgzf_7BGZFile___init__(struct __pyx_obj_5pysam_8
  */
   }
 
-  /* "pysam/libcbgzf.pyx":37
- *     cdef bytes name, index
+  /* "pysam/libcbgzf.pyx":38
+ *     cdef readonly object name, index
  * 
  *     def __init__(self, filename, mode=None, index=None):             # <<<<<<<<<<<<<<
  *         """Constructor for the BGZFile class.
@@ -2102,7 +2123,7 @@ static int __pyx_pf_5pysam_8libcbgzf_7BGZFile___init__(struct __pyx_obj_5pysam_8
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":59
+/* "pysam/libcbgzf.pyx":64
  *             raise IOError('Error building bgzf index')
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -2128,14 +2149,14 @@ static void __pyx_pf_5pysam_8libcbgzf_7BGZFile_2__dealloc__(struct __pyx_obj_5py
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "pysam/libcbgzf.pyx":60
+  /* "pysam/libcbgzf.pyx":65
  * 
  *     def __dealloc__(self):
  *         self.close()             # <<<<<<<<<<<<<<
  * 
- *     def write(self,data):
+ *     def write(self, data):
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -2148,16 +2169,16 @@ static void __pyx_pf_5pysam_8libcbgzf_7BGZFile_2__dealloc__(struct __pyx_obj_5py
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 60, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 60, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libcbgzf.pyx":59
+  /* "pysam/libcbgzf.pyx":64
  *             raise IOError('Error building bgzf index')
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -2176,10 +2197,10 @@ static void __pyx_pf_5pysam_8libcbgzf_7BGZFile_2__dealloc__(struct __pyx_obj_5py
   __Pyx_RefNannyFinishContext();
 }
 
-/* "pysam/libcbgzf.pyx":62
+/* "pysam/libcbgzf.pyx":67
  *         self.close()
  * 
- *     def write(self,data):             # <<<<<<<<<<<<<<
+ *     def write(self, data):             # <<<<<<<<<<<<<<
  *         if not self.bgzf:
  *             raise ValueError("write() on closed BGZFile object")
  */
@@ -2212,9 +2233,9 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_4write(struct __pyx_obj_5pys
   __Pyx_RefNannySetupContext("write", 0);
   __Pyx_INCREF(__pyx_v_data);
 
-  /* "pysam/libcbgzf.pyx":63
+  /* "pysam/libcbgzf.pyx":68
  * 
- *     def write(self,data):
+ *     def write(self, data):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
  *             raise ValueError("write() on closed BGZFile object")
  * 
@@ -2222,60 +2243,60 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_4write(struct __pyx_obj_5pys
   __pyx_t_1 = ((!(__pyx_v_self->bgzf != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":64
- *     def write(self,data):
+    /* "pysam/libcbgzf.pyx":69
+ *     def write(self, data):
  *         if not self.bgzf:
  *             raise ValueError("write() on closed BGZFile object")             # <<<<<<<<<<<<<<
  * 
  *         if not self.bgzf.is_write:
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 64, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 64, __pyx_L1_error)
+    __PYX_ERR(0, 69, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":63
+    /* "pysam/libcbgzf.pyx":68
  * 
- *     def write(self,data):
+ *     def write(self, data):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
  *             raise ValueError("write() on closed BGZFile object")
  * 
  */
   }
 
-  /* "pysam/libcbgzf.pyx":66
+  /* "pysam/libcbgzf.pyx":71
  *             raise ValueError("write() on closed BGZFile object")
  * 
  *         if not self.bgzf.is_write:             # <<<<<<<<<<<<<<
  *             import errno
- *             raise OSError(errno.EBADF, "write() on read-only BGZFile object")
+ *             raise IOError(errno.EBADF, "write() on read-only BGZFile object")
  */
   __pyx_t_1 = ((!(__pyx_v_self->bgzf->is_write != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcbgzf.pyx":67
+    /* "pysam/libcbgzf.pyx":72
  * 
  *         if not self.bgzf.is_write:
  *             import errno             # <<<<<<<<<<<<<<
- *             raise OSError(errno.EBADF, "write() on read-only BGZFile object")
+ *             raise IOError(errno.EBADF, "write() on read-only BGZFile object")
  * 
  */
-    __pyx_t_2 = __Pyx_Import(__pyx_n_s_errno, 0, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 67, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_Import(__pyx_n_s_errno, 0, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 72, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_v_errno = __pyx_t_2;
     __pyx_t_2 = 0;
 
-    /* "pysam/libcbgzf.pyx":68
+    /* "pysam/libcbgzf.pyx":73
  *         if not self.bgzf.is_write:
  *             import errno
- *             raise OSError(errno.EBADF, "write() on read-only BGZFile object")             # <<<<<<<<<<<<<<
+ *             raise IOError(errno.EBADF, "write() on read-only BGZFile object")             # <<<<<<<<<<<<<<
  * 
  *         if isinstance(data, bytes):
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_errno, __pyx_n_s_EBADF); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_errno, __pyx_n_s_EBADF); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 68, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 73, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
@@ -2283,24 +2304,24 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_4write(struct __pyx_obj_5pys
     __Pyx_GIVEREF(__pyx_kp_s_write_on_read_only_BGZFile_objec);
     PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_kp_s_write_on_read_only_BGZFile_objec);
     __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_OSError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 68, __pyx_L1_error)
+    __PYX_ERR(0, 73, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":66
+    /* "pysam/libcbgzf.pyx":71
  *             raise ValueError("write() on closed BGZFile object")
  * 
  *         if not self.bgzf.is_write:             # <<<<<<<<<<<<<<
  *             import errno
- *             raise OSError(errno.EBADF, "write() on read-only BGZFile object")
+ *             raise IOError(errno.EBADF, "write() on read-only BGZFile object")
  */
   }
 
-  /* "pysam/libcbgzf.pyx":70
- *             raise OSError(errno.EBADF, "write() on read-only BGZFile object")
+  /* "pysam/libcbgzf.pyx":75
+ *             raise IOError(errno.EBADF, "write() on read-only BGZFile object")
  * 
  *         if isinstance(data, bytes):             # <<<<<<<<<<<<<<
  *             length = len(data)
@@ -2310,21 +2331,21 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_4write(struct __pyx_obj_5pys
   __pyx_t_4 = (__pyx_t_1 != 0);
   if (__pyx_t_4) {
 
-    /* "pysam/libcbgzf.pyx":71
+    /* "pysam/libcbgzf.pyx":76
  * 
  *         if isinstance(data, bytes):
  *             length = len(data)             # <<<<<<<<<<<<<<
  *         else:
  *             # accept any data that supports the buffer protocol
  */
-    __pyx_t_5 = PyObject_Length(__pyx_v_data); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 71, __pyx_L1_error)
-    __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_5 = PyObject_Length(__pyx_v_data); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 76, __pyx_L1_error)
+    __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 76, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_v_length = __pyx_t_2;
     __pyx_t_2 = 0;
 
-    /* "pysam/libcbgzf.pyx":70
- *             raise OSError(errno.EBADF, "write() on read-only BGZFile object")
+    /* "pysam/libcbgzf.pyx":75
+ *             raise IOError(errno.EBADF, "write() on read-only BGZFile object")
  * 
  *         if isinstance(data, bytes):             # <<<<<<<<<<<<<<
  *             length = len(data)
@@ -2333,7 +2354,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_4write(struct __pyx_obj_5pys
     goto __pyx_L5;
   }
 
-  /* "pysam/libcbgzf.pyx":74
+  /* "pysam/libcbgzf.pyx":79
  *         else:
  *             # accept any data that supports the buffer protocol
  *             data = memoryview(data)             # <<<<<<<<<<<<<<
@@ -2341,64 +2362,64 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_4write(struct __pyx_obj_5pys
  * 
  */
   /*else*/ {
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_memoryview); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 74, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_memoryview); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 79, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_data); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 74, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_data); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 79, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF_SET(__pyx_v_data, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "pysam/libcbgzf.pyx":75
+    /* "pysam/libcbgzf.pyx":80
  *             # accept any data that supports the buffer protocol
  *             data = memoryview(data)
  *             length = data.nbytes             # <<<<<<<<<<<<<<
  * 
  *         if length > 0 and bgzf_write(self.bgzf, <char *>data, length) < 0:
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_data, __pyx_n_s_nbytes); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 75, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_data, __pyx_n_s_nbytes); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 80, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_v_length = __pyx_t_3;
     __pyx_t_3 = 0;
   }
   __pyx_L5:;
 
-  /* "pysam/libcbgzf.pyx":77
+  /* "pysam/libcbgzf.pyx":82
  *             length = data.nbytes
  * 
  *         if length > 0 and bgzf_write(self.bgzf, <char *>data, length) < 0:             # <<<<<<<<<<<<<<
  *             raise IOError('BGZFile write failed')
  * 
  */
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_length, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 77, __pyx_L1_error)
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_length, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_1) {
   } else {
     __pyx_t_4 = __pyx_t_1;
     goto __pyx_L7_bool_binop_done;
   }
-  __pyx_t_6 = __Pyx_PyObject_AsWritableString(__pyx_v_data); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) __PYX_ERR(0, 77, __pyx_L1_error)
-  __pyx_t_7 = __Pyx_PyInt_As_size_t(__pyx_v_length); if (unlikely((__pyx_t_7 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 77, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_AsWritableString(__pyx_v_data); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyInt_As_size_t(__pyx_v_length); if (unlikely((__pyx_t_7 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 82, __pyx_L1_error)
   __pyx_t_1 = ((bgzf_write(__pyx_v_self->bgzf, ((char *)__pyx_t_6), __pyx_t_7) < 0) != 0);
   __pyx_t_4 = __pyx_t_1;
   __pyx_L7_bool_binop_done:;
   if (unlikely(__pyx_t_4)) {
 
-    /* "pysam/libcbgzf.pyx":78
+    /* "pysam/libcbgzf.pyx":83
  * 
  *         if length > 0 and bgzf_write(self.bgzf, <char *>data, length) < 0:
  *             raise IOError('BGZFile write failed')             # <<<<<<<<<<<<<<
  * 
  *         return length
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 78, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 83, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 78, __pyx_L1_error)
+    __PYX_ERR(0, 83, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":77
+    /* "pysam/libcbgzf.pyx":82
  *             length = data.nbytes
  * 
  *         if length > 0 and bgzf_write(self.bgzf, <char *>data, length) < 0:             # <<<<<<<<<<<<<<
@@ -2407,7 +2428,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_4write(struct __pyx_obj_5pys
  */
   }
 
-  /* "pysam/libcbgzf.pyx":80
+  /* "pysam/libcbgzf.pyx":85
  *             raise IOError('BGZFile write failed')
  * 
  *         return length             # <<<<<<<<<<<<<<
@@ -2419,10 +2440,10 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_4write(struct __pyx_obj_5pys
   __pyx_r = __pyx_v_length;
   goto __pyx_L0;
 
-  /* "pysam/libcbgzf.pyx":62
+  /* "pysam/libcbgzf.pyx":67
  *         self.close()
  * 
- *     def write(self,data):             # <<<<<<<<<<<<<<
+ *     def write(self, data):             # <<<<<<<<<<<<<<
  *         if not self.bgzf:
  *             raise ValueError("write() on closed BGZFile object")
  */
@@ -2442,7 +2463,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_4write(struct __pyx_obj_5pys
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":82
+/* "pysam/libcbgzf.pyx":87
  *         return length
  * 
  *     def read(self, size=-1):             # <<<<<<<<<<<<<<
@@ -2479,7 +2500,7 @@ static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_7read(PyObject *__pyx_v_self
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read") < 0)) __PYX_ERR(0, 82, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read") < 0)) __PYX_ERR(0, 87, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2493,7 +2514,7 @@ static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_7read(PyObject *__pyx_v_self
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("read", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 82, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("read", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 87, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcbgzf.BGZFile.read", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2524,7 +2545,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
   int __pyx_t_8;
   __Pyx_RefNannySetupContext("read", 0);
 
-  /* "pysam/libcbgzf.pyx":85
+  /* "pysam/libcbgzf.pyx":90
  *         cdef ssize_t read_size
  * 
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -2534,20 +2555,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
   __pyx_t_1 = ((!(__pyx_v_self->bgzf != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":86
+    /* "pysam/libcbgzf.pyx":91
  * 
  *         if not self.bgzf:
  *             raise ValueError("read() on closed BGZFile object")             # <<<<<<<<<<<<<<
  * 
  *         if self.bgzf.is_write:
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 86, __pyx_L1_error)
+    __PYX_ERR(0, 91, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":85
+    /* "pysam/libcbgzf.pyx":90
  *         cdef ssize_t read_size
  * 
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -2556,38 +2577,38 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
   }
 
-  /* "pysam/libcbgzf.pyx":88
+  /* "pysam/libcbgzf.pyx":93
  *             raise ValueError("read() on closed BGZFile object")
  * 
  *         if self.bgzf.is_write:             # <<<<<<<<<<<<<<
  *             import errno
- *             raise OSError(errno.EBADF, "read() on write-only BGZFile object")
+ *             raise IOError(errno.EBADF, "read() on write-only BGZFile object")
  */
   __pyx_t_1 = (__pyx_v_self->bgzf->is_write != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcbgzf.pyx":89
+    /* "pysam/libcbgzf.pyx":94
  * 
  *         if self.bgzf.is_write:
  *             import errno             # <<<<<<<<<<<<<<
- *             raise OSError(errno.EBADF, "read() on write-only BGZFile object")
+ *             raise IOError(errno.EBADF, "read() on write-only BGZFile object")
  * 
  */
-    __pyx_t_2 = __Pyx_Import(__pyx_n_s_errno, 0, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 89, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_Import(__pyx_n_s_errno, 0, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 94, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_v_errno = __pyx_t_2;
     __pyx_t_2 = 0;
 
-    /* "pysam/libcbgzf.pyx":90
+    /* "pysam/libcbgzf.pyx":95
  *         if self.bgzf.is_write:
  *             import errno
- *             raise OSError(errno.EBADF, "read() on write-only BGZFile object")             # <<<<<<<<<<<<<<
+ *             raise IOError(errno.EBADF, "read() on write-only BGZFile object")             # <<<<<<<<<<<<<<
  * 
  *         if size < 0:
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_errno, __pyx_n_s_EBADF); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 90, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_errno, __pyx_n_s_EBADF); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 95, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 90, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 95, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
@@ -2595,47 +2616,47 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
     __Pyx_GIVEREF(__pyx_kp_s_read_on_write_only_BGZFile_objec);
     PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_kp_s_read_on_write_only_BGZFile_objec);
     __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_OSError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 90, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 95, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 90, __pyx_L1_error)
+    __PYX_ERR(0, 95, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":88
+    /* "pysam/libcbgzf.pyx":93
  *             raise ValueError("read() on closed BGZFile object")
  * 
  *         if self.bgzf.is_write:             # <<<<<<<<<<<<<<
  *             import errno
- *             raise OSError(errno.EBADF, "read() on write-only BGZFile object")
+ *             raise IOError(errno.EBADF, "read() on write-only BGZFile object")
  */
   }
 
-  /* "pysam/libcbgzf.pyx":92
- *             raise OSError(errno.EBADF, "read() on write-only BGZFile object")
+  /* "pysam/libcbgzf.pyx":97
+ *             raise IOError(errno.EBADF, "read() on write-only BGZFile object")
  * 
  *         if size < 0:             # <<<<<<<<<<<<<<
  *             chunks = []
  *             while 1:
  */
-  __pyx_t_2 = PyObject_RichCompare(__pyx_v_size, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 92, __pyx_L1_error)
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 92, __pyx_L1_error)
+  __pyx_t_2 = PyObject_RichCompare(__pyx_v_size, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 97, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (__pyx_t_1) {
 
-    /* "pysam/libcbgzf.pyx":93
+    /* "pysam/libcbgzf.pyx":98
  * 
  *         if size < 0:
  *             chunks = []             # <<<<<<<<<<<<<<
  *             while 1:
  *                 chunk = PyBytes_FromStringAndSize(NULL, BUFFER_SIZE)
  */
-    __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 93, __pyx_L1_error)
+    __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 98, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_v_chunks = ((PyObject*)__pyx_t_2);
     __pyx_t_2 = 0;
 
-    /* "pysam/libcbgzf.pyx":94
+    /* "pysam/libcbgzf.pyx":99
  *         if size < 0:
  *             chunks = []
  *             while 1:             # <<<<<<<<<<<<<<
@@ -2644,23 +2665,23 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
     while (1) {
 
-      /* "pysam/libcbgzf.pyx":95
+      /* "pysam/libcbgzf.pyx":100
  *             chunks = []
  *             while 1:
  *                 chunk = PyBytes_FromStringAndSize(NULL, BUFFER_SIZE)             # <<<<<<<<<<<<<<
  *                 cdata = <bytes>chunk
  *                 read_size = bgzf_read(self.bgzf, <char *>chunk, BUFFER_SIZE)
  */
-      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_BUFFER_SIZE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 95, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_BUFFER_SIZE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 100, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_4 = __Pyx_PyIndex_AsSsize_t(__pyx_t_2); if (unlikely((__pyx_t_4 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyIndex_AsSsize_t(__pyx_t_2); if (unlikely((__pyx_t_4 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 100, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = PyBytes_FromStringAndSize(NULL, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 95, __pyx_L1_error)
+      __pyx_t_2 = PyBytes_FromStringAndSize(NULL, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 100, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_XDECREF_SET(__pyx_v_chunk, ((PyObject*)__pyx_t_2));
       __pyx_t_2 = 0;
 
-      /* "pysam/libcbgzf.pyx":96
+      /* "pysam/libcbgzf.pyx":101
  *             while 1:
  *                 chunk = PyBytes_FromStringAndSize(NULL, BUFFER_SIZE)
  *                 cdata = <bytes>chunk             # <<<<<<<<<<<<<<
@@ -2672,7 +2693,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
       __Pyx_XDECREF_SET(__pyx_v_cdata, ((PyObject*)__pyx_t_2));
       __pyx_t_2 = 0;
 
-      /* "pysam/libcbgzf.pyx":97
+      /* "pysam/libcbgzf.pyx":102
  *                 chunk = PyBytes_FromStringAndSize(NULL, BUFFER_SIZE)
  *                 cdata = <bytes>chunk
  *                 read_size = bgzf_read(self.bgzf, <char *>chunk, BUFFER_SIZE)             # <<<<<<<<<<<<<<
@@ -2681,16 +2702,16 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
       if (unlikely(__pyx_v_chunk == Py_None)) {
         PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-        __PYX_ERR(0, 97, __pyx_L1_error)
+        __PYX_ERR(0, 102, __pyx_L1_error)
       }
-      __pyx_t_5 = __Pyx_PyBytes_AsWritableString(__pyx_v_chunk); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 97, __pyx_L1_error)
-      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_BUFFER_SIZE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 97, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyBytes_AsWritableString(__pyx_v_chunk); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_BUFFER_SIZE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 102, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_6 = __Pyx_PyInt_As_size_t(__pyx_t_2); if (unlikely((__pyx_t_6 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 97, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyInt_As_size_t(__pyx_t_2); if (unlikely((__pyx_t_6 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_v_read_size = bgzf_read(__pyx_v_self->bgzf, ((char *)__pyx_t_5), __pyx_t_6);
 
-      /* "pysam/libcbgzf.pyx":98
+      /* "pysam/libcbgzf.pyx":103
  *                 cdata = <bytes>chunk
  *                 read_size = bgzf_read(self.bgzf, <char *>chunk, BUFFER_SIZE)
  *                 if read_size < 0:             # <<<<<<<<<<<<<<
@@ -2700,20 +2721,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
       __pyx_t_1 = ((__pyx_v_read_size < 0) != 0);
       if (unlikely(__pyx_t_1)) {
 
-        /* "pysam/libcbgzf.pyx":99
+        /* "pysam/libcbgzf.pyx":104
  *                 read_size = bgzf_read(self.bgzf, <char *>chunk, BUFFER_SIZE)
  *                 if read_size < 0:
  *                     raise IOError('Error reading from BGZFile')             # <<<<<<<<<<<<<<
  *                 elif not read_size:
  *                     break
  */
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 99, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 104, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_Raise(__pyx_t_2, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __PYX_ERR(0, 99, __pyx_L1_error)
+        __PYX_ERR(0, 104, __pyx_L1_error)
 
-        /* "pysam/libcbgzf.pyx":98
+        /* "pysam/libcbgzf.pyx":103
  *                 cdata = <bytes>chunk
  *                 read_size = bgzf_read(self.bgzf, <char *>chunk, BUFFER_SIZE)
  *                 if read_size < 0:             # <<<<<<<<<<<<<<
@@ -2722,7 +2743,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
       }
 
-      /* "pysam/libcbgzf.pyx":100
+      /* "pysam/libcbgzf.pyx":105
  *                 if read_size < 0:
  *                     raise IOError('Error reading from BGZFile')
  *                 elif not read_size:             # <<<<<<<<<<<<<<
@@ -2732,7 +2753,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
       __pyx_t_1 = ((!(__pyx_v_read_size != 0)) != 0);
       if (__pyx_t_1) {
 
-        /* "pysam/libcbgzf.pyx":101
+        /* "pysam/libcbgzf.pyx":106
  *                     raise IOError('Error reading from BGZFile')
  *                 elif not read_size:
  *                     break             # <<<<<<<<<<<<<<
@@ -2741,7 +2762,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
         goto __pyx_L7_break;
 
-        /* "pysam/libcbgzf.pyx":100
+        /* "pysam/libcbgzf.pyx":105
  *                 if read_size < 0:
  *                     raise IOError('Error reading from BGZFile')
  *                 elif not read_size:             # <<<<<<<<<<<<<<
@@ -2750,25 +2771,25 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
       }
 
-      /* "pysam/libcbgzf.pyx":102
+      /* "pysam/libcbgzf.pyx":107
  *                 elif not read_size:
  *                     break
  *                 elif read_size < BUFFER_SIZE:             # <<<<<<<<<<<<<<
  *                     chunk = chunk[:read_size]
  *                 chunks.append(chunk)
  */
-      __pyx_t_2 = PyInt_FromSsize_t(__pyx_v_read_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 102, __pyx_L1_error)
+      __pyx_t_2 = PyInt_FromSsize_t(__pyx_v_read_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 107, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_BUFFER_SIZE); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 102, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_BUFFER_SIZE); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 107, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_7 = PyObject_RichCompare(__pyx_t_2, __pyx_t_3, Py_LT); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 102, __pyx_L1_error)
+      __pyx_t_7 = PyObject_RichCompare(__pyx_t_2, __pyx_t_3, Py_LT); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 107, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 102, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 107, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       if (__pyx_t_1) {
 
-        /* "pysam/libcbgzf.pyx":103
+        /* "pysam/libcbgzf.pyx":108
  *                     break
  *                 elif read_size < BUFFER_SIZE:
  *                     chunk = chunk[:read_size]             # <<<<<<<<<<<<<<
@@ -2777,14 +2798,14 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
         if (unlikely(__pyx_v_chunk == Py_None)) {
           PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-          __PYX_ERR(0, 103, __pyx_L1_error)
+          __PYX_ERR(0, 108, __pyx_L1_error)
         }
-        __pyx_t_7 = PySequence_GetSlice(__pyx_v_chunk, 0, __pyx_v_read_size); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 103, __pyx_L1_error)
+        __pyx_t_7 = PySequence_GetSlice(__pyx_v_chunk, 0, __pyx_v_read_size); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 108, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF_SET(__pyx_v_chunk, ((PyObject*)__pyx_t_7));
         __pyx_t_7 = 0;
 
-        /* "pysam/libcbgzf.pyx":102
+        /* "pysam/libcbgzf.pyx":107
  *                 elif not read_size:
  *                     break
  *                 elif read_size < BUFFER_SIZE:             # <<<<<<<<<<<<<<
@@ -2793,18 +2814,18 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
       }
 
-      /* "pysam/libcbgzf.pyx":104
+      /* "pysam/libcbgzf.pyx":109
  *                 elif read_size < BUFFER_SIZE:
  *                     chunk = chunk[:read_size]
  *                 chunks.append(chunk)             # <<<<<<<<<<<<<<
  *             return b''.join(chunks)
  * 
  */
-      __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_chunks, __pyx_v_chunk); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 104, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_chunks, __pyx_v_chunk); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 109, __pyx_L1_error)
     }
     __pyx_L7_break:;
 
-    /* "pysam/libcbgzf.pyx":105
+    /* "pysam/libcbgzf.pyx":110
  *                     chunk = chunk[:read_size]
  *                 chunks.append(chunk)
  *             return b''.join(chunks)             # <<<<<<<<<<<<<<
@@ -2812,14 +2833,14 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  *         elif size > 0:
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_7 = __Pyx_PyBytes_Join(__pyx_kp_b__6, __pyx_v_chunks); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 105, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyBytes_Join(__pyx_kp_b__6, __pyx_v_chunks); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 110, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __pyx_r = __pyx_t_7;
     __pyx_t_7 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcbgzf.pyx":92
- *             raise OSError(errno.EBADF, "read() on write-only BGZFile object")
+    /* "pysam/libcbgzf.pyx":97
+ *             raise IOError(errno.EBADF, "read() on write-only BGZFile object")
  * 
  *         if size < 0:             # <<<<<<<<<<<<<<
  *             chunks = []
@@ -2827,32 +2848,32 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
   }
 
-  /* "pysam/libcbgzf.pyx":107
+  /* "pysam/libcbgzf.pyx":112
  *             return b''.join(chunks)
  * 
  *         elif size > 0:             # <<<<<<<<<<<<<<
  *             chunk = PyBytes_FromStringAndSize(NULL, size)
  *             read_size = bgzf_read(self.bgzf, <char *>chunk, size)
  */
-  __pyx_t_7 = PyObject_RichCompare(__pyx_v_size, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 107, __pyx_L1_error)
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 107, __pyx_L1_error)
+  __pyx_t_7 = PyObject_RichCompare(__pyx_v_size, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 112, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (__pyx_t_1) {
 
-    /* "pysam/libcbgzf.pyx":108
+    /* "pysam/libcbgzf.pyx":113
  * 
  *         elif size > 0:
  *             chunk = PyBytes_FromStringAndSize(NULL, size)             # <<<<<<<<<<<<<<
  *             read_size = bgzf_read(self.bgzf, <char *>chunk, size)
  *             if read_size < 0:
  */
-    __pyx_t_4 = __Pyx_PyIndex_AsSsize_t(__pyx_v_size); if (unlikely((__pyx_t_4 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 108, __pyx_L1_error)
-    __pyx_t_7 = PyBytes_FromStringAndSize(NULL, __pyx_t_4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 108, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyIndex_AsSsize_t(__pyx_v_size); if (unlikely((__pyx_t_4 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 113, __pyx_L1_error)
+    __pyx_t_7 = PyBytes_FromStringAndSize(NULL, __pyx_t_4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 113, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __pyx_v_chunk = ((PyObject*)__pyx_t_7);
     __pyx_t_7 = 0;
 
-    /* "pysam/libcbgzf.pyx":109
+    /* "pysam/libcbgzf.pyx":114
  *         elif size > 0:
  *             chunk = PyBytes_FromStringAndSize(NULL, size)
  *             read_size = bgzf_read(self.bgzf, <char *>chunk, size)             # <<<<<<<<<<<<<<
@@ -2861,13 +2882,13 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
     if (unlikely(__pyx_v_chunk == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-      __PYX_ERR(0, 109, __pyx_L1_error)
+      __PYX_ERR(0, 114, __pyx_L1_error)
     }
-    __pyx_t_5 = __Pyx_PyBytes_AsWritableString(__pyx_v_chunk); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 109, __pyx_L1_error)
-    __pyx_t_6 = __Pyx_PyInt_As_size_t(__pyx_v_size); if (unlikely((__pyx_t_6 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 109, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyBytes_AsWritableString(__pyx_v_chunk); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 114, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_As_size_t(__pyx_v_size); if (unlikely((__pyx_t_6 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 114, __pyx_L1_error)
     __pyx_v_read_size = bgzf_read(__pyx_v_self->bgzf, ((char *)__pyx_t_5), __pyx_t_6);
 
-    /* "pysam/libcbgzf.pyx":110
+    /* "pysam/libcbgzf.pyx":115
  *             chunk = PyBytes_FromStringAndSize(NULL, size)
  *             read_size = bgzf_read(self.bgzf, <char *>chunk, size)
  *             if read_size < 0:             # <<<<<<<<<<<<<<
@@ -2877,20 +2898,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
     __pyx_t_1 = ((__pyx_v_read_size < 0) != 0);
     if (unlikely(__pyx_t_1)) {
 
-      /* "pysam/libcbgzf.pyx":111
+      /* "pysam/libcbgzf.pyx":116
  *             read_size = bgzf_read(self.bgzf, <char *>chunk, size)
  *             if read_size < 0:
  *                 raise IOError('Error reading from BGZFile')             # <<<<<<<<<<<<<<
  *             elif read_size < size:
  *                 chunk = chunk[:size]
  */
-      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 111, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 116, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_Raise(__pyx_t_7, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __PYX_ERR(0, 111, __pyx_L1_error)
+      __PYX_ERR(0, 116, __pyx_L1_error)
 
-      /* "pysam/libcbgzf.pyx":110
+      /* "pysam/libcbgzf.pyx":115
  *             chunk = PyBytes_FromStringAndSize(NULL, size)
  *             read_size = bgzf_read(self.bgzf, <char *>chunk, size)
  *             if read_size < 0:             # <<<<<<<<<<<<<<
@@ -2899,22 +2920,22 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
     }
 
-    /* "pysam/libcbgzf.pyx":112
+    /* "pysam/libcbgzf.pyx":117
  *             if read_size < 0:
  *                 raise IOError('Error reading from BGZFile')
  *             elif read_size < size:             # <<<<<<<<<<<<<<
  *                 chunk = chunk[:size]
  *             return chunk
  */
-    __pyx_t_7 = PyInt_FromSsize_t(__pyx_v_read_size); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 112, __pyx_L1_error)
+    __pyx_t_7 = PyInt_FromSsize_t(__pyx_v_read_size); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 117, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_3 = PyObject_RichCompare(__pyx_t_7, __pyx_v_size, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 112, __pyx_L1_error)
+    __pyx_t_3 = PyObject_RichCompare(__pyx_t_7, __pyx_v_size, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 117, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 112, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 117, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     if (__pyx_t_1) {
 
-      /* "pysam/libcbgzf.pyx":113
+      /* "pysam/libcbgzf.pyx":118
  *                 raise IOError('Error reading from BGZFile')
  *             elif read_size < size:
  *                 chunk = chunk[:size]             # <<<<<<<<<<<<<<
@@ -2923,15 +2944,15 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
       if (unlikely(__pyx_v_chunk == Py_None)) {
         PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-        __PYX_ERR(0, 113, __pyx_L1_error)
+        __PYX_ERR(0, 118, __pyx_L1_error)
       }
-      __pyx_t_4 = __Pyx_PyIndex_AsSsize_t(__pyx_v_size); if (unlikely((__pyx_t_4 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 113, __pyx_L1_error)
-      __pyx_t_3 = PySequence_GetSlice(__pyx_v_chunk, 0, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 113, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyIndex_AsSsize_t(__pyx_v_size); if (unlikely((__pyx_t_4 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 118, __pyx_L1_error)
+      __pyx_t_3 = PySequence_GetSlice(__pyx_v_chunk, 0, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 118, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF_SET(__pyx_v_chunk, ((PyObject*)__pyx_t_3));
       __pyx_t_3 = 0;
 
-      /* "pysam/libcbgzf.pyx":112
+      /* "pysam/libcbgzf.pyx":117
  *             if read_size < 0:
  *                 raise IOError('Error reading from BGZFile')
  *             elif read_size < size:             # <<<<<<<<<<<<<<
@@ -2940,7 +2961,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
     }
 
-    /* "pysam/libcbgzf.pyx":114
+    /* "pysam/libcbgzf.pyx":119
  *             elif read_size < size:
  *                 chunk = chunk[:size]
  *             return chunk             # <<<<<<<<<<<<<<
@@ -2952,7 +2973,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
     __pyx_r = __pyx_v_chunk;
     goto __pyx_L0;
 
-    /* "pysam/libcbgzf.pyx":107
+    /* "pysam/libcbgzf.pyx":112
  *             return b''.join(chunks)
  * 
  *         elif size > 0:             # <<<<<<<<<<<<<<
@@ -2961,7 +2982,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
  */
   }
 
-  /* "pysam/libcbgzf.pyx":116
+  /* "pysam/libcbgzf.pyx":121
  *             return chunk
  *         else:
  *             return b''             # <<<<<<<<<<<<<<
@@ -2975,7 +2996,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
     goto __pyx_L0;
   }
 
-  /* "pysam/libcbgzf.pyx":82
+  /* "pysam/libcbgzf.pyx":87
  *         return length
  * 
  *     def read(self, size=-1):             # <<<<<<<<<<<<<<
@@ -3000,7 +3021,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6read(struct __pyx_obj_5pysa
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":119
+/* "pysam/libcbgzf.pyx":124
  * 
  *     @property
  *     def closed(self):             # <<<<<<<<<<<<<<
@@ -3027,7 +3048,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6closed___get__(struct __pyx
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pysam/libcbgzf.pyx":120
+  /* "pysam/libcbgzf.pyx":125
  *     @property
  *     def closed(self):
  *         return self.bgzf == NULL             # <<<<<<<<<<<<<<
@@ -3035,13 +3056,13 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6closed___get__(struct __pyx
  *     def close(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->bgzf == NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->bgzf == NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcbgzf.pyx":119
+  /* "pysam/libcbgzf.pyx":124
  * 
  *     @property
  *     def closed(self):             # <<<<<<<<<<<<<<
@@ -3060,7 +3081,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_6closed___get__(struct __pyx
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":122
+/* "pysam/libcbgzf.pyx":127
  *         return self.bgzf == NULL
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
@@ -3091,7 +3112,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_8close(struct __pyx_obj_5pys
   char const *__pyx_t_4;
   __Pyx_RefNannySetupContext("close", 0);
 
-  /* "pysam/libcbgzf.pyx":123
+  /* "pysam/libcbgzf.pyx":128
  * 
  *     def close(self):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -3101,7 +3122,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_8close(struct __pyx_obj_5pys
   __pyx_t_1 = ((!(__pyx_v_self->bgzf != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcbgzf.pyx":124
+    /* "pysam/libcbgzf.pyx":129
  *     def close(self):
  *         if not self.bgzf:
  *             return             # <<<<<<<<<<<<<<
@@ -3112,7 +3133,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_8close(struct __pyx_obj_5pys
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcbgzf.pyx":123
+    /* "pysam/libcbgzf.pyx":128
  * 
  *     def close(self):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -3121,7 +3142,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_8close(struct __pyx_obj_5pys
  */
   }
 
-  /* "pysam/libcbgzf.pyx":126
+  /* "pysam/libcbgzf.pyx":131
  *             return
  * 
  *         if self.bgzf.is_write and bgzf_flush(self.bgzf) < 0:             # <<<<<<<<<<<<<<
@@ -3139,20 +3160,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_8close(struct __pyx_obj_5pys
   __pyx_L5_bool_binop_done:;
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":127
+    /* "pysam/libcbgzf.pyx":132
  * 
  *         if self.bgzf.is_write and bgzf_flush(self.bgzf) < 0:
  *             raise IOError('Error flushing BGZFile object')             # <<<<<<<<<<<<<<
  * 
  *         if self.index and bgzf_index_dump(self.bgzf, self.index, NULL) < 0:
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 127, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 132, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 127, __pyx_L1_error)
+    __PYX_ERR(0, 132, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":126
+    /* "pysam/libcbgzf.pyx":131
  *             return
  * 
  *         if self.bgzf.is_write and bgzf_flush(self.bgzf) < 0:             # <<<<<<<<<<<<<<
@@ -3161,43 +3182,39 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_8close(struct __pyx_obj_5pys
  */
   }
 
-  /* "pysam/libcbgzf.pyx":129
+  /* "pysam/libcbgzf.pyx":134
  *             raise IOError('Error flushing BGZFile object')
  * 
  *         if self.index and bgzf_index_dump(self.bgzf, self.index, NULL) < 0:             # <<<<<<<<<<<<<<
  *             raise IOError('Cannot write index')
  * 
  */
-  __pyx_t_2 = (__pyx_v_self->index != Py_None)&&(PyBytes_GET_SIZE(__pyx_v_self->index) != 0);
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_self->index); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 134, __pyx_L1_error)
   if (__pyx_t_2) {
   } else {
     __pyx_t_1 = __pyx_t_2;
     goto __pyx_L8_bool_binop_done;
   }
-  if (unlikely(__pyx_v_self->index == Py_None)) {
-    PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-    __PYX_ERR(0, 129, __pyx_L1_error)
-  }
-  __pyx_t_4 = __Pyx_PyBytes_AsString(__pyx_v_self->index); if (unlikely((!__pyx_t_4) && PyErr_Occurred())) __PYX_ERR(0, 129, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_AsString(__pyx_v_self->index); if (unlikely((!__pyx_t_4) && PyErr_Occurred())) __PYX_ERR(0, 134, __pyx_L1_error)
   __pyx_t_2 = ((bgzf_index_dump(__pyx_v_self->bgzf, __pyx_t_4, NULL) < 0) != 0);
   __pyx_t_1 = __pyx_t_2;
   __pyx_L8_bool_binop_done:;
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":130
+    /* "pysam/libcbgzf.pyx":135
  * 
  *         if self.index and bgzf_index_dump(self.bgzf, self.index, NULL) < 0:
  *             raise IOError('Cannot write index')             # <<<<<<<<<<<<<<
  * 
  *         cdef ret = bgzf_close(self.bgzf)
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 130, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 135, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 130, __pyx_L1_error)
+    __PYX_ERR(0, 135, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":129
+    /* "pysam/libcbgzf.pyx":134
  *             raise IOError('Error flushing BGZFile object')
  * 
  *         if self.index and bgzf_index_dump(self.bgzf, self.index, NULL) < 0:             # <<<<<<<<<<<<<<
@@ -3206,19 +3223,19 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_8close(struct __pyx_obj_5pys
  */
   }
 
-  /* "pysam/libcbgzf.pyx":132
+  /* "pysam/libcbgzf.pyx":137
  *             raise IOError('Cannot write index')
  * 
  *         cdef ret = bgzf_close(self.bgzf)             # <<<<<<<<<<<<<<
  *         self.bgzf = NULL
  * 
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(bgzf_close(__pyx_v_self->bgzf)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(bgzf_close(__pyx_v_self->bgzf)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 137, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_v_ret = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "pysam/libcbgzf.pyx":133
+  /* "pysam/libcbgzf.pyx":138
  * 
  *         cdef ret = bgzf_close(self.bgzf)
  *         self.bgzf = NULL             # <<<<<<<<<<<<<<
@@ -3227,32 +3244,32 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_8close(struct __pyx_obj_5pys
  */
   __pyx_v_self->bgzf = NULL;
 
-  /* "pysam/libcbgzf.pyx":135
+  /* "pysam/libcbgzf.pyx":140
  *         self.bgzf = NULL
  * 
  *         if ret < 0:             # <<<<<<<<<<<<<<
  *             raise IOError('Error closing BGZFile object')
  * 
  */
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_ret, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 135, __pyx_L1_error)
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 135, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_ret, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 140, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":136
+    /* "pysam/libcbgzf.pyx":141
  * 
  *         if ret < 0:
  *             raise IOError('Error closing BGZFile object')             # <<<<<<<<<<<<<<
  * 
  *     def __enter__(self):
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 136, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 141, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 136, __pyx_L1_error)
+    __PYX_ERR(0, 141, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":135
+    /* "pysam/libcbgzf.pyx":140
  *         self.bgzf = NULL
  * 
  *         if ret < 0:             # <<<<<<<<<<<<<<
@@ -3261,7 +3278,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_8close(struct __pyx_obj_5pys
  */
   }
 
-  /* "pysam/libcbgzf.pyx":122
+  /* "pysam/libcbgzf.pyx":127
  *         return self.bgzf == NULL
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
@@ -3283,7 +3300,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_8close(struct __pyx_obj_5pys
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":138
+/* "pysam/libcbgzf.pyx":143
  *             raise IOError('Error closing BGZFile object')
  * 
  *     def __enter__(self):             # <<<<<<<<<<<<<<
@@ -3309,7 +3326,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_10__enter__(struct __pyx_obj
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__enter__", 0);
 
-  /* "pysam/libcbgzf.pyx":139
+  /* "pysam/libcbgzf.pyx":144
  * 
  *     def __enter__(self):
  *         return self             # <<<<<<<<<<<<<<
@@ -3321,7 +3338,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_10__enter__(struct __pyx_obj
   __pyx_r = ((PyObject *)__pyx_v_self);
   goto __pyx_L0;
 
-  /* "pysam/libcbgzf.pyx":138
+  /* "pysam/libcbgzf.pyx":143
  *             raise IOError('Error closing BGZFile object')
  * 
  *     def __enter__(self):             # <<<<<<<<<<<<<<
@@ -3336,7 +3353,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_10__enter__(struct __pyx_obj
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":141
+/* "pysam/libcbgzf.pyx":146
  *         return self
  * 
  *     def __exit__(self, type, value, tb):             # <<<<<<<<<<<<<<
@@ -3378,17 +3395,17 @@ static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_13__exit__(PyObject *__pyx_v
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_value)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 1); __PYX_ERR(0, 141, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 1); __PYX_ERR(0, 146, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_tb)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 2); __PYX_ERR(0, 141, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 2); __PYX_ERR(0, 146, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__exit__") < 0)) __PYX_ERR(0, 141, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__exit__") < 0)) __PYX_ERR(0, 146, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -3403,7 +3420,7 @@ static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_13__exit__(PyObject *__pyx_v
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 141, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 146, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcbgzf.BGZFile.__exit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3424,14 +3441,14 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_12__exit__(struct __pyx_obj_
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__exit__", 0);
 
-  /* "pysam/libcbgzf.pyx":142
+  /* "pysam/libcbgzf.pyx":147
  * 
  *     def __exit__(self, type, value, tb):
  *         self.close()             # <<<<<<<<<<<<<<
  * 
  *     def flush(self):
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 142, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3444,16 +3461,16 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_12__exit__(struct __pyx_obj_
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 142, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 147, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 142, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 147, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libcbgzf.pyx":141
+  /* "pysam/libcbgzf.pyx":146
  *         return self
  * 
  *     def __exit__(self, type, value, tb):             # <<<<<<<<<<<<<<
@@ -3476,7 +3493,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_12__exit__(struct __pyx_obj_
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":144
+/* "pysam/libcbgzf.pyx":149
  *         self.close()
  * 
  *     def flush(self):             # <<<<<<<<<<<<<<
@@ -3505,7 +3522,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_14flush(struct __pyx_obj_5py
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("flush", 0);
 
-  /* "pysam/libcbgzf.pyx":145
+  /* "pysam/libcbgzf.pyx":150
  * 
  *     def flush(self):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -3515,7 +3532,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_14flush(struct __pyx_obj_5py
   __pyx_t_1 = ((!(__pyx_v_self->bgzf != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcbgzf.pyx":146
+    /* "pysam/libcbgzf.pyx":151
  *     def flush(self):
  *         if not self.bgzf:
  *             return             # <<<<<<<<<<<<<<
@@ -3526,7 +3543,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_14flush(struct __pyx_obj_5py
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcbgzf.pyx":145
+    /* "pysam/libcbgzf.pyx":150
  * 
  *     def flush(self):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -3535,7 +3552,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_14flush(struct __pyx_obj_5py
  */
   }
 
-  /* "pysam/libcbgzf.pyx":148
+  /* "pysam/libcbgzf.pyx":153
  *             return
  * 
  *         if self.bgzf.is_write and bgzf_flush(self.bgzf) < 0:             # <<<<<<<<<<<<<<
@@ -3553,20 +3570,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_14flush(struct __pyx_obj_5py
   __pyx_L5_bool_binop_done:;
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":149
+    /* "pysam/libcbgzf.pyx":154
  * 
  *         if self.bgzf.is_write and bgzf_flush(self.bgzf) < 0:
  *             raise IOError('Error flushing BGZFile object')             # <<<<<<<<<<<<<<
  * 
  *     def fileno(self):
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 149, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 149, __pyx_L1_error)
+    __PYX_ERR(0, 154, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":148
+    /* "pysam/libcbgzf.pyx":153
  *             return
  * 
  *         if self.bgzf.is_write and bgzf_flush(self.bgzf) < 0:             # <<<<<<<<<<<<<<
@@ -3575,7 +3592,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_14flush(struct __pyx_obj_5py
  */
   }
 
-  /* "pysam/libcbgzf.pyx":144
+  /* "pysam/libcbgzf.pyx":149
  *         self.close()
  * 
  *     def flush(self):             # <<<<<<<<<<<<<<
@@ -3596,7 +3613,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_14flush(struct __pyx_obj_5py
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":151
+/* "pysam/libcbgzf.pyx":156
  *             raise IOError('Error flushing BGZFile object')
  * 
  *     def fileno(self):             # <<<<<<<<<<<<<<
@@ -3624,20 +3641,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_16fileno(CYTHON_UNUSED struc
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("fileno", 0);
 
-  /* "pysam/libcbgzf.pyx":157
+  /* "pysam/libcbgzf.pyx":162
  *         doesn't support fileno().
  *         """
  *         raise AttributeError('fileno')             # <<<<<<<<<<<<<<
  * 
  *     def rewind(self):
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_AttributeError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_AttributeError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __PYX_ERR(0, 157, __pyx_L1_error)
+  __PYX_ERR(0, 162, __pyx_L1_error)
 
-  /* "pysam/libcbgzf.pyx":151
+  /* "pysam/libcbgzf.pyx":156
  *             raise IOError('Error flushing BGZFile object')
  * 
  *     def fileno(self):             # <<<<<<<<<<<<<<
@@ -3655,7 +3672,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_16fileno(CYTHON_UNUSED struc
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":159
+/* "pysam/libcbgzf.pyx":164
  *         raise AttributeError('fileno')
  * 
  *     def rewind(self):             # <<<<<<<<<<<<<<
@@ -3684,7 +3701,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_18rewind(struct __pyx_obj_5p
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("rewind", 0);
 
-  /* "pysam/libcbgzf.pyx":162
+  /* "pysam/libcbgzf.pyx":167
  *         '''Return the uncompressed stream file position indicator to the
  *         beginning of the file'''
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -3694,20 +3711,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_18rewind(struct __pyx_obj_5p
   __pyx_t_1 = ((!(__pyx_v_self->bgzf != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":163
+    /* "pysam/libcbgzf.pyx":168
  *         beginning of the file'''
  *         if not self.bgzf:
  *             raise ValueError("rewind() on closed BGZFile object")             # <<<<<<<<<<<<<<
  *         if not self.bgzf.is_write:
- *             raise OSError("Can't rewind in write mode")
+ *             raise IOError("Can't rewind in write mode")
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 163, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 168, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 163, __pyx_L1_error)
+    __PYX_ERR(0, 168, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":162
+    /* "pysam/libcbgzf.pyx":167
  *         '''Return the uncompressed stream file position indicator to the
  *         beginning of the file'''
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -3716,41 +3733,41 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_18rewind(struct __pyx_obj_5p
  */
   }
 
-  /* "pysam/libcbgzf.pyx":164
+  /* "pysam/libcbgzf.pyx":169
  *         if not self.bgzf:
  *             raise ValueError("rewind() on closed BGZFile object")
  *         if not self.bgzf.is_write:             # <<<<<<<<<<<<<<
- *             raise OSError("Can't rewind in write mode")
+ *             raise IOError("Can't rewind in write mode")
  *         if bgzf_seek(self.bgzf, 0, SEEK_SET) < 0:
  */
   __pyx_t_1 = ((!(__pyx_v_self->bgzf->is_write != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":165
+    /* "pysam/libcbgzf.pyx":170
  *             raise ValueError("rewind() on closed BGZFile object")
  *         if not self.bgzf.is_write:
- *             raise OSError("Can't rewind in write mode")             # <<<<<<<<<<<<<<
+ *             raise IOError("Can't rewind in write mode")             # <<<<<<<<<<<<<<
  *         if bgzf_seek(self.bgzf, 0, SEEK_SET) < 0:
  *             raise IOError('Error seeking BGZFFile object')
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_OSError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 165, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 170, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 165, __pyx_L1_error)
+    __PYX_ERR(0, 170, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":164
+    /* "pysam/libcbgzf.pyx":169
  *         if not self.bgzf:
  *             raise ValueError("rewind() on closed BGZFile object")
  *         if not self.bgzf.is_write:             # <<<<<<<<<<<<<<
- *             raise OSError("Can't rewind in write mode")
+ *             raise IOError("Can't rewind in write mode")
  *         if bgzf_seek(self.bgzf, 0, SEEK_SET) < 0:
  */
   }
 
-  /* "pysam/libcbgzf.pyx":166
+  /* "pysam/libcbgzf.pyx":171
  *         if not self.bgzf.is_write:
- *             raise OSError("Can't rewind in write mode")
+ *             raise IOError("Can't rewind in write mode")
  *         if bgzf_seek(self.bgzf, 0, SEEK_SET) < 0:             # <<<<<<<<<<<<<<
  *             raise IOError('Error seeking BGZFFile object')
  * 
@@ -3758,29 +3775,29 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_18rewind(struct __pyx_obj_5p
   __pyx_t_1 = ((bgzf_seek(__pyx_v_self->bgzf, 0, SEEK_SET) < 0) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":167
- *             raise OSError("Can't rewind in write mode")
+    /* "pysam/libcbgzf.pyx":172
+ *             raise IOError("Can't rewind in write mode")
  *         if bgzf_seek(self.bgzf, 0, SEEK_SET) < 0:
  *             raise IOError('Error seeking BGZFFile object')             # <<<<<<<<<<<<<<
  * 
  *     def readable(self):
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 167, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 172, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 167, __pyx_L1_error)
+    __PYX_ERR(0, 172, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":166
+    /* "pysam/libcbgzf.pyx":171
  *         if not self.bgzf.is_write:
- *             raise OSError("Can't rewind in write mode")
+ *             raise IOError("Can't rewind in write mode")
  *         if bgzf_seek(self.bgzf, 0, SEEK_SET) < 0:             # <<<<<<<<<<<<<<
  *             raise IOError('Error seeking BGZFFile object')
  * 
  */
   }
 
-  /* "pysam/libcbgzf.pyx":159
+  /* "pysam/libcbgzf.pyx":164
  *         raise AttributeError('fileno')
  * 
  *     def rewind(self):             # <<<<<<<<<<<<<<
@@ -3801,7 +3818,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_18rewind(struct __pyx_obj_5p
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":169
+/* "pysam/libcbgzf.pyx":174
  *             raise IOError('Error seeking BGZFFile object')
  * 
  *     def readable(self):             # <<<<<<<<<<<<<<
@@ -3830,7 +3847,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_20readable(struct __pyx_obj_
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("readable", 0);
 
-  /* "pysam/libcbgzf.pyx":170
+  /* "pysam/libcbgzf.pyx":175
  * 
  *     def readable(self):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -3840,20 +3857,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_20readable(struct __pyx_obj_
   __pyx_t_1 = ((!(__pyx_v_self->bgzf != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":171
+    /* "pysam/libcbgzf.pyx":176
  *     def readable(self):
  *         if not self.bgzf:
  *             raise ValueError("readable() on closed BGZFile object")             # <<<<<<<<<<<<<<
  *         return self.bgzf != NULL and not self.bgzf.is_write
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 171, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 176, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 171, __pyx_L1_error)
+    __PYX_ERR(0, 176, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":170
+    /* "pysam/libcbgzf.pyx":175
  * 
  *     def readable(self):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -3862,7 +3879,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_20readable(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libcbgzf.pyx":172
+  /* "pysam/libcbgzf.pyx":177
  *         if not self.bgzf:
  *             raise ValueError("readable() on closed BGZFile object")
  *         return self.bgzf != NULL and not self.bgzf.is_write             # <<<<<<<<<<<<<<
@@ -3873,14 +3890,14 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_20readable(struct __pyx_obj_
   __pyx_t_1 = (__pyx_v_self->bgzf != NULL);
   if (__pyx_t_1) {
   } else {
-    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 172, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 177, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_2 = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L4_bool_binop_done;
   }
   __pyx_t_1 = (!(__pyx_v_self->bgzf->is_write != 0));
-  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 172, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 177, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_2 = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -3889,7 +3906,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_20readable(struct __pyx_obj_
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcbgzf.pyx":169
+  /* "pysam/libcbgzf.pyx":174
  *             raise IOError('Error seeking BGZFFile object')
  * 
  *     def readable(self):             # <<<<<<<<<<<<<<
@@ -3909,7 +3926,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_20readable(struct __pyx_obj_
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":174
+/* "pysam/libcbgzf.pyx":179
  *         return self.bgzf != NULL and not self.bgzf.is_write
  * 
  *     def writable(self):             # <<<<<<<<<<<<<<
@@ -3938,7 +3955,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_22writable(struct __pyx_obj_
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("writable", 0);
 
-  /* "pysam/libcbgzf.pyx":175
+  /* "pysam/libcbgzf.pyx":180
  * 
  *     def writable(self):
  *         return self.bgzf != NULL and self.bgzf.is_write             # <<<<<<<<<<<<<<
@@ -3949,13 +3966,13 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_22writable(struct __pyx_obj_
   __pyx_t_2 = (__pyx_v_self->bgzf != NULL);
   if (__pyx_t_2) {
   } else {
-    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 175, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 180, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_1 = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L3_bool_binop_done;
   }
-  __pyx_t_3 = __Pyx_PyInt_From_unsigned_int(__pyx_v_self->bgzf->is_write); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 175, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_unsigned_int(__pyx_v_self->bgzf->is_write); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_1 = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -3964,7 +3981,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_22writable(struct __pyx_obj_
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcbgzf.pyx":174
+  /* "pysam/libcbgzf.pyx":179
  *         return self.bgzf != NULL and not self.bgzf.is_write
  * 
  *     def writable(self):             # <<<<<<<<<<<<<<
@@ -3984,7 +4001,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_22writable(struct __pyx_obj_
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":177
+/* "pysam/libcbgzf.pyx":182
  *         return self.bgzf != NULL and self.bgzf.is_write
  * 
  *     def seekable(self):             # <<<<<<<<<<<<<<
@@ -4010,19 +4027,19 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_24seekable(CYTHON_UNUSED str
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("seekable", 0);
 
-  /* "pysam/libcbgzf.pyx":178
+  /* "pysam/libcbgzf.pyx":183
  * 
  *     def seekable(self):
  *         return True             # <<<<<<<<<<<<<<
  * 
- *     def seek(self, offset, whence=io.SEEK_SET):
+ *     def tell(self):
  */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(Py_True);
   __pyx_r = Py_True;
   goto __pyx_L0;
 
-  /* "pysam/libcbgzf.pyx":177
+  /* "pysam/libcbgzf.pyx":182
  *         return self.bgzf != NULL and self.bgzf.is_write
  * 
  *     def seekable(self):             # <<<<<<<<<<<<<<
@@ -4037,8 +4054,143 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_24seekable(CYTHON_UNUSED str
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":180
+/* "pysam/libcbgzf.pyx":185
  *         return True
+ * 
+ *     def tell(self):             # <<<<<<<<<<<<<<
+ *         if not self.bgzf:
+ *             raise ValueError("seek() on closed BGZFile object")
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_27tell(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_27tell(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("tell (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_26tell(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26tell(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self) {
+  int64_t __pyx_v_off;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  __Pyx_RefNannySetupContext("tell", 0);
+
+  /* "pysam/libcbgzf.pyx":186
+ * 
+ *     def tell(self):
+ *         if not self.bgzf:             # <<<<<<<<<<<<<<
+ *             raise ValueError("seek() on closed BGZFile object")
+ *         cdef int64_t off = bgzf_tell(self.bgzf)
+ */
+  __pyx_t_1 = ((!(__pyx_v_self->bgzf != 0)) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libcbgzf.pyx":187
+ *     def tell(self):
+ *         if not self.bgzf:
+ *             raise ValueError("seek() on closed BGZFile object")             # <<<<<<<<<<<<<<
+ *         cdef int64_t off = bgzf_tell(self.bgzf)
+ *         if off < 0:
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 187, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 187, __pyx_L1_error)
+
+    /* "pysam/libcbgzf.pyx":186
+ * 
+ *     def tell(self):
+ *         if not self.bgzf:             # <<<<<<<<<<<<<<
+ *             raise ValueError("seek() on closed BGZFile object")
+ *         cdef int64_t off = bgzf_tell(self.bgzf)
+ */
+  }
+
+  /* "pysam/libcbgzf.pyx":188
+ *         if not self.bgzf:
+ *             raise ValueError("seek() on closed BGZFile object")
+ *         cdef int64_t off = bgzf_tell(self.bgzf)             # <<<<<<<<<<<<<<
+ *         if off < 0:
+ *             raise IOError('Error in tell on BGZFFile object')
+ */
+  __pyx_v_off = bgzf_tell(__pyx_v_self->bgzf);
+
+  /* "pysam/libcbgzf.pyx":189
+ *             raise ValueError("seek() on closed BGZFile object")
+ *         cdef int64_t off = bgzf_tell(self.bgzf)
+ *         if off < 0:             # <<<<<<<<<<<<<<
+ *             raise IOError('Error in tell on BGZFFile object')
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_off < 0) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libcbgzf.pyx":190
+ *         cdef int64_t off = bgzf_tell(self.bgzf)
+ *         if off < 0:
+ *             raise IOError('Error in tell on BGZFFile object')             # <<<<<<<<<<<<<<
+ * 
+ *         return off
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 190, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 190, __pyx_L1_error)
+
+    /* "pysam/libcbgzf.pyx":189
+ *             raise ValueError("seek() on closed BGZFile object")
+ *         cdef int64_t off = bgzf_tell(self.bgzf)
+ *         if off < 0:             # <<<<<<<<<<<<<<
+ *             raise IOError('Error in tell on BGZFFile object')
+ * 
+ */
+  }
+
+  /* "pysam/libcbgzf.pyx":192
+ *             raise IOError('Error in tell on BGZFFile object')
+ * 
+ *         return off             # <<<<<<<<<<<<<<
+ * 
+ *     def seek(self, offset, whence=io.SEEK_SET):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = __Pyx_PyInt_From_int64_t(__pyx_v_off); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libcbgzf.pyx":185
+ *         return True
+ * 
+ *     def tell(self):             # <<<<<<<<<<<<<<
+ *         if not self.bgzf:
+ *             raise ValueError("seek() on closed BGZFile object")
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("pysam.libcbgzf.BGZFile.tell", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libcbgzf.pyx":194
+ *         return off
  * 
  *     def seek(self, offset, whence=io.SEEK_SET):             # <<<<<<<<<<<<<<
  *         if not self.bgzf:
@@ -4046,8 +4198,8 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_24seekable(CYTHON_UNUSED str
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_27seek(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_27seek(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_29seek(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_29seek(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_offset = 0;
   PyObject *__pyx_v_whence = 0;
   PyObject *__pyx_r = 0;
@@ -4056,7 +4208,7 @@ static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_27seek(PyObject *__pyx_v_sel
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_offset,&__pyx_n_s_whence,0};
     PyObject* values[2] = {0,0};
-    values[1] = __pyx_k__17;
+    values[1] = __pyx_k__19;
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
@@ -4081,7 +4233,7 @@ static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_27seek(PyObject *__pyx_v_sel
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "seek") < 0)) __PYX_ERR(0, 180, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "seek") < 0)) __PYX_ERR(0, 194, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -4097,20 +4249,20 @@ static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_27seek(PyObject *__pyx_v_sel
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("seek", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 180, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("seek", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 194, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcbgzf.BGZFile.seek", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self), __pyx_v_offset, __pyx_v_whence);
+  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_28seek(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self), __pyx_v_offset, __pyx_v_whence);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, PyObject *__pyx_v_offset, PyObject *__pyx_v_whence) {
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_28seek(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, PyObject *__pyx_v_offset, PyObject *__pyx_v_whence) {
   int64_t __pyx_v_off;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -4121,7 +4273,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pys
   int64_t __pyx_t_5;
   __Pyx_RefNannySetupContext("seek", 0);
 
-  /* "pysam/libcbgzf.pyx":181
+  /* "pysam/libcbgzf.pyx":195
  * 
  *     def seek(self, offset, whence=io.SEEK_SET):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -4131,20 +4283,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pys
   __pyx_t_1 = ((!(__pyx_v_self->bgzf != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":182
+    /* "pysam/libcbgzf.pyx":196
  *     def seek(self, offset, whence=io.SEEK_SET):
  *         if not self.bgzf:
  *             raise ValueError("seek() on closed BGZFile object")             # <<<<<<<<<<<<<<
  *         if whence is not io.SEEK_SET:
  *             raise ValueError('Seek from end not supported')
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 182, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__20, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 196, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 182, __pyx_L1_error)
+    __PYX_ERR(0, 196, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":181
+    /* "pysam/libcbgzf.pyx":195
  * 
  *     def seek(self, offset, whence=io.SEEK_SET):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -4153,16 +4305,16 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pys
  */
   }
 
-  /* "pysam/libcbgzf.pyx":183
+  /* "pysam/libcbgzf.pyx":197
  *         if not self.bgzf:
  *             raise ValueError("seek() on closed BGZFile object")
  *         if whence is not io.SEEK_SET:             # <<<<<<<<<<<<<<
  *             raise ValueError('Seek from end not supported')
  * 
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_io); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 183, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_io); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 197, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_SEEK_SET); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 183, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_SEEK_SET); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 197, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_1 = (__pyx_v_whence != __pyx_t_3);
@@ -4170,20 +4322,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pys
   __pyx_t_4 = (__pyx_t_1 != 0);
   if (unlikely(__pyx_t_4)) {
 
-    /* "pysam/libcbgzf.pyx":184
+    /* "pysam/libcbgzf.pyx":198
  *             raise ValueError("seek() on closed BGZFile object")
  *         if whence is not io.SEEK_SET:
  *             raise ValueError('Seek from end not supported')             # <<<<<<<<<<<<<<
  * 
  *         cdef int64_t off = bgzf_seek(self.bgzf, offset, SEEK_SET)
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 184, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__21, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 198, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 184, __pyx_L1_error)
+    __PYX_ERR(0, 198, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":183
+    /* "pysam/libcbgzf.pyx":197
  *         if not self.bgzf:
  *             raise ValueError("seek() on closed BGZFile object")
  *         if whence is not io.SEEK_SET:             # <<<<<<<<<<<<<<
@@ -4192,17 +4344,17 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pys
  */
   }
 
-  /* "pysam/libcbgzf.pyx":186
+  /* "pysam/libcbgzf.pyx":200
  *             raise ValueError('Seek from end not supported')
  * 
  *         cdef int64_t off = bgzf_seek(self.bgzf, offset, SEEK_SET)             # <<<<<<<<<<<<<<
  *         if off < 0:
  *             raise IOError('Error seeking BGZFFile object')
  */
-  __pyx_t_5 = __Pyx_PyInt_As_int64_t(__pyx_v_offset); if (unlikely((__pyx_t_5 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_As_int64_t(__pyx_v_offset); if (unlikely((__pyx_t_5 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 200, __pyx_L1_error)
   __pyx_v_off = bgzf_seek(__pyx_v_self->bgzf, __pyx_t_5, SEEK_SET);
 
-  /* "pysam/libcbgzf.pyx":187
+  /* "pysam/libcbgzf.pyx":201
  * 
  *         cdef int64_t off = bgzf_seek(self.bgzf, offset, SEEK_SET)
  *         if off < 0:             # <<<<<<<<<<<<<<
@@ -4212,20 +4364,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pys
   __pyx_t_4 = ((__pyx_v_off < 0) != 0);
   if (unlikely(__pyx_t_4)) {
 
-    /* "pysam/libcbgzf.pyx":188
+    /* "pysam/libcbgzf.pyx":202
  *         cdef int64_t off = bgzf_seek(self.bgzf, offset, SEEK_SET)
  *         if off < 0:
  *             raise IOError('Error seeking BGZFFile object')             # <<<<<<<<<<<<<<
  * 
  *         return off
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__20, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 188, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__22, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 202, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 188, __pyx_L1_error)
+    __PYX_ERR(0, 202, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":187
+    /* "pysam/libcbgzf.pyx":201
  * 
  *         cdef int64_t off = bgzf_seek(self.bgzf, offset, SEEK_SET)
  *         if off < 0:             # <<<<<<<<<<<<<<
@@ -4234,7 +4386,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pys
  */
   }
 
-  /* "pysam/libcbgzf.pyx":190
+  /* "pysam/libcbgzf.pyx":204
  *             raise IOError('Error seeking BGZFFile object')
  * 
  *         return off             # <<<<<<<<<<<<<<
@@ -4242,14 +4394,14 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pys
  *     def readline(self, size=-1):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyInt_From_int64_t(__pyx_v_off); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 190, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int64_t(__pyx_v_off); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 204, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcbgzf.pyx":180
- *         return True
+  /* "pysam/libcbgzf.pyx":194
+ *         return off
  * 
  *     def seek(self, offset, whence=io.SEEK_SET):             # <<<<<<<<<<<<<<
  *         if not self.bgzf:
@@ -4268,7 +4420,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pys
   return __pyx_r;
 }
 
-/* "pysam/libcbgzf.pyx":192
+/* "pysam/libcbgzf.pyx":206
  *         return off
  * 
  *     def readline(self, size=-1):             # <<<<<<<<<<<<<<
@@ -4277,8 +4429,8 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_26seek(struct __pyx_obj_5pys
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_29readline(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_29readline(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_31readline(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_31readline(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   CYTHON_UNUSED PyObject *__pyx_v_size = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -4305,7 +4457,7 @@ static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_29readline(PyObject *__pyx_v
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "readline") < 0)) __PYX_ERR(0, 192, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "readline") < 0)) __PYX_ERR(0, 206, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -4319,29 +4471,30 @@ static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_29readline(PyObject *__pyx_v
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("readline", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 192, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("readline", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 206, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcbgzf.BGZFile.readline", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_28readline(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self), __pyx_v_size);
+  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_30readline(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self), __pyx_v_size);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_28readline(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_size) {
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_30readline(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_size) {
   kstring_t __pyx_v_line;
-  PyObject *__pyx_v_ret = NULL;
+  int __pyx_v_ret;
+  PyObject *__pyx_v_s = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("readline", 0);
 
-  /* "pysam/libcbgzf.pyx":193
+  /* "pysam/libcbgzf.pyx":207
  * 
  *     def readline(self, size=-1):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -4351,20 +4504,20 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_28readline(struct __pyx_obj_
   __pyx_t_1 = ((!(__pyx_v_self->bgzf != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcbgzf.pyx":194
+    /* "pysam/libcbgzf.pyx":208
  *     def readline(self, size=-1):
  *         if not self.bgzf:
  *             raise ValueError("readline() on closed BGZFile object")             # <<<<<<<<<<<<<<
  * 
  *         cdef kstring_t line
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__21, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 194, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__23, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 208, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 194, __pyx_L1_error)
+    __PYX_ERR(0, 208, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":193
+    /* "pysam/libcbgzf.pyx":207
  * 
  *     def readline(self, size=-1):
  *         if not self.bgzf:             # <<<<<<<<<<<<<<
@@ -4373,71 +4526,139 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_28readline(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libcbgzf.pyx":199
+  /* "pysam/libcbgzf.pyx":213
  *         cdef char c
  * 
  *         line.l = line.m = 0             # <<<<<<<<<<<<<<
  *         line.s = NULL
- *         if bgzf_getline(self.bgzf, '\n', &line) < 0:
+ * 
  */
   __pyx_v_line.l = 0;
   __pyx_v_line.m = 0;
 
-  /* "pysam/libcbgzf.pyx":200
+  /* "pysam/libcbgzf.pyx":214
  * 
  *         line.l = line.m = 0
  *         line.s = NULL             # <<<<<<<<<<<<<<
- *         if bgzf_getline(self.bgzf, '\n', &line) < 0:
- *             raise IOError('Error reading line in BGZFFile object')
+ * 
+ *         cdef int ret = bgzf_getline(self.bgzf, '\n', &line)
  */
   __pyx_v_line.s = NULL;
 
-  /* "pysam/libcbgzf.pyx":201
- *         line.l = line.m = 0
+  /* "pysam/libcbgzf.pyx":216
  *         line.s = NULL
- *         if bgzf_getline(self.bgzf, '\n', &line) < 0:             # <<<<<<<<<<<<<<
- *             raise IOError('Error reading line in BGZFFile object')
  * 
+ *         cdef int ret = bgzf_getline(self.bgzf, '\n', &line)             # <<<<<<<<<<<<<<
+ *         if ret == -1:
+ *             s = b''
  */
-  __pyx_t_1 = ((bgzf_getline(__pyx_v_self->bgzf, '\n', (&__pyx_v_line)) < 0) != 0);
-  if (unlikely(__pyx_t_1)) {
+  __pyx_v_ret = bgzf_getline(__pyx_v_self->bgzf, '\n', (&__pyx_v_line));
 
-    /* "pysam/libcbgzf.pyx":202
- *         line.s = NULL
- *         if bgzf_getline(self.bgzf, '\n', &line) < 0:
- *             raise IOError('Error reading line in BGZFFile object')             # <<<<<<<<<<<<<<
+  /* "pysam/libcbgzf.pyx":217
  * 
- *         ret = charptr_to_str_w_len(line.s, line.l)
+ *         cdef int ret = bgzf_getline(self.bgzf, '\n', &line)
+ *         if ret == -1:             # <<<<<<<<<<<<<<
+ *             s = b''
+ *         elif ret == -2:
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__22, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 202, __pyx_L1_error)
+  switch (__pyx_v_ret) {
+    case -1L:
+
+    /* "pysam/libcbgzf.pyx":218
+ *         cdef int ret = bgzf_getline(self.bgzf, '\n', &line)
+ *         if ret == -1:
+ *             s = b''             # <<<<<<<<<<<<<<
+ *         elif ret == -2:
+ *             if line.m:
+ */
+    __Pyx_INCREF(__pyx_kp_b__6);
+    __pyx_v_s = __pyx_kp_b__6;
+
+    /* "pysam/libcbgzf.pyx":217
+ * 
+ *         cdef int ret = bgzf_getline(self.bgzf, '\n', &line)
+ *         if ret == -1:             # <<<<<<<<<<<<<<
+ *             s = b''
+ *         elif ret == -2:
+ */
+    break;
+
+    /* "pysam/libcbgzf.pyx":219
+ *         if ret == -1:
+ *             s = b''
+ *         elif ret == -2:             # <<<<<<<<<<<<<<
+ *             if line.m:
+ *                 free(line.s)
+ */
+    case -2L:
+
+    /* "pysam/libcbgzf.pyx":220
+ *             s = b''
+ *         elif ret == -2:
+ *             if line.m:             # <<<<<<<<<<<<<<
+ *                 free(line.s)
+ *             raise IOError('Error reading line in BGZFFile object')
+ */
+    __pyx_t_1 = (__pyx_v_line.m != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libcbgzf.pyx":221
+ *         elif ret == -2:
+ *             if line.m:
+ *                 free(line.s)             # <<<<<<<<<<<<<<
+ *             raise IOError('Error reading line in BGZFFile object')
+ *         else:
+ */
+      free(__pyx_v_line.s);
+
+      /* "pysam/libcbgzf.pyx":220
+ *             s = b''
+ *         elif ret == -2:
+ *             if line.m:             # <<<<<<<<<<<<<<
+ *                 free(line.s)
+ *             raise IOError('Error reading line in BGZFFile object')
+ */
+    }
+
+    /* "pysam/libcbgzf.pyx":222
+ *             if line.m:
+ *                 free(line.s)
+ *             raise IOError('Error reading line in BGZFFile object')             # <<<<<<<<<<<<<<
+ *         else:
+ *             s = line.s[:line.l]
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__24, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 222, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 202, __pyx_L1_error)
+    __PYX_ERR(0, 222, __pyx_L1_error)
 
-    /* "pysam/libcbgzf.pyx":201
- *         line.l = line.m = 0
- *         line.s = NULL
- *         if bgzf_getline(self.bgzf, '\n', &line) < 0:             # <<<<<<<<<<<<<<
- *             raise IOError('Error reading line in BGZFFile object')
- * 
+    /* "pysam/libcbgzf.pyx":219
+ *         if ret == -1:
+ *             s = b''
+ *         elif ret == -2:             # <<<<<<<<<<<<<<
+ *             if line.m:
+ *                 free(line.s)
  */
-  }
+    break;
+    default:
 
-  /* "pysam/libcbgzf.pyx":204
+    /* "pysam/libcbgzf.pyx":224
  *             raise IOError('Error reading line in BGZFFile object')
- * 
- *         ret = charptr_to_str_w_len(line.s, line.l)             # <<<<<<<<<<<<<<
+ *         else:
+ *             s = line.s[:line.l]             # <<<<<<<<<<<<<<
  * 
  *         if line.m:
  */
-  __pyx_t_2 = __pyx_f_5pysam_9libcutils_charptr_to_str_w_len(__pyx_v_line.s, __pyx_v_line.l, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 204, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_v_ret = __pyx_t_2;
-  __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_line.s + 0, __pyx_v_line.l - 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 224, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_v_s = ((PyObject*)__pyx_t_2);
+    __pyx_t_2 = 0;
+    break;
+  }
 
-  /* "pysam/libcbgzf.pyx":206
- *         ret = charptr_to_str_w_len(line.s, line.l)
+  /* "pysam/libcbgzf.pyx":226
+ *             s = line.s[:line.l]
  * 
  *         if line.m:             # <<<<<<<<<<<<<<
  *             free(line.s)
@@ -4446,17 +4667,17 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_28readline(struct __pyx_obj_
   __pyx_t_1 = (__pyx_v_line.m != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcbgzf.pyx":207
+    /* "pysam/libcbgzf.pyx":227
  * 
  *         if line.m:
  *             free(line.s)             # <<<<<<<<<<<<<<
  * 
- *         return ret
+ *         return s
  */
     free(__pyx_v_line.s);
 
-    /* "pysam/libcbgzf.pyx":206
- *         ret = charptr_to_str_w_len(line.s, line.l)
+    /* "pysam/libcbgzf.pyx":226
+ *             s = line.s[:line.l]
  * 
  *         if line.m:             # <<<<<<<<<<<<<<
  *             free(line.s)
@@ -4464,17 +4685,19 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_28readline(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libcbgzf.pyx":209
+  /* "pysam/libcbgzf.pyx":229
  *             free(line.s)
  * 
- *         return ret             # <<<<<<<<<<<<<<
+ *         return s             # <<<<<<<<<<<<<<
+ * 
+ *     def __iter__(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_v_ret);
-  __pyx_r = __pyx_v_ret;
+  __Pyx_INCREF(__pyx_v_s);
+  __pyx_r = __pyx_v_s;
   goto __pyx_L0;
 
-  /* "pysam/libcbgzf.pyx":192
+  /* "pysam/libcbgzf.pyx":206
  *         return off
  * 
  *     def readline(self, size=-1):             # <<<<<<<<<<<<<<
@@ -4488,7 +4711,252 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_28readline(struct __pyx_obj_
   __Pyx_AddTraceback("pysam.libcbgzf.BGZFile.readline", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_ret);
+  __Pyx_XDECREF(__pyx_v_s);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libcbgzf.pyx":231
+ *         return s
+ * 
+ *     def __iter__(self):             # <<<<<<<<<<<<<<
+ *         return self
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_33__iter__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_33__iter__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__iter__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_32__iter__(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_32__iter__(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__iter__", 0);
+
+  /* "pysam/libcbgzf.pyx":232
+ * 
+ *     def __iter__(self):
+ *         return self             # <<<<<<<<<<<<<<
+ * 
+ *     def __next__(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(((PyObject *)__pyx_v_self));
+  __pyx_r = ((PyObject *)__pyx_v_self);
+  goto __pyx_L0;
+
+  /* "pysam/libcbgzf.pyx":231
+ *         return s
+ * 
+ *     def __iter__(self):             # <<<<<<<<<<<<<<
+ *         return self
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libcbgzf.pyx":234
+ *         return self
+ * 
+ *     def __next__(self):             # <<<<<<<<<<<<<<
+ *         line = self.readline()
+ *         if not line:
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_35__next__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_35__next__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__next__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_34__next__(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_34__next__(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self) {
+  PyObject *__pyx_v_line = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  __Pyx_RefNannySetupContext("__next__", 0);
+
+  /* "pysam/libcbgzf.pyx":235
+ * 
+ *     def __next__(self):
+ *         line = self.readline()             # <<<<<<<<<<<<<<
+ *         if not line:
+ *             raise StopIteration()
+ */
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_readline); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 235, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  if (__pyx_t_3) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 235, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  } else {
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 235, __pyx_L1_error)
+  }
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v_line = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "pysam/libcbgzf.pyx":236
+ *     def __next__(self):
+ *         line = self.readline()
+ *         if not line:             # <<<<<<<<<<<<<<
+ *             raise StopIteration()
+ *         return line
+ */
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_line); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 236, __pyx_L1_error)
+  __pyx_t_5 = ((!__pyx_t_4) != 0);
+  if (unlikely(__pyx_t_5)) {
+
+    /* "pysam/libcbgzf.pyx":237
+ *         line = self.readline()
+ *         if not line:
+ *             raise StopIteration()             # <<<<<<<<<<<<<<
+ *         return line
+ */
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_builtin_StopIteration); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 237, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __PYX_ERR(0, 237, __pyx_L1_error)
+
+    /* "pysam/libcbgzf.pyx":236
+ *     def __next__(self):
+ *         line = self.readline()
+ *         if not line:             # <<<<<<<<<<<<<<
+ *             raise StopIteration()
+ *         return line
+ */
+  }
+
+  /* "pysam/libcbgzf.pyx":238
+ *         if not line:
+ *             raise StopIteration()
+ *         return line             # <<<<<<<<<<<<<<
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_line);
+  __pyx_r = __pyx_v_line;
+  goto __pyx_L0;
+
+  /* "pysam/libcbgzf.pyx":234
+ *         return self
+ * 
+ *     def __next__(self):             # <<<<<<<<<<<<<<
+ *         line = self.readline()
+ *         if not line:
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("pysam.libcbgzf.BGZFile.__next__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_line);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libcbgzf.pyx":36
+ *     """
+ *     cdef BGZF* bgzf
+ *     cdef readonly object name, index             # <<<<<<<<<<<<<<
+ * 
+ *     def __init__(self, filename, mode=None, index=None):
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_4name_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_4name_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_4name___get__(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_4name___get__(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_self->name);
+  __pyx_r = __pyx_v_self->name;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_5index_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_5index_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_5index___get__(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_5index___get__(struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_self->index);
+  __pyx_r = __pyx_v_self->index;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -4501,19 +4969,19 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_28readline(struct __pyx_obj_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_31__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_31__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_37__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_37__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_30__reduce_cython__(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_36__reduce_cython__(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_30__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_36__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4525,7 +4993,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_30__reduce_cython__(CYTHON_U
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.bgzf cannot be converted to a Python object for pickling")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__23, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__25, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -4555,19 +5023,19 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_30__reduce_cython__(CYTHON_U
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_33__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_33__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_39__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static PyObject *__pyx_pw_5pysam_8libcbgzf_7BGZFile_39__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_32__setstate_cython__(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_5pysam_8libcbgzf_7BGZFile_38__setstate_cython__(((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_32__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_38__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_8libcbgzf_BGZFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4578,7 +5046,7 @@ static PyObject *__pyx_pf_5pysam_8libcbgzf_7BGZFile_32__setstate_cython__(CYTHON
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.bgzf cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__24, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__26, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -5247,18 +5715,19 @@ static PyObject *__pyx_tp_new_5pysam_8libcbgzf_BGZFile(PyTypeObject *t, CYTHON_U
   }
   if (unlikely(!o)) return 0;
   p = ((struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)o);
-  p->name = ((PyObject*)Py_None); Py_INCREF(Py_None);
-  p->index = ((PyObject*)Py_None); Py_INCREF(Py_None);
+  p->name = Py_None; Py_INCREF(Py_None);
+  p->index = Py_None; Py_INCREF(Py_None);
   return o;
 }
 
 static void __pyx_tp_dealloc_5pysam_8libcbgzf_BGZFile(PyObject *o) {
   struct __pyx_obj_5pysam_8libcbgzf_BGZFile *p = (struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)o;
   #if CYTHON_USE_TP_FINALIZE
-  if (unlikely(PyType_HasFeature(Py_TYPE(o), Py_TPFLAGS_HAVE_FINALIZE) && Py_TYPE(o)->tp_finalize) && (!PyType_IS_GC(Py_TYPE(o)) || !_PyGC_FINALIZED(o))) {
+  if (unlikely(PyType_HasFeature(Py_TYPE(o), Py_TPFLAGS_HAVE_FINALIZE) && Py_TYPE(o)->tp_finalize) && !_PyGC_FINALIZED(o)) {
     if (PyObject_CallFinalizerFromDealloc(o)) return;
   }
   #endif
+  PyObject_GC_UnTrack(o);
   {
     PyObject *etype, *eval, *etb;
     PyErr_Fetch(&etype, &eval, &etb);
@@ -5272,8 +5741,40 @@ static void __pyx_tp_dealloc_5pysam_8libcbgzf_BGZFile(PyObject *o) {
   (*Py_TYPE(o)->tp_free)(o);
 }
 
+static int __pyx_tp_traverse_5pysam_8libcbgzf_BGZFile(PyObject *o, visitproc v, void *a) {
+  int e;
+  struct __pyx_obj_5pysam_8libcbgzf_BGZFile *p = (struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)o;
+  if (p->name) {
+    e = (*v)(p->name, a); if (e) return e;
+  }
+  if (p->index) {
+    e = (*v)(p->index, a); if (e) return e;
+  }
+  return 0;
+}
+
+static int __pyx_tp_clear_5pysam_8libcbgzf_BGZFile(PyObject *o) {
+  PyObject* tmp;
+  struct __pyx_obj_5pysam_8libcbgzf_BGZFile *p = (struct __pyx_obj_5pysam_8libcbgzf_BGZFile *)o;
+  tmp = ((PyObject*)p->name);
+  p->name = Py_None; Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  tmp = ((PyObject*)p->index);
+  p->index = Py_None; Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  return 0;
+}
+
 static PyObject *__pyx_getprop_5pysam_8libcbgzf_7BGZFile_closed(PyObject *o, CYTHON_UNUSED void *x) {
   return __pyx_pw_5pysam_8libcbgzf_7BGZFile_6closed_1__get__(o);
+}
+
+static PyObject *__pyx_getprop_5pysam_8libcbgzf_7BGZFile_name(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_5pysam_8libcbgzf_7BGZFile_4name_1__get__(o);
+}
+
+static PyObject *__pyx_getprop_5pysam_8libcbgzf_7BGZFile_index(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_5pysam_8libcbgzf_7BGZFile_5index_1__get__(o);
 }
 
 static PyMethodDef __pyx_methods_5pysam_8libcbgzf_BGZFile[] = {
@@ -5288,15 +5789,19 @@ static PyMethodDef __pyx_methods_5pysam_8libcbgzf_BGZFile[] = {
   {"readable", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_21readable, METH_NOARGS, 0},
   {"writable", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_23writable, METH_NOARGS, 0},
   {"seekable", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_25seekable, METH_NOARGS, 0},
-  {"seek", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_27seek, METH_VARARGS|METH_KEYWORDS, 0},
-  {"readline", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_29readline, METH_VARARGS|METH_KEYWORDS, 0},
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_31__reduce_cython__, METH_NOARGS, 0},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_33__setstate_cython__, METH_O, 0},
+  {"tell", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_27tell, METH_NOARGS, 0},
+  {"seek", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_29seek, METH_VARARGS|METH_KEYWORDS, 0},
+  {"readline", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_31readline, METH_VARARGS|METH_KEYWORDS, 0},
+  {"__next__", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_35__next__, METH_NOARGS|METH_COEXIST, 0},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_37__reduce_cython__, METH_NOARGS, 0},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_5pysam_8libcbgzf_7BGZFile_39__setstate_cython__, METH_O, 0},
   {0, 0, 0, 0}
 };
 
 static struct PyGetSetDef __pyx_getsets_5pysam_8libcbgzf_BGZFile[] = {
   {(char *)"closed", __pyx_getprop_5pysam_8libcbgzf_7BGZFile_closed, 0, (char *)0, 0},
+  {(char *)"name", __pyx_getprop_5pysam_8libcbgzf_7BGZFile_name, 0, (char *)0, 0},
+  {(char *)"index", __pyx_getprop_5pysam_8libcbgzf_7BGZFile_index, 0, (char *)0, 0},
   {0, 0, 0, 0, 0}
 };
 
@@ -5325,14 +5830,14 @@ static PyTypeObject __pyx_type_5pysam_8libcbgzf_BGZFile = {
   0, /*tp_getattro*/
   0, /*tp_setattro*/
   0, /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE, /*tp_flags*/
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
   "The BGZFile class simulates most of the methods of a file object with\n    the exception of the truncate() method.\n\n    This class only supports opening files in binary mode. If you need to open a\n    compressed file in text mode, use the gzip.open() function.\n    ", /*tp_doc*/
-  0, /*tp_traverse*/
-  0, /*tp_clear*/
+  __pyx_tp_traverse_5pysam_8libcbgzf_BGZFile, /*tp_traverse*/
+  __pyx_tp_clear_5pysam_8libcbgzf_BGZFile, /*tp_clear*/
   0, /*tp_richcompare*/
   0, /*tp_weaklistoffset*/
-  0, /*tp_iter*/
-  0, /*tp_iternext*/
+  __pyx_pw_5pysam_8libcbgzf_7BGZFile_33__iter__, /*tp_iter*/
+  __pyx_pw_5pysam_8libcbgzf_7BGZFile_35__next__, /*tp_iternext*/
   __pyx_methods_5pysam_8libcbgzf_BGZFile, /*tp_methods*/
   0, /*tp_members*/
   __pyx_getsets_5pysam_8libcbgzf_BGZFile, /*tp_getset*/
@@ -5406,15 +5911,16 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Error_building_bgzf_index, __pyx_k_Error_building_bgzf_index, sizeof(__pyx_k_Error_building_bgzf_index), 0, 0, 1, 0},
   {&__pyx_kp_s_Error_closing_BGZFile_object, __pyx_k_Error_closing_BGZFile_object, sizeof(__pyx_k_Error_closing_BGZFile_object), 0, 0, 1, 0},
   {&__pyx_kp_s_Error_flushing_BGZFile_object, __pyx_k_Error_flushing_BGZFile_object, sizeof(__pyx_k_Error_flushing_BGZFile_object), 0, 0, 1, 0},
+  {&__pyx_kp_s_Error_in_tell_on_BGZFFile_object, __pyx_k_Error_in_tell_on_BGZFFile_object, sizeof(__pyx_k_Error_in_tell_on_BGZFFile_object), 0, 0, 1, 0},
   {&__pyx_kp_s_Error_reading_from_BGZFile, __pyx_k_Error_reading_from_BGZFile, sizeof(__pyx_k_Error_reading_from_BGZFile), 0, 0, 1, 0},
   {&__pyx_kp_s_Error_reading_line_in_BGZFFile_o, __pyx_k_Error_reading_line_in_BGZFFile_o, sizeof(__pyx_k_Error_reading_line_in_BGZFFile_o), 0, 0, 1, 0},
   {&__pyx_kp_s_Error_seeking_BGZFFile_object, __pyx_k_Error_seeking_BGZFFile_object, sizeof(__pyx_k_Error_seeking_BGZFFile_object), 0, 0, 1, 0},
   {&__pyx_n_s_IOError, __pyx_k_IOError, sizeof(__pyx_k_IOError), 0, 0, 1, 1},
   {&__pyx_kp_s_Invalid_mode_r, __pyx_k_Invalid_mode_r, sizeof(__pyx_k_Invalid_mode_r), 0, 0, 1, 0},
   {&__pyx_n_s_MemoryError, __pyx_k_MemoryError, sizeof(__pyx_k_MemoryError), 0, 0, 1, 1},
-  {&__pyx_n_s_OSError, __pyx_k_OSError, sizeof(__pyx_k_OSError), 0, 0, 1, 1},
   {&__pyx_n_s_SEEK_SET, __pyx_k_SEEK_SET, sizeof(__pyx_k_SEEK_SET), 0, 0, 1, 1},
   {&__pyx_kp_s_Seek_from_end_not_supported, __pyx_k_Seek_from_end_not_supported, sizeof(__pyx_k_Seek_from_end_not_supported), 0, 0, 1, 0},
+  {&__pyx_n_s_StopIteration, __pyx_k_StopIteration, sizeof(__pyx_k_StopIteration), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_n_s_U, __pyx_k_U, sizeof(__pyx_k_U), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
@@ -5443,6 +5949,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_read_on_closed_BGZFile_object, __pyx_k_read_on_closed_BGZFile_object, sizeof(__pyx_k_read_on_closed_BGZFile_object), 0, 0, 1, 0},
   {&__pyx_kp_s_read_on_write_only_BGZFile_objec, __pyx_k_read_on_write_only_BGZFile_objec, sizeof(__pyx_k_read_on_write_only_BGZFile_objec), 0, 0, 1, 0},
   {&__pyx_kp_s_readable_on_closed_BGZFile_objec, __pyx_k_readable_on_closed_BGZFile_objec, sizeof(__pyx_k_readable_on_closed_BGZFile_objec), 0, 0, 1, 0},
+  {&__pyx_n_s_readline, __pyx_k_readline, sizeof(__pyx_k_readline), 0, 0, 1, 1},
   {&__pyx_kp_s_readline_on_closed_BGZFile_objec, __pyx_k_readline_on_closed_BGZFile_objec, sizeof(__pyx_k_readline_on_closed_BGZFile_objec), 0, 0, 1, 0},
   {&__pyx_n_s_reduce, __pyx_k_reduce, sizeof(__pyx_k_reduce), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
@@ -5464,10 +5971,10 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 47, __pyx_L1_error)
-  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 57, __pyx_L1_error)
-  __pyx_builtin_OSError = __Pyx_GetBuiltinName(__pyx_n_s_OSError); if (!__pyx_builtin_OSError) __PYX_ERR(0, 68, __pyx_L1_error)
-  __pyx_builtin_AttributeError = __Pyx_GetBuiltinName(__pyx_n_s_AttributeError); if (!__pyx_builtin_AttributeError) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_builtin_AttributeError = __Pyx_GetBuiltinName(__pyx_n_s_AttributeError); if (!__pyx_builtin_AttributeError) __PYX_ERR(0, 162, __pyx_L1_error)
+  __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) __PYX_ERR(0, 237, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(2, 109, __pyx_L1_error)
   return 0;
@@ -5479,225 +5986,247 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "pysam/libcbgzf.pyx":57
+  /* "pysam/libcbgzf.pyx":62
  * 
  *         if self.bgzf.is_write and index is not None and bgzf_index_build_init(self.bgzf) < 0:
  *             raise IOError('Error building bgzf index')             # <<<<<<<<<<<<<<
  * 
  *     def __dealloc__(self):
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Error_building_bgzf_index); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Error_building_bgzf_index); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "pysam/libcbgzf.pyx":64
- *     def write(self,data):
+  /* "pysam/libcbgzf.pyx":69
+ *     def write(self, data):
  *         if not self.bgzf:
  *             raise ValueError("write() on closed BGZFile object")             # <<<<<<<<<<<<<<
  * 
  *         if not self.bgzf.is_write:
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_write_on_closed_BGZFile_object); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_write_on_closed_BGZFile_object); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "pysam/libcbgzf.pyx":78
+  /* "pysam/libcbgzf.pyx":83
  * 
  *         if length > 0 and bgzf_write(self.bgzf, <char *>data, length) < 0:
  *             raise IOError('BGZFile write failed')             # <<<<<<<<<<<<<<
  * 
  *         return length
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_BGZFile_write_failed); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 78, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_BGZFile_write_failed); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 83, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "pysam/libcbgzf.pyx":86
+  /* "pysam/libcbgzf.pyx":91
  * 
  *         if not self.bgzf:
  *             raise ValueError("read() on closed BGZFile object")             # <<<<<<<<<<<<<<
  * 
  *         if self.bgzf.is_write:
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_read_on_closed_BGZFile_object); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_read_on_closed_BGZFile_object); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "pysam/libcbgzf.pyx":99
+  /* "pysam/libcbgzf.pyx":104
  *                 read_size = bgzf_read(self.bgzf, <char *>chunk, BUFFER_SIZE)
  *                 if read_size < 0:
  *                     raise IOError('Error reading from BGZFile')             # <<<<<<<<<<<<<<
  *                 elif not read_size:
  *                     break
  */
-  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_Error_reading_from_BGZFile); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 99, __pyx_L1_error)
+  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_Error_reading_from_BGZFile); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 104, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "pysam/libcbgzf.pyx":111
+  /* "pysam/libcbgzf.pyx":116
  *             read_size = bgzf_read(self.bgzf, <char *>chunk, size)
  *             if read_size < 0:
  *                 raise IOError('Error reading from BGZFile')             # <<<<<<<<<<<<<<
  *             elif read_size < size:
  *                 chunk = chunk[:size]
  */
-  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_Error_reading_from_BGZFile); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 111, __pyx_L1_error)
+  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_Error_reading_from_BGZFile); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 116, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "pysam/libcbgzf.pyx":127
+  /* "pysam/libcbgzf.pyx":132
  * 
  *         if self.bgzf.is_write and bgzf_flush(self.bgzf) < 0:
  *             raise IOError('Error flushing BGZFile object')             # <<<<<<<<<<<<<<
  * 
  *         if self.index and bgzf_index_dump(self.bgzf, self.index, NULL) < 0:
  */
-  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s_Error_flushing_BGZFile_object); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 127, __pyx_L1_error)
+  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s_Error_flushing_BGZFile_object); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
 
-  /* "pysam/libcbgzf.pyx":130
+  /* "pysam/libcbgzf.pyx":135
  * 
  *         if self.index and bgzf_index_dump(self.bgzf, self.index, NULL) < 0:
  *             raise IOError('Cannot write index')             # <<<<<<<<<<<<<<
  * 
  *         cdef ret = bgzf_close(self.bgzf)
  */
-  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_Cannot_write_index); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 130, __pyx_L1_error)
+  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_Cannot_write_index); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 135, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
 
-  /* "pysam/libcbgzf.pyx":136
+  /* "pysam/libcbgzf.pyx":141
  * 
  *         if ret < 0:
  *             raise IOError('Error closing BGZFile object')             # <<<<<<<<<<<<<<
  * 
  *     def __enter__(self):
  */
-  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_s_Error_closing_BGZFile_object); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 136, __pyx_L1_error)
+  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_s_Error_closing_BGZFile_object); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
 
-  /* "pysam/libcbgzf.pyx":149
+  /* "pysam/libcbgzf.pyx":154
  * 
  *         if self.bgzf.is_write and bgzf_flush(self.bgzf) < 0:
  *             raise IOError('Error flushing BGZFile object')             # <<<<<<<<<<<<<<
  * 
  *     def fileno(self):
  */
-  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_s_Error_flushing_BGZFile_object); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_s_Error_flushing_BGZFile_object); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
 
-  /* "pysam/libcbgzf.pyx":157
+  /* "pysam/libcbgzf.pyx":162
  *         doesn't support fileno().
  *         """
  *         raise AttributeError('fileno')             # <<<<<<<<<<<<<<
  * 
  *     def rewind(self):
  */
-  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_n_s_fileno); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_n_s_fileno); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
 
-  /* "pysam/libcbgzf.pyx":163
+  /* "pysam/libcbgzf.pyx":168
  *         beginning of the file'''
  *         if not self.bgzf:
  *             raise ValueError("rewind() on closed BGZFile object")             # <<<<<<<<<<<<<<
  *         if not self.bgzf.is_write:
- *             raise OSError("Can't rewind in write mode")
+ *             raise IOError("Can't rewind in write mode")
  */
-  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_rewind_on_closed_BGZFile_object); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 163, __pyx_L1_error)
+  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_rewind_on_closed_BGZFile_object); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
 
-  /* "pysam/libcbgzf.pyx":165
+  /* "pysam/libcbgzf.pyx":170
  *             raise ValueError("rewind() on closed BGZFile object")
  *         if not self.bgzf.is_write:
- *             raise OSError("Can't rewind in write mode")             # <<<<<<<<<<<<<<
+ *             raise IOError("Can't rewind in write mode")             # <<<<<<<<<<<<<<
  *         if bgzf_seek(self.bgzf, 0, SEEK_SET) < 0:
  *             raise IOError('Error seeking BGZFFile object')
  */
-  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_Can_t_rewind_in_write_mode); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 165, __pyx_L1_error)
+  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_Can_t_rewind_in_write_mode); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 170, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__14);
   __Pyx_GIVEREF(__pyx_tuple__14);
 
-  /* "pysam/libcbgzf.pyx":167
- *             raise OSError("Can't rewind in write mode")
+  /* "pysam/libcbgzf.pyx":172
+ *             raise IOError("Can't rewind in write mode")
  *         if bgzf_seek(self.bgzf, 0, SEEK_SET) < 0:
  *             raise IOError('Error seeking BGZFFile object')             # <<<<<<<<<<<<<<
  * 
  *     def readable(self):
  */
-  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_Error_seeking_BGZFFile_object); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 167, __pyx_L1_error)
+  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_Error_seeking_BGZFFile_object); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 172, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
 
-  /* "pysam/libcbgzf.pyx":171
+  /* "pysam/libcbgzf.pyx":176
  *     def readable(self):
  *         if not self.bgzf:
  *             raise ValueError("readable() on closed BGZFile object")             # <<<<<<<<<<<<<<
  *         return self.bgzf != NULL and not self.bgzf.is_write
  * 
  */
-  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_kp_s_readable_on_closed_BGZFile_objec); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 171, __pyx_L1_error)
+  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_kp_s_readable_on_closed_BGZFile_objec); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 176, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__16);
   __Pyx_GIVEREF(__pyx_tuple__16);
 
-  /* "pysam/libcbgzf.pyx":182
+  /* "pysam/libcbgzf.pyx":187
+ *     def tell(self):
+ *         if not self.bgzf:
+ *             raise ValueError("seek() on closed BGZFile object")             # <<<<<<<<<<<<<<
+ *         cdef int64_t off = bgzf_tell(self.bgzf)
+ *         if off < 0:
+ */
+  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_kp_s_seek_on_closed_BGZFile_object); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 187, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__17);
+  __Pyx_GIVEREF(__pyx_tuple__17);
+
+  /* "pysam/libcbgzf.pyx":190
+ *         cdef int64_t off = bgzf_tell(self.bgzf)
+ *         if off < 0:
+ *             raise IOError('Error in tell on BGZFFile object')             # <<<<<<<<<<<<<<
+ * 
+ *         return off
+ */
+  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_kp_s_Error_in_tell_on_BGZFFile_object); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(0, 190, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__18);
+  __Pyx_GIVEREF(__pyx_tuple__18);
+
+  /* "pysam/libcbgzf.pyx":196
  *     def seek(self, offset, whence=io.SEEK_SET):
  *         if not self.bgzf:
  *             raise ValueError("seek() on closed BGZFile object")             # <<<<<<<<<<<<<<
  *         if whence is not io.SEEK_SET:
  *             raise ValueError('Seek from end not supported')
  */
-  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_kp_s_seek_on_closed_BGZFile_object); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(0, 182, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__18);
-  __Pyx_GIVEREF(__pyx_tuple__18);
+  __pyx_tuple__20 = PyTuple_Pack(1, __pyx_kp_s_seek_on_closed_BGZFile_object); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 196, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__20);
+  __Pyx_GIVEREF(__pyx_tuple__20);
 
-  /* "pysam/libcbgzf.pyx":184
+  /* "pysam/libcbgzf.pyx":198
  *             raise ValueError("seek() on closed BGZFile object")
  *         if whence is not io.SEEK_SET:
  *             raise ValueError('Seek from end not supported')             # <<<<<<<<<<<<<<
  * 
  *         cdef int64_t off = bgzf_seek(self.bgzf, offset, SEEK_SET)
  */
-  __pyx_tuple__19 = PyTuple_Pack(1, __pyx_kp_s_Seek_from_end_not_supported); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 184, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__19);
-  __Pyx_GIVEREF(__pyx_tuple__19);
+  __pyx_tuple__21 = PyTuple_Pack(1, __pyx_kp_s_Seek_from_end_not_supported); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 198, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__21);
+  __Pyx_GIVEREF(__pyx_tuple__21);
 
-  /* "pysam/libcbgzf.pyx":188
+  /* "pysam/libcbgzf.pyx":202
  *         cdef int64_t off = bgzf_seek(self.bgzf, offset, SEEK_SET)
  *         if off < 0:
  *             raise IOError('Error seeking BGZFFile object')             # <<<<<<<<<<<<<<
  * 
  *         return off
  */
-  __pyx_tuple__20 = PyTuple_Pack(1, __pyx_kp_s_Error_seeking_BGZFFile_object); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 188, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__20);
-  __Pyx_GIVEREF(__pyx_tuple__20);
+  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_kp_s_Error_seeking_BGZFFile_object); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 202, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__22);
+  __Pyx_GIVEREF(__pyx_tuple__22);
 
-  /* "pysam/libcbgzf.pyx":194
+  /* "pysam/libcbgzf.pyx":208
  *     def readline(self, size=-1):
  *         if not self.bgzf:
  *             raise ValueError("readline() on closed BGZFile object")             # <<<<<<<<<<<<<<
  * 
  *         cdef kstring_t line
  */
-  __pyx_tuple__21 = PyTuple_Pack(1, __pyx_kp_s_readline_on_closed_BGZFile_objec); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 194, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__21);
-  __Pyx_GIVEREF(__pyx_tuple__21);
+  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_kp_s_readline_on_closed_BGZFile_objec); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 208, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__23);
+  __Pyx_GIVEREF(__pyx_tuple__23);
 
-  /* "pysam/libcbgzf.pyx":202
- *         line.s = NULL
- *         if bgzf_getline(self.bgzf, '\n', &line) < 0:
+  /* "pysam/libcbgzf.pyx":222
+ *             if line.m:
+ *                 free(line.s)
  *             raise IOError('Error reading line in BGZFFile object')             # <<<<<<<<<<<<<<
- * 
- *         ret = charptr_to_str_w_len(line.s, line.l)
+ *         else:
+ *             s = line.s[:line.l]
  */
-  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_kp_s_Error_reading_line_in_BGZFFile_o); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 202, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__22);
-  __Pyx_GIVEREF(__pyx_tuple__22);
+  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_kp_s_Error_reading_line_in_BGZFFile_o); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 222, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__24);
+  __Pyx_GIVEREF(__pyx_tuple__24);
 
   /* "(tree fragment)":2
  * def __reduce_cython__(self):
@@ -5705,18 +6234,18 @@ static int __Pyx_InitCachedConstants(void) {
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.bgzf cannot be converted to a Python object for pickling")
  */
-  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_kp_s_self_bgzf_cannot_be_converted_to); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(1, 2, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__23);
-  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_tuple__25 = PyTuple_Pack(1, __pyx_kp_s_self_bgzf_cannot_be_converted_to); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__25);
+  __Pyx_GIVEREF(__pyx_tuple__25);
 
   /* "(tree fragment)":4
  *     raise TypeError("self.bgzf cannot be converted to a Python object for pickling")
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.bgzf cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_kp_s_self_bgzf_cannot_be_converted_to); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(1, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__24);
-  __Pyx_GIVEREF(__pyx_tuple__24);
+  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_kp_s_self_bgzf_cannot_be_converted_to); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__26);
+  __Pyx_GIVEREF(__pyx_tuple__26);
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -5769,14 +6298,14 @@ static int __Pyx_modinit_type_init_code(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_modinit_type_init_code", 0);
   /*--- Type init code ---*/
-  if (PyType_Ready(&__pyx_type_5pysam_8libcbgzf_BGZFile) < 0) __PYX_ERR(0, 27, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_8libcbgzf_BGZFile) < 0) __PYX_ERR(0, 28, __pyx_L1_error)
   __pyx_type_5pysam_8libcbgzf_BGZFile.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_8libcbgzf_BGZFile.tp_dictoffset && __pyx_type_5pysam_8libcbgzf_BGZFile.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_8libcbgzf_BGZFile.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_8libcbgzf_BGZFile, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(0, 27, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_8libcbgzf_BGZFile, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(0, 28, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_5pysam_8libcbgzf_7BGZFile___init__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_5pysam_8libcbgzf_7BGZFile___init__.doc = __pyx_doc_5pysam_8libcbgzf_7BGZFile___init__;
@@ -5784,8 +6313,8 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (PyObject_SetAttrString(__pyx_m, "BGZFile", (PyObject *)&__pyx_type_5pysam_8libcbgzf_BGZFile) < 0) __PYX_ERR(0, 27, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_8libcbgzf_BGZFile) < 0) __PYX_ERR(0, 27, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "BGZFile", (PyObject *)&__pyx_type_5pysam_8libcbgzf_BGZFile) < 0) __PYX_ERR(0, 28, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_8libcbgzf_BGZFile) < 0) __PYX_ERR(0, 28, __pyx_L1_error)
   __pyx_ptype_5pysam_8libcbgzf_BGZFile = &__pyx_type_5pysam_8libcbgzf_BGZFile;
   __Pyx_RefNannyFinishContext();
   return 0;
@@ -5808,8 +6337,8 @@ static int __Pyx_modinit_type_import_code(void) {
   __pyx_ptype_7cpython_4bool_bool = __Pyx_ImportType(__Pyx_BUILTIN_MODULE_NAME, "bool", sizeof(PyBoolObject), 0); if (unlikely(!__pyx_ptype_7cpython_4bool_bool)) __PYX_ERR(4, 8, __pyx_L1_error)
   __pyx_ptype_7cpython_7complex_complex = __Pyx_ImportType(__Pyx_BUILTIN_MODULE_NAME, "complex", sizeof(PyComplexObject), 0); if (unlikely(!__pyx_ptype_7cpython_7complex_complex)) __PYX_ERR(5, 15, __pyx_L1_error)
   __pyx_ptype_7cpython_5array_array = __Pyx_ImportType("array", "array", sizeof(arrayobject), 0); if (unlikely(!__pyx_ptype_7cpython_5array_array)) __PYX_ERR(2, 58, __pyx_L1_error)
-  __pyx_ptype_5pysam_10libchtslib_HTSFile = __Pyx_ImportType("pysam.libchtslib", "HTSFile", sizeof(struct __pyx_obj_5pysam_10libchtslib_HTSFile), 1); if (unlikely(!__pyx_ptype_5pysam_10libchtslib_HTSFile)) __PYX_ERR(6, 1904, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_10libchtslib_HTSFile = (struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_10libchtslib_HTSFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_10libchtslib_HTSFile)) __PYX_ERR(6, 1904, __pyx_L1_error)
+  __pyx_ptype_5pysam_10libchtslib_HTSFile = __Pyx_ImportType("pysam.libchtslib", "HTSFile", sizeof(struct __pyx_obj_5pysam_10libchtslib_HTSFile), 1); if (unlikely(!__pyx_ptype_5pysam_10libchtslib_HTSFile)) __PYX_ERR(6, 2590, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_10libchtslib_HTSFile = (struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_10libchtslib_HTSFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_10libchtslib_HTSFile)) __PYX_ERR(6, 2590, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -5831,10 +6360,8 @@ static int __Pyx_modinit_function_import_code(void) {
   __Pyx_RefNannySetupContext("__Pyx_modinit_function_import_code", 0);
   /*--- Function import code ---*/
   __pyx_t_1 = __Pyx_ImportModule("pysam.libcutils"); if (!__pyx_t_1) __PYX_ERR(0, 1, __pyx_L1_error)
-  if (__Pyx_ImportFunction(__pyx_t_1, "charptr_to_str", (void (**)(void))&__pyx_f_5pysam_9libcutils_charptr_to_str, "PyObject *(char const *, struct __pyx_opt_args_5pysam_9libcutils_charptr_to_str *__pyx_optional_args)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
-  if (__Pyx_ImportFunction(__pyx_t_1, "charptr_to_str_w_len", (void (**)(void))&__pyx_f_5pysam_9libcutils_charptr_to_str_w_len, "PyObject *(char const *, size_t, struct __pyx_opt_args_5pysam_9libcutils_charptr_to_str_w_len *__pyx_optional_args)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
-  if (__Pyx_ImportFunction(__pyx_t_1, "force_str", (void (**)(void))&__pyx_f_5pysam_9libcutils_force_str, "PyObject *(PyObject *, struct __pyx_opt_args_5pysam_9libcutils_force_str *__pyx_optional_args)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   if (__Pyx_ImportFunction(__pyx_t_1, "force_bytes", (void (**)(void))&__pyx_f_5pysam_9libcutils_force_bytes, "PyObject *(PyObject *, struct __pyx_opt_args_5pysam_9libcutils_force_bytes *__pyx_optional_args)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  if (__Pyx_ImportFunction(__pyx_t_1, "encode_filename", (void (**)(void))&__pyx_f_5pysam_9libcutils_encode_filename, "PyObject *(PyObject *)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   Py_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_RefNannyFinishContext();
   return 0;
@@ -6030,49 +6557,49 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_io, __pyx_t_1) < 0) __PYX_ERR(0, 8, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libcbgzf.pyx":21
- * 
+  /* "pysam/libcbgzf.pyx":22
+ *                                bgzf_tell, bgzf_getline, kstring_t, SEEK_SET, BGZF
  * 
  * __all__ = ["BGZFile"]             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_BGZFile);
   __Pyx_GIVEREF(__pyx_n_s_BGZFile);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_BGZFile);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_all, __pyx_t_1) < 0) __PYX_ERR(0, 21, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_all, __pyx_t_1) < 0) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libcbgzf.pyx":24
+  /* "pysam/libcbgzf.pyx":25
  * 
  * 
  * BUFFER_SIZE = io.DEFAULT_BUFFER_SIZE             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_io); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 24, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_io); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_DEFAULT_BUFFER_SIZE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 24, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_DEFAULT_BUFFER_SIZE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_BUFFER_SIZE, __pyx_t_2) < 0) __PYX_ERR(0, 24, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_BUFFER_SIZE, __pyx_t_2) < 0) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libcbgzf.pyx":180
- *         return True
+  /* "pysam/libcbgzf.pyx":194
+ *         return off
  * 
  *     def seek(self, offset, whence=io.SEEK_SET):             # <<<<<<<<<<<<<<
  *         if not self.bgzf:
  *             raise ValueError("seek() on closed BGZFile object")
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_io); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 180, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_io); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 194, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_SEEK_SET); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 180, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_SEEK_SET); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 194, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_k__17 = __pyx_t_1;
+  __pyx_k__19 = __pyx_t_1;
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
 

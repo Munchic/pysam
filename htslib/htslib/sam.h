@@ -34,6 +34,9 @@ DEALINGS IN THE SOFTWARE.  */
 extern "C" {
 #endif
 
+/// Highest SAM format version supported by this library
+#define SAM_FORMAT_VERSION "1.5"
+
 /**********************
  *** SAM/BAM header ***
  **********************/
@@ -80,7 +83,11 @@ typedef struct {
 
 #define bam_cigar_op(c) ((c)&BAM_CIGAR_MASK)
 #define bam_cigar_oplen(c) ((c)>>BAM_CIGAR_SHIFT)
-#define bam_cigar_opchr(c) (BAM_CIGAR_STR[bam_cigar_op(c)])
+// Note that BAM_CIGAR_STR is padded to length 16 bytes below so that
+// the array look-up will not fall off the end.  '?' is chosen as the
+// padding character so it's easy to spot if one is emitted, and will
+// result in a parsing failure (in sam_parse1(), at least) if read.
+#define bam_cigar_opchr(c) (BAM_CIGAR_STR "??????" [bam_cigar_op(c)])
 #define bam_cigar_gen(l, o) ((l)<<BAM_CIGAR_SHIFT|(o))
 
 /* bam_cigar_type returns a bit flag with:
@@ -349,7 +356,10 @@ int sam_index_build3(const char *fn, const char *fnidx, int min_shift, int nthre
     #define sam_itr_destroy(iter) hts_itr_destroy(iter)
     hts_itr_t *sam_itr_queryi(const hts_idx_t *idx, int tid, int beg, int end);
     hts_itr_t *sam_itr_querys(const hts_idx_t *idx, bam_hdr_t *hdr, const char *region);
+    hts_itr_multi_t *sam_itr_regions(const hts_idx_t *idx, bam_hdr_t *hdr, hts_reglist_t *reglist, unsigned int regcount);
+
     #define sam_itr_next(htsfp, itr, r) hts_itr_next((htsfp)->fp.bgzf, (itr), (r), (htsfp))
+    #define sam_itr_multi_next(htsfp, itr, r) hts_itr_multi_next((htsfp), (itr), (r))
 
     /***************
      *** SAM I/O ***
@@ -372,9 +382,14 @@ int sam_index_build3(const char *fn, const char *fnidx, int min_shift, int nthre
     bam_hdr_t *sam_hdr_parse(int l_text, const char *text);
     bam_hdr_t *sam_hdr_read(samFile *fp);
     int sam_hdr_write(samFile *fp, const bam_hdr_t *h) HTS_RESULT_USED;
+    int sam_hdr_change_HD(bam_hdr_t *h, const char *key, const char *val);
 
     int sam_parse1(kstring_t *s, bam_hdr_t *h, bam1_t *b) HTS_RESULT_USED;
     int sam_format1(const bam_hdr_t *h, const bam1_t *b, kstring_t *str) HTS_RESULT_USED;
+
+    /*!
+     *  @return >= 0 on successfully reading a new record, -1 on end of stream, < -1 on error
+     **/
     int sam_read1(samFile *fp, bam_hdr_t *h, bam1_t *b) HTS_RESULT_USED;
     int sam_write1(samFile *fp, const bam_hdr_t *h, const bam1_t *b) HTS_RESULT_USED;
 
@@ -436,7 +451,7 @@ uint32_t bam_auxB_len(const uint8_t *s);
     @return The idx'th value, or 0 on error.
     If the array is not an integer type, errno is set to EINVAL.  If idx
     is greater than or equal to  the value returned by bam_auxB_len(s),
-    errno is set to ERANGE.  In both cases, 0 will be returned.    
+    errno is set to ERANGE.  In both cases, 0 will be returned.
  */
 int64_t bam_auxB2i(const uint8_t *s, uint32_t idx);
 

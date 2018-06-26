@@ -1,8 +1,8 @@
-#include "pysam.h"
+#include "bcftools.pysam.h"
 
 /*  vcfnorm.c -- Left-align and normalize indels.
 
-    Copyright (C) 2013-2016 Genome Research Ltd.
+    Copyright (C) 2013-2017 Genome Research Ltd.
 
     Author: Petr Danecek <pd3@sanger.ac.uk>
 
@@ -25,6 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.  */
 
 #include <stdio.h>
+#include <strings.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <ctype.h>
@@ -35,6 +36,7 @@ THE SOFTWARE.  */
 #include <htslib/vcf.h>
 #include <htslib/synced_bcf_reader.h>
 #include <htslib/faidx.h>
+#include <htslib/khash_str2int.h>
 #include "bcftools.h"
 #include "rbuf.h"
 
@@ -53,6 +55,15 @@ typedef struct
     int nals, mals, *map;
 }
 map_t;
+
+// primitive comparison of two records' alleles via hashes; normalized alleles assumed
+typedef struct
+{
+    int n;  // number of alleles
+    char *ref, *alt;
+    void *hash;
+}
+cmpals_t;
 
 typedef struct
 {
@@ -73,6 +84,8 @@ typedef struct
     int aln_win;            // the realignment window size (maximum repeat size)
     bcf_srs_t *files;       // using the synced reader only for -r option
     bcf_hdr_t *hdr;
+    cmpals_t *cmpals;
+    int ncmpals, mcmpals;
     faidx_t *fai;
     struct { int tot, set, swap; } nref;
     char **argv, *output_fname, *ref_fname, *vcf_fname, *region, *targets;
@@ -95,7 +108,7 @@ static inline int replace_iupac_codes(char *seq, int nseq)
 }
 static inline int has_non_acgtn(char *seq, int nseq)
 {
-    char *end = nseq ? seq + nseq : seq + UINT32_MAX;   // arbitrary large number
+    char *end = seq + nseq;
     while ( *seq && seq<end )
     {
         char c = toupper(*seq);
@@ -103,6 +116,15 @@ static inline int has_non_acgtn(char *seq, int nseq)
         seq++;
     }
     return 0;
+}
+
+static void seq_to_upper(char *seq, int len)
+{
+    int i;
+    if ( len )
+        for (i=0; i<len; i++) seq[i] = nt_to_upper(seq[i]);
+    else
+        for (i=0; seq[i]; i++) seq[i] = nt_to_upper(seq[i]);
 }
 
 static void fix_ref(args_t *args, bcf1_t *line)
@@ -275,6 +297,7 @@ static int realign(args_t *args, bcf1_t *line)
     int i, nref, reflen = strlen(line->d.allele[0]);
     char *ref = faidx_fetch_seq(args->fai, (char*)args->hdr->id[BCF_DT_CTG][line->rid].key, line->pos, line->pos+reflen-1, &nref);
     if ( !ref ) error("faidx_fetch_seq failed at %s:%d\n", args->hdr->id[BCF_DT_CTG][line->rid].key, line->pos+1);
+    seq_to_upper(ref,0);
     replace_iupac_codes(ref,nref);  // any non-ACGT character in fasta ref is replaced with N
 
     // does VCF REF contain non-standard bases?
@@ -283,7 +306,7 @@ static int realign(args_t *args, bcf1_t *line)
         if ( args->check_ref==CHECK_REF_EXIT )
             error("Non-ACGTN reference allele at %s:%d .. REF_SEQ:'%s' vs VCF:'%s'\n", bcf_seqname(args->hdr,line),line->pos+1,ref,line->d.allele[0]);
         if ( args->check_ref & CHECK_REF_WARN )
-            fprintf(pysam_stderr,"NON_ACGTN_REF\t%s\t%d\t%s\n", bcf_seqname(args->hdr,line),line->pos+1,line->d.allele[0]);
+            fprintf(bcftools_stderr,"NON_ACGTN_REF\t%s\t%d\t%s\n", bcf_seqname(args->hdr,line),line->pos+1,line->d.allele[0]);
         free(ref);
         return ERR_REF_MISMATCH;
     }
@@ -292,14 +315,23 @@ static int realign(args_t *args, bcf1_t *line)
         if ( args->check_ref==CHECK_REF_EXIT )
             error("Reference allele mismatch at %s:%d .. REF_SEQ:'%s' vs VCF:'%s'\n", bcf_seqname(args->hdr,line),line->pos+1,ref,line->d.allele[0]);
         if ( args->check_ref & CHECK_REF_WARN )
-            fprintf(pysam_stderr,"REF_MISMATCH\t%s\t%d\t%s\n", bcf_seqname(args->hdr,line),line->pos+1,line->d.allele[0]);
+            fprintf(bcftools_stderr,"REF_MISMATCH\t%s\t%d\t%s\n", bcf_seqname(args->hdr,line),line->pos+1,line->d.allele[0]);
         free(ref);
         return ERR_REF_MISMATCH;
     }
     free(ref);
     ref = NULL;
 
-    if ( line->n_allele == 1 ) return ERR_OK;    // a REF
+    if ( line->n_allele == 1 ) // a REF
+    {
+        if ( line->rlen > 1 )
+        {
+            line->d.allele[0][1] = 0;
+            bcf_update_alleles(args->hdr,line,(const char**)line->d.allele,line->n_allele);
+        }
+        return ERR_OK;
+    }
+    if ( bcf_get_variant_types(line)==VCF_BND ) return ERR_SYMBOLIC;   // breakend, not an error
 
     // make a copy of each allele for trimming
     hts_expand0(kstring_t,line->n_allele,args->ntmp_als,args->tmp_als);
@@ -308,19 +340,20 @@ static int realign(args_t *args, bcf1_t *line)
     {
         if ( line->d.allele[i][0]=='<' ) return ERR_SYMBOLIC;  // symbolic allele
         if ( line->d.allele[i][0]=='*' ) return ERR_SPANNING_DELETION;  // spanning deletion
-        if ( has_non_acgtn(line->d.allele[i],0) )
+        if ( has_non_acgtn(line->d.allele[i],line->shared.l) )
         {
             if ( args->check_ref==CHECK_REF_EXIT )
                 error("Non-ACGTN alternate allele at %s:%d .. REF_SEQ:'%s' vs VCF:'%s'\n", bcf_seqname(args->hdr,line),line->pos+1,ref,line->d.allele[i]);
             if ( args->check_ref & CHECK_REF_WARN )
-                fprintf(pysam_stderr,"NON_ACGTN_ALT\t%s\t%d\t%s\n", bcf_seqname(args->hdr,line),line->pos+1,line->d.allele[i]);
+                fprintf(bcftools_stderr,"NON_ACGTN_ALT\t%s\t%d\t%s\n", bcf_seqname(args->hdr,line),line->pos+1,line->d.allele[i]);
             return ERR_REF_MISMATCH;
         }
 
         als[i].l = 0;
         kputs(line->d.allele[i], &als[i]);
+        seq_to_upper(als[i].s,0);
 
-        if ( i>0 && als[i].l==als[0].l && !strcasecmp(als[0].s,als[i].s) ) return ERR_DUP_ALLELE;
+        if ( i>0 && als[i].l==als[0].l && !strcmp(als[0].s,als[i].s) ) return ERR_DUP_ALLELE;
     }
 
     // trim from right
@@ -388,7 +421,7 @@ static int realign(args_t *args, bcf1_t *line)
 
     // Have the alleles changed?
     als[0].s[ als[0].l ] = 0;  // in order for strcmp to work
-    if ( ori_pos==line->pos && !strcasecmp(line->d.allele[0],als[0].s) ) return ERR_OK;
+    if ( ori_pos==line->pos && !strcmp(line->d.allele[0],als[0].s) ) return ERR_OK;
 
     // Create new block of alleles and update
     args->tmp_als_str.l = 0;
@@ -896,7 +929,7 @@ static void merge_info_numeric(args_t *args, bcf1_t **lines, int nlines, bcf_inf
         { \
             /* expecting diploid gt in INFO */ \
             if (nvals_ori!=lines[0]->n_allele*(lines[0]->n_allele+1)/2) { \
-                fprintf(pysam_stderr, "todo: merge Number=G INFO fields for haploid sites\n"); \
+                fprintf(bcftools_stderr, "todo: merge Number=G INFO fields for haploid sites\n"); \
                 error("vcfnorm: number of fields in first record at position %s:%d for INFO tag %s not as expected [found: %d vs expected:%d]\n", bcf_seqname(args->hdr,lines[0]),lines[0]->pos+1, tag, nvals_ori, lines[0]->n_allele*(lines[0]->n_allele+1)/2); \
             } \
             int nvals = dst->n_allele*(dst->n_allele+1)/2; \
@@ -1491,10 +1524,74 @@ static bcf1_t *mrows_flush(args_t *args)
     }
     return NULL;
 }
+static void cmpals_add(args_t *args, bcf1_t *rec)
+{
+    args->ncmpals++;
+    hts_expand0(cmpals_t, args->ncmpals, args->mcmpals, args->cmpals);
+    cmpals_t *cmpals = args->cmpals + args->ncmpals - 1;
+    free(cmpals->ref);
+    cmpals->ref = strdup(rec->d.allele[0]);
+    cmpals->n   = rec->n_allele;
+    if ( rec->n_allele==2 )
+    {
+        free(cmpals->alt);
+        cmpals->alt = strdup(rec->d.allele[1]);
+    }
+    else
+    {
+        if ( cmpals->hash ) khash_str2int_destroy_free(cmpals->hash);
+        cmpals->hash = khash_str2int_init();
+        int i;
+        for (i=1; i<rec->n_allele; i++)
+            khash_str2int_inc(cmpals->hash, strdup(rec->d.allele[i]));
+    }
+}
+static int cmpals_match(args_t *args, bcf1_t *rec)
+{
+    int i, j;
+    for (i=0; i<args->ncmpals; i++)
+    {
+        cmpals_t *cmpals = args->cmpals + i;
+        if ( rec->n_allele != cmpals->n ) continue;
+
+        // NB. assuming both are normalized
+        if ( strcmp(rec->d.allele[0], cmpals->ref) ) continue;
+
+        // the most frequent case
+        if ( rec->n_allele==2 )
+        {
+            if ( strcmp(rec->d.allele[1], cmpals->alt) ) continue;
+            return 1;
+        }
+
+        khash_t(str2int) *hash = (khash_t(str2int)*) cmpals->hash;
+        for (j=1; j<rec->n_allele; j++) 
+            if ( !khash_str2int_has_key(hash, rec->d.allele[j]) ) break;
+        if ( j<rec->n_allele ) continue;
+        return 1;
+    }
+    cmpals_add(args, rec);
+    return 0;
+}
+static void cmpals_reset(args_t *args) { args->ncmpals = 0; }
+static void cmpals_destroy(args_t *args)
+{
+    int i;
+    for (i=0; i<args->mcmpals; i++)
+    {
+        cmpals_t *cmpals = args->cmpals + i;
+        free(cmpals->ref);
+        free(cmpals->alt);
+        if ( cmpals->hash ) khash_str2int_destroy_free(cmpals->hash);
+    }
+    free(args->cmpals);
+}
+
 static void flush_buffer(args_t *args, htsFile *file, int n)
 {
     bcf1_t *line;
     int i, k;
+    int prev_rid = -1, prev_pos = -1, prev_type = 0;
     for (i=0; i<n; i++)
     {
         k = rbuf_shift(&args->rbuf);
@@ -1514,6 +1611,26 @@ static void flush_buffer(args_t *args, htsFile *file, int n)
                 mrows_schedule(args, &args->lines[k]);
                 continue;
             }
+        }
+        else if ( args->rmdup )
+        {
+            int line_type = bcf_get_variant_types(args->lines[k]);
+            if ( prev_rid>=0 && prev_rid==args->lines[k]->rid && prev_pos==args->lines[k]->pos )
+            {
+                if ( args->rmdup & BCF_SR_PAIR_ANY ) continue;    // rmdup by position only
+                if ( args->rmdup & BCF_SR_PAIR_SNPS && line_type&(VCF_SNP|VCF_MNP) && prev_type&(VCF_SNP|VCF_MNP) ) continue;
+                if ( args->rmdup & BCF_SR_PAIR_INDELS && line_type&(VCF_INDEL) && prev_type&(VCF_INDEL) ) continue;
+                if ( args->rmdup & BCF_SR_PAIR_EXACT && cmpals_match(args, args->lines[k]) ) continue;
+            }
+            else
+            {
+                prev_rid  = args->lines[k]->rid;
+                prev_pos  = args->lines[k]->pos;
+                prev_type = 0;
+                if ( args->rmdup & BCF_SR_PAIR_EXACT ) cmpals_reset(args);
+            }
+            prev_type |= line_type;
+            if ( args->rmdup & BCF_SR_PAIR_EXACT ) cmpals_add(args, args->lines[k]);
         }
         bcf_write1(file, args->hdr, args->lines[k]);
     }
@@ -1543,6 +1660,7 @@ static void init_data(args_t *args)
 
 static void destroy_data(args_t *args)
 {
+    cmpals_destroy(args);
     int i;
     for (i=0; i<args->rbuf.m; i++)
         if ( args->lines[i] ) bcf_destroy1(args->lines[i]);
@@ -1601,7 +1719,7 @@ static void normalize_line(args_t *args, bcf1_t **line_ptr)
                 else if ( args->check_ref==CHECK_REF_EXIT )
                     error("Duplicate alleles at %s:%d; run with -cw to turn the error into warning or with -cs to fix.\n", bcf_seqname(args->hdr,line),line->pos+1);
                 else if ( args->check_ref & CHECK_REF_WARN )
-                    fprintf(pysam_stderr,"ALT_DUP\t%s\t%d\n", bcf_seqname(args->hdr,line),line->pos+1);
+                    fprintf(bcftools_stderr,"ALT_DUP\t%s\t%d\n", bcf_seqname(args->hdr,line),line->pos+1);
             }
         }
     }
@@ -1639,17 +1757,20 @@ static void normalize_vcf(args_t *args)
             int line_type = bcf_get_variant_types(line);
             if ( prev_rid>=0 && prev_rid==line->rid && prev_pos==line->pos )
             {
-                if ( (args->rmdup>>1)&COLLAPSE_ANY ) continue;
-                if ( (args->rmdup>>1)&COLLAPSE_SNPS && line_type&(VCF_SNP|VCF_MNP) && prev_type&(VCF_SNP|VCF_MNP) ) continue;
-                if ( (args->rmdup>>1)&COLLAPSE_INDELS && line_type&(VCF_INDEL) && prev_type&(VCF_INDEL) ) continue;
+                if ( args->rmdup & BCF_SR_PAIR_ANY ) continue;    // rmdup by position only
+                if ( args->rmdup & BCF_SR_PAIR_SNPS && line_type&(VCF_SNP|VCF_MNP) && prev_type&(VCF_SNP|VCF_MNP) ) continue;
+                if ( args->rmdup & BCF_SR_PAIR_INDELS && line_type&(VCF_INDEL) && prev_type&(VCF_INDEL) ) continue;
+                if ( args->rmdup & BCF_SR_PAIR_EXACT && cmpals_match(args, line) ) continue;
             }
             else
             {
                 prev_rid  = line->rid;
                 prev_pos  = line->pos;
                 prev_type = 0;
+                if ( args->rmdup & BCF_SR_PAIR_EXACT ) cmpals_reset(args);
             }
             prev_type |= line_type;
+            if ( args->rmdup & BCF_SR_PAIR_EXACT ) cmpals_add(args, line);
         }
 
         // still on the same chromosome?
@@ -1690,37 +1811,37 @@ static void normalize_vcf(args_t *args)
     flush_buffer(args, out, args->rbuf.n);
     hts_close(out);
 
-    fprintf(pysam_stderr,"Lines   total/split/realigned/skipped:\t%d/%d/%d/%d\n", args->ntotal,args->nsplit,args->nchanged,args->nskipped);
+    fprintf(bcftools_stderr,"Lines   total/split/realigned/skipped:\t%d/%d/%d/%d\n", args->ntotal,args->nsplit,args->nchanged,args->nskipped);
     if ( args->check_ref & CHECK_REF_FIX )
-        fprintf(pysam_stderr,"REF/ALT total/modified/added:  \t%d/%d/%d\n", args->nref.tot,args->nref.swap,args->nref.set);
+        fprintf(bcftools_stderr,"REF/ALT total/modified/added:  \t%d/%d/%d\n", args->nref.tot,args->nref.swap,args->nref.set);
 }
 
 static void usage(void)
 {
-    fprintf(pysam_stderr, "\n");
-    fprintf(pysam_stderr, "About:   Left-align and normalize indels; check if REF alleles match the reference;\n");
-    fprintf(pysam_stderr, "         split multiallelic sites into multiple rows; recover multiallelics from\n");
-    fprintf(pysam_stderr, "         multiple rows.\n");
-    fprintf(pysam_stderr, "Usage:   bcftools norm [options] <in.vcf.gz>\n");
-    fprintf(pysam_stderr, "\n");
-    fprintf(pysam_stderr, "Options:\n");
-    fprintf(pysam_stderr, "    -c, --check-ref <e|w|x|s>         check REF alleles and exit (e), warn (w), exclude (x), or set (s) bad sites [e]\n");
-    fprintf(pysam_stderr, "    -D, --remove-duplicates           remove duplicate lines of the same type.\n");
-    fprintf(pysam_stderr, "    -d, --rm-dup <type>               remove duplicate snps|indels|both|any\n");
-    fprintf(pysam_stderr, "    -f, --fasta-ref <file>            reference sequence (MANDATORY)\n");
-    fprintf(pysam_stderr, "    -m, --multiallelics <-|+>[type]   split multiallelics (-) or join biallelics (+), type: snps|indels|both|any [both]\n");
-    fprintf(pysam_stderr, "        --no-version                  do not append version and command line to the header\n");
-    fprintf(pysam_stderr, "    -N, --do-not-normalize            do not normalize indels (with -m or -c s)\n");
-    fprintf(pysam_stderr, "    -o, --output <file>               write output to a file [standard output]\n");
-    fprintf(pysam_stderr, "    -O, --output-type <type>          'b' compressed BCF; 'u' uncompressed BCF; 'z' compressed VCF; 'v' uncompressed VCF [v]\n");
-    fprintf(pysam_stderr, "    -r, --regions <region>            restrict to comma-separated list of regions\n");
-    fprintf(pysam_stderr, "    -R, --regions-file <file>         restrict to regions listed in a file\n");
-    fprintf(pysam_stderr, "    -s, --strict-filter               when merging (-m+), merged site is PASS only if all sites being merged PASS\n");
-    fprintf(pysam_stderr, "    -t, --targets <region>            similar to -r but streams rather than index-jumps\n");
-    fprintf(pysam_stderr, "    -T, --targets-file <file>         similar to -R but streams rather than index-jumps\n");
-    fprintf(pysam_stderr, "        --threads <int>               number of extra (de)compression threads [0]\n");
-    fprintf(pysam_stderr, "    -w, --site-win <int>              buffer for sorting lines which changed position during realignment [1000]\n");
-    fprintf(pysam_stderr, "\n");
+    fprintf(bcftools_stderr, "\n");
+    fprintf(bcftools_stderr, "About:   Left-align and normalize indels; check if REF alleles match the reference;\n");
+    fprintf(bcftools_stderr, "         split multiallelic sites into multiple rows; recover multiallelics from\n");
+    fprintf(bcftools_stderr, "         multiple rows.\n");
+    fprintf(bcftools_stderr, "Usage:   bcftools norm [options] <in.vcf.gz>\n");
+    fprintf(bcftools_stderr, "\n");
+    fprintf(bcftools_stderr, "Options:\n");
+    fprintf(bcftools_stderr, "    -c, --check-ref <e|w|x|s>         check REF alleles and exit (e), warn (w), exclude (x), or set (s) bad sites [e]\n");
+    fprintf(bcftools_stderr, "    -D, --remove-duplicates           remove duplicate lines of the same type.\n");
+    fprintf(bcftools_stderr, "    -d, --rm-dup <type>               remove duplicate snps|indels|both|all|none\n");
+    fprintf(bcftools_stderr, "    -f, --fasta-ref <file>            reference sequence (MANDATORY)\n");
+    fprintf(bcftools_stderr, "    -m, --multiallelics <-|+>[type]   split multiallelics (-) or join biallelics (+), type: snps|indels|both|any [both]\n");
+    fprintf(bcftools_stderr, "        --no-version                  do not append version and command line to the header\n");
+    fprintf(bcftools_stderr, "    -N, --do-not-normalize            do not normalize indels (with -m or -c s)\n");
+    fprintf(bcftools_stderr, "    -o, --output <file>               write output to a file [standard output]\n");
+    fprintf(bcftools_stderr, "    -O, --output-type <type>          'b' compressed BCF; 'u' uncompressed BCF; 'z' compressed VCF; 'v' uncompressed VCF [v]\n");
+    fprintf(bcftools_stderr, "    -r, --regions <region>            restrict to comma-separated list of regions\n");
+    fprintf(bcftools_stderr, "    -R, --regions-file <file>         restrict to regions listed in a file\n");
+    fprintf(bcftools_stderr, "    -s, --strict-filter               when merging (-m+), merged site is PASS only if all sites being merged PASS\n");
+    fprintf(bcftools_stderr, "    -t, --targets <region>            similar to -r but streams rather than index-jumps\n");
+    fprintf(bcftools_stderr, "    -T, --targets-file <file>         similar to -R but streams rather than index-jumps\n");
+    fprintf(bcftools_stderr, "        --threads <int>               number of extra (de)compression threads [0]\n");
+    fprintf(bcftools_stderr, "    -w, --site-win <int>              buffer for sorting lines which changed position during realignment [1000]\n");
+    fprintf(bcftools_stderr, "\n");
     exit(1);
 }
 
@@ -1767,10 +1888,12 @@ int main_vcfnorm(int argc, char *argv[])
         switch (c) {
             case 'N': args->do_indels = 0; break;
             case 'd':
-                if ( !strcmp("snps",optarg) ) args->rmdup = COLLAPSE_SNPS<<1;
-                else if ( !strcmp("indels",optarg) ) args->rmdup = COLLAPSE_INDELS<<1;
-                else if ( !strcmp("both",optarg) ) args->rmdup = COLLAPSE_BOTH<<1;
-                else if ( !strcmp("any",optarg) ) args->rmdup = COLLAPSE_ANY<<1;
+                if ( !strcmp("snps",optarg) ) args->rmdup = BCF_SR_PAIR_SNPS;
+                else if ( !strcmp("indels",optarg) ) args->rmdup = BCF_SR_PAIR_INDELS;
+                else if ( !strcmp("both",optarg) ) args->rmdup = BCF_SR_PAIR_BOTH;
+                else if ( !strcmp("all",optarg) ) args->rmdup = BCF_SR_PAIR_ANY;
+                else if ( !strcmp("any",optarg) ) args->rmdup = BCF_SR_PAIR_ANY;
+                else if ( !strcmp("none",optarg) ) args->rmdup = BCF_SR_PAIR_EXACT;
                 else error("The argument to -d not recognised: %s\n", optarg);
                 break;
             case 'm':
@@ -1803,8 +1926,8 @@ int main_vcfnorm(int argc, char *argv[])
                 break;
             case 'o': args->output_fname = optarg; break;
             case 'D':
-                fprintf(pysam_stderr,"Warning: `-D` is functional but deprecated, replaced by `-d both`.\n"); 
-                args->rmdup = COLLAPSE_NONE<<1;
+                fprintf(bcftools_stderr,"Warning: `-D` is functional but deprecated, replaced by `-d both`.\n"); 
+                args->rmdup = BCF_SR_PAIR_EXACT;
                 break;
             case 's': args->strict_filter = 1; break;
             case 'f': args->ref_fname = optarg; break;

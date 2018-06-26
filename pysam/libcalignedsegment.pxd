@@ -4,9 +4,9 @@ cdef extern from "htslib_util.h":
 
     # add *nbytes* into the variable length data of *src* at *pos*
     bam1_t * pysam_bam_update(bam1_t * b,
-                              size_t nbytes_old,
-                              size_t nbytes_new,
-                              uint8_t * pos)
+           	         size_t nbytes_old,
+                         size_t nbytes_new,
+                         uint8_t * pos)
 
     # now: static
     int aux_type2size(int)
@@ -20,13 +20,13 @@ cdef extern from "htslib_util.h":
     char pysam_bam_seqi(uint8_t * s, int i)
 
     uint8_t pysam_get_qual(bam1_t * b)
-    uint16_t pysam_get_n_cigar(bam1_t * b)
+    uint32_t pysam_get_n_cigar(bam1_t * b)
     void pysam_set_qual(bam1_t * b, uint8_t v)
-    void pysam_set_n_cigar(bam1_t * b, uint16_t v)
+    void pysam_set_n_cigar(bam1_t * b, uint32_t v)
     void pysam_update_flag(bam1_t * b, uint16_t v, uint16_t flag)
 
 
-from pysam.libcalignmentfile cimport AlignmentFile
+from pysam.libcalignmentfile cimport AlignmentFile, AlignmentHeader
 ctypedef AlignmentFile AlignmentFile_t
 
 
@@ -36,8 +36,8 @@ cdef class AlignedSegment:
     # object that this AlignedSegment represents
     cdef bam1_t * _delegate
 
-    # the file from which this AlignedSegment originates (can be None)
-    cdef AlignmentFile _alignment_file
+    # the header that a read is associated with
+    cdef readonly AlignmentHeader header
 
     # caching of array properties for quick access
     cdef object cache_query_qualities
@@ -57,7 +57,10 @@ cdef class AlignedSegment:
     cpdef has_tag(self, tag)
 
     # returns a valid sam alignment string
-    cpdef tostring(self, AlignmentFile_t handle)
+    cpdef to_string(self)
+
+    # returns a valid sam alignment string (deprecated)
+    cpdef tostring(self, htsfile=*)
 
 
 cdef class PileupColumn:
@@ -65,12 +68,14 @@ cdef class PileupColumn:
     cdef int tid
     cdef int pos
     cdef int n_pu
-    cdef AlignmentFile _alignment_file
-
+    cdef AlignmentHeader header
+    cdef uint32_t min_base_quality
+    cdef uint8_t * buf
+    cdef char * reference_sequence
 
 cdef class PileupRead:
-    cdef AlignedSegment _alignment
     cdef int32_t  _qpos
+    cdef AlignedSegment _alignment
     cdef int _indel
     cdef int _level
     cdef uint32_t _is_del
@@ -78,8 +83,21 @@ cdef class PileupRead:
     cdef uint32_t _is_tail
     cdef uint32_t _is_refskip
 
-# factor methods
-cdef makeAlignedSegment(bam1_t * src, AlignmentFile alignment_file)
-cdef makePileupColumn(bam_pileup1_t ** plp, int tid, int pos, int n_pu, AlignmentFile alignment_file)
-cdef inline makePileupRead(bam_pileup1_t * src, AlignmentFile alignment_file)
-cdef inline uint32_t get_alignment_length(bam1_t * src)
+# factory methods
+cdef AlignedSegment makeAlignedSegment(
+    bam1_t * src,
+    AlignmentHeader header)
+
+cdef PileupColumn makePileupColumn(
+     bam_pileup1_t ** plp,
+    int tid,
+    int pos,
+    int n_pu,
+    uint32_t min_base_quality,
+    char * reference_sequence,
+    AlignmentHeader header)
+
+cdef PileupRead makePileupRead(bam_pileup1_t * src,
+		               AlignmentHeader header)
+
+cdef uint32_t get_alignment_length(bam1_t * src)

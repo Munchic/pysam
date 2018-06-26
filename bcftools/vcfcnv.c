@@ -1,6 +1,6 @@
 /* The MIT License
 
-   Copyright (c) 2014-2015 Genome Research Ltd.
+   Copyright (c) 2014-2018 Genome Research Ltd.
 
    Author: Petr Danecek <pd3@sanger.ac.uk>
    
@@ -212,8 +212,14 @@ static double *init_iprobs(int ndim, double same_prob)
 static void init_sample_files(sample_t *smpl, char *dir)
 {
     smpl->dat_fh = open_file(&smpl->dat_fname,"w","%s/dat.%s.tab",dir,smpl->name);
+    if ( !smpl->dat_fh ) error("Error opening file: %s/dat.%s.tab\n",dir,smpl->name);
+
     smpl->cn_fh  = open_file(&smpl->cn_fname,"w","%s/cn.%s.tab",dir,smpl->name);
+    if ( !smpl->cn_fh ) error("Error opening file: %s/cn.%s.tab\n",dir,smpl->name);
+
     smpl->summary_fh = open_file(&smpl->summary_fname,"w","%s/summary.%s.tab",dir,smpl->name);
+    if ( !smpl->summary_fh ) error("Error opening file: %s/summary.%s.tab\n",dir,smpl->name);
+
     fprintf(smpl->dat_fh,"# [1]Chromosome\t[2]Position\t[3]BAF\t[4]LRR\n");
     fprintf(smpl->cn_fh,"# [1]Chromosome\t[2]Position\t[3]CN\t[4]P(CN0)\t[5]P(CN1)\t[6]P(CN2)\t[7]P(CN3)\n");
     fprintf(smpl->summary_fh,"# RG, Regions [2]Chromosome\t[3]Start\t[4]End\t[5]Copy Number state\t[6]Quality\t[7]nSites\t[8]nHETs\n");
@@ -332,7 +338,7 @@ static void plot_sample(args_t *args, sample_t *smpl)
             "csv.register_dialect('tab', delimiter='\\t', quoting=csv.QUOTE_NONE)\n"
             "\n"
             "dat = {}\n"
-            "with open('%s', 'rb') as f:\n"
+            "with open('%s', 'r') as f:\n"
             "    reader = csv.reader(f, 'tab')\n"
             "    for row in reader:\n"
             "        chr = row[0]\n"
@@ -341,7 +347,7 @@ static void plot_sample(args_t *args, sample_t *smpl)
             "        dat[chr].append([row[1], float(row[2]), float(row[3])])\n"
             "\n"
             "cnv = {}\n"
-            "with open('%s', 'rb') as f:\n"
+            "with open('%s', 'r') as f:\n"
             "    reader = csv.reader(f, 'tab')\n"
             "    for row in reader:\n"
             "        chr = row[0]\n"
@@ -423,7 +429,7 @@ static void create_plots(args_t *args)
             "\n"
             "def chroms_to_plot(th):\n"
             "   dat = {}\n"
-            "   with open('%s/summary.tab', 'rb') as f:\n"
+            "   with open('%s/summary.tab', 'r') as f:\n"
             "       reader = csv.reader(f, 'tab')\n"
             "       for row in reader:\n"
             "           if row[0]!='RG': continue\n"
@@ -445,14 +451,14 @@ static void create_plots(args_t *args)
             "   plot_chroms = chroms_to_plot(args.plot_threshold)\n"
             "\n"
             "def read_dat(file,dat,plot_chr):\n"
-            "   with open(file, 'rb') as f:\n"
+            "   with open(file, 'r') as f:\n"
             "       reader = csv.reader(f, 'tab')\n"
             "       for row in reader:\n"
             "           chr = row[0]\n"
             "           if chr != plot_chr: continue\n"
             "           dat.append([row[1], float(row[2]), float(row[3])])\n"
             "def read_cnv(file,cnv,plot_chr):\n"
-            "   with open(file, 'rb') as f:\n"
+            "   with open(file, 'r') as f:\n"
             "       reader = csv.reader(f, 'tab')\n"
             "       for row in reader:\n"
             "           chr = row[0]\n"

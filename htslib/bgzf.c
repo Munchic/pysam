@@ -1957,3 +1957,8 @@ long bgzf_utell(BGZF *fp)
 {
     return fp->uncompressed_address;    // currently maintained only when reading
 }
+
+/* prototype is in hfile_internal.h */
+struct hFILE *bgzf_hfile(struct BGZF *fp) {
+    return fp->fp;
+}

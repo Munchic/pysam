@@ -1,4 +1,4 @@
-#include "pysam.h"
+#include "bcftools.pysam.h"
 
 /*  bam2bcf.c -- variant calling.
 
@@ -108,7 +108,7 @@ static int get_position(const bam_pileup1_t *p, int *len)
         if ( cig==BAM_CHARD_CLIP ) continue;
         if ( cig==BAM_CPAD ) continue;
         if ( cig==BAM_CREF_SKIP ) continue;
-        fprintf(pysam_stderr,"todo: cigar %d\n", cig);
+        fprintf(bcftools_stderr,"todo: cigar %d\n", cig);
         assert(0);
     }
     *len = n_tot_bases;
@@ -170,27 +170,36 @@ int bcf_call_glfgen(int _n, const bam_pileup1_t *pl, int ref_base, bcf_callaux_t
     for (i = n = 0; i < _n; ++i) {
         const bam_pileup1_t *p = pl + i;
         int q, b, mapQ, baseQ, is_diff, min_dist, seqQ;
-        // set base
-        if (p->is_del || p->is_refskip || (p->b->core.flag&BAM_FUNMAP)) continue;
+        if (p->is_refskip || (p->b->core.flag&BAM_FUNMAP)) continue;
+        if (p->is_del && !is_indel) continue;
         ++ori_depth;
+        if (is_indel)
+        {
+            b     = p->aux>>16&0x3f;
+            baseQ = q = p->aux&0xff;
+            // This read is not counted as indel. Instead of skipping it, treat it as ref. It is
+            // still only an approximation, but gives more accurate AD counts and calls correctly
+            // hets instead of alt-homs in some cases (see test/mpileup/indel-AD.1.sam)
+            if ( q < bca->min_baseQ ) b = 0, q = (int)bam_get_qual(p->b)[p->qpos];
+            seqQ  = p->aux>>8&0xff;
+            is_diff = (b != 0);
+        }
+        else
+        {
+            b = bam_seqi(bam_get_seq(p->b), p->qpos); // base
+            b = seq_nt16_int[b? b : ref_base]; // b is the 2-bit base
+            baseQ = q = (int)bam_get_qual(p->b)[p->qpos];
+            if (q < bca->min_baseQ) continue;
+            seqQ  = 99;
+            is_diff = (ref4 < 4 && b == ref4)? 0 : 1;
+        }
         mapQ  = p->b->core.qual < 255? p->b->core.qual : DEF_MAPQ; // special case for mapQ==255
         if ( !mapQ ) r->mq0++;
-        baseQ = q = is_indel? p->aux&0xff : (int)bam_get_qual(p->b)[p->qpos]; // base/indel quality
-        seqQ = is_indel? (p->aux>>8&0xff) : 99;
-        if (q < bca->min_baseQ) continue;
         if (q > seqQ) q = seqQ;
         mapQ = mapQ < bca->capQ? mapQ : bca->capQ;
         if (q > mapQ) q = mapQ;
         if (q > 63) q = 63;
         if (q < 4) q = 4;       // MQ=0 reads count as BQ=4
-        if (!is_indel) {
-            b = bam_seqi(bam_get_seq(p->b), p->qpos); // base
-            b = seq_nt16_int[b? b : ref_base]; // b is the 2-bit base
-            is_diff = (ref4 < 4 && b == ref4)? 0 : 1;
-        } else {
-            b = p->aux>>16&0x3f;
-            is_diff = (b != 0);
-        }
         bca->bases[n++] = q<<5 | (int)bam_is_rev(p->b)<<4 | b;
         // collect annotations
         if (b < 4)
@@ -495,7 +504,7 @@ void calc_SegBias(const bcf_callret1_t *bcr, bcf_call_t *call)
     double sum = 0;
     const double log2 = log(2.0);
 
-    // fprintf(pysam_stderr,"M=%.1f  p=%e q=%e f=%f  dp=%d\n",M,p,q,f,avg_dp);
+    // fprintf(bcftools_stderr,"M=%.1f  p=%e q=%e f=%f  dp=%d\n",M,p,q,f,avg_dp);
     int i;
     for (i=0; i<call->n; i++)
     {
@@ -510,7 +519,7 @@ void calc_SegBias(const bcf_callret1_t *bcr, bcf_call_t *call)
         else
             tmp = log(2*f*(1-f)*exp(-q) + f*f*exp(-2*q) + (1-f)*(1-f)) + p;
         sum += tmp;
-        // fprintf(pysam_stderr,"oi=%d %e\n", oi,tmp);
+        // fprintf(bcftools_stderr,"oi=%d %e\n", oi,tmp);
     }
     call->seg_bias = sum;
 }
@@ -674,7 +683,7 @@ int bcf_call_combine(int n, const bcf_callret1_t *calls, bcf_callaux_t *bca, int
             }
         }
 
-//      if (ref_base < 0) fprintf(pysam_stderr, "%d,%d,%f,%d\n", call->n_alleles, x, sum_min, call->unseen);
+//      if (ref_base < 0) fprintf(bcftools_stderr, "%d,%d,%f,%d\n", call->n_alleles, x, sum_min, call->unseen);
         call->shift = (int)(sum_min + .499);
     }
     // combine annotations

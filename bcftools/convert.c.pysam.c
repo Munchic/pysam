@@ -1,8 +1,8 @@
-#include "pysam.h"
+#include "bcftools.pysam.h"
 
 /*  convert.c -- functions for converting between VCF/BCF and related formats.
 
-    Copyright (C) 2013-2017 Genome Research Ltd.
+    Copyright (C) 2013-2018 Genome Research Ltd.
 
     Author: Petr Danecek <pd3@sanger.ac.uk>
 
@@ -94,6 +94,7 @@ struct _convert_t
     int ndat;
     char *undef_info_tag;
     int allow_undef_tags;
+    uint8_t **subset_samples;
 };
 
 typedef struct
@@ -176,6 +177,24 @@ static inline int32_t bcf_array_ivalue(void *bcf_array, int type, int idx)
     }
     return ((int32_t*)bcf_array)[idx];
 }
+static inline void _copy_field(char *src, uint32_t len, int idx, kstring_t *str)
+{
+    int n = 0, ibeg = 0;
+    while ( src[ibeg] && ibeg<len && n < idx )
+    {
+        if ( src[ibeg]==',' ) n++;
+        ibeg++;
+    }
+    if ( ibeg==len ) { kputc('.', str); return; }
+
+    int iend = ibeg;
+    while ( src[iend] && src[iend]!=',' && iend<len ) iend++;
+
+    if ( iend>ibeg )
+        kputsn(src+ibeg, iend-ibeg, str);
+    else
+        kputc('.', str);
+}
 static void process_info(convert_t *convert, bcf1_t *line, fmt_t *fmt, int isample, kstring_t *str)
 {
     if ( fmt->id<0 )
@@ -213,7 +232,7 @@ static void process_info(convert_t *convert, bcf1_t *line, fmt_t *fmt, int isamp
             case BCF_BT_INT32: if ( info->v1.i==bcf_int32_missing ) kputc('.', str); else kputw(info->v1.i, str); break;
             case BCF_BT_FLOAT: if ( bcf_float_is_missing(info->v1.f) ) kputc('.', str); else kputd(info->v1.f, str); break;
             case BCF_BT_CHAR:  kputc(info->v1.i, str); break;
-            default: fprintf(pysam_stderr,"todo: type %d\n", info->type); exit(1); break;
+            default: fprintf(bcftools_stderr,"todo: type %d\n", info->type); exit(1); break;
         }
     }
     else if ( fmt->subscript >=0 )
@@ -234,7 +253,8 @@ static void process_info(convert_t *convert, bcf1_t *line, fmt_t *fmt, int isamp
             case BCF_BT_INT16: BRANCH(int16_t, val==bcf_int16_missing, val==bcf_int16_vector_end, kputw(val, str)); break;
             case BCF_BT_INT32: BRANCH(int32_t, val==bcf_int32_missing, val==bcf_int32_vector_end, kputw(val, str)); break;
             case BCF_BT_FLOAT: BRANCH(float,   bcf_float_is_missing(val), bcf_float_is_vector_end(val), kputd(val, str)); break;
-            default: fprintf(pysam_stderr,"todo: type %d\n", info->type); exit(1); break;
+            case BCF_BT_CHAR:  _copy_field((char*)info->vptr, info->vptr_len, fmt->subscript, str); break;
+            default: fprintf(bcftools_stderr,"todo: type %d\n", info->type); exit(1); break;
         }
         #undef BRANCH
     }
@@ -290,6 +310,8 @@ static void process_format(convert_t *convert, bcf1_t *line, fmt_t *fmt, int isa
             else
                 kputw(ival, str);
         }
+        else if ( fmt->fmt->type == BCF_BT_CHAR )
+            _copy_field((char*)(fmt->fmt->p + isample*fmt->fmt->size), fmt->fmt->size, fmt->subscript, str);
         else error("TODO: %s:%d .. fmt->type=%d\n", __FILE__,__LINE__, fmt->fmt->type);
     }
     else
@@ -533,6 +555,7 @@ static void process_type(convert_t *convert, bcf1_t *line, fmt_t *fmt, int isamp
     if ( line_type & VCF_MNP ) { if (i) kputc(',',str); kputs("MNP", str); i++; }
     if ( line_type & VCF_INDEL ) { if (i) kputc(',',str); kputs("INDEL", str); i++; }
     if ( line_type & VCF_OTHER ) { if (i) kputc(',',str); kputs("OTHER", str); i++; }
+    if ( line_type & VCF_BND ) { if (i) kputc(',',str); kputs("BND", str); i++; }
 }
 static void process_line(convert_t *convert, bcf1_t *line, fmt_t *fmt, int isample, kstring_t *str)
 {
@@ -1014,7 +1037,7 @@ static fmt_t *register_tag(convert_t *convert, int type, char *key, int is_gtf)
             else if ( id>=0 && bcf_hdr_idinfo_exists(convert->header,BCF_HL_INFO,id) )
             {
                 fmt->type = T_INFO;
-                fprintf(pysam_stderr,"Warning: Assuming INFO/%s\n", key);
+                fprintf(bcftools_stderr,"Warning: Assuming INFO/%s\n", key);
             }
         }
     }
@@ -1198,7 +1221,7 @@ convert_t *convert_init(bcf_hdr_t *hdr, int *samples, int nsamples, const char *
     char *p = convert->format_str;
     while ( *p )
     {
-        //fprintf(pysam_stderr,"<%s>\n", p);
+        //fprintf(bcftools_stderr,"<%s>\n", p);
         switch (*p)
         {
             case '[': is_gtf = 1; p++; break;
@@ -1313,6 +1336,9 @@ int convert_line(convert_t *convert, bcf1_t *line, kstring_t *str)
             }
             for (js=0; js<convert->nsamples; js++)
             {
+                // Skip samples when filtering was requested
+                if ( *convert->subset_samples && !(*convert->subset_samples)[js] ) continue;
+
                 // Here comes a hack designed for TBCSQ. When running on large files,
                 // such as 1000GP, there are too many empty fields in the output and
                 // it's very very slow. Therefore in case the handler does not add
@@ -1362,6 +1388,9 @@ int convert_set_option(convert_t *convert, enum convert_option opt, ...)
     {
         case allow_undef_tags:
             convert->allow_undef_tags = va_arg(args, int);
+            break;
+        case subset_samples:
+            convert->subset_samples = va_arg(args, uint8_t**);
             break;
         default:
             ret = -1;

@@ -2,6 +2,198 @@
 Release notes
 =============
 
+Release 0.14.1
+==============
+
+This is mostly a bugfix release, though bcftools has now also been
+upgraded to 1.7.0.
+
+* [#621] Add a warning to count_coverage when an alignment has an
+  empty QUAL field
+* [#635] Speed-up of AlignedSegment.find_intro()
+* treat border case of all bases in pileup column below quality score
+* [#634] Fix access to pileup reference_sequence
+
+
+Release 0.14.0
+==============
+
+This release wraps htslib/samtools versions 1.7.0.
+
+* SAM/BAM/CRAM headers are now managed by a separate AlignmentHeader
+  class.
+* AlignmentFile.header.as_dict() returns an ordered dictionary.
+* Use "stop" instead of "end" to ensure consistency to
+  VariantFile. The end designations have been kept for backwards
+  compatibility.
+
+* [#611] and [#293] CRAM repeated fetch now works, each iterator
+  reloads index if multiple_iterators=True
+* [#608] pysam now wraps htslib 1.7 and samtools 1.7.
+* [#580] reference_name and next_reference_name can now be set to "*"
+  (will be converted to None to indicate an unmapped location)
+* [#302] providing no coordinate to count_coverage will not count from
+  start/end of contig.
+* [#325] @SQ records will be automatically added to header if they are
+  absent from text section of header.
+* [#529] add get_forward_sequence() and get_forward_qualities()
+  methods
+* [#577] add from_string() and to_dict()/from_dict() methods to
+  AlignedSegment. Rename tostring() to to_string() throughout for
+  consistency
+* [#589] return None from build_alignment_sequence if no MD tag is set
+* [#528] add PileupColumn.__len__ method
+
+Backwards incompatible changes:
+
+* AlignmentFile.header now returns an AlignmentHeader object. Use
+  AlignmentFile.header.to_dict() to get the dictionary as
+  previously. Most dictionary accessor methods (keys(), values(),
+  __getitem__, ...) have been implemented to ensure some level of
+  backwards compatibility when only reading.
+
+  The rationale for this change is to have consistency between
+  AlignmentFile and VariantFile.
+  	      
+* AlignmentFile and FastaFile now raise IOError instead of OSError
+
+Medium term we plan to have a 1.0 release. The pysam
+interface has grown over the years and the API is cluttered with
+deprecated names (Samfile, getrname(), gettid(), ...). To work towards
+this, the next release (0.15.0) will yield DeprecationWarnings 
+for any parts of the API that are considered obsolete and will not be
+in 1.0. Once 1.0 has been reached, we will use semantic versioning.
+
+Release 0.13.0
+===============
+
+This release wraps htslib/samtools/bcftools versions 1.6.0 and
+contains a series of bugfixes.
+
+* [#544] reading header from remote TabixFiles now works.
+* [#531] add missing tag types H and A. A python float will now be
+  added as 'f' type instead of 'd' type.
+* [#543] use FastaFile instead of Fastafile in pileup.
+* [#546] set is_modified flag in setAttribute so updated attributes
+  are output.
+* [#537] allow tabix index files to be created in a custom location.
+* [#530] add get_index_statistics() method
+
+
+Release 0.12.0.1
+================
+
+Bugfix release to solve compilation issue due to missinge
+bcftools/config.h file.
+
+Release 0.12.0
+==============
+
+This release wraps htslib/samtools/bcftools versions 1.5.0 and
+contains a series of bugfixes.
+
+* [#473] A new FastxRecord class that can be instantiated from class and
+  modified in-place. Replaces PersistentFastqProxy.
+* [#521] In AligmentFile, Simplify file detection logic and allow remote index files
+  * Removed attempts to guess data and index file names; this is magic left
+    to htslib.
+  * Removed file existence check prior to opening files with htslib
+  * Better error checking after opening files that raise the appropriate
+    error (IOError for when errno is set, ValueError otherwise for backward
+    compatibility).
+  * Report IO errors when loading an index by name.
+  * Allow remote indices (tested using S3 signed URLs).
+  * Document filepath_index and make it an alias for index_filename.
+  * Added a require_index parameter to AlignmentFile
+* [#526] handle unset ref when creating new records
+* [#513] fix bcf_translate to skip deleted FORMAT fields to avoid
+  segfaults
+* [#516] expose IO errors via IOError exceptions
+* [#487] add tabix line_skip, remove 'pileup' preset
+* add FastxRecord, replaces PersistentFastqProxy (still present for
+  backwards compatibility)
+* [#496] upgrade to htslib/samtools/bcftools versions 1.5
+* add start/stop to AlignmentFile.fetch() to be consistent with
+  VariantFile.fetch(). "end" is kept for backwards compatibility.
+* [#512] add get_index_statistics() method to AlignmentFile.
+
+Upcoming changes:
+
+In the next release we are plannig to separate the header information
+from AlignmentFile into a separate class AlignmentHeader. This layout
+is similar to VariantFile/VariantHeader. With this change we will
+ensure that an AlignedSegment record will be linked to a header so
+that chromosome names can be automatically translated from the numeric
+representation. As a consequence, the way new AlignedSegment records
+are created will need to change as the constructor requires a header::
+
+    header = pysam.AlignmentHeader(
+        reference_names=["chr1", "chr2"],
+        reference_lengths=[1000, 1000])
+        
+    read = pysam.AlignedSegment(header)
+
+This will affect all code that instantiates AlignedSegment objects
+directly. We have not yet merged to allow users to provide feed-back.
+The pull-request is here: https://github.com/pysam-developers/pysam/pull/518
+Please comment on github.
+
+Release 0.11.2.2
+================
+
+Bugfix release to address two issues:
+
+* Changes in 0.11.2.1 broke the GTF/GFF3 parser. Corrected and
+  more tests have been added.
+* [#479] Correct VariantRecord edge cases described in issue
+
+Release 0.11.2.1
+================
+
+Release to fix release tar-ball containing 0.11.1 pre-compiled
+C-files.
+
+Release 0.11.2
+==============
+
+This release wraps htslib/samtools/bcfools versions 1.4.1 in response
+to a security fix in these libraries. Additionaly the following
+issues have been fixed:
+
+* [#452] add GFF3 support for tabix parsers
+* [#461] Multiple fixes related to VariantRecordInfo and handling of INFO/END
+* [#447] limit query name to 251 characters (only partially addresses issue)
+
+VariantFile and related object fixes
+
+* Restore VariantFile.\_\_dealloc\_\_
+* Correct handling of bcf_str_missing in bcf_array_to_object and
+  bcf_object_to_array
+* Added update() and pop() methods to some dict-like proxy objects
+* scalar INFO entries could not be set again after being deleted
+* VariantRecordInfo.__delitem__ now allows unset flags to be deleted without
+  raising a KeyError
+* Multiple other fixes for VariantRecordInfo methods
+* INFO/END is now accessible only via VariantRecord.stop and
+  VariantRecord.rlen.  Even if present behind the scenes, it is no longer
+  accessible via VariantRecordInfo.
+* Add argument to issue a warning instead of an exception if input appears
+  to be truncated
+
+Other features and fixes:
+
+* Make AlignmentFile \_\_dealloc\_\_ and close more
+  stringent
+* Add argument AlignmentFile to issue a warning instead of an
+  exception if input appears to be truncated
+
+Release 0.11.1
+==============
+
+Bugfix release
+
+* [#440] add deprecated 'always' option to infer_query_length for backwards compatibility.
+
 Release 0.11.0
 ==============
 
@@ -47,6 +239,17 @@ and includes several bugfixes:
 * Added VariantRecordFilter.add() method to allow setting new VariantRecord filters
 * Preliminary (potentially unsafe) support for removing and altering header metadata
 * Many minor fixes and improvements to VariantFile and related objects
+
+Please note that all internal cython extensions now have a lib prefix
+to facilitate linking against pysam extension modules. Any user cython
+extensions using cimport to import pysam definitions will need
+changes, for example::
+
+   cimport pysam.csamtools
+
+will become::
+
+   cimport pysam.libcamtools
 
 Release 0.9.1
 =============
@@ -327,9 +530,6 @@ Backwards incompatible changes
   needs to be substituted with AlignedSegment. 
 * fancy_str() has been removed
 * qual, qqual now return arrays
-
-
-
 
 Release 0.8.0
 =============

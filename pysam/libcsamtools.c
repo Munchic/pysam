@@ -562,7 +562,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #define __PYX_HAVE__pysam__libcsamtools
 #define __PYX_HAVE_API__pysam__libcsamtools
 /* Early includes */
-#include "csamtools_util.h"
+#include "samtools.pysam.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */

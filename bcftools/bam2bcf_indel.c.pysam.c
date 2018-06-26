@@ -1,4 +1,4 @@
-#include "pysam.h"
+#include "bcftools.pysam.h"
 
 /*  bam2bcf_indel.c -- indel caller.
 
@@ -158,7 +158,7 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
             free(aux);
             // TODO revisit how/whether to control printing this warning
             if (hts_verbose >= 2)
-                fprintf(pysam_stderr, "[%s] excessive INDEL alleles at position %d. Skip the position.\n", __func__, pos + 1);
+                fprintf(bcftools_stderr, "[%s] excessive INDEL alleles at position %d. Skip the position.\n", __func__, pos + 1);
             return -1;
         }
         types = (int*)calloc(n_types, sizeof(int));
@@ -231,7 +231,7 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
             if ((double)(max2&0xffff) / ((max2&0xffff) + (max2>>16)) >= 0.7) max2_i = -1;
             if (max_i >= 0) r[max_i] = 15;
             if (max2_i >= 0) r[max2_i] = 15;
-            //for (i = 0; i < right - left; ++i) fputc("=ACMGRSVTWYHKDBN"[(int)r[i]], pysam_stderr); fputc('\n', pysam_stderr);
+            //for (i = 0; i < right - left; ++i) fputc("=ACMGRSVTWYHKDBN"[(int)r[i]], bcftools_stderr); fputc('\n', bcftools_stderr);
         }
         free(ref0); free(cns);
     }
@@ -299,7 +299,7 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
         else if (types[t] > 0) ir = est_indelreg(pos, ref, types[t], &inscns[t*max_ins]);
         else ir = est_indelreg(pos, ref, -types[t], 0);
         if (ir > bca->indelreg) bca->indelreg = ir;
-//      fprintf(pysam_stderr, "%d, %d, %d\n", pos, types[t], ir);
+//      fprintf(bcftools_stderr, "%d, %d, %d\n", pos, types[t], ir);
         // realignment
         for (s = K = 0; s < n; ++s) {
             // write ref2
@@ -359,23 +359,26 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
                     }
                     free(qq);
                 }
-/*
+#if 0
                 for (l = 0; l < tend - tbeg + abs(types[t]); ++l)
-                    fputc("ACGTN"[(int)ref2[tbeg-left+l]], pysam_stderr);
-                fputc('\n', pysam_stderr);
-                for (l = 0; l < qend - qbeg; ++l) fputc("ACGTN"[(int)query[l]], pysam_stderr);
-                fputc('\n', pysam_stderr);
-                fprintf(pysam_stderr, "pos=%d type=%d read=%d:%d name=%s qbeg=%d tbeg=%d score=%d\n", pos, types[t], s, i, bam1_qname(p->b), qbeg, tbeg, sc);
-*/
+                    fputc("ACGTN"[(int)ref2[tbeg-left+l]], bcftools_stderr);
+                fputc('\n', bcftools_stderr);
+                for (l = 0; l < qend - qbeg; ++l) fputc("ACGTN"[(int)query[l]], bcftools_stderr);
+                fputc('\n', bcftools_stderr);
+                fprintf(bcftools_stderr, "pos=%d type=%d read=%d:%d name=%s qbeg=%d tbeg=%d score=%d\n", pos, types[t], s, i, bam_get_qname(p->b), qbeg, tbeg, sc);
+#endif
             }
         }
     }
     free(ref2); free(query);
     { // compute indelQ
-        int *sc, tmp, *sumq;
-        sc   = (int*) alloca(n_types * sizeof(int));
-        sumq = (int*) alloca(n_types * sizeof(int));
-        memset(sumq, 0, sizeof(int) * n_types);
+        int sc_a[16], sumq_a[16];
+        int tmp, *sc = sc_a, *sumq = sumq_a;
+        if (n_types > 16) {
+            sc   = (int *)malloc(n_types * sizeof(int));
+            sumq = (int *)malloc(n_types * sizeof(int));
+        }
+        memset(sumq, 0, n_types * sizeof(int));
         for (s = K = 0; s < n; ++s) {
             for (i = 0; i < n_plp[s]; ++i, ++K) {
                 bam_pileup1_t *p = plp[s] + i;
@@ -421,7 +424,7 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
                 if (seqQ > 255) seqQ = 255;
                 p->aux = (sc[0]&0x3f)<<16 | seqQ<<8 | indelQ; // use 22 bits in total
                 sumq[sc[0]&0x3f] += indelQ < seqQ? indelQ : seqQ;
-//              fprintf(pysam_stderr, "pos=%d read=%d:%d name=%s call=%d indelQ=%d seqQ=%d\n", pos, s, i, bam1_qname(p->b), types[sc[0]&0x3f], indelQ, seqQ);
+//              fprintf(bcftools_stderr, "pos=%d read=%d:%d name=%s call=%d indelQ=%d seqQ=%d\n", pos, s, i, bam1_qname(p->b), types[sc[0]&0x3f], indelQ, seqQ);
             }
         }
         // determine bca->indel_types[] and bca->inscns
@@ -453,9 +456,12 @@ int bcf_call_gap_prep(int n, int *n_plp, bam_pileup1_t **plp, int pos, bcf_calla
                     if (x == bca->indel_types[j]) break;
                 p->aux = j<<16 | (j == 4? 0 : (p->aux&0xffff));
                 if ((p->aux>>16&0x3f) > 0) ++n_alt;
-                //fprintf(pysam_stderr, "X pos=%d read=%d:%d name=%s call=%d type=%d seqQ=%d indelQ=%d\n", pos, s, i, bam1_qname(p->b), (p->aux>>16)&0x3f, bca->indel_types[(p->aux>>16)&0x3f], (p->aux>>8)&0xff, p->aux&0xff);
+                //fprintf(bcftools_stderr, "X pos=%d read=%d:%d name=%s call=%d type=%d seqQ=%d indelQ=%d\n", pos, s, i, bam_get_qname(p->b), (p->aux>>16)&0x3f, bca->indel_types[(p->aux>>16)&0x3f], (p->aux>>8)&0xff, p->aux&0xff);
             }
         }
+
+        if (sc   != sc_a)   free(sc);
+        if (sumq != sumq_a) free(sumq);
     }
     free(score1); free(score2);
     // free

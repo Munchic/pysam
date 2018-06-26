@@ -1,6 +1,6 @@
 /*  vcfconvert.c -- convert between VCF/BCF and related formats.
 
-    Copyright (C) 2013-2014 Genome Research Ltd.
+    Copyright (C) 2013-2017 Genome Research Ltd.
 
     Author: Petr Danecek <pd3@sanger.ac.uk>
 
@@ -23,6 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.  */
 
 #include <stdio.h>
+#include <strings.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <ctype.h>
@@ -861,7 +862,7 @@ static void vcf_to_haplegendsample(args_t *args)
     if ( legend_fname && (strlen(legend_fname)<3 || strcasecmp(".gz",legend_fname+strlen(legend_fname)-3)) ) legend_compressed = 0;
     if ( sample_fname && strlen(sample_fname)>3 && strcasecmp(".gz",sample_fname+strlen(sample_fname)-3)==0 ) sample_compressed = 0;
 
-    if (hap_fname) fprintf(stderr, "Haps file: %s\n", hap_fname);
+    if (hap_fname) fprintf(stderr, "Hap file: %s\n", hap_fname);
     if (legend_fname) fprintf(stderr, "Legend file: %s\n", legend_fname);
     if (sample_fname) fprintf(stderr, "Sample file: %s\n", sample_fname);
 
@@ -1009,7 +1010,7 @@ static void vcf_to_hapsample(args_t *args)
     if ( hap_fname && (strlen(hap_fname)<3 || strcasecmp(".gz",hap_fname+strlen(hap_fname)-3)) ) hap_compressed = 0;
     if ( sample_fname && strlen(sample_fname)>3 && strcasecmp(".gz",sample_fname+strlen(sample_fname)-3)==0 ) sample_compressed = 0;
 
-    if (hap_fname) fprintf(stderr, "Haps file: %s\n", hap_fname);
+    if (hap_fname) fprintf(stderr, "Hap file: %s\n", hap_fname);
     if (sample_fname) fprintf(stderr, "Sample file: %s\n", sample_fname);
 
     // write samples file
@@ -1315,12 +1316,13 @@ static void gvcf_to_vcf(args_t *args)
         }
 
         // check if alleles compatible with being a gVCF record
+        // ALT must be one of ., <*>, <X>, <NON_REF>
+        // check for INFO/END is below
         int i, gallele = -1;
         if (line->n_allele==1)
             gallele = 0; // illumina/bcftools-call gvcf (if INFO/END present)
-        else
+        else if ( line->d.allele[1][0]=='<' )
         {
-            if ( line->d.allele[1][0]!='<' ) continue;
             for (i=1; i<line->n_allele; i++)
             {
                 if ( line->d.allele[i][1]=='*' && line->d.allele[i][2]=='>' && line->d.allele[i][3]=='\0' ) { gallele = i; break; } // mpileup/spec compliant gVCF
@@ -1396,8 +1398,8 @@ static void usage(void)
     fprintf(stderr, "   -f, --fasta-ref <file>      reference sequence in fasta format\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "HAP/SAMPLE conversion (output from SHAPEIT):\n");
-    fprintf(stderr, "       --hapsample2vcf <...>   <prefix>|<haps-file>,<sample-file>\n");
-    fprintf(stderr, "       --hapsample <...>       <prefix>|<haps-file>,<sample-file>\n");
+    fprintf(stderr, "       --hapsample2vcf <...>   <prefix>|<hap-file>,<sample-file>\n");
+    fprintf(stderr, "       --hapsample <...>       <prefix>|<hap-file>,<sample-file>\n");
     fprintf(stderr, "       --haploid2diploid       convert haploid genotypes to diploid homozygotes\n");
     fprintf(stderr, "       --sex <file>            output sex column in the sample-file, input format is: Sample\\t[MF]\n");
     fprintf(stderr, "       --vcf-ids               output VCF IDs instead of CHROM:POS_REF_ALT\n");

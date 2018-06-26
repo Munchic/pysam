@@ -58,10 +58,9 @@ cdef extern from "htslib_util.h" nogil:
 cdef extern from "htslib/hfile.h" nogil:
     ctypedef struct hFILE
 
-    # TODO: since htslib1.4 hopen now accepts varargs
     # @abstract  Open the named file or URL as a stream
     # @return    An hFILE pointer, or NULL (with errno set) if an error occurred.
-    hFILE *hopen(const char *filename, const char *mode)
+    hFILE *hopen(const char *filename, const char *mode, ...)
 
     # @abstract  Associate a stream with an existing open file descriptor
     # @return    An hFILE pointer, or NULL (with errno set) if an error occurred.
@@ -103,6 +102,40 @@ cdef extern from "htslib/hfile.h" nogil:
     # @abstract  Read one character from the stream
     # @return    The character read, or EOF on end-of-file or error
     int hgetc(hFILE *fp)
+
+    # Read from the stream until the delimiter, up to a maximum length
+    #    @param buffer  The buffer into which bytes will be written
+    #    @param size    The size of the buffer
+    #    @param delim   The delimiter (interpreted as an `unsigned char`)
+    #    @param fp      The file stream
+    #    @return  The number of bytes read, or negative on error.
+    #    @since   1.4
+    #
+    # Bytes will be read into the buffer up to and including a delimiter, until
+    # EOF is reached, or _size-1_ bytes have been written, whichever comes first.
+    # The string will then be terminated with a NUL byte (`\0`).
+    ssize_t hgetdelim(char *buffer, size_t size, int delim, hFILE *fp)
+
+    # Read a line from the stream, up to a maximum length
+    #    @param buffer  The buffer into which bytes will be written
+    #    @param size    The size of the buffer
+    #    @param fp      The file stream
+    #    @return  The number of bytes read, or negative on error.
+    #    @since   1.4
+    #
+    # Specialization of hgetdelim() for a `\n` delimiter.
+    ssize_t hgetln(char *buffer, size_t size, hFILE *fp)
+
+    # Read a line from the stream, up to a maximum length
+    #    @param buffer  The buffer into which bytes will be written
+    #    @param size    The size of the buffer (must be > 1 to be useful)
+    #    @param fp      The file stream
+    #    @return  _buffer_ on success, or `NULL` if an error occurred.
+    #    @since   1.4
+    #
+    # This function can be used as a replacement for `fgets(3)`, or together with
+    # kstring's `kgetline()` to read arbitrarily-long lines into a _kstring_t_.
+    char *hgets(char *buffer, int size, hFILE *fp)
 
     # @abstract  Peek at characters to be read without removing them from buffers
     # @param fp      The file stream
@@ -391,7 +424,7 @@ cdef extern from "htslib/hts.h" nogil:
         no_compression, gzip, bgzf, custom
         compression_maximum
 
-    enum hts_fmt_option:
+    cdef enum hts_fmt_option:
         CRAM_OPT_DECODE_MD,
         CRAM_OPT_PREFIX,
         CRAM_OPT_VERBOSITY,
@@ -438,6 +471,27 @@ cdef extern from "htslib/hts.h" nogil:
         htsFormat format
 
     int hts_verbose
+
+    cdef union hts_opt_val_union:
+        int i
+        char *s
+
+    ctypedef struct hts_opt:
+        char *arg
+        hts_fmt_option opt
+        hts_opt_val_union val
+        void *next
+
+    # @abstract Parses arg and appends it to the option list.
+    # @return   0 on success and -1 on failure
+    int hts_opt_add(hts_opt **opts, const char *c_arg)
+
+    # @abstract Applies an hts_opt option list to a given htsFile.
+    # @return   0 on success and -1 on failure
+    int hts_opt_apply(htsFile *fp, hts_opt *opts)
+
+    # @abstract Frees an hts_opt list.
+    void hts_opt_free(hts_opt *opts)
 
     # @abstract Table for converting a nucleotide character to 4-bit encoding.
     # The input character may be either an IUPAC ambiguity code, '=' for 0, or
@@ -724,7 +778,7 @@ cdef extern from "htslib/hts.h" nogil:
 
     ctypedef struct probaln_par_t:
         float d, e
-        int bw;
+        int bw
 
     int probaln_glocal(const uint8_t *ref,
                        int l_ref,
@@ -774,17 +828,17 @@ cdef extern from "htslib/hts.h" nogil:
     # /*! @abstract Deallocates any memory allocated by hts_md5_init. */
     void hts_md5_destroy(hts_md5_context *ctx)
 
-    inline int hts_reg2bin(int64_t beg, int64_t end, int min_shift, int n_lvls)
-    inline int hts_bin_bot(int bin, int n_lvls)
+    int hts_reg2bin(int64_t beg, int64_t end, int min_shift, int n_lvls)
+    int hts_bin_bot(int bin, int n_lvls)
 
     # * Endianness *
-    inline int ed_is_big()
-    inline uint16_t ed_swap_2(uint16_t v)
-    inline void *ed_swap_2p(void *x)
-    inline uint32_t ed_swap_4(uint32_t v)
-    inline void *ed_swap_4p(void *x)
-    inline uint64_t ed_swap_8(uint64_t v)
-    inline void *ed_swap_8p(void *x)
+    int ed_is_big()
+    uint16_t ed_swap_2(uint16_t v)
+    void *ed_swap_2p(void *x)
+    uint32_t ed_swap_4(uint32_t v)
+    void *ed_swap_4p(void *x)
+    uint64_t ed_swap_8(uint64_t v)
+    void *ed_swap_8p(void *x)
 
 
 cdef extern from "htslib/sam.h" nogil:
@@ -906,7 +960,8 @@ cdef extern from "htslib/sam.h" nogil:
     # 4. seq is nybble-encoded according to seq_nt16_table.
     ctypedef struct bam1_t:
         bam1_core_t core
-        int l_data, m_data
+        int l_data
+        uint32_t m_data
         uint8_t *data
         uint64_t id
 
@@ -1170,7 +1225,12 @@ cdef extern from "htslib/sam.h" nogil:
     void bam_mplp_destroy(bam_mplp_t iter)
     void bam_mplp_set_maxcnt(bam_mplp_t iter, int maxcnt)
     int bam_mplp_auto(bam_mplp_t iter, int *_tid, int *_pos, int *n_plp, const bam_pileup1_t **plp)
-
+    void bam_mplp_reset(bam_mplp_t iter)
+    void bam_mplp_constructor(bam_mplp_t iter,
+          		      int (*func)(void *data, const bam1_t *b, bam_pileup_cd *cd))
+    void bam_mplp_destructor(bam_mplp_t iter,
+			     int (*func)(void *data, const bam1_t *b, bam_pileup_cd *cd))
+    
     # Added by AH
     # ctypedef bam_pileup1_t * const_bam_pileup1_t_ptr "const bam_pileup1_t *"
 
@@ -1872,7 +1932,7 @@ cdef extern from "htslib/vcf.h" nogil:
     int bcf_get_format_int32(const bcf_hdr_t *hdr, bcf1_t *line, const char *tag, int32_t **dst, int *ndst)
     int bcf_get_format_float(const bcf_hdr_t *hdr, bcf1_t *line, const char *tag, float **dst, int *ndst)
     int bcf_get_format_char(const bcf_hdr_t *hdr, bcf1_t *line, const char *tag, char **dst, int *ndst)
-    int bcf_get_genotypes(const bcf_hdr_t *hdr, bcf1_t *line, int **dst, int *ndst)
+    int bcf_get_genotypes(const bcf_hdr_t *hdr, bcf1_t *line, int32_t **dst, int *ndst)
     int bcf_get_format_string(const bcf_hdr_t *hdr, bcf1_t *line, const char *tag, char ***dst, int *ndst)
     int bcf_get_format_values(const bcf_hdr_t *hdr, bcf1_t *line, const char *tag, void **dst, int *ndst, int type)
 
@@ -2533,6 +2593,7 @@ cdef class HTSFile(object):
 
     cdef readonly object  filename       # filename as supplied by user
     cdef readonly object  mode           # file opening mode
+    cdef readonly object  threads        # number of threads to use
     cdef readonly object  index_filename # filename of index, if supplied by user
 
     cdef readonly bint    is_stream      # Is htsfile a non-seekable stream
