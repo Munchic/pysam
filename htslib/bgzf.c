@@ -1,19 +1,15 @@
 /* The MIT License
-
    Copyright (c) 2008 Broad Institute / Massachusetts Institute of Technology
                  2011, 2012 Attractive Chaos <attractor@live.co.uk>
-   Copyright (C) 2009, 2013-2017 Genome Research Ltd
-
+   Copyright (C) 2009, 2013-2016 Genome Research Ltd
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
    in the Software without restriction, including without limitation the rights
    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
    copies of the Software, and to permit persons to whom the Software is
    furnished to do so, subject to the following conditions:
-
    The above copyright notice and this permission notice shall be included in
    all copies or substantial portions of the Software.
-
    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -61,7 +57,6 @@
                 |                              |   |   |
                FLG.EXTRA                     XLEN  B   C
                                                   E/D
-
   BGZF format is compatible with GZIP. It limits the size of each compressed
   block to 2^16 bytes and adds and an extra "BC" field in the gzip header which
   records the size. 
@@ -73,7 +68,6 @@
       64 bytes), initialization vector used to encrypt the data (16 bytes), compressed
       and encrypted data (BLK_LEN - 64 - 16 bytes). When present, the "DC" block is
       first in the file.
-
 */
 static const uint8_t bc_magic[19] = "\037\213\010\4\0\0\0\0\0\377\6\0\102\103\2\0\0\0";
 static const uint8_t ec_magic[19] = "\037\213\010\4\0\0\0\0\0\377\6\0\105\103\2\0\0\0";
@@ -99,7 +93,6 @@ typedef struct bgzf_job {
     size_t uncomp_len;
     int errcode;
     int64_t block_address;
-    int hit_eof;
 } bgzf_job;
 
 enum mtaux_cmd {
@@ -128,7 +121,6 @@ typedef struct bgzf_mtaux_t {
     int jobs_pending; // number of jobs waiting
     int flush_pending;
     void *free_block;
-    int hit_eof;  // r/w entirely within main thread
 
     // Message passing to the reader thread; eg seek requests
     int errcode;
@@ -163,7 +155,6 @@ struct __bgzf_aux_t
 
 void bgzf_index_destroy(BGZF *fp);
 int bgzf_index_add_block(BGZF *fp);
-static void mt_destroy(mtaux_t *mt);
 
 static inline void packInt16(uint8_t *buffer, uint16_t value)
 {
@@ -503,7 +494,7 @@ static int bgzf_gzip_compress(BGZF *fp, void *_dst, size_t *dlen, const void *sr
 {
     uint8_t *dst = (uint8_t*)_dst;
     z_stream *zs = fp->gz_stream;
-    int flush = slen ? Z_PARTIAL_FLUSH : Z_FINISH;
+    int flush = slen ? Z_NO_FLUSH : Z_FINISH;
     zs->next_in   = (Bytef*)src;
     zs->avail_in  = slen;
     zs->next_out  = dst;
@@ -513,13 +504,6 @@ static int bgzf_gzip_compress(BGZF *fp, void *_dst, size_t *dlen, const void *sr
         if (hts_verbose >= 1) {
             fprintf(stderr, "[E::%s] deflate failed: %s\n",
                     __func__, bgzf_zerr(ret, NULL));
-        }
-        return -1;
-    }
-    if (zs->avail_in != 0) {
-        if (hts_verbose >= 1) {
-            fprintf(stderr, "[E::%s] deflate block too large for output buffer:\n",
-                    __func__);
         }
         return -1;
     }
@@ -656,7 +640,8 @@ static int inflate_gzip_block(BGZF *fp, int cached)
             fp->gz_stream->avail_out = BGZF_MAX_BLOCK_SIZE - fp->block_offset;
             fp->gz_stream->msg = NULL;
             ret = inflate(fp->gz_stream, Z_NO_FLUSH);
-            if (ret < 0 && ret != Z_BUF_ERROR) {
+            if ( ret==Z_BUF_ERROR ) continue;   // non-critical error
+            if ( ret<0 ) {
                 if (hts_verbose >= 1) {
                     fprintf(stderr, "[E::%s] inflate failed: %s\n",
                             __func__,
@@ -773,49 +758,13 @@ int bgzf_read_block(BGZF *fp)
     hts_tpool_result *r;
 
     if (fp->mt) {
-    again:
-        if (fp->mt->hit_eof) {
-            // Further reading at EOF will always return 0
-            fp->block_length = 0;
-            return 0;
-        }
         r = hts_tpool_next_result_wait(fp->mt->out_queue);
-        bgzf_job *j = r ? (bgzf_job *)hts_tpool_result_data(r) : NULL;
-
-        if (!j || j->errcode == BGZF_ERR_MT) {
-            if (!fp->mt->free_block) {
-                fp->uncompressed_block = malloc(2 * BGZF_MAX_BLOCK_SIZE);
-                if (fp->uncompressed_block == NULL) return -1;
-                fp->compressed_block = (char *)fp->uncompressed_block + BGZF_MAX_BLOCK_SIZE;
-            } // else it's already allocated with malloc, maybe even in-use.
-            mt_destroy(fp->mt);
-            fp->mt = NULL;
-            hts_tpool_delete_result(r, 0);
-
-            goto single_threaded;
-        }
+        bgzf_job *j = (bgzf_job *)hts_tpool_result_data(r);
+        assert(j);
 
         if (j->errcode) {
             fp->errcode = j->errcode;
             return -1;
-        }
-
-        if (j->hit_eof) {
-            if (!fp->last_block_eof && !fp->no_eof_block) {
-                fp->no_eof_block = 1;
-                if (hts_verbose>1)
-                    fprintf(stderr, "[W::%s] EOF marker is absent. The input is probably truncated.\n", __func__);
-            }
-            fp->mt->hit_eof = 1;
-        }
-
-        // Zero length blocks in the middle of a file are (wrongly)
-        // considered as EOF by many callers.  We work around this by
-        // trying again to see if we hit a genuine EOF.
-        if (!j->hit_eof && j->uncomp_len == 0) {
-            fp->last_block_eof = 1;
-            hts_tpool_delete_result(r, 0);
-            goto again;
         }
 
         // block_length=0 and block_offset set by bgzf_seek.
@@ -823,8 +772,6 @@ int bgzf_read_block(BGZF *fp)
         fp->block_address = j->block_address;
         fp->block_clength = j->comp_len;
         fp->block_length = j->uncomp_len;
-        // bgzf_read() can change fp->block_length
-        fp->last_block_eof = (fp->block_length == 0);
 
         if ( j->uncomp_len && j->fp->idx_build_otf )
         {
@@ -851,10 +798,7 @@ int bgzf_read_block(BGZF *fp)
     }
 
     uint8_t header[BLOCK_HEADER_LENGTH], *compressed_block;
-    int count, size, block_length, remaining;
-
- single_threaded:
-    size = 0;
+    int count, size = 0, block_length, remaining;
 
     // Reading an uncompressed file
     if ( !fp->is_compressed )
@@ -879,7 +823,7 @@ int bgzf_read_block(BGZF *fp)
     // Reading compressed file
     int64_t block_address;
     block_address = bgzf_htell(fp);
-    if ( fp->is_gzip && fp->gz_stream ) // is this is an initialized gzip stream?
+    if ( fp->is_gzip && fp->gz_stream ) // is this is a initialized gzip stream?
     {
         count = inflate_gzip_block(fp, 0);
         if ( count<0 )
@@ -892,100 +836,69 @@ int bgzf_read_block(BGZF *fp)
         return 0;
     }
     if (fp->cache_size && load_block_from_cache(fp, block_address)) return 0;
-
-    // loop to skip empty bgzf blocks
-    while (1)
+    count = hread(fp->fp, header, sizeof(header));
+    if (count == 0) { // no data read
+        fp->block_length = 0;
+        return 0;
+    }
+    int ret;
+    if ( count != sizeof(header) || (ret=check_header(header))==-2 )
     {
-        count = hread(fp->fp, header, sizeof(header));
-        if (count == 0) { // no data read
-            if (!fp->last_block_eof && !fp->no_eof_block && !fp->is_gzip) {
-                fp->no_eof_block = 1;
-                if (hts_verbose > 1) {
-                    fprintf(stderr, "[W::%s] EOF marker is absent. The input is probably truncated.\n", __func__);
-                }
-            }
-            fp->block_length = 0;
-            return 0;
+        fp->errcode |= BGZF_ERR_HEADER;
+        return -1;
+    }
+    if ( ret==-1 )
+    {
+        // GZIP, not BGZF
+        uint8_t *cblock = (uint8_t*)fp->compressed_block;
+        memcpy(cblock, header, sizeof(header));
+        count = hread(fp->fp, cblock+sizeof(header), BGZF_BLOCK_SIZE - sizeof(header)) + sizeof(header);
+        int nskip = 10;
+
+        // Check optional fields to skip: FLG.FNAME,FLG.FCOMMENT,FLG.FHCRC,FLG.FEXTRA
+        // Note: Some of these fields are untested, I did not have appropriate data available
+        if ( header[3] & 0x4 ) // FLG.FEXTRA
+        {
+            nskip += unpackInt16(&cblock[nskip]) + 2;
         }
-        int ret;
-        if ( count != sizeof(header) || (ret=check_header(header))==-2 )
+        if ( header[3] & 0x8 ) // FLG.FNAME
+        {
+            while ( nskip<count && cblock[nskip] ) nskip++;
+            nskip++;
+        }
+        if ( header[3] & 0x10 ) // FLG.FCOMMENT
+        {
+            while ( nskip<count && cblock[nskip] ) nskip++;
+            nskip++;
+        }
+        if ( header[3] & 0x2 ) nskip += 2;  //  FLG.FHCRC
+
+        /* FIXME: Should handle this better.  There's no reason why
+           someone shouldn't include a massively long comment in their
+           gzip stream. */
+        if ( nskip >= count )
         {
             fp->errcode |= BGZF_ERR_HEADER;
             return -1;
         }
-        if ( ret==-1 )
+
+        fp->is_gzip = 1;
+        fp->gz_stream = (z_stream*) calloc(1,sizeof(z_stream));
+        int ret = inflateInit2(fp->gz_stream, -15);
+        if (ret != Z_OK)
         {
-            // GZIP, not BGZF
-            uint8_t *cblock = (uint8_t*)fp->compressed_block;
-            memcpy(cblock, header, sizeof(header));
-            count = hread(fp->fp, cblock+sizeof(header), BGZF_BLOCK_SIZE - sizeof(header)) + sizeof(header);
-            int nskip = 10;
-
-            // Check optional fields to skip: FLG.FNAME,FLG.FCOMMENT,FLG.FHCRC,FLG.FEXTRA
-            // Note: Some of these fields are untested, I did not have appropriate data available
-            if ( header[3] & 0x4 ) // FLG.FEXTRA
-            {
-                nskip += unpackInt16(&cblock[nskip]) + 2;
+            if (hts_verbose >= 1) {
+                fprintf(stderr, "[E::%s] inflateInit2 failed: %s",
+                        __func__, bgzf_zerr(ret, fp->gz_stream));
             }
-            if ( header[3] & 0x8 ) // FLG.FNAME
-            {
-                while ( nskip<count && cblock[nskip] ) nskip++;
-                nskip++;
-            }
-            if ( header[3] & 0x10 ) // FLG.FCOMMENT
-            {
-                while ( nskip<count && cblock[nskip] ) nskip++;
-                nskip++;
-            }
-            if ( header[3] & 0x2 ) nskip += 2;  //  FLG.FHCRC
-
-            /* FIXME: Should handle this better.  There's no reason why
-               someone shouldn't include a massively long comment in their
-               gzip stream. */
-            if ( nskip >= count )
-            {
-                fp->errcode |= BGZF_ERR_HEADER;
-                return -1;
-            }
-
-            fp->is_gzip = 1;
-            fp->gz_stream = (z_stream*) calloc(1,sizeof(z_stream));
-            int ret = inflateInit2(fp->gz_stream, -15);
-            if (ret != Z_OK)
-            {
-                if (hts_verbose >= 1) {
-                    fprintf(stderr, "[E::%s] inflateInit2 failed: %s",
-                            __func__, bgzf_zerr(ret, fp->gz_stream));
-                }
-                fp->errcode |= BGZF_ERR_ZLIB;
-                return -1;
-            }
-            fp->gz_stream->avail_in = count - nskip;
-            fp->gz_stream->next_in  = cblock + nskip;
-            count = inflate_gzip_block(fp, 1);
-            if ( count<0 )
-            {
-                fp->errcode |= BGZF_ERR_ZLIB;
-                return -1;
-            }
-            fp->block_length = count;
-            fp->block_address = block_address;
-            if ( fp->idx_build_otf ) return -1; // cannot build index for gzip
-            return 0;
-        }
-        size = count;
-        block_length = unpackInt16((uint8_t*)&header[16]) + 1; // +1 because when writing this number, we used "-1"
-        compressed_block = (uint8_t*)fp->compressed_block;
-        memcpy(compressed_block, header, BLOCK_HEADER_LENGTH);
-        remaining = block_length - BLOCK_HEADER_LENGTH;
-        count = hread(fp->fp, &compressed_block[BLOCK_HEADER_LENGTH], remaining);
-        if (count != remaining) {
-            fp->errcode |= BGZF_ERR_IO;
+            fp->errcode |= BGZF_ERR_ZLIB;
             return -1;
         }
-        size += count;
-        if ((count = inflate_block(fp, block_length)) < 0) {
-            if (hts_verbose >= 2) fprintf(stderr, "[E::%s] inflate_block error %d\n", __func__, count);
+        fp->gz_stream->avail_in = count - nskip;
+        fp->gz_stream->next_in  = cblock + nskip;
+        count = inflate_gzip_block(fp, 1);
+        if ( count<0 )
+        {
             fp->errcode |= BGZF_ERR_ZLIB;
             return -1;
         }
@@ -1081,12 +994,6 @@ ssize_t bgzf_read(BGZF *fp, void *data, size_t length)
         fp->block_offset += copy_length;
         output += copy_length;
         bytes_read += copy_length;
-
-        // For raw gzip streams this avoids short reads.
-        if (fp->block_offset == fp->block_length) {
-            fp->block_address = bgzf_htell(fp);
-            fp->block_offset = fp->block_length = 0;
-        }
     }
     if (fp->block_offset == fp->block_length) {
         fp->block_address = bgzf_htell(fp);
@@ -1158,7 +1065,7 @@ static void *bgzf_mt_writer(void *vp) {
 
         if (hwrite(fp->fp, j->comp_data, j->comp_len) != j->comp_len) {
             fp->errcode |= BGZF_ERR_IO;
-            goto err;
+            return (void *)-1;
         }
 
         /*
@@ -1172,7 +1079,7 @@ static void *bgzf_mt_writer(void *vp) {
          */
         if (++mt->flush_pending % 512 == 0)
             if (hflush(fp->fp) != 0)
-                goto err;
+                return (void *)-1;
 
 
         hts_tpool_delete_result(r, 0);
@@ -1185,15 +1092,9 @@ static void *bgzf_mt_writer(void *vp) {
     }
 
     if (hflush(fp->fp) != 0)
-        goto err;
-
-    hts_tpool_process_destroy(mt->out_queue);
+        return (void *)-1;
 
     return NULL;
-
- err:
-    hts_tpool_process_destroy(mt->out_queue);
-    return (void *)-1;
 }
 
 
@@ -1220,7 +1121,7 @@ int bgzf_mt_read_block(BGZF *fp, bgzf_job *j)
     block_address = htell(fp->fp);
 
     if (fp->cache_size && load_block_from_cache(fp, block_address)) return 0;
-    count = hpeek(fp->fp, header, sizeof(header));
+    count = hread(fp->fp, header, sizeof(header));
     if (count == 0) // no data read
         return -1;
     int ret;
@@ -1229,15 +1130,6 @@ int bgzf_mt_read_block(BGZF *fp, bgzf_job *j)
         j->errcode |= BGZF_ERR_HEADER;
         return -1;
     }
-    if (ret == -1) {
-        j->errcode |= BGZF_ERR_MT;
-        return -1;
-    }
-
-    count = hread(fp->fp, header, sizeof(header));
-    if (count != sizeof(header)) // no data read
-        return -1;
-
     size = count;
     block_length = unpackInt16((uint8_t*)&header[16]) + 1; // +1 because when writing this number, we used "-1"
     compressed_block = (uint8_t*)j->comp_data;
@@ -1316,12 +1208,8 @@ restart:
     pthread_mutex_unlock(&mt->job_pool_m);
     j->errcode = 0;
     j->uncomp_len = 0;
-    j->hit_eof = 0;
 
     while (bgzf_mt_read_block(fp, j) == 0) {
-        // Dispatch
-        hts_tpool_dispatch(mt->pool, mt->out_queue, bgzf_decode_func, j);
-
         // Check for command
         pthread_mutex_lock(&mt->command_m);
         switch (mt->command) {
@@ -1354,27 +1242,15 @@ restart:
         pthread_mutex_unlock(&mt->job_pool_m);
         j->errcode = 0;
         j->uncomp_len = 0;
-        j->hit_eof = 0;
-    }
-
-    if (j->errcode == BGZF_ERR_MT) {
-        // Attempt to multi-thread decode a raw gzip stream cannot be done.
-        // We tear down the multi-threaded decoder and revert to the old code.
-        hts_tpool_dispatch(mt->pool, mt->out_queue, bgzf_nul_func, j);
-        hts_tpool_process_ref_decr(mt->out_queue);
-        pthread_exit(&j->errcode);
     }
 
     // Dispatch an empty block so EOF is spotted.
     // We also use this mechanism for returning errors, in which case
     // j->errcode is set already.
 
-    j->hit_eof = 1;
     hts_tpool_dispatch(mt->pool, mt->out_queue, bgzf_nul_func, j);
-    if (j->errcode != 0) {
-        hts_tpool_process_destroy(mt->out_queue);
-        pthread_exit(&j->errcode);
-    }
+     if (j->errcode != 0)
+         pthread_exit(&j->errcode);
 
     // We hit EOF so can stop reading, but we may get a subsequent
     // seek request.  In this case we need to restart the reader.
@@ -1403,7 +1279,6 @@ restart:
         case CLOSE:
             pthread_cond_signal(&mt->command_c);
             pthread_mutex_unlock(&mt->command_m);
-            hts_tpool_process_destroy(mt->out_queue);
             pthread_exit(NULL);
         }
     }
@@ -1427,7 +1302,6 @@ int bgzf_thread_pool(BGZF *fp, hts_tpool *pool, int qsize) {
         free(mt);
         return -1;
     }
-    hts_tpool_process_ref_incr(mt->out_queue);
 
     mt->job_pool = pool_create(sizeof(bgzf_job));
 
@@ -1436,7 +1310,7 @@ int bgzf_thread_pool(BGZF *fp, hts_tpool *pool, int qsize) {
     pthread_cond_init(&mt->command_c, NULL);
     mt->flush_pending = 0;
     mt->jobs_pending = 0;
-    mt->free_block = fp->uncompressed_block; // currently in-use block
+    mt->free_block = fp->uncompressed_block;
     pthread_create(&mt->io_task, NULL,
                    fp->is_write ? bgzf_mt_writer : bgzf_mt_reader, fp);
 
@@ -1446,7 +1320,7 @@ int bgzf_thread_pool(BGZF *fp, hts_tpool *pool, int qsize) {
 int bgzf_mt(BGZF *fp, int n_threads, int n_sub_blks)
 {
     // No gain from multi-threading when not compressed
-    if (!fp->is_compressed || fp->is_gzip)
+    if (!fp->is_compressed)
         return 0;
 
     if (n_threads < 1) return -1;
@@ -1675,15 +1549,14 @@ int bgzf_hclose(BGZF *fp)
     }
 #ifdef BGZF_MT
     if (fp->mt) {
-        if (!fp->mt->free_block)
-            fp->uncompressed_block = NULL;
         mt_destroy(fp->mt);
+        if (!fp->is_write)
+            fp->uncompressed_block = NULL;
     }
 #endif
     if ( fp->is_gzip )
     {
-        if (fp->gz_stream == NULL) ret = Z_OK;
-        else if (!fp->is_write) ret = inflateEnd(fp->gz_stream);
+        if (!fp->is_write) ret = inflateEnd(fp->gz_stream);
         else ret = deflateEnd(fp->gz_stream);
         if (ret != Z_OK && hts_verbose >= 1)
             fprintf(stderr, "[E::%s] inflateEnd/deflateEnd failed: %s\n",
@@ -1730,8 +1603,6 @@ int bgzf_check_EOF(BGZF *fp) {
         has_eof = bgzf_check_EOF_common(fp);
     }
 
-    fp->no_eof_block = (has_eof == 0);
-
     return has_eof;
 }
 
@@ -1740,7 +1611,7 @@ int64_t bgzf_seek(BGZF* fp, int64_t pos, int where)
     int block_offset;
     int64_t block_address;
 
-    if (fp->is_write || where != SEEK_SET || fp->is_gzip) {
+    if (fp->is_write || where != SEEK_SET) {
         fp->errcode |= BGZF_ERR_MISUSE;
         return -1;
     }
@@ -1762,7 +1633,6 @@ int64_t bgzf_seek(BGZF* fp, int64_t pos, int where)
         // waiting for a command.  We then wait for the response so we
         // know the seek succeeded.
         pthread_mutex_lock(&fp->mt->command_m);
-        fp->mt->hit_eof = 0;
         fp->mt->command = SEEK;
         fp->mt->block_address = block_address;
         pthread_cond_signal(&fp->mt->command_c);
@@ -1794,7 +1664,7 @@ int bgzf_is_bgzf(const char *fn)
     hFILE *fp;
     if ((fp = hopen(fn, "r")) == 0) return 0;
     n = hread(fp, buf, 16);
-    if (hclose(fp) < 0) return 0;
+    if ( hclose(fp) < 0 ) return -1;
     if (n != 16) return 0;
     if ( !memcmp(bc_magic, buf, 16) ) return 1;
     if ( !memcmp(dc_magic, buf, 16) ) return 1;
@@ -1855,7 +1725,7 @@ int bgzf_getline(BGZF *fp, int delim, kstring_t *str)
         }
     } while (state == 0);
     if (str->l == 0 && state < 0) return state;
-    fp->uncompressed_address += str->l + 1;
+    fp->uncompressed_address += str->l;
     if ( delim=='\n' && str->l>0 && str->s[str->l-1]=='\r' ) str->l--;
     str->s[str->l] = 0;
     return str->l;
@@ -1894,127 +1764,107 @@ int bgzf_index_add_block(BGZF *fp)
     return 0;
 }
 
-static inline int hwrite_uint64(uint64_t x, hFILE *f)
+static inline int fwrite_uint64(uint64_t x, FILE *f)
 {
     if (ed_is_big()) x = ed_swap_8(x);
-    if (hwrite(f, &x, sizeof(x)) != sizeof(x)) return -1;
+    if (fwrite(&x, sizeof x, 1, f) != 1) return -1;
     return 0;
-}
-
-static char * get_name_suffix(const char *bname, const char *suffix)
-{
-    size_t len = strlen(bname) + strlen(suffix) + 1;
-    char *buff = malloc(len);
-    if (!buff) return NULL;
-    snprintf(buff, len, "%s%s", bname, suffix);
-    return buff;
-}
-
-int bgzf_index_dump_hfile(BGZF *fp, struct hFILE *idx, const char *name)
-{
-    // Note that the index contains one extra record when indexing files opened
-    // for reading. The terminating record is not present when opened for writing.
-    // This is not a bug.
-
-    int i, save_errno;
-
-    if (!fp->idx) {
-        if (hts_verbose > 1) {
-            fprintf(stderr, "[E::%s] Called for BGZF handle with no index",
-                    __func__);
-            errno = EINVAL;
-            return -1;
-        }
-    }
-
-    if (bgzf_flush(fp) != 0) return -1;
-
-    if (hwrite_uint64(fp->idx->noffs - 1, idx) < 0) goto fail;
-    for (i=1; i<fp->idx->noffs; i++)
-    {
-        if (hwrite_uint64(fp->idx->offs[i].caddr, idx) < 0) goto fail;
-        if (hwrite_uint64(fp->idx->offs[i].uaddr, idx) < 0) goto fail;
-    }
-    return 0;
-
- fail:
-    save_errno = errno;
-    if (hts_verbose > 1) {
-        fprintf(stderr, "[E::%s] Error writing to %s : %s\n",
-                __func__, name ? name : "index", strerror(errno));
-    }
-    errno = save_errno;
-    return -1;
 }
 
 int bgzf_index_dump(BGZF *fp, const char *bname, const char *suffix)
 {
-    const char *name = bname, *msg = NULL;
+    if (bgzf_flush(fp) != 0) return -1;
+
+    assert(fp->idx);
     char *tmp = NULL;
-    hFILE *idx = NULL;
-    int save_errno;
-
-    if (!fp->idx) {
-        if (hts_verbose > 1) {
-            fprintf(stderr, "[E::%s] Called for BGZF handle with no index",
-                    __func__);
-            errno = EINVAL;
-            return -1;
-        }
-    }
-
     if ( suffix )
     {
-        tmp = get_name_suffix(bname, suffix);
+        int blen = strlen(bname);
+        int slen = strlen(suffix);
+        tmp = (char*) malloc(blen + slen + 1);
         if ( !tmp ) return -1;
-        name = tmp;
+        memcpy(tmp,bname,blen);
+        memcpy(tmp+blen,suffix,slen+1);
     }
 
-    idx = hopen(name, "wb");
+    FILE *idx = fopen(tmp?tmp:bname,"wb");
+    if ( tmp ) free(tmp);
     if ( !idx ) {
-        msg = "Error opening";
-        goto fail;
+        if (hts_verbose > 1)
+        {
+            fprintf(stderr, "[E::%s] Error opening %s%s : %s\n",
+                    __func__, bname, suffix ? suffix : "", strerror(errno));
+        }
+        return -1;
     }
 
-    if (bgzf_index_dump_hfile(fp, idx, name) != 0) goto fail;
+    // Note that the index contains one extra record when indexing files opened
+    // for reading. The terminating record is not present when opened for writing.
+    // This is not a bug.
 
-    if (hclose(idx) < 0)
+    int i;
+    if (fwrite_uint64(fp->idx->noffs - 1, idx) < 0) goto fail;
+    for (i=1; i<fp->idx->noffs; i++)
     {
-        idx = NULL;
-        msg = "Error on closing";
-        goto fail;
+        if (fwrite_uint64(fp->idx->offs[i].caddr, idx) < 0) goto fail;
+        if (fwrite_uint64(fp->idx->offs[i].uaddr, idx) < 0) goto fail;
     }
 
-    free(tmp);
+    if (fclose(idx) < 0)
+    {
+        if (hts_verbose > 1)
+        {
+            fprintf(stderr, "[E::%s] Error on closing %s%s : %s\n",
+                    __func__, bname, suffix ? suffix : "", strerror(errno));
+        }
+        return -1;
+    }
     return 0;
 
  fail:
-    save_errno = errno;
-    if (hts_verbose > 1 && msg != NULL)
+    if (hts_verbose > 1)
     {
-        fprintf(stderr, "[E::%s] %s %s : %s\n",
-                __func__, msg, name, strerror(errno));
+        fprintf(stderr, "[E::%s] Error writing to %s%s : %s\n",
+                __func__, bname, suffix ? suffix : "", strerror(errno));
     }
-    if (idx) hclose_abruptly(idx);
-    free(tmp);
-    errno = save_errno;
+    fclose(idx);
     return -1;
 }
 
-static inline int hread_uint64(uint64_t *xptr, hFILE *f)
+static inline int fread_uint64(uint64_t *xptr, FILE *f)
 {
-    if (hread(f, xptr, sizeof(*xptr)) != sizeof(*xptr)) return -1;
+    if (fread(xptr, sizeof *xptr, 1, f) != 1) return -1;
     if (ed_is_big()) ed_swap_8p(xptr);
     return 0;
 }
 
-int bgzf_index_load_hfile(BGZF *fp, struct hFILE *idx, const char *name)
+int bgzf_index_load(BGZF *fp, const char *bname, const char *suffix)
 {
-    int save_errno;
+    char *tmp = NULL;
+    if ( suffix )
+    {
+        int blen = strlen(bname);
+        int slen = strlen(suffix);
+        tmp = (char*) malloc(blen + slen + 1);
+        if ( !tmp ) return -1;
+        memcpy(tmp,bname,blen);
+        memcpy(tmp+blen,suffix,slen+1);
+    }
+
+    FILE *idx = fopen(tmp?tmp:bname,"rb");
+    if ( tmp ) free(tmp);
+    if ( !idx ) {
+        if (hts_verbose > 1) {
+            fprintf(stderr, "[E::%s] Error opening %s%s : %s\n",
+                    __func__, bname, suffix ? suffix : "", strerror(errno));
+        }
+        return -1;
+    }
+
     fp->idx = (bgzidx_t*) calloc(1,sizeof(bgzidx_t));
     if (fp->idx == NULL) goto fail;
     uint64_t x;
-    if (hread_uint64(&x, idx) < 0) goto fail;
+    if (fread_uint64(&x, idx) < 0) goto fail;
 
     fp->idx->noffs = fp->idx->moffs = x + 1;
     fp->idx->offs  = (bgzidx1_t*) malloc(fp->idx->moffs*sizeof(bgzidx1_t));
@@ -2024,67 +1874,25 @@ int bgzf_index_load_hfile(BGZF *fp, struct hFILE *idx, const char *name)
     int i;
     for (i=1; i<fp->idx->noffs; i++)
     {
-        if (hread_uint64(&fp->idx->offs[i].caddr, idx) < 0) goto fail;
-        if (hread_uint64(&fp->idx->offs[i].uaddr, idx) < 0) goto fail;
+        if (fread_uint64(&fp->idx->offs[i].caddr, idx) < 0) goto fail;
+        if (fread_uint64(&fp->idx->offs[i].uaddr, idx) < 0) goto fail;
     }
 
+    if (fclose(idx) != 0) goto fail;
     return 0;
 
  fail:
-    save_errno = errno;
     if (hts_verbose > 1)
     {
-        fprintf(stderr, "[E::%s] Error reading %s : %s\n",
-                __func__, name ? name : "index", strerror(errno));
+        fprintf(stderr, "[E::%s] Error reading %s%s : %s\n",
+                __func__, bname, suffix ? suffix : "", strerror(errno));
     }
+    fclose(idx);
     if (fp->idx) {
         free(fp->idx->offs);
         free(fp->idx);
         fp->idx = NULL;
     }
-    errno = save_errno;
-    return -1;
-}
-
-int bgzf_index_load(BGZF *fp, const char *bname, const char *suffix)
-{
-    int save_errno;
-    const char *name = bname, *msg = NULL;
-    char *tmp = NULL;
-    hFILE *idx = NULL;
-    if ( suffix )
-    {
-        tmp = get_name_suffix(bname, suffix);
-        if ( !tmp ) return -1;
-        name = tmp;
-    }
-
-    idx = hopen(name, "rb");
-    if ( !idx ) {
-        msg = "Error opening";
-        goto fail;
-    }
-
-    if (bgzf_index_load_hfile(fp, idx, name) != 0) goto fail;
-
-    if (hclose(idx) != 0) {
-        idx = NULL;
-        msg = "Error closing";
-        goto fail;
-    }
-
-    free(tmp);
-    return 0;
-
- fail:
-    save_errno = errno;
-    if (hts_verbose > 1 && msg != NULL) {
-        fprintf(stderr, "[E::%s] %s %s : %s\n",
-                __func__, msg, name, strerror(errno));
-    }
-    if (idx) hclose_abruptly(idx);
-    free(tmp);
-    errno = save_errno;
     return -1;
 }
 
