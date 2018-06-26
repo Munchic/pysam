@@ -568,6 +568,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include <stdio.h>
 #include "pythread.h"
 #include <sys/types.h>
+#include "stdarg.h"
 #include "htslib/kstring.h"
 #include "htslib_util.h"
 #include "htslib/hfile.h"
@@ -578,8 +579,9 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "htslib/tbx.h"
 #include "htslib/vcf.h"
 #include "htslib/vcfutils.h"
+#include "htslib/cram.h"
 #include "pysam_stream.h"
-#include "pysam_util.h"
+#include <errno.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -813,13 +815,10 @@ typedef struct arrayobject arrayobject;
 struct __pyx_obj_5pysam_10libchtslib_HTSFile;
 struct __pyx_obj_5pysam_9libcfaidx_FastaFile;
 struct __pyx_obj_5pysam_9libcfaidx_FastqProxy;
-struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy;
+struct __pyx_obj_5pysam_9libcfaidx_FastxRecord;
 struct __pyx_obj_5pysam_9libcfaidx_FastxFile;
 struct __pyx_obj_5pysam_9libcfaidx_FastqFile;
 struct __pyx_obj_5pysam_9libcfaidx_Fastafile;
-struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open;
-struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr;
-struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr;
 struct __pyx_opt_args_5pysam_9libcutils_parse_region;
 struct __pyx_opt_args_5pysam_9libcutils_qualitystring_to_array;
 struct __pyx_opt_args_5pysam_9libcutils_array_to_qualitystring;
@@ -941,10 +940,10 @@ struct __pyx_opt_args_5pysam_9libcutils_force_bytes {
   PyObject *encoding;
 };
 struct __pyx_opt_args_5pysam_9libcfaidx_10FastqProxy_get_quality_array;
-struct __pyx_opt_args_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array;
+struct __pyx_opt_args_5pysam_9libcfaidx_11FastxRecord_get_quality_array;
 
-/* "pysam/libcfaidx.pxd":48
- *     cdef kseq_t * _delegate
+/* "pysam/libcfaidx.pxd":49
+ *     cdef cython.str to_string(self)
  *     cdef cython.str tostring(self)
  *     cpdef array.array get_quality_array(self, int offset=*)             # <<<<<<<<<<<<<<
  * 
@@ -955,19 +954,19 @@ struct __pyx_opt_args_5pysam_9libcfaidx_10FastqProxy_get_quality_array {
   int offset;
 };
 
-/* "pysam/libcfaidx.pxd":57
- *     cdef public str comment, quality, sequence, name
+/* "pysam/libcfaidx.pxd":59
+ *     cdef cython.str to_string(self)
  *     cdef cython.str tostring(self)
  *     cpdef array.array get_quality_array(self, int offset=*)             # <<<<<<<<<<<<<<
  * 
- * 
+ * cdef class FastxFile:
  */
-struct __pyx_opt_args_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array {
+struct __pyx_opt_args_5pysam_9libcfaidx_11FastxRecord_get_quality_array {
   int __pyx_n;
   int offset;
 };
 
-/* "pysam/libchtslib.pxd":1904
+/* "pysam/libchtslib.pxd":2590
  * 
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
@@ -981,6 +980,7 @@ struct __pyx_obj_5pysam_10libchtslib_HTSFile {
   int64_t start_offset;
   PyObject *filename;
   PyObject *mode;
+  PyObject *threads;
   PyObject *index_filename;
   int is_stream;
   int is_remote;
@@ -1012,7 +1012,7 @@ struct __pyx_obj_5pysam_9libcfaidx_FastaFile {
  * 
  * cdef class FastqProxy:             # <<<<<<<<<<<<<<
  *     cdef kseq_t * _delegate
- *     cdef cython.str tostring(self)
+ *     cdef cython.str to_string(self)
  */
 struct __pyx_obj_5pysam_9libcfaidx_FastqProxy {
   PyObject_HEAD
@@ -1021,16 +1021,16 @@ struct __pyx_obj_5pysam_9libcfaidx_FastqProxy {
 };
 
 
-/* "pysam/libcfaidx.pxd":51
+/* "pysam/libcfaidx.pxd":52
  * 
  * 
- * cdef class PersistentFastqProxy:             # <<<<<<<<<<<<<<
+ * cdef class FastxRecord:             # <<<<<<<<<<<<<<
  *     """
  *     Python container for pysam.libcfaidx.FastqProxy with persistence.
  */
-struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy {
+struct __pyx_obj_5pysam_9libcfaidx_FastxRecord {
   PyObject_HEAD
-  struct __pyx_vtabstruct_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_vtab;
+  struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxRecord *__pyx_vtab;
   PyObject *comment;
   PyObject *quality;
   PyObject *sequence;
@@ -1038,8 +1038,8 @@ struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy {
 };
 
 
-/* "pysam/libcfaidx.pxd":60
- * 
+/* "pysam/libcfaidx.pxd":61
+ *     cpdef array.array get_quality_array(self, int offset=*)
  * 
  * cdef class FastxFile:             # <<<<<<<<<<<<<<
  *     cdef object _filename
@@ -1056,7 +1056,7 @@ struct __pyx_obj_5pysam_9libcfaidx_FastxFile {
 };
 
 
-/* "pysam/libcfaidx.pxd":72
+/* "pysam/libcfaidx.pxd":73
  * 
  * # Compatibility Layer for pysam 0.8.1
  * cdef class FastqFile(FastxFile):             # <<<<<<<<<<<<<<
@@ -1068,7 +1068,7 @@ struct __pyx_obj_5pysam_9libcfaidx_FastqFile {
 };
 
 
-/* "pysam/libcfaidx.pxd":77
+/* "pysam/libcfaidx.pxd":78
  * 
  * # Compatibility Layer for pysam < 0.8
  * cdef class Fastafile(FastaFile):             # <<<<<<<<<<<<<<
@@ -1080,53 +1080,8 @@ struct __pyx_obj_5pysam_9libcfaidx_Fastafile {
 };
 
 
-/* "pysam/libcfaidx.pyx":126
- *         return faidx_nseq(self.fastafile)
- * 
- *     def _open(self, filename, filepath_index=None):             # <<<<<<<<<<<<<<
- *         '''open an indexed fasta file.
- * 
- */
-struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open {
-  PyObject_HEAD
-  PyObject *__pyx_v_data;
-};
 
-
-/* "pysam/libcfaidx.pyx":169
- *         with open(filepath_index) as inf:
- *             data = [x.split("\t") for x in inf]
- *             self._references = tuple(x[0] for x in data)             # <<<<<<<<<<<<<<
- *             self._lengths = tuple(int(x[1]) for x in data)
- *             self.reference2length = dict(zip(self._references, self._lengths))
- */
-struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr {
-  PyObject_HEAD
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *__pyx_outer_scope;
-  PyObject *__pyx_v_x;
-  PyObject *__pyx_t_0;
-  Py_ssize_t __pyx_t_1;
-};
-
-
-/* "pysam/libcfaidx.pyx":170
- *             data = [x.split("\t") for x in inf]
- *             self._references = tuple(x[0] for x in data)
- *             self._lengths = tuple(int(x[1]) for x in data)             # <<<<<<<<<<<<<<
- *             self.reference2length = dict(zip(self._references, self._lengths))
- * 
- */
-struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr {
-  PyObject_HEAD
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *__pyx_outer_scope;
-  PyObject *__pyx_v_x;
-  PyObject *__pyx_t_0;
-  Py_ssize_t __pyx_t_1;
-};
-
-
-
-/* "pysam/libchtslib.pxd":1904
+/* "pysam/libchtslib.pxd":2590
  * 
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
@@ -1140,7 +1095,7 @@ struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile {
 static struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile *__pyx_vtabptr_5pysam_10libchtslib_HTSFile;
 
 
-/* "pysam/libcfaidx.pyx":80
+/* "pysam/libcfaidx.pyx":85
  * ##        add automatic indexing.
  * ##        add function to get sequence names.
  * cdef class FastaFile:             # <<<<<<<<<<<<<<
@@ -1154,7 +1109,7 @@ struct __pyx_vtabstruct_5pysam_9libcfaidx_FastaFile {
 static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastaFile *__pyx_vtabptr_5pysam_9libcfaidx_FastaFile;
 
 
-/* "pysam/libcfaidx.pyx":321
+/* "pysam/libcfaidx.pyx":356
  * 
  * 
  * cdef class FastqProxy:             # <<<<<<<<<<<<<<
@@ -1163,28 +1118,30 @@ static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastaFile *__pyx_vtabptr_5pysam
  */
 
 struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqProxy {
+  PyObject *(*to_string)(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *);
   PyObject *(*tostring)(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *);
   arrayobject *(*get_quality_array)(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_10FastqProxy_get_quality_array *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqProxy *__pyx_vtabptr_5pysam_9libcfaidx_FastqProxy;
 
 
-/* "pysam/libcfaidx.pyx":372
+/* "pysam/libcfaidx.pyx":411
  *                                       offset=offset)
  * 
- * cdef class PersistentFastqProxy:             # <<<<<<<<<<<<<<
- *     """
- *     Python container for pysam.libcfaidx.FastqProxy with persistence.
+ * cdef class FastxRecord:             # <<<<<<<<<<<<<<
+ *     """A fasta/fastq record.
+ * 
  */
 
-struct __pyx_vtabstruct_5pysam_9libcfaidx_PersistentFastqProxy {
-  PyObject *(*tostring)(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *);
-  arrayobject *(*get_quality_array)(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array *__pyx_optional_args);
+struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxRecord {
+  PyObject *(*to_string)(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *);
+  PyObject *(*tostring)(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *);
+  arrayobject *(*get_quality_array)(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_11FastxRecord_get_quality_array *__pyx_optional_args);
 };
-static struct __pyx_vtabstruct_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_vtabptr_5pysam_9libcfaidx_PersistentFastqProxy;
+static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxRecord *__pyx_vtabptr_5pysam_9libcfaidx_FastxRecord;
 
 
-/* "pysam/libcfaidx.pyx":406
+/* "pysam/libcfaidx.pyx":496
  * 
  * 
  * cdef class FastxFile:             # <<<<<<<<<<<<<<
@@ -1199,7 +1156,7 @@ struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxFile {
 static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxFile *__pyx_vtabptr_5pysam_9libcfaidx_FastxFile;
 
 
-/* "pysam/libcfaidx.pyx":559
+/* "pysam/libcfaidx.pyx":652
  * 
  * # Compatibility Layer for pysam 0.8.1
  * cdef class FastqFile(FastxFile):             # <<<<<<<<<<<<<<
@@ -1213,7 +1170,7 @@ struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqFile {
 static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqFile *__pyx_vtabptr_5pysam_9libcfaidx_FastqFile;
 
 
-/* "pysam/libcfaidx.pyx":564
+/* "pysam/libcfaidx.pyx":657
  * 
  * # Compatibility Layer for pysam < 0.8
  * cdef class Fastafile(FastaFile):             # <<<<<<<<<<<<<<
@@ -1563,31 +1520,6 @@ static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[],\
 static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
     Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
 
-/* None.proto */
-static CYTHON_INLINE void __Pyx_RaiseClosureNameError(const char *varname);
-
-/* GetItemInt.proto */
-#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
-    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
-               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
-#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
-                                                     int is_list, int wraparound, int boundscheck);
-
 /* PyCFunctionFastCall.proto */
 #if CYTHON_FAST_PYCCALL
 static CYTHON_INLINE PyObject *__Pyx_PyCFunction_FastCall(PyObject *func, PyObject **args, Py_ssize_t nargs);
@@ -1630,38 +1562,12 @@ static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int eq
 /* GetModuleGlobalName.proto */
 static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name);
 
-/* PyObjectLookupSpecial.proto */
-#if CYTHON_USE_PYTYPE_LOOKUP && CYTHON_USE_TYPE_SLOTS
-static CYTHON_INLINE PyObject* __Pyx_PyObject_LookupSpecial(PyObject* obj, PyObject* attr_name) {
-    PyObject *res;
-    PyTypeObject *tp = Py_TYPE(obj);
-#if PY_MAJOR_VERSION < 3
-    if (unlikely(PyInstance_Check(obj)))
-        return __Pyx_PyObject_GetAttrStr(obj, attr_name);
-#endif
-    res = _PyType_Lookup(tp, attr_name);
-    if (likely(res)) {
-        descrgetfunc f = Py_TYPE(res)->tp_descr_get;
-        if (!f) {
-            Py_INCREF(res);
-        } else {
-            res = f(res, obj, (PyObject *)tp);
-        }
-    } else {
-        PyErr_SetObject(PyExc_AttributeError, attr_name);
-    }
-    return res;
-}
-#else
-#define __Pyx_PyObject_LookupSpecial(o,n) __Pyx_PyObject_GetAttrStr(o,n)
-#endif
-
-/* ListCompAppend.proto */
+/* ListAppend.proto */
 #if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
-static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
+static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
     PyListObject* L = (PyListObject*) list;
     Py_ssize_t len = Py_SIZE(list);
-    if (likely(L->allocated > len)) {
+    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
         Py_INCREF(x);
         PyList_SET_ITEM(list, len, x);
         Py_SIZE(list) = len+1;
@@ -1670,27 +1576,15 @@ static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
     return PyList_Append(list, x);
 }
 #else
-#define __Pyx_ListComp_Append(L,x) PyList_Append(L,x)
+#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
 #endif
 
-/* SaveResetException.proto */
-#if CYTHON_FAST_THREAD_STATE
-#define __Pyx_ExceptionSave(type, value, tb)  __Pyx__ExceptionSave(__pyx_tstate, type, value, tb)
-static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
-#define __Pyx_ExceptionReset(type, value, tb)  __Pyx__ExceptionReset(__pyx_tstate, type, value, tb)
-static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb);
-#else
-#define __Pyx_ExceptionSave(type, value, tb)   PyErr_GetExcInfo(type, value, tb)
-#define __Pyx_ExceptionReset(type, value, tb)  PyErr_SetExcInfo(type, value, tb)
-#endif
+/* PyObjectCallMethod1.proto */
+static PyObject* __Pyx_PyObject_CallMethod1(PyObject* obj, PyObject* method_name, PyObject* arg);
+static PyObject* __Pyx__PyObject_CallMethod1(PyObject* method, PyObject* arg);
 
-/* GetException.proto */
-#if CYTHON_FAST_THREAD_STATE
-#define __Pyx_GetException(type, value, tb)  __Pyx__GetException(__pyx_tstate, type, value, tb)
-static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
-#else
-static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb);
-#endif
+/* append.proto */
+static CYTHON_INLINE int __Pyx_PyObject_Append(PyObject* L, PyObject* x);
 
 /* WriteUnraisableException.proto */
 static void __Pyx_WriteUnraisable(const char *name, int clineno,
@@ -1709,6 +1603,14 @@ static CYTHON_INLINE int __Pyx_IterFinish(void);
 /* UnpackItemEndCheck.proto */
 static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected);
 
+/* GetException.proto */
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_GetException(type, value, tb)  __Pyx__GetException(__pyx_tstate, type, value, tb)
+static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
+#else
+static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb);
+#endif
+
 /* SwapException.proto */
 #if CYTHON_FAST_THREAD_STATE
 #define __Pyx_ExceptionSwap(type, value, tb)  __Pyx__ExceptionSwap(__pyx_tstate, type, value, tb)
@@ -1716,6 +1618,39 @@ static CYTHON_INLINE void __Pyx__ExceptionSwap(PyThreadState *tstate, PyObject *
 #else
 static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value, PyObject **tb);
 #endif
+
+/* SaveResetException.proto */
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_ExceptionSave(type, value, tb)  __Pyx__ExceptionSave(__pyx_tstate, type, value, tb)
+static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
+#define __Pyx_ExceptionReset(type, value, tb)  __Pyx__ExceptionReset(__pyx_tstate, type, value, tb)
+static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb);
+#else
+#define __Pyx_ExceptionSave(type, value, tb)   PyErr_GetExcInfo(type, value, tb)
+#define __Pyx_ExceptionReset(type, value, tb)  PyErr_SetExcInfo(type, value, tb)
+#endif
+
+/* GetItemInt.proto */
+#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
+    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
+               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
+#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
+                                                     int is_list, int wraparound, int boundscheck);
 
 /* ObjectGetItem.proto */
 #if CYTHON_USE_TYPE_SLOTS
@@ -1927,10 +1862,10 @@ static CYTHON_INLINE int resize_smart(arrayobject *self, Py_ssize_t n) {
 #endif
 
 /* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 
 /* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
@@ -1950,75 +1885,6 @@ static CYTHON_INLINE int __Pyx_PyErr_GivenExceptionMatches2(PyObject *err, PyObj
 #define __Pyx_PyErr_GivenExceptionMatches2(err, type1, type2) (PyErr_GivenExceptionMatches(err, type1) || PyErr_GivenExceptionMatches(err, type2))
 #endif
 #define __Pyx_PyException_Check(obj) __Pyx_TypeCheck(obj, PyExc_Exception)
-
-/* FetchCommonType.proto */
-static PyTypeObject* __Pyx_FetchCommonType(PyTypeObject* type);
-
-/* PyObjectCallMethod1.proto */
-static PyObject* __Pyx_PyObject_CallMethod1(PyObject* obj, PyObject* method_name, PyObject* arg);
-static PyObject* __Pyx__PyObject_CallMethod1(PyObject* method, PyObject* arg);
-
-/* CoroutineBase.proto */
-typedef PyObject *(*__pyx_coroutine_body_t)(PyObject *, PyThreadState *, PyObject *);
-typedef struct {
-    PyObject_HEAD
-    __pyx_coroutine_body_t body;
-    PyObject *closure;
-    PyObject *exc_type;
-    PyObject *exc_value;
-    PyObject *exc_traceback;
-    PyObject *gi_weakreflist;
-    PyObject *classobj;
-    PyObject *yieldfrom;
-    PyObject *gi_name;
-    PyObject *gi_qualname;
-    PyObject *gi_modulename;
-    PyObject *gi_code;
-    int resume_label;
-    char is_running;
-} __pyx_CoroutineObject;
-static __pyx_CoroutineObject *__Pyx__Coroutine_New(
-    PyTypeObject *type, __pyx_coroutine_body_t body, PyObject *code, PyObject *closure,
-    PyObject *name, PyObject *qualname, PyObject *module_name);
-static __pyx_CoroutineObject *__Pyx__Coroutine_NewInit(
-            __pyx_CoroutineObject *gen, __pyx_coroutine_body_t body, PyObject *code, PyObject *closure,
-            PyObject *name, PyObject *qualname, PyObject *module_name);
-static int __Pyx_Coroutine_clear(PyObject *self);
-static PyObject *__Pyx_Coroutine_Send(PyObject *self, PyObject *value);
-static PyObject *__Pyx_Coroutine_Close(PyObject *self);
-static PyObject *__Pyx_Coroutine_Throw(PyObject *gen, PyObject *args);
-#define __Pyx_Coroutine_SwapException(self) {\
-    __Pyx_ExceptionSwap(&(self)->exc_type, &(self)->exc_value, &(self)->exc_traceback);\
-    __Pyx_Coroutine_ResetFrameBackpointer(self);\
-    }
-#define __Pyx_Coroutine_ResetAndClearException(self) {\
-    __Pyx_ExceptionReset((self)->exc_type, (self)->exc_value, (self)->exc_traceback);\
-    (self)->exc_type = (self)->exc_value = (self)->exc_traceback = NULL;\
-    }
-#if CYTHON_FAST_THREAD_STATE
-#define __Pyx_PyGen_FetchStopIterationValue(pvalue)\
-    __Pyx_PyGen__FetchStopIterationValue(__pyx_tstate, pvalue)
-#else
-#define __Pyx_PyGen_FetchStopIterationValue(pvalue)\
-    __Pyx_PyGen__FetchStopIterationValue(__Pyx_PyThreadState_Current, pvalue)
-#endif
-static int __Pyx_PyGen__FetchStopIterationValue(PyThreadState *tstate, PyObject **pvalue);
-static CYTHON_INLINE void __Pyx_Coroutine_ResetFrameBackpointer(__pyx_CoroutineObject *self);
-
-/* PatchModuleWithCoroutine.proto */
-static PyObject* __Pyx_Coroutine_patch_module(PyObject* module, const char* py_code);
-
-/* PatchGeneratorABC.proto */
-static int __Pyx_patch_abc(void);
-
-/* Generator.proto */
-#define __Pyx_Generator_USED
-static PyTypeObject *__pyx_GeneratorType = 0;
-#define __Pyx_Generator_CheckExact(obj) (Py_TYPE(obj) == __pyx_GeneratorType)
-#define __Pyx_Generator_New(body, code, closure, name, qualname, module_name)\
-    __Pyx__Coroutine_New(__pyx_GeneratorType, body, code, closure, name, qualname, module_name)
-static PyObject *__Pyx_Generator_Next(PyObject *self);
-static int __pyx_Generator_init(void);
 
 /* CheckBinaryVersion.proto */
 static int __Pyx_check_binary_version(void);
@@ -2045,10 +1911,12 @@ static int __Pyx_ImportFunction(PyObject *module, const char *funcname, void (**
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
 static char *__pyx_f_5pysam_9libcfaidx_9FastaFile__fetch(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self, char *__pyx_v_reference, int __pyx_v_start, int __pyx_v_end, int *__pyx_v_length); /* proto*/
+static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_to_string(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_self); /* proto*/
 static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_self); /* proto*/
 static arrayobject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_get_quality_array(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_self, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_10FastqProxy_get_quality_array *__pyx_optional_args); /* proto*/
-static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self); /* proto*/
-static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array *__pyx_optional_args); /* proto*/
+static PyObject *__pyx_f_5pysam_9libcfaidx_11FastxRecord_to_string(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto*/
+static PyObject *__pyx_f_5pysam_9libcfaidx_11FastxRecord_tostring(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto*/
+static arrayobject *__pyx_f_5pysam_9libcfaidx_11FastxRecord_get_quality_array(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_11FastxRecord_get_quality_array *__pyx_optional_args); /* proto*/
 static kseq_t *__pyx_f_5pysam_9libcfaidx_9FastxFile_getCurrent(struct __pyx_obj_5pysam_9libcfaidx_FastxFile *__pyx_v_self); /* proto*/
 static int __pyx_f_5pysam_9libcfaidx_9FastxFile_cnext(struct __pyx_obj_5pysam_9libcfaidx_FastxFile *__pyx_v_self); /* proto*/
 
@@ -2152,6 +2020,8 @@ static CYTHON_INLINE int __pyx_f_7cpython_5array_extend_buffer(arrayobject *, ch
 /* Module declarations from 'pysam.libchtslib' */
 static PyTypeObject *__pyx_ptype_5pysam_10libchtslib_HTSFile = 0;
 
+/* Module declarations from 'libc.errno' */
+
 /* Module declarations from 'pysam.libcutils' */
 static PyObject *(*__pyx_f_5pysam_9libcutils_parse_region)(int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcutils_parse_region *__pyx_optional_args); /*proto*/
 static arrayobject *(*__pyx_f_5pysam_9libcutils_qualitystring_to_array)(PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcutils_qualitystring_to_array *__pyx_optional_args); /*proto*/
@@ -2164,78 +2034,62 @@ static PyObject *(*__pyx_f_5pysam_9libcutils_from_string_and_size)(char const *,
 /* Module declarations from 'pysam.libcfaidx' */
 static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_FastaFile = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_FastqProxy = 0;
-static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_PersistentFastqProxy = 0;
+static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_FastxRecord = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_FastxFile = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_FastqFile = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx_Fastafile = 0;
-static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx___pyx_scope_struct___open = 0;
-static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr = 0;
-static PyTypeObject *__pyx_ptype_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr = 0;
 static PyObject *__pyx_f_5pysam_9libcfaidx_makeFastqProxy(kseq_t *); /*proto*/
-static PyObject *__pyx_f_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy__set_state(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *, PyObject *); /*proto*/
+static PyObject *__pyx_f_5pysam_9libcfaidx___pyx_unpickle_FastxRecord__set_state(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *, PyObject *); /*proto*/
 #define __Pyx_MODULE_NAME "pysam.libcfaidx"
 extern int __pyx_module_is_main_pysam__libcfaidx;
 int __pyx_module_is_main_pysam__libcfaidx = 0;
 
 /* Implementation of 'pysam.libcfaidx' */
 static PyObject *__pyx_builtin_ValueError;
-static PyObject *__pyx_builtin_NotImplementedError;
 static PyObject *__pyx_builtin_IOError;
-static PyObject *__pyx_builtin_open;
 static PyObject *__pyx_builtin_zip;
 static PyObject *__pyx_builtin_KeyError;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_StopIteration;
 static PyObject *__pyx_builtin_MemoryError;
 static const char __pyx_k_s[] = " %s";
-static const char __pyx_k__3[] = "-";
-static const char __pyx_k__4[] = "[^:]+:[/]*";
+static const char __pyx_k__2[] = "-";
 static const char __pyx_k__5[] = "";
-static const char __pyx_k__6[] = "\t";
 static const char __pyx_k_os[] = "os";
 static const char __pyx_k_re[] = "re";
 static const char __pyx_k_all[] = "__all__";
 static const char __pyx_k_end[] = "end";
-static const char __pyx_k_fai[] = ".fai";
 static const char __pyx_k_new[] = "__new__";
-static const char __pyx_k_sub[] = "sub";
 static const char __pyx_k_sys[] = "sys";
 static const char __pyx_k_zip[] = "zip";
-static const char __pyx_k_args[] = "args";
 static const char __pyx_k_dict[] = "__dict__";
-static const char __pyx_k_exit[] = "__exit__";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_name[] = "name";
-static const char __pyx_k_open[] = "open";
+static const char __pyx_k_open[] = "_open";
 static const char __pyx_k_path[] = "path";
-static const char __pyx_k_send[] = "send";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_close[] = "close";
-static const char __pyx_k_enter[] = "__enter__";
 static const char __pyx_k_fetch[] = "fetch";
+static const char __pyx_k_proxy[] = "proxy";
 static const char __pyx_k_s_s_s[] = ">%s%s\n%s";
-static const char __pyx_k_split[] = "split";
 static const char __pyx_k_start[] = "start";
-static const char __pyx_k_throw[] = "throw";
+static const char __pyx_k_append[] = "append";
 static const char __pyx_k_exists[] = "exists";
 static const char __pyx_k_format[] = "format";
 static const char __pyx_k_import[] = "__import__";
 static const char __pyx_k_name_2[] = "__name__";
 static const char __pyx_k_offset[] = "offset";
-static const char __pyx_k_open_2[] = "_open";
 static const char __pyx_k_pickle[] = "pickle";
 static const char __pyx_k_reduce[] = "__reduce__";
 static const char __pyx_k_region[] = "region";
 static const char __pyx_k_update[] = "update";
 static const char __pyx_k_IOError[] = "IOError";
 static const char __pyx_k_comment[] = "comment";
-static const char __pyx_k_genexpr[] = "genexpr";
 static const char __pyx_k_is_open[] = "is_open";
 static const char __pyx_k_persist[] = "persist";
 static const char __pyx_k_quality[] = "quality";
 static const char __pyx_k_s_s_s_s[] = "@%s%s\n%s\n+\n%s";
 static const char __pyx_k_KeyError[] = "KeyError";
-static const char __pyx_k_basename[] = "basename";
 static const char __pyx_k_exc_type[] = "exc_type";
 static const char __pyx_k_filename[] = "filename";
 static const char __pyx_k_getstate[] = "__getstate__";
@@ -2245,7 +2099,6 @@ static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_FastaFile[] = "FastaFile";
 static const char __pyx_k_Fastafile[] = "Fastafile";
 static const char __pyx_k_FastqFile[] = "FastqFile";
-static const char __pyx_k_FastqRead[] = "FastqRead";
 static const char __pyx_k_FastxFile[] = "FastxFile";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_exc_value[] = "exc_value";
@@ -2258,6 +2111,7 @@ static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_pyx_result[] = "__pyx_result";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static const char __pyx_k_references[] = "references";
+static const char __pyx_k_FastxRecord[] = "FastxRecord";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
@@ -2271,64 +2125,62 @@ static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
 static const char __pyx_k_file_s_not_found[] = "file `%s` not found";
 static const char __pyx_k_get_quality_array[] = "get_quality_array";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
-static const char __pyx_k_NotImplementedError[] = "NotImplementedError";
-static const char __pyx_k_open_locals_genexpr[] = "_open.<locals>.genexpr";
-static const char __pyx_k_could_not_open_file_s[] = "could not open file `%s`";
 static const char __pyx_k_sequence_s_not_present[] = "sequence '%s' not present";
+static const char __pyx_k_filename_does_not_exist[] = "filename {} does not exist";
+static const char __pyx_k_pyx_unpickle_FastxRecord[] = "__pyx_unpickle_FastxRecord";
+static const char __pyx_k_error_when_opening_file_s[] = "error when opening file `%s`";
+static const char __pyx_k_filepath_index_compressed[] = "filepath_index_compressed";
 static const char __pyx_k_calling_len_on_closed_file[] = "calling len() on closed file";
-static const char __pyx_k_could_not_locate_index_file[] = "could not locate index file {}";
 static const char __pyx_k_no_sequence_region_supplied[] = "no sequence/region supplied.";
 static const char __pyx_k_I_O_operation_on_closed_file[] = "I/O operation on closed file";
-static const char __pyx_k_pyx_unpickle_PersistentFastqPr[] = "__pyx_unpickle_PersistentFastqProxy";
+static const char __pyx_k_FastxRecord_must_have_a_name_and[] = "FastxRecord must have a name and not None";
 static const char __pyx_k_Incompatible_checksums_s_vs_0x43[] = "Incompatible checksums (%s vs 0x43fd151 = (comment, name, quality, sequence))";
+static const char __pyx_k_can_not_write_record_without_a_s[] = "can not write record without a sequence";
+static const char __pyx_k_can_not_write_record_without_nam[] = "can not write record without name";
 static const char __pyx_k_failure_when_retrieving_sequence[] = "failure when retrieving sequence on '%s'";
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
 static const char __pyx_k_self__delegate_cannot_be_convert[] = "self._delegate cannot be converted to a Python object for pickling";
-static const char __pyx_k_setting_an_explicit_path_for_the[] = "setting an explicit path for the index is not implemented";
+static const char __pyx_k_sequence_and_quality_length_do_n[] = "sequence and quality length do not match: {} vs {}";
 static PyObject *__pyx_n_s_FastaFile;
 static PyObject *__pyx_n_s_Fastafile;
 static PyObject *__pyx_n_s_FastqFile;
 static PyObject *__pyx_n_s_FastqProxy;
-static PyObject *__pyx_n_s_FastqRead;
 static PyObject *__pyx_n_s_FastxFile;
+static PyObject *__pyx_n_s_FastxRecord;
+static PyObject *__pyx_kp_s_FastxRecord_must_have_a_name_and;
 static PyObject *__pyx_n_s_IOError;
 static PyObject *__pyx_kp_s_I_O_operation_on_closed_file;
 static PyObject *__pyx_kp_s_Incompatible_checksums_s_vs_0x43;
 static PyObject *__pyx_n_s_KeyError;
 static PyObject *__pyx_n_s_MemoryError;
-static PyObject *__pyx_n_s_NotImplementedError;
 static PyObject *__pyx_n_s_PickleError;
 static PyObject *__pyx_n_s_StopIteration;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_n_s_ValueError;
-static PyObject *__pyx_kp_b__3;
-static PyObject *__pyx_kp_s__4;
+static PyObject *__pyx_kp_b__2;
 static PyObject *__pyx_kp_s__5;
-static PyObject *__pyx_kp_s__6;
 static PyObject *__pyx_n_s_all;
-static PyObject *__pyx_n_s_args;
-static PyObject *__pyx_n_s_basename;
+static PyObject *__pyx_n_s_append;
 static PyObject *__pyx_kp_s_calling_len_on_closed_file;
+static PyObject *__pyx_kp_s_can_not_write_record_without_a_s;
+static PyObject *__pyx_kp_s_can_not_write_record_without_nam;
 static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_n_s_close;
 static PyObject *__pyx_n_s_comment;
-static PyObject *__pyx_kp_s_could_not_locate_index_file;
-static PyObject *__pyx_kp_s_could_not_open_file_s;
 static PyObject *__pyx_n_s_dict;
 static PyObject *__pyx_n_s_end;
-static PyObject *__pyx_n_s_enter;
+static PyObject *__pyx_kp_s_error_when_opening_file_s;
 static PyObject *__pyx_n_s_exc_type;
 static PyObject *__pyx_n_s_exc_value;
 static PyObject *__pyx_n_s_exists;
-static PyObject *__pyx_n_s_exit;
-static PyObject *__pyx_kp_s_fai;
 static PyObject *__pyx_kp_s_failure_when_retrieving_sequence;
 static PyObject *__pyx_n_s_fetch;
 static PyObject *__pyx_kp_s_file_s_not_found;
 static PyObject *__pyx_n_s_filename;
+static PyObject *__pyx_kp_s_filename_does_not_exist;
 static PyObject *__pyx_n_s_filepath_index;
+static PyObject *__pyx_n_s_filepath_index_compressed;
 static PyObject *__pyx_n_s_format;
-static PyObject *__pyx_n_s_genexpr;
 static PyObject *__pyx_n_s_get_quality_array;
 static PyObject *__pyx_n_s_getstate;
 static PyObject *__pyx_n_s_import;
@@ -2341,19 +2193,18 @@ static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
 static PyObject *__pyx_kp_s_no_sequence_region_supplied;
 static PyObject *__pyx_n_s_offset;
 static PyObject *__pyx_n_s_open;
-static PyObject *__pyx_n_s_open_2;
-static PyObject *__pyx_n_s_open_locals_genexpr;
 static PyObject *__pyx_n_s_os;
 static PyObject *__pyx_n_s_path;
 static PyObject *__pyx_n_s_persist;
 static PyObject *__pyx_n_s_pickle;
+static PyObject *__pyx_n_s_proxy;
 static PyObject *__pyx_n_s_pysam_libcfaidx;
 static PyObject *__pyx_n_s_pyx_PickleError;
 static PyObject *__pyx_n_s_pyx_checksum;
 static PyObject *__pyx_n_s_pyx_result;
 static PyObject *__pyx_n_s_pyx_state;
 static PyObject *__pyx_n_s_pyx_type;
-static PyObject *__pyx_n_s_pyx_unpickle_PersistentFastqPr;
+static PyObject *__pyx_n_s_pyx_unpickle_FastxRecord;
 static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_quality;
 static PyObject *__pyx_n_s_re;
@@ -2367,28 +2218,22 @@ static PyObject *__pyx_kp_s_s;
 static PyObject *__pyx_kp_s_s_s_s;
 static PyObject *__pyx_kp_s_s_s_s_s;
 static PyObject *__pyx_kp_s_self__delegate_cannot_be_convert;
-static PyObject *__pyx_n_s_send;
 static PyObject *__pyx_n_s_sequence;
+static PyObject *__pyx_kp_s_sequence_and_quality_length_do_n;
 static PyObject *__pyx_kp_s_sequence_s_not_present;
 static PyObject *__pyx_n_s_setstate;
 static PyObject *__pyx_n_s_setstate_cython;
-static PyObject *__pyx_kp_s_setting_an_explicit_path_for_the;
-static PyObject *__pyx_n_s_split;
 static PyObject *__pyx_n_s_start;
 static PyObject *__pyx_kp_s_stringsource;
-static PyObject *__pyx_n_s_sub;
 static PyObject *__pyx_n_s_sys;
 static PyObject *__pyx_n_s_test;
-static PyObject *__pyx_n_s_throw;
 static PyObject *__pyx_n_s_traceback;
 static PyObject *__pyx_n_s_update;
 static PyObject *__pyx_n_s_zip;
 static int __pyx_pf_5pysam_9libcfaidx_9FastaFile___cinit__(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs); /* proto */
 static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_2is_open(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self); /* proto */
 static Py_ssize_t __pyx_pf_5pysam_9libcfaidx_9FastaFile_4__len__(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_5_open_genexpr(PyObject *__pyx_self); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_5_open_3genexpr(PyObject *__pyx_self); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_filepath_index); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_filepath_index, PyObject *__pyx_v_filepath_index_compressed); /* proto */
 static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_8close(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self); /* proto */
 static void __pyx_pf_5pysam_9libcfaidx_9FastaFile_10__dealloc__(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_12__enter__(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self); /* proto */
@@ -2413,23 +2258,28 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_2__str__(struct __pyx_o
 static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_4get_quality_array(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_self, int __pyx_v_offset); /* proto */
 static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_6__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_8__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy___init__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_FastqRead); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_2__str__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4get_quality_array(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, int __pyx_v_offset); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment___get__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self); /* proto */
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_2__set__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_4__del__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality___get__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self); /* proto */
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_2__set__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_4__del__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence___get__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self); /* proto */
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_2__set__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_4__del__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name___get__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self); /* proto */
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name_2__set__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name_4__del__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_6__reduce_cython__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8__setstate_cython__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord___init__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_name, PyObject *__pyx_v_comment, PyObject *__pyx_v_sequence, PyObject *__pyx_v_quality, struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_proxy); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_2__copy__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_4__deepcopy__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_memo); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_6set_name(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_name); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_8set_comment(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_comment); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_10set_sequence(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_sequence, PyObject *__pyx_v_quality); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_12__str__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_14get_quality_array(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, int __pyx_v_offset); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_7comment___get__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto */
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7comment_2__set__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7comment_4__del__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_7quality___get__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto */
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7quality_2__set__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7quality_4__del__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_8sequence___get__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto */
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_8sequence_2__set__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_8sequence_4__del__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_4name___get__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto */
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_4name_2__set__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_4name_4__del__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_16__reduce_cython__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_18__setstate_cython__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_pf_5pysam_9libcfaidx_9FastxFile___cinit__(struct __pyx_obj_5pysam_9libcfaidx_FastxFile *__pyx_v_self, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs); /* proto */
 static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_2is_open(struct __pyx_obj_5pysam_9libcfaidx_FastxFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5pysam_9libcfaidx_FastxFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_persist); /* proto */
@@ -2447,21 +2297,20 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastqFile___reduce_cython__(CYTHON_
 static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastqFile_2__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_9libcfaidx_FastqFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_5pysam_9libcfaidx_9Fastafile___reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_9libcfaidx_Fastafile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libcfaidx_9Fastafile_2__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_9libcfaidx_Fastafile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_FastxRecord(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_pf_7cpython_5array_5array___getbuffer__(arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info, CYTHON_UNUSED int __pyx_v_flags); /* proto */
 static void __pyx_pf_7cpython_5array_5array_2__releasebuffer__(CYTHON_UNUSED arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static PyObject *__pyx_tp_new_5pysam_9libcfaidx_FastaFile(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_5pysam_9libcfaidx_FastqProxy(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
-static PyObject *__pyx_tp_new_5pysam_9libcfaidx_PersistentFastqProxy(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_5pysam_9libcfaidx_FastxRecord(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_5pysam_9libcfaidx_FastxFile(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_5pysam_9libcfaidx_FastqFile(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_5pysam_9libcfaidx_Fastafile(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
-static PyObject *__pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct___open(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
-static PyObject *__pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
-static PyObject *__pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_int_71291217;
 static PyObject *__pyx_tuple_;
-static PyObject *__pyx_tuple__2;
+static PyObject *__pyx_tuple__3;
+static PyObject *__pyx_tuple__4;
+static PyObject *__pyx_tuple__6;
 static PyObject *__pyx_tuple__7;
 static PyObject *__pyx_tuple__8;
 static PyObject *__pyx_tuple__9;
@@ -2475,13 +2324,11 @@ static PyObject *__pyx_tuple__16;
 static PyObject *__pyx_tuple__17;
 static PyObject *__pyx_tuple__18;
 static PyObject *__pyx_tuple__19;
-static PyObject *__pyx_tuple__20;
 static PyObject *__pyx_tuple__21;
-static PyObject *__pyx_tuple__23;
-static PyObject *__pyx_codeobj__22;
+static PyObject *__pyx_codeobj__20;
 /* Late includes */
 
-/* "pysam/libcfaidx.pyx":71
+/* "pysam/libcfaidx.pyx":76
  * 
  * cdef class FastqProxy
  * cdef makeFastqProxy(kseq_t * src):             # <<<<<<<<<<<<<<
@@ -2496,21 +2343,21 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_makeFastqProxy(kseq_t *__pyx_v_src) {
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("makeFastqProxy", 0);
-  __Pyx_TraceCall("makeFastqProxy", __pyx_f[0], 71, 0, __PYX_ERR(0, 71, __pyx_L1_error));
+  __Pyx_TraceCall("makeFastqProxy", __pyx_f[0], 76, 0, __PYX_ERR(0, 76, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":73
+  /* "pysam/libcfaidx.pyx":78
  * cdef makeFastqProxy(kseq_t * src):
  *     '''enter src into AlignedRead.'''
  *     cdef FastqProxy dest = FastqProxy.__new__(FastqProxy)             # <<<<<<<<<<<<<<
  *     dest._delegate = src
  *     return dest
  */
-  __pyx_t_1 = ((PyObject *)__pyx_tp_new_5pysam_9libcfaidx_FastqProxy(((PyTypeObject *)__pyx_ptype_5pysam_9libcfaidx_FastqProxy), __pyx_empty_tuple, NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 73, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_tp_new_5pysam_9libcfaidx_FastqProxy(((PyTypeObject *)__pyx_ptype_5pysam_9libcfaidx_FastqProxy), __pyx_empty_tuple, NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 78, __pyx_L1_error)
   __Pyx_GOTREF(((PyObject *)__pyx_t_1));
   __pyx_v_dest = ((struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pysam/libcfaidx.pyx":74
+  /* "pysam/libcfaidx.pyx":79
  *     '''enter src into AlignedRead.'''
  *     cdef FastqProxy dest = FastqProxy.__new__(FastqProxy)
  *     dest._delegate = src             # <<<<<<<<<<<<<<
@@ -2519,7 +2366,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_makeFastqProxy(kseq_t *__pyx_v_src) {
  */
   __pyx_v_dest->_delegate = __pyx_v_src;
 
-  /* "pysam/libcfaidx.pyx":75
+  /* "pysam/libcfaidx.pyx":80
  *     cdef FastqProxy dest = FastqProxy.__new__(FastqProxy)
  *     dest._delegate = src
  *     return dest             # <<<<<<<<<<<<<<
@@ -2531,7 +2378,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_makeFastqProxy(kseq_t *__pyx_v_src) {
   __pyx_r = ((PyObject *)__pyx_v_dest);
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":71
+  /* "pysam/libcfaidx.pyx":76
  * 
  * cdef class FastqProxy
  * cdef makeFastqProxy(kseq_t * src):             # <<<<<<<<<<<<<<
@@ -2552,7 +2399,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_makeFastqProxy(kseq_t *__pyx_v_src) {
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":108
+/* "pysam/libcfaidx.pyx":117
  *     """
  * 
  *     def __cinit__(self, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -2593,9 +2440,9 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastaFile___cinit__(struct __pyx_obj_5pys
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__cinit__", 0);
-  __Pyx_TraceCall("__cinit__", __pyx_f[0], 108, 0, __PYX_ERR(0, 108, __pyx_L1_error));
+  __Pyx_TraceCall("__cinit__", __pyx_f[0], 117, 0, __PYX_ERR(0, 117, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":109
+  /* "pysam/libcfaidx.pyx":118
  * 
  *     def __cinit__(self, *args, **kwargs):
  *         self.fastafile = NULL             # <<<<<<<<<<<<<<
@@ -2604,7 +2451,7 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastaFile___cinit__(struct __pyx_obj_5pys
  */
   __pyx_v_self->fastafile = NULL;
 
-  /* "pysam/libcfaidx.pyx":110
+  /* "pysam/libcfaidx.pyx":119
  *     def __cinit__(self, *args, **kwargs):
  *         self.fastafile = NULL
  *         self._filename = None             # <<<<<<<<<<<<<<
@@ -2617,7 +2464,7 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastaFile___cinit__(struct __pyx_obj_5pys
   __Pyx_DECREF(__pyx_v_self->_filename);
   __pyx_v_self->_filename = Py_None;
 
-  /* "pysam/libcfaidx.pyx":111
+  /* "pysam/libcfaidx.pyx":120
  *         self.fastafile = NULL
  *         self._filename = None
  *         self._references = None             # <<<<<<<<<<<<<<
@@ -2630,7 +2477,7 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastaFile___cinit__(struct __pyx_obj_5pys
   __Pyx_DECREF(__pyx_v_self->_references);
   __pyx_v_self->_references = Py_None;
 
-  /* "pysam/libcfaidx.pyx":112
+  /* "pysam/libcfaidx.pyx":121
  *         self._filename = None
  *         self._references = None
  *         self._lengths = None             # <<<<<<<<<<<<<<
@@ -2643,7 +2490,7 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastaFile___cinit__(struct __pyx_obj_5pys
   __Pyx_DECREF(__pyx_v_self->_lengths);
   __pyx_v_self->_lengths = Py_None;
 
-  /* "pysam/libcfaidx.pyx":113
+  /* "pysam/libcfaidx.pyx":122
  *         self._references = None
  *         self._lengths = None
  *         self.reference2length = None             # <<<<<<<<<<<<<<
@@ -2656,21 +2503,21 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastaFile___cinit__(struct __pyx_obj_5pys
   __Pyx_DECREF(__pyx_v_self->reference2length);
   __pyx_v_self->reference2length = Py_None;
 
-  /* "pysam/libcfaidx.pyx":114
+  /* "pysam/libcfaidx.pyx":123
  *         self._lengths = None
  *         self.reference2length = None
  *         self._open(*args, **kwargs)             # <<<<<<<<<<<<<<
  * 
  *     def is_open(self):
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_open_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 114, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_open); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 123, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_v_args, __pyx_v_kwargs); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 114, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_v_args, __pyx_v_kwargs); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 123, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libcfaidx.pyx":108
+  /* "pysam/libcfaidx.pyx":117
  *     """
  * 
  *     def __cinit__(self, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -2692,7 +2539,7 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastaFile___cinit__(struct __pyx_obj_5pys
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":116
+/* "pysam/libcfaidx.pyx":125
  *         self._open(*args, **kwargs)
  * 
  *     def is_open(self):             # <<<<<<<<<<<<<<
@@ -2720,9 +2567,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_2is_open(struct __pyx_obj
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("is_open", 0);
-  __Pyx_TraceCall("is_open", __pyx_f[0], 116, 0, __PYX_ERR(0, 116, __pyx_L1_error));
+  __Pyx_TraceCall("is_open", __pyx_f[0], 125, 0, __PYX_ERR(0, 125, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":118
+  /* "pysam/libcfaidx.pyx":127
  *     def is_open(self):
  *         '''return true if samfile has been opened.'''
  *         return self.fastafile != NULL             # <<<<<<<<<<<<<<
@@ -2730,13 +2577,13 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_2is_open(struct __pyx_obj
  *     def __len__(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->fastafile != NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 118, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->fastafile != NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":116
+  /* "pysam/libcfaidx.pyx":125
  *         self._open(*args, **kwargs)
  * 
  *     def is_open(self):             # <<<<<<<<<<<<<<
@@ -2756,7 +2603,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_2is_open(struct __pyx_obj
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":120
+/* "pysam/libcfaidx.pyx":129
  *         return self.fastafile != NULL
  * 
  *     def __len__(self):             # <<<<<<<<<<<<<<
@@ -2784,9 +2631,9 @@ static Py_ssize_t __pyx_pf_5pysam_9libcfaidx_9FastaFile_4__len__(struct __pyx_ob
   int __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__len__", 0);
-  __Pyx_TraceCall("__len__", __pyx_f[0], 120, 0, __PYX_ERR(0, 120, __pyx_L1_error));
+  __Pyx_TraceCall("__len__", __pyx_f[0], 129, 0, __PYX_ERR(0, 129, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":121
+  /* "pysam/libcfaidx.pyx":130
  * 
  *     def __len__(self):
  *         if self.fastafile == NULL:             # <<<<<<<<<<<<<<
@@ -2796,20 +2643,20 @@ static Py_ssize_t __pyx_pf_5pysam_9libcfaidx_9FastaFile_4__len__(struct __pyx_ob
   __pyx_t_1 = ((__pyx_v_self->fastafile == NULL) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcfaidx.pyx":122
+    /* "pysam/libcfaidx.pyx":131
  *     def __len__(self):
  *         if self.fastafile == NULL:
  *             raise ValueError("calling len() on closed file")             # <<<<<<<<<<<<<<
  * 
  *         return faidx_nseq(self.fastafile)
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 122, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 131, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 122, __pyx_L1_error)
+    __PYX_ERR(0, 131, __pyx_L1_error)
 
-    /* "pysam/libcfaidx.pyx":121
+    /* "pysam/libcfaidx.pyx":130
  * 
  *     def __len__(self):
  *         if self.fastafile == NULL:             # <<<<<<<<<<<<<<
@@ -2818,17 +2665,17 @@ static Py_ssize_t __pyx_pf_5pysam_9libcfaidx_9FastaFile_4__len__(struct __pyx_ob
  */
   }
 
-  /* "pysam/libcfaidx.pyx":124
+  /* "pysam/libcfaidx.pyx":133
  *             raise ValueError("calling len() on closed file")
  * 
  *         return faidx_nseq(self.fastafile)             # <<<<<<<<<<<<<<
  * 
- *     def _open(self, filename, filepath_index=None):
+ *     def _open(self, filename, filepath_index=None, filepath_index_compressed=None):
  */
   __pyx_r = faidx_nseq(__pyx_v_self->fastafile);
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":120
+  /* "pysam/libcfaidx.pyx":129
  *         return self.fastafile != NULL
  * 
  *     def __len__(self):             # <<<<<<<<<<<<<<
@@ -2847,31 +2694,35 @@ static Py_ssize_t __pyx_pf_5pysam_9libcfaidx_9FastaFile_4__len__(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":126
+/* "pysam/libcfaidx.pyx":135
  *         return faidx_nseq(self.fastafile)
  * 
- *     def _open(self, filename, filepath_index=None):             # <<<<<<<<<<<<<<
+ *     def _open(self, filename, filepath_index=None, filepath_index_compressed=None):             # <<<<<<<<<<<<<<
  *         '''open an indexed fasta file.
  * 
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_7_open(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libcfaidx_9FastaFile_6_open[] = "FastaFile._open(self, filename, filepath_index=None)\nopen an indexed fasta file.\n\n        This method expects an indexed fasta file.\n        ";
+static char __pyx_doc_5pysam_9libcfaidx_9FastaFile_6_open[] = "FastaFile._open(self, filename, filepath_index=None, filepath_index_compressed=None)\nopen an indexed fasta file.\n\n        This method expects an indexed fasta file.\n        ";
 static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_7_open(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_filename = 0;
   PyObject *__pyx_v_filepath_index = 0;
+  PyObject *__pyx_v_filepath_index_compressed = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_open (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_filename,&__pyx_n_s_filepath_index,0};
-    PyObject* values[2] = {0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_filename,&__pyx_n_s_filepath_index,&__pyx_n_s_filepath_index_compressed,0};
+    PyObject* values[3] = {0,0,0};
     values[1] = ((PyObject *)Py_None);
+    values[2] = ((PyObject *)Py_None);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
         CYTHON_FALLTHROUGH;
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -2890,12 +2741,20 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_7_open(PyObject *__pyx_v_
           PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_filepath_index);
           if (value) { values[1] = value; kw_args--; }
         }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_filepath_index_compressed);
+          if (value) { values[2] = value; kw_args--; }
+        }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_open") < 0)) __PYX_ERR(0, 126, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_open") < 0)) __PYX_ERR(0, 135, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
         CYTHON_FALLTHROUGH;
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -2905,284 +2764,33 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_7_open(PyObject *__pyx_v_
     }
     __pyx_v_filename = values[0];
     __pyx_v_filepath_index = values[1];
+    __pyx_v_filepath_index_compressed = values[2];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_open", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 126, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_open", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 135, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcfaidx.FastaFile._open", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(((struct __pyx_obj_5pysam_9libcfaidx_FastaFile *)__pyx_v_self), __pyx_v_filename, __pyx_v_filepath_index);
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(((struct __pyx_obj_5pysam_9libcfaidx_FastaFile *)__pyx_v_self), __pyx_v_filename, __pyx_v_filepath_index, __pyx_v_filepath_index_compressed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
-static PyObject *__pyx_gb_5pysam_9libcfaidx_9FastaFile_5_open_2generator(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
 
-/* "pysam/libcfaidx.pyx":169
- *         with open(filepath_index) as inf:
- *             data = [x.split("\t") for x in inf]
- *             self._references = tuple(x[0] for x in data)             # <<<<<<<<<<<<<<
- *             self._lengths = tuple(int(x[1]) for x in data)
- *             self.reference2length = dict(zip(self._references, self._lengths))
- */
-
-static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_5_open_genexpr(PyObject *__pyx_self) {
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr *__pyx_cur_scope;
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("genexpr", 0);
-  __pyx_cur_scope = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr *)__pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr(__pyx_ptype_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr, __pyx_empty_tuple, NULL);
-  if (unlikely(!__pyx_cur_scope)) {
-    __pyx_cur_scope = ((struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr *)Py_None);
-    __Pyx_INCREF(Py_None);
-    __PYX_ERR(0, 169, __pyx_L1_error)
-  } else {
-    __Pyx_GOTREF(__pyx_cur_scope);
-  }
-  __pyx_cur_scope->__pyx_outer_scope = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *) __pyx_self;
-  __Pyx_INCREF(((PyObject *)__pyx_cur_scope->__pyx_outer_scope));
-  __Pyx_GIVEREF(__pyx_cur_scope->__pyx_outer_scope);
-  {
-    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_5pysam_9libcfaidx_9FastaFile_5_open_2generator, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_genexpr, __pyx_n_s_open_locals_genexpr, __pyx_n_s_pysam_libcfaidx); if (unlikely(!gen)) __PYX_ERR(0, 169, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_cur_scope);
-    __Pyx_RefNannyFinishContext();
-    return (PyObject *) gen;
-  }
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.FastaFile._open.genexpr", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __Pyx_DECREF(((PyObject *)__pyx_cur_scope));
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_gb_5pysam_9libcfaidx_9FastaFile_5_open_2generator(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value) /* generator body */
-{
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr *__pyx_cur_scope = ((struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr *)__pyx_generator->closure);
-  PyObject *__pyx_r = NULL;
-  __Pyx_TraceDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  Py_ssize_t __pyx_t_2;
-  PyObject *__pyx_t_3 = NULL;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("genexpr", 0);
-  __Pyx_TraceCall("genexpr", __pyx_f[0], 169, 0, __PYX_ERR(0, 169, __pyx_L1_error));
-  switch (__pyx_generator->resume_label) {
-    case 0: goto __pyx_L3_first_run;
-    case 1: goto __pyx_L6_resume_from_yield;
-    default: /* CPython raises the right error here */
-    __Pyx_TraceReturn(Py_None, 0);
-    __Pyx_RefNannyFinishContext();
-    return NULL;
-  }
-  __pyx_L3_first_run:;
-  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 169, __pyx_L1_error)
-  if (unlikely(!__pyx_cur_scope->__pyx_outer_scope->__pyx_v_data)) { __Pyx_RaiseClosureNameError("data"); __PYX_ERR(0, 169, __pyx_L1_error) }
-  if (unlikely(__pyx_cur_scope->__pyx_outer_scope->__pyx_v_data == Py_None)) {
-    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    __PYX_ERR(0, 169, __pyx_L1_error)
-  }
-  __pyx_t_1 = __pyx_cur_scope->__pyx_outer_scope->__pyx_v_data; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
-  for (;;) {
-    if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
-    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    __pyx_t_3 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_3); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 169, __pyx_L1_error)
-    #else
-    __pyx_t_3 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 169, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    #endif
-    __Pyx_XGOTREF(__pyx_cur_scope->__pyx_v_x);
-    __Pyx_XDECREF_SET(__pyx_cur_scope->__pyx_v_x, __pyx_t_3);
-    __Pyx_GIVEREF(__pyx_t_3);
-    __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_GetItemInt(__pyx_cur_scope->__pyx_v_x, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 169, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_r = __pyx_t_3;
-    __pyx_t_3 = 0;
-    __Pyx_XGIVEREF(__pyx_t_1);
-    __pyx_cur_scope->__pyx_t_0 = __pyx_t_1;
-    __pyx_cur_scope->__pyx_t_1 = __pyx_t_2;
-    __Pyx_XGIVEREF(__pyx_r);
-    __Pyx_TraceReturn(__pyx_r, 0);
-    __Pyx_RefNannyFinishContext();
-    __Pyx_Coroutine_ResetAndClearException(__pyx_generator);
-    /* return from generator, yielding value */
-    __pyx_generator->resume_label = 1;
-    return __pyx_r;
-    __pyx_L6_resume_from_yield:;
-    __pyx_t_1 = __pyx_cur_scope->__pyx_t_0;
-    __pyx_cur_scope->__pyx_t_0 = 0;
-    __Pyx_XGOTREF(__pyx_t_1);
-    __pyx_t_2 = __pyx_cur_scope->__pyx_t_1;
-    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 169, __pyx_L1_error)
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  CYTHON_MAYBE_UNUSED_VAR(__pyx_cur_scope);
-
-  /* function exit code */
-  PyErr_SetNone(PyExc_StopIteration);
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("genexpr", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_L0:;
-  __Pyx_XDECREF(__pyx_r); __pyx_r = 0;
-  __Pyx_Coroutine_ResetAndClearException(__pyx_generator);
-  __pyx_generator->resume_label = -1;
-  __Pyx_Coroutine_clear((PyObject*)__pyx_generator);
-  __Pyx_TraceReturn(__pyx_r, 0);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-static PyObject *__pyx_gb_5pysam_9libcfaidx_9FastaFile_5_open_5generator1(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
-
-/* "pysam/libcfaidx.pyx":170
- *             data = [x.split("\t") for x in inf]
- *             self._references = tuple(x[0] for x in data)
- *             self._lengths = tuple(int(x[1]) for x in data)             # <<<<<<<<<<<<<<
- *             self.reference2length = dict(zip(self._references, self._lengths))
- * 
- */
-
-static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_5_open_3genexpr(PyObject *__pyx_self) {
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr *__pyx_cur_scope;
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("genexpr", 0);
-  __pyx_cur_scope = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr *)__pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr(__pyx_ptype_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr, __pyx_empty_tuple, NULL);
-  if (unlikely(!__pyx_cur_scope)) {
-    __pyx_cur_scope = ((struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr *)Py_None);
-    __Pyx_INCREF(Py_None);
-    __PYX_ERR(0, 170, __pyx_L1_error)
-  } else {
-    __Pyx_GOTREF(__pyx_cur_scope);
-  }
-  __pyx_cur_scope->__pyx_outer_scope = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *) __pyx_self;
-  __Pyx_INCREF(((PyObject *)__pyx_cur_scope->__pyx_outer_scope));
-  __Pyx_GIVEREF(__pyx_cur_scope->__pyx_outer_scope);
-  {
-    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_5pysam_9libcfaidx_9FastaFile_5_open_5generator1, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_genexpr, __pyx_n_s_open_locals_genexpr, __pyx_n_s_pysam_libcfaidx); if (unlikely(!gen)) __PYX_ERR(0, 170, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_cur_scope);
-    __Pyx_RefNannyFinishContext();
-    return (PyObject *) gen;
-  }
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.FastaFile._open.genexpr", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __Pyx_DECREF(((PyObject *)__pyx_cur_scope));
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_gb_5pysam_9libcfaidx_9FastaFile_5_open_5generator1(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value) /* generator body */
-{
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr *__pyx_cur_scope = ((struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr *)__pyx_generator->closure);
-  PyObject *__pyx_r = NULL;
-  __Pyx_TraceDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  Py_ssize_t __pyx_t_2;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("genexpr", 0);
-  __Pyx_TraceCall("genexpr", __pyx_f[0], 170, 0, __PYX_ERR(0, 170, __pyx_L1_error));
-  switch (__pyx_generator->resume_label) {
-    case 0: goto __pyx_L3_first_run;
-    case 1: goto __pyx_L6_resume_from_yield;
-    default: /* CPython raises the right error here */
-    __Pyx_TraceReturn(Py_None, 0);
-    __Pyx_RefNannyFinishContext();
-    return NULL;
-  }
-  __pyx_L3_first_run:;
-  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 170, __pyx_L1_error)
-  if (unlikely(!__pyx_cur_scope->__pyx_outer_scope->__pyx_v_data)) { __Pyx_RaiseClosureNameError("data"); __PYX_ERR(0, 170, __pyx_L1_error) }
-  if (unlikely(__pyx_cur_scope->__pyx_outer_scope->__pyx_v_data == Py_None)) {
-    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    __PYX_ERR(0, 170, __pyx_L1_error)
-  }
-  __pyx_t_1 = __pyx_cur_scope->__pyx_outer_scope->__pyx_v_data; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
-  for (;;) {
-    if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
-    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    __pyx_t_3 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_3); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 170, __pyx_L1_error)
-    #else
-    __pyx_t_3 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 170, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    #endif
-    __Pyx_XGOTREF(__pyx_cur_scope->__pyx_v_x);
-    __Pyx_XDECREF_SET(__pyx_cur_scope->__pyx_v_x, __pyx_t_3);
-    __Pyx_GIVEREF(__pyx_t_3);
-    __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_GetItemInt(__pyx_cur_scope->__pyx_v_x, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 170, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyNumber_Int(__pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 170, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_r = __pyx_t_4;
-    __pyx_t_4 = 0;
-    __Pyx_XGIVEREF(__pyx_t_1);
-    __pyx_cur_scope->__pyx_t_0 = __pyx_t_1;
-    __pyx_cur_scope->__pyx_t_1 = __pyx_t_2;
-    __Pyx_XGIVEREF(__pyx_r);
-    __Pyx_TraceReturn(__pyx_r, 0);
-    __Pyx_RefNannyFinishContext();
-    __Pyx_Coroutine_ResetAndClearException(__pyx_generator);
-    /* return from generator, yielding value */
-    __pyx_generator->resume_label = 1;
-    return __pyx_r;
-    __pyx_L6_resume_from_yield:;
-    __pyx_t_1 = __pyx_cur_scope->__pyx_t_0;
-    __pyx_cur_scope->__pyx_t_0 = 0;
-    __Pyx_XGOTREF(__pyx_t_1);
-    __pyx_t_2 = __pyx_cur_scope->__pyx_t_1;
-    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 170, __pyx_L1_error)
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  CYTHON_MAYBE_UNUSED_VAR(__pyx_cur_scope);
-
-  /* function exit code */
-  PyErr_SetNone(PyExc_StopIteration);
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("genexpr", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_L0:;
-  __Pyx_XDECREF(__pyx_r); __pyx_r = 0;
-  __Pyx_Coroutine_ResetAndClearException(__pyx_generator);
-  __pyx_generator->resume_label = -1;
-  __Pyx_Coroutine_clear((PyObject*)__pyx_generator);
-  __Pyx_TraceReturn(__pyx_r, 0);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "pysam/libcfaidx.pyx":126
- *         return faidx_nseq(self.fastafile)
- * 
- *     def _open(self, filename, filepath_index=None):             # <<<<<<<<<<<<<<
- *         '''open an indexed fasta file.
- * 
- */
-
-static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_filepath_index) {
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *__pyx_cur_scope;
+static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_filepath_index, PyObject *__pyx_v_filepath_index_compressed) {
   char *__pyx_v_cfilename;
-  PyObject *__pyx_v_inf = NULL;
-  PyObject *__pyx_v_x = NULL;
+  char *__pyx_v_cindexname;
+  char *__pyx_v_cindexname_compressed;
+  CYTHON_UNUSED PyObject *__pyx_v_bindex_filename = NULL;
+  CYTHON_UNUSED PyObject *__pyx_v_bindex_filename_compressed = NULL;
+  int __pyx_v_nreferences;
+  int __pyx_v_x;
+  char const *__pyx_v_s;
+  PyObject *__pyx_v_ss = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -3194,29 +2802,12 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5
   int __pyx_t_6;
   PyObject *__pyx_t_7 = NULL;
   int __pyx_t_8;
-  PyObject *__pyx_t_9 = NULL;
+  int __pyx_t_9;
   int __pyx_t_10;
-  PyObject *__pyx_t_11 = NULL;
-  PyObject *__pyx_t_12 = NULL;
-  PyObject *__pyx_t_13 = NULL;
-  PyObject *__pyx_t_14 = NULL;
-  PyObject *__pyx_t_15 = NULL;
-  Py_ssize_t __pyx_t_16;
-  PyObject *(*__pyx_t_17)(PyObject *);
-  PyObject *__pyx_t_18 = NULL;
   __Pyx_RefNannySetupContext("_open", 0);
-  __pyx_cur_scope = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *)__pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct___open(__pyx_ptype_5pysam_9libcfaidx___pyx_scope_struct___open, __pyx_empty_tuple, NULL);
-  if (unlikely(!__pyx_cur_scope)) {
-    __pyx_cur_scope = ((struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *)Py_None);
-    __Pyx_INCREF(Py_None);
-    __PYX_ERR(0, 126, __pyx_L1_error)
-  } else {
-    __Pyx_GOTREF(__pyx_cur_scope);
-  }
-  __Pyx_TraceCall("_open", __pyx_f[0], 126, 0, __PYX_ERR(0, 126, __pyx_L1_error));
-  __Pyx_INCREF(__pyx_v_filepath_index);
+  __Pyx_TraceCall("_open", __pyx_f[0], 135, 0, __PYX_ERR(0, 135, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":133
+  /* "pysam/libcfaidx.pyx":142
  * 
  *         # close a previously opened file
  *         if self.fastafile != NULL:             # <<<<<<<<<<<<<<
@@ -3226,14 +2817,14 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5
   __pyx_t_1 = ((__pyx_v_self->fastafile != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcfaidx.pyx":134
+    /* "pysam/libcfaidx.pyx":143
  *         # close a previously opened file
  *         if self.fastafile != NULL:
  *             self.close()             # <<<<<<<<<<<<<<
  * 
  *         self._filename = encode_filename(filename)
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 134, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_4 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -3246,16 +2837,16 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5
       }
     }
     if (__pyx_t_4) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 134, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 143, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     } else {
-      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 134, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 143, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "pysam/libcfaidx.pyx":133
+    /* "pysam/libcfaidx.pyx":142
  * 
  *         # close a previously opened file
  *         if self.fastafile != NULL:             # <<<<<<<<<<<<<<
@@ -3264,14 +2855,14 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libcfaidx.pyx":136
+  /* "pysam/libcfaidx.pyx":145
  *             self.close()
  * 
  *         self._filename = encode_filename(filename)             # <<<<<<<<<<<<<<
  *         cdef char *cfilename = self._filename
- *         self.is_remote = hisremote(cfilename)
+ *         cdef char *cindexname = NULL
  */
-  __pyx_t_2 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 136, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 145, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
   __Pyx_GOTREF(__pyx_v_self->_filename);
@@ -3279,99 +2870,84 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5
   __pyx_v_self->_filename = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "pysam/libcfaidx.pyx":137
+  /* "pysam/libcfaidx.pyx":146
  * 
  *         self._filename = encode_filename(filename)
  *         cdef char *cfilename = self._filename             # <<<<<<<<<<<<<<
+ *         cdef char *cindexname = NULL
+ *         cdef char *cindexname_compressed = NULL
+ */
+  __pyx_t_5 = __Pyx_PyObject_AsWritableString(__pyx_v_self->_filename); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 146, __pyx_L1_error)
+  __pyx_v_cfilename = __pyx_t_5;
+
+  /* "pysam/libcfaidx.pyx":147
+ *         self._filename = encode_filename(filename)
+ *         cdef char *cfilename = self._filename
+ *         cdef char *cindexname = NULL             # <<<<<<<<<<<<<<
+ *         cdef char *cindexname_compressed = NULL
+ *         self.is_remote = hisremote(cfilename)
+ */
+  __pyx_v_cindexname = NULL;
+
+  /* "pysam/libcfaidx.pyx":148
+ *         cdef char *cfilename = self._filename
+ *         cdef char *cindexname = NULL
+ *         cdef char *cindexname_compressed = NULL             # <<<<<<<<<<<<<<
  *         self.is_remote = hisremote(cfilename)
  * 
  */
-  __pyx_t_5 = __Pyx_PyObject_AsWritableString(__pyx_v_self->_filename); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 137, __pyx_L1_error)
-  __pyx_v_cfilename = __pyx_t_5;
+  __pyx_v_cindexname_compressed = NULL;
 
-  /* "pysam/libcfaidx.pyx":138
- *         self._filename = encode_filename(filename)
- *         cdef char *cfilename = self._filename
+  /* "pysam/libcfaidx.pyx":149
+ *         cdef char *cindexname = NULL
+ *         cdef char *cindexname_compressed = NULL
  *         self.is_remote = hisremote(cfilename)             # <<<<<<<<<<<<<<
  * 
- *         if filepath_index is not None:
+ *         # open file for reading
  */
   __pyx_v_self->is_remote = hisremote(__pyx_v_cfilename);
 
-  /* "pysam/libcfaidx.pyx":140
- *         self.is_remote = hisremote(cfilename)
- * 
- *         if filepath_index is not None:             # <<<<<<<<<<<<<<
- *             raise NotImplementedError(
- *                 "setting an explicit path for the index "
- */
-  __pyx_t_1 = (__pyx_v_filepath_index != Py_None);
-  __pyx_t_6 = (__pyx_t_1 != 0);
-  if (unlikely(__pyx_t_6)) {
-
-    /* "pysam/libcfaidx.pyx":141
- * 
- *         if filepath_index is not None:
- *             raise NotImplementedError(             # <<<<<<<<<<<<<<
- *                 "setting an explicit path for the index "
- *                 "is not implemented")
- */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_NotImplementedError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 141, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 141, __pyx_L1_error)
-
-    /* "pysam/libcfaidx.pyx":140
- *         self.is_remote = hisremote(cfilename)
- * 
- *         if filepath_index is not None:             # <<<<<<<<<<<<<<
- *             raise NotImplementedError(
- *                 "setting an explicit path for the index "
- */
-  }
-
-  /* "pysam/libcfaidx.pyx":146
+  /* "pysam/libcfaidx.pyx":152
  * 
  *         # open file for reading
  *         if (self._filename != b"-"             # <<<<<<<<<<<<<<
  *             and not self.is_remote
  *             and not os.path.exists(filename)):
  */
-  __pyx_t_1 = (__Pyx_PyBytes_Equals(__pyx_v_self->_filename, __pyx_kp_b__3, Py_NE)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 146, __pyx_L1_error)
-  if (__pyx_t_1) {
+  __pyx_t_6 = (__Pyx_PyBytes_Equals(__pyx_v_self->_filename, __pyx_kp_b__2, Py_NE)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 152, __pyx_L1_error)
+  if (__pyx_t_6) {
   } else {
-    __pyx_t_6 = __pyx_t_1;
-    goto __pyx_L6_bool_binop_done;
+    __pyx_t_1 = __pyx_t_6;
+    goto __pyx_L5_bool_binop_done;
   }
 
-  /* "pysam/libcfaidx.pyx":147
+  /* "pysam/libcfaidx.pyx":153
  *         # open file for reading
  *         if (self._filename != b"-"
  *             and not self.is_remote             # <<<<<<<<<<<<<<
  *             and not os.path.exists(filename)):
  *             raise IOError("file `%s` not found" % filename)
  */
-  __pyx_t_1 = ((!(__pyx_v_self->is_remote != 0)) != 0);
-  if (__pyx_t_1) {
+  __pyx_t_6 = ((!(__pyx_v_self->is_remote != 0)) != 0);
+  if (__pyx_t_6) {
   } else {
-    __pyx_t_6 = __pyx_t_1;
-    goto __pyx_L6_bool_binop_done;
+    __pyx_t_1 = __pyx_t_6;
+    goto __pyx_L5_bool_binop_done;
   }
 
-  /* "pysam/libcfaidx.pyx":148
+  /* "pysam/libcfaidx.pyx":154
  *         if (self._filename != b"-"
  *             and not self.is_remote
  *             and not os.path.exists(filename)):             # <<<<<<<<<<<<<<
  *             raise IOError("file `%s` not found" % filename)
  * 
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_exists); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_exists); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -3385,13 +2961,13 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 148, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
   } else {
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_3)) {
       PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filename};
-      __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 154, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_2);
     } else
@@ -3399,56 +2975,56 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
       PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filename};
-      __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 154, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_2);
     } else
     #endif
     {
-      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 154, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_4); __pyx_t_4 = NULL;
       __Pyx_INCREF(__pyx_v_filename);
       __Pyx_GIVEREF(__pyx_v_filename);
       PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_filename);
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 154, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     }
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_8 = ((!__pyx_t_1) != 0);
-  __pyx_t_6 = __pyx_t_8;
-  __pyx_L6_bool_binop_done:;
+  __pyx_t_8 = ((!__pyx_t_6) != 0);
+  __pyx_t_1 = __pyx_t_8;
+  __pyx_L5_bool_binop_done:;
 
-  /* "pysam/libcfaidx.pyx":146
+  /* "pysam/libcfaidx.pyx":152
  * 
  *         # open file for reading
  *         if (self._filename != b"-"             # <<<<<<<<<<<<<<
  *             and not self.is_remote
  *             and not os.path.exists(filename)):
  */
-  if (unlikely(__pyx_t_6)) {
+  if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcfaidx.pyx":149
+    /* "pysam/libcfaidx.pyx":155
  *             and not self.is_remote
  *             and not os.path.exists(filename)):
  *             raise IOError("file `%s` not found" % filename)             # <<<<<<<<<<<<<<
  * 
- *         with nogil:
+ *         # 3 modes to open:
  */
-    __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_file_s_not_found, __pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 149, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_file_s_not_found, __pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 149, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 149, __pyx_L1_error)
+    __PYX_ERR(0, 155, __pyx_L1_error)
 
-    /* "pysam/libcfaidx.pyx":146
+    /* "pysam/libcfaidx.pyx":152
  * 
  *         # open file for reading
  *         if (self._filename != b"-"             # <<<<<<<<<<<<<<
@@ -3457,346 +3033,31 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libcfaidx.pyx":151
- *             raise IOError("file `%s` not found" % filename)
- * 
- *         with nogil:             # <<<<<<<<<<<<<<
- *             self.fastafile = fai_load(cfilename)
- * 
+  /* "pysam/libcfaidx.pyx":161
+ *         # uncompressed fa: fai_load3 with filename and index_fai
+ *         # uncompressed fa: fai_load with default index name
+ *         if filepath_index:             # <<<<<<<<<<<<<<
+ *             # when opening, set flags to 0 - do not automatically
+ *             # build index if it does not exist.
  */
-  {
-      #ifdef WITH_THREAD
-      PyThreadState *_save;
-      Py_UNBLOCK_THREADS
-      __Pyx_FastGIL_Remember();
-      #endif
-      /*try:*/ {
-
-        /* "pysam/libcfaidx.pyx":152
- * 
- *         with nogil:
- *             self.fastafile = fai_load(cfilename)             # <<<<<<<<<<<<<<
- * 
- *         if self.fastafile == NULL:
- */
-        __pyx_v_self->fastafile = fai_load(__pyx_v_cfilename);
-      }
-
-      /* "pysam/libcfaidx.pyx":151
- *             raise IOError("file `%s` not found" % filename)
- * 
- *         with nogil:             # <<<<<<<<<<<<<<
- *             self.fastafile = fai_load(cfilename)
- * 
- */
-      /*finally:*/ {
-        /*normal exit:*/{
-          #ifdef WITH_THREAD
-          __Pyx_FastGIL_Forget();
-          Py_BLOCK_THREADS
-          #endif
-          goto __pyx_L11;
-        }
-        __pyx_L11:;
-      }
-  }
-
-  /* "pysam/libcfaidx.pyx":154
- *             self.fastafile = fai_load(cfilename)
- * 
- *         if self.fastafile == NULL:             # <<<<<<<<<<<<<<
- *             raise IOError("could not open file `%s`" % filename)
- * 
- */
-  __pyx_t_6 = ((__pyx_v_self->fastafile == NULL) != 0);
-  if (unlikely(__pyx_t_6)) {
-
-    /* "pysam/libcfaidx.pyx":155
- * 
- *         if self.fastafile == NULL:
- *             raise IOError("could not open file `%s`" % filename)             # <<<<<<<<<<<<<<
- * 
- *         if self.is_remote:
- */
-    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_could_not_open_file_s, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 155, __pyx_L1_error)
-
-    /* "pysam/libcfaidx.pyx":154
- *             self.fastafile = fai_load(cfilename)
- * 
- *         if self.fastafile == NULL:             # <<<<<<<<<<<<<<
- *             raise IOError("could not open file `%s`" % filename)
- * 
- */
-  }
-
-  /* "pysam/libcfaidx.pyx":157
- *             raise IOError("could not open file `%s`" % filename)
- * 
- *         if self.is_remote:             # <<<<<<<<<<<<<<
- *             filepath_index = os.path.basename(
- *                 re.sub("[^:]+:[/]*", "", filename)) + ".fai"
- */
-  __pyx_t_6 = (__pyx_v_self->is_remote != 0);
-  if (__pyx_t_6) {
-
-    /* "pysam/libcfaidx.pyx":158
- * 
- *         if self.is_remote:
- *             filepath_index = os.path.basename(             # <<<<<<<<<<<<<<
- *                 re.sub("[^:]+:[/]*", "", filename)) + ".fai"
- *         elif filepath_index is None:
- */
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 158, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 158, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_basename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 158, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-
-    /* "pysam/libcfaidx.pyx":159
- *         if self.is_remote:
- *             filepath_index = os.path.basename(
- *                 re.sub("[^:]+:[/]*", "", filename)) + ".fai"             # <<<<<<<<<<<<<<
- *         elif filepath_index is None:
- *             filepath_index = filename + ".fai"
- */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_re); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 159, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_sub); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 159, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_9);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = NULL;
-    __pyx_t_10 = 0;
-    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_9))) {
-      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_9);
-      if (likely(__pyx_t_4)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_9);
-        __Pyx_INCREF(__pyx_t_4);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_9, function);
-        __pyx_t_10 = 1;
-      }
-    }
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_9)) {
-      PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_kp_s__4, __pyx_kp_s__5, __pyx_v_filename};
-      __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_9, __pyx_temp+1-__pyx_t_10, 3+__pyx_t_10); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 159, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_7);
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_9)) {
-      PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_kp_s__4, __pyx_kp_s__5, __pyx_v_filename};
-      __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_9, __pyx_temp+1-__pyx_t_10, 3+__pyx_t_10); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 159, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_7);
-    } else
-    #endif
-    {
-      __pyx_t_11 = PyTuple_New(3+__pyx_t_10); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 159, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      if (__pyx_t_4) {
-        __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_4); __pyx_t_4 = NULL;
-      }
-      __Pyx_INCREF(__pyx_kp_s__4);
-      __Pyx_GIVEREF(__pyx_kp_s__4);
-      PyTuple_SET_ITEM(__pyx_t_11, 0+__pyx_t_10, __pyx_kp_s__4);
-      __Pyx_INCREF(__pyx_kp_s__5);
-      __Pyx_GIVEREF(__pyx_kp_s__5);
-      PyTuple_SET_ITEM(__pyx_t_11, 1+__pyx_t_10, __pyx_kp_s__5);
-      __Pyx_INCREF(__pyx_v_filename);
-      __Pyx_GIVEREF(__pyx_v_filename);
-      PyTuple_SET_ITEM(__pyx_t_11, 2+__pyx_t_10, __pyx_v_filename);
-      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_11, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 159, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-    }
-    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __pyx_t_9 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
-      __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_3);
-      if (likely(__pyx_t_9)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-        __Pyx_INCREF(__pyx_t_9);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_3, function);
-      }
-    }
-    if (!__pyx_t_9) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 158, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __Pyx_GOTREF(__pyx_t_2);
-    } else {
-      #if CYTHON_FAST_PYCALL
-      if (PyFunction_Check(__pyx_t_3)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_9, __pyx_t_7};
-        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 158, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      } else
-      #endif
-      #if CYTHON_FAST_PYCCALL
-      if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_9, __pyx_t_7};
-        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 158, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      } else
-      #endif
-      {
-        __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 158, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_11);
-        __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_9); __pyx_t_9 = NULL;
-        __Pyx_GIVEREF(__pyx_t_7);
-        PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_t_7);
-        __pyx_t_7 = 0;
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_11, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 158, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      }
-    }
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = PyNumber_Add(__pyx_t_2, __pyx_kp_s_fai); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 159, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF_SET(__pyx_v_filepath_index, __pyx_t_3);
-    __pyx_t_3 = 0;
-
-    /* "pysam/libcfaidx.pyx":157
- *             raise IOError("could not open file `%s`" % filename)
- * 
- *         if self.is_remote:             # <<<<<<<<<<<<<<
- *             filepath_index = os.path.basename(
- *                 re.sub("[^:]+:[/]*", "", filename)) + ".fai"
- */
-    goto __pyx_L13;
-  }
-
-  /* "pysam/libcfaidx.pyx":160
- *             filepath_index = os.path.basename(
- *                 re.sub("[^:]+:[/]*", "", filename)) + ".fai"
- *         elif filepath_index is None:             # <<<<<<<<<<<<<<
- *             filepath_index = filename + ".fai"
- * 
- */
-  __pyx_t_6 = (__pyx_v_filepath_index == Py_None);
-  __pyx_t_8 = (__pyx_t_6 != 0);
-  if (__pyx_t_8) {
-
-    /* "pysam/libcfaidx.pyx":161
- *                 re.sub("[^:]+:[/]*", "", filename)) + ".fai"
- *         elif filepath_index is None:
- *             filepath_index = filename + ".fai"             # <<<<<<<<<<<<<<
- * 
- *         if not os.path.exists(filepath_index):
- */
-    __pyx_t_3 = PyNumber_Add(__pyx_v_filename, __pyx_kp_s_fai); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 161, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF_SET(__pyx_v_filepath_index, __pyx_t_3);
-    __pyx_t_3 = 0;
-
-    /* "pysam/libcfaidx.pyx":160
- *             filepath_index = os.path.basename(
- *                 re.sub("[^:]+:[/]*", "", filename)) + ".fai"
- *         elif filepath_index is None:             # <<<<<<<<<<<<<<
- *             filepath_index = filename + ".fai"
- * 
- */
-  }
-  __pyx_L13:;
-
-  /* "pysam/libcfaidx.pyx":163
- *             filepath_index = filename + ".fai"
- * 
- *         if not os.path.exists(filepath_index):             # <<<<<<<<<<<<<<
- *             raise ValueError("could not locate index file {}".format(
- *                 filepath_index))
- */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 163, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_path); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 163, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_11);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_exists); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 163, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  __pyx_t_11 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_11 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_11)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_11);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-    }
-  }
-  if (!__pyx_t_11) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filepath_index); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 163, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_11, __pyx_v_filepath_index};
-      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 163, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-      __Pyx_GOTREF(__pyx_t_3);
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_11, __pyx_v_filepath_index};
-      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 163, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-      __Pyx_GOTREF(__pyx_t_3);
-    } else
-    #endif
-    {
-      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 163, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_GIVEREF(__pyx_t_11); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_11); __pyx_t_11 = NULL;
-      __Pyx_INCREF(__pyx_v_filepath_index);
-      __Pyx_GIVEREF(__pyx_v_filepath_index);
-      PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_filepath_index);
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 163, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 163, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_6 = ((!__pyx_t_8) != 0);
-  if (unlikely(__pyx_t_6)) {
-
-    /* "pysam/libcfaidx.pyx":164
- * 
- *         if not os.path.exists(filepath_index):
- *             raise ValueError("could not locate index file {}".format(             # <<<<<<<<<<<<<<
- *                 filepath_index))
- * 
- */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_could_not_locate_index_file, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 164, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_filepath_index); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 161, __pyx_L1_error)
+  if (__pyx_t_1) {
 
     /* "pysam/libcfaidx.pyx":165
- *         if not os.path.exists(filepath_index):
- *             raise ValueError("could not locate index file {}".format(
- *                 filepath_index))             # <<<<<<<<<<<<<<
+ *             # build index if it does not exist.
  * 
- *         with open(filepath_index) as inf:
+ *             if not os.path.exists(filepath_index):             # <<<<<<<<<<<<<<
+ *                 raise IOError("filename {} does not exist".format(filepath_index))
+ *             cindexname = bindex_filename = encode_filename(filepath_index)
  */
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 165, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_path); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 165, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_exists); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 165, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __pyx_t_7 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
       __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_2);
@@ -3808,13 +3069,13 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5
       }
     }
     if (!__pyx_t_7) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filepath_index); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 164, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filepath_index); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 165, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_filepath_index};
-        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 164, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 165, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
@@ -3822,308 +3083,595 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_filepath_index};
-        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 164, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 165, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
       #endif
       {
-        __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 164, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_11);
-        __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_7); __pyx_t_7 = NULL;
+        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 165, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_7); __pyx_t_7 = NULL;
         __Pyx_INCREF(__pyx_v_filepath_index);
         __Pyx_GIVEREF(__pyx_v_filepath_index);
-        PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_v_filepath_index);
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_11, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 164, __pyx_L1_error)
+        PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_filepath_index);
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 165, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 165, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_8 = ((!__pyx_t_1) != 0);
+    if (unlikely(__pyx_t_8)) {
 
-    /* "pysam/libcfaidx.pyx":164
+      /* "pysam/libcfaidx.pyx":166
  * 
- *         if not os.path.exists(filepath_index):
- *             raise ValueError("could not locate index file {}".format(             # <<<<<<<<<<<<<<
- *                 filepath_index))
+ *             if not os.path.exists(filepath_index):
+ *                 raise IOError("filename {} does not exist".format(filepath_index))             # <<<<<<<<<<<<<<
+ *             cindexname = bindex_filename = encode_filename(filepath_index)
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 164, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_filename_does_not_exist, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_4 = NULL;
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+        __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_2);
+        if (likely(__pyx_t_4)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+          __Pyx_INCREF(__pyx_t_4);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_2, function);
+        }
+      }
+      if (!__pyx_t_4) {
+        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filepath_index); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+      } else {
+        #if CYTHON_FAST_PYCALL
+        if (PyFunction_Check(__pyx_t_2)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filepath_index};
+          __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+          __Pyx_GOTREF(__pyx_t_3);
+        } else
+        #endif
+        #if CYTHON_FAST_PYCCALL
+        if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filepath_index};
+          __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+          __Pyx_GOTREF(__pyx_t_3);
+        } else
+        #endif
+        {
+          __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 166, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_7);
+          __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_4); __pyx_t_4 = NULL;
+          __Pyx_INCREF(__pyx_v_filepath_index);
+          __Pyx_GIVEREF(__pyx_v_filepath_index);
+          PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_filepath_index);
+          __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_3);
+          __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        }
+      }
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __PYX_ERR(0, 166, __pyx_L1_error)
+
+      /* "pysam/libcfaidx.pyx":165
+ *             # build index if it does not exist.
+ * 
+ *             if not os.path.exists(filepath_index):             # <<<<<<<<<<<<<<
+ *                 raise IOError("filename {} does not exist".format(filepath_index))
+ *             cindexname = bindex_filename = encode_filename(filepath_index)
+ */
+    }
+
+    /* "pysam/libcfaidx.pyx":167
+ *             if not os.path.exists(filepath_index):
+ *                 raise IOError("filename {} does not exist".format(filepath_index))
+ *             cindexname = bindex_filename = encode_filename(filepath_index)             # <<<<<<<<<<<<<<
+ * 
+ *             if filepath_index_compressed:
+ */
+    __pyx_t_2 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filepath_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 167, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    if (unlikely(__pyx_t_2 == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
+      __PYX_ERR(0, 167, __pyx_L1_error)
+    }
+    __pyx_t_5 = __Pyx_PyBytes_AsWritableString(__pyx_t_2); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 167, __pyx_L1_error)
+    __pyx_v_cindexname = __pyx_t_5;
+    __Pyx_INCREF(__pyx_t_2);
+    __pyx_v_bindex_filename = ((PyObject*)__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "pysam/libcfaidx.pyx":169
+ *             cindexname = bindex_filename = encode_filename(filepath_index)
+ * 
+ *             if filepath_index_compressed:             # <<<<<<<<<<<<<<
+ *                 if not os.path.exists(filepath_index_compressed):
+ *                     raise IOError("filename {} does not exist".format(filepath_index_compressed))
+ */
+    __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_v_filepath_index_compressed); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 169, __pyx_L1_error)
+    if (__pyx_t_8) {
+
+      /* "pysam/libcfaidx.pyx":170
+ * 
+ *             if filepath_index_compressed:
+ *                 if not os.path.exists(filepath_index_compressed):             # <<<<<<<<<<<<<<
+ *                     raise IOError("filename {} does not exist".format(filepath_index_compressed))
+ *                 cindexname_compressed = bindex_filename_compressed = encode_filename(filepath_index_compressed)
+ */
+      __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 170, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 170, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_exists); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 170, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_7 = NULL;
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_3);
+        if (likely(__pyx_t_7)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_7);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
+        }
+      }
+      if (!__pyx_t_7) {
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_filepath_index_compressed); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 170, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+      } else {
+        #if CYTHON_FAST_PYCALL
+        if (PyFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_filepath_index_compressed};
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 170, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+          __Pyx_GOTREF(__pyx_t_2);
+        } else
+        #endif
+        #if CYTHON_FAST_PYCCALL
+        if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_filepath_index_compressed};
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 170, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+          __Pyx_GOTREF(__pyx_t_2);
+        } else
+        #endif
+        {
+          __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 170, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_7); __pyx_t_7 = NULL;
+          __Pyx_INCREF(__pyx_v_filepath_index_compressed);
+          __Pyx_GIVEREF(__pyx_v_filepath_index_compressed);
+          PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_filepath_index_compressed);
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 170, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        }
+      }
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_8 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 170, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_1 = ((!__pyx_t_8) != 0);
+      if (unlikely(__pyx_t_1)) {
+
+        /* "pysam/libcfaidx.pyx":171
+ *             if filepath_index_compressed:
+ *                 if not os.path.exists(filepath_index_compressed):
+ *                     raise IOError("filename {} does not exist".format(filepath_index_compressed))             # <<<<<<<<<<<<<<
+ *                 cindexname_compressed = bindex_filename_compressed = encode_filename(filepath_index_compressed)
+ *                 with nogil:
+ */
+        __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_filename_does_not_exist, __pyx_n_s_format); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 171, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __pyx_t_4 = NULL;
+        if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
+          __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
+          if (likely(__pyx_t_4)) {
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+            __Pyx_INCREF(__pyx_t_4);
+            __Pyx_INCREF(function);
+            __Pyx_DECREF_SET(__pyx_t_3, function);
+          }
+        }
+        if (!__pyx_t_4) {
+          __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_filepath_index_compressed); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 171, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_2);
+        } else {
+          #if CYTHON_FAST_PYCALL
+          if (PyFunction_Check(__pyx_t_3)) {
+            PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filepath_index_compressed};
+            __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 171, __pyx_L1_error)
+            __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+            __Pyx_GOTREF(__pyx_t_2);
+          } else
+          #endif
+          #if CYTHON_FAST_PYCCALL
+          if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+            PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filepath_index_compressed};
+            __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 171, __pyx_L1_error)
+            __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+            __Pyx_GOTREF(__pyx_t_2);
+          } else
+          #endif
+          {
+            __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 171, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_7);
+            __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_4); __pyx_t_4 = NULL;
+            __Pyx_INCREF(__pyx_v_filepath_index_compressed);
+            __Pyx_GIVEREF(__pyx_v_filepath_index_compressed);
+            PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_filepath_index_compressed);
+            __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 171, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_2);
+            __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+          }
+        }
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 171, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __PYX_ERR(0, 171, __pyx_L1_error)
+
+        /* "pysam/libcfaidx.pyx":170
+ * 
+ *             if filepath_index_compressed:
+ *                 if not os.path.exists(filepath_index_compressed):             # <<<<<<<<<<<<<<
+ *                     raise IOError("filename {} does not exist".format(filepath_index_compressed))
+ *                 cindexname_compressed = bindex_filename_compressed = encode_filename(filepath_index_compressed)
+ */
+      }
+
+      /* "pysam/libcfaidx.pyx":172
+ *                 if not os.path.exists(filepath_index_compressed):
+ *                     raise IOError("filename {} does not exist".format(filepath_index_compressed))
+ *                 cindexname_compressed = bindex_filename_compressed = encode_filename(filepath_index_compressed)             # <<<<<<<<<<<<<<
+ *                 with nogil:
+ *                     self.fastafile = fai_load3(cfilename, cindexname, cindexname_compressed, 0)
+ */
+      __pyx_t_3 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filepath_index_compressed); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 172, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if (unlikely(__pyx_t_3 == Py_None)) {
+        PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
+        __PYX_ERR(0, 172, __pyx_L1_error)
+      }
+      __pyx_t_5 = __Pyx_PyBytes_AsWritableString(__pyx_t_3); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 172, __pyx_L1_error)
+      __pyx_v_cindexname_compressed = __pyx_t_5;
+      __Pyx_INCREF(__pyx_t_3);
+      __pyx_v_bindex_filename_compressed = ((PyObject*)__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+      /* "pysam/libcfaidx.pyx":173
+ *                     raise IOError("filename {} does not exist".format(filepath_index_compressed))
+ *                 cindexname_compressed = bindex_filename_compressed = encode_filename(filepath_index_compressed)
+ *                 with nogil:             # <<<<<<<<<<<<<<
+ *                     self.fastafile = fai_load3(cfilename, cindexname, cindexname_compressed, 0)
+ *             else:
+ */
+      {
+          #ifdef WITH_THREAD
+          PyThreadState *_save;
+          Py_UNBLOCK_THREADS
+          __Pyx_FastGIL_Remember();
+          #endif
+          /*try:*/ {
+
+            /* "pysam/libcfaidx.pyx":174
+ *                 cindexname_compressed = bindex_filename_compressed = encode_filename(filepath_index_compressed)
+ *                 with nogil:
+ *                     self.fastafile = fai_load3(cfilename, cindexname, cindexname_compressed, 0)             # <<<<<<<<<<<<<<
+ *             else:
+ *                 with nogil:
+ */
+            __pyx_v_self->fastafile = fai_load3(__pyx_v_cfilename, __pyx_v_cindexname, __pyx_v_cindexname_compressed, 0);
+          }
+
+          /* "pysam/libcfaidx.pyx":173
+ *                     raise IOError("filename {} does not exist".format(filepath_index_compressed))
+ *                 cindexname_compressed = bindex_filename_compressed = encode_filename(filepath_index_compressed)
+ *                 with nogil:             # <<<<<<<<<<<<<<
+ *                     self.fastafile = fai_load3(cfilename, cindexname, cindexname_compressed, 0)
+ *             else:
+ */
+          /*finally:*/ {
+            /*normal exit:*/{
+              #ifdef WITH_THREAD
+              __Pyx_FastGIL_Forget();
+              Py_BLOCK_THREADS
+              #endif
+              goto __pyx_L14;
+            }
+            __pyx_L14:;
+          }
+      }
+
+      /* "pysam/libcfaidx.pyx":169
+ *             cindexname = bindex_filename = encode_filename(filepath_index)
+ * 
+ *             if filepath_index_compressed:             # <<<<<<<<<<<<<<
+ *                 if not os.path.exists(filepath_index_compressed):
+ *                     raise IOError("filename {} does not exist".format(filepath_index_compressed))
+ */
+      goto __pyx_L10;
+    }
+
+    /* "pysam/libcfaidx.pyx":176
+ *                     self.fastafile = fai_load3(cfilename, cindexname, cindexname_compressed, 0)
+ *             else:
+ *                 with nogil:             # <<<<<<<<<<<<<<
+ *                     self.fastafile = fai_load3(cfilename, cindexname, NULL, 0)
+ *         else:
+ */
+    /*else*/ {
+      {
+          #ifdef WITH_THREAD
+          PyThreadState *_save;
+          Py_UNBLOCK_THREADS
+          __Pyx_FastGIL_Remember();
+          #endif
+          /*try:*/ {
+
+            /* "pysam/libcfaidx.pyx":177
+ *             else:
+ *                 with nogil:
+ *                     self.fastafile = fai_load3(cfilename, cindexname, NULL, 0)             # <<<<<<<<<<<<<<
+ *         else:
+ *             with nogil:
+ */
+            __pyx_v_self->fastafile = fai_load3(__pyx_v_cfilename, __pyx_v_cindexname, NULL, 0);
+          }
+
+          /* "pysam/libcfaidx.pyx":176
+ *                     self.fastafile = fai_load3(cfilename, cindexname, cindexname_compressed, 0)
+ *             else:
+ *                 with nogil:             # <<<<<<<<<<<<<<
+ *                     self.fastafile = fai_load3(cfilename, cindexname, NULL, 0)
+ *         else:
+ */
+          /*finally:*/ {
+            /*normal exit:*/{
+              #ifdef WITH_THREAD
+              __Pyx_FastGIL_Forget();
+              Py_BLOCK_THREADS
+              #endif
+              goto __pyx_L17;
+            }
+            __pyx_L17:;
+          }
+      }
+    }
+    __pyx_L10:;
+
+    /* "pysam/libcfaidx.pyx":161
+ *         # uncompressed fa: fai_load3 with filename and index_fai
+ *         # uncompressed fa: fai_load with default index name
+ *         if filepath_index:             # <<<<<<<<<<<<<<
+ *             # when opening, set flags to 0 - do not automatically
+ *             # build index if it does not exist.
+ */
+    goto __pyx_L8;
+  }
+
+  /* "pysam/libcfaidx.pyx":179
+ *                     self.fastafile = fai_load3(cfilename, cindexname, NULL, 0)
+ *         else:
+ *             with nogil:             # <<<<<<<<<<<<<<
+ *                 self.fastafile = fai_load(cfilename)
+ * 
+ */
+  /*else*/ {
+    {
+        #ifdef WITH_THREAD
+        PyThreadState *_save;
+        Py_UNBLOCK_THREADS
+        __Pyx_FastGIL_Remember();
+        #endif
+        /*try:*/ {
+
+          /* "pysam/libcfaidx.pyx":180
+ *         else:
+ *             with nogil:
+ *                 self.fastafile = fai_load(cfilename)             # <<<<<<<<<<<<<<
+ * 
+ *         if self.fastafile == NULL:
+ */
+          __pyx_v_self->fastafile = fai_load(__pyx_v_cfilename);
+        }
+
+        /* "pysam/libcfaidx.pyx":179
+ *                     self.fastafile = fai_load3(cfilename, cindexname, NULL, 0)
+ *         else:
+ *             with nogil:             # <<<<<<<<<<<<<<
+ *                 self.fastafile = fai_load(cfilename)
+ * 
+ */
+        /*finally:*/ {
+          /*normal exit:*/{
+            #ifdef WITH_THREAD
+            __Pyx_FastGIL_Forget();
+            Py_BLOCK_THREADS
+            #endif
+            goto __pyx_L20;
+          }
+          __pyx_L20:;
+        }
+    }
+  }
+  __pyx_L8:;
+
+  /* "pysam/libcfaidx.pyx":182
+ *                 self.fastafile = fai_load(cfilename)
+ * 
+ *         if self.fastafile == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError("error when opening file `%s`" % filename)
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_self->fastafile == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libcfaidx.pyx":183
+ * 
+ *         if self.fastafile == NULL:
+ *             raise IOError("error when opening file `%s`" % filename)             # <<<<<<<<<<<<<<
+ * 
+ *         cdef int nreferences = faidx_nseq(self.fastafile)
+ */
+    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_error_when_opening_file_s, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 183, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 183, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 164, __pyx_L1_error)
+    __PYX_ERR(0, 183, __pyx_L1_error)
 
-    /* "pysam/libcfaidx.pyx":163
- *             filepath_index = filename + ".fai"
+    /* "pysam/libcfaidx.pyx":182
+ *                 self.fastafile = fai_load(cfilename)
  * 
- *         if not os.path.exists(filepath_index):             # <<<<<<<<<<<<<<
- *             raise ValueError("could not locate index file {}".format(
- *                 filepath_index))
+ *         if self.fastafile == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError("error when opening file `%s`" % filename)
+ * 
  */
   }
 
-  /* "pysam/libcfaidx.pyx":167
- *                 filepath_index))
+  /* "pysam/libcfaidx.pyx":185
+ *             raise IOError("error when opening file `%s`" % filename)
  * 
- *         with open(filepath_index) as inf:             # <<<<<<<<<<<<<<
- *             data = [x.split("\t") for x in inf]
- *             self._references = tuple(x[0] for x in data)
+ *         cdef int nreferences = faidx_nseq(self.fastafile)             # <<<<<<<<<<<<<<
+ *         cdef int x
+ *         cdef const char * s
  */
-  /*with:*/ {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_open, __pyx_v_filepath_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 167, __pyx_L1_error)
+  __pyx_v_nreferences = faidx_nseq(__pyx_v_self->fastafile);
+
+  /* "pysam/libcfaidx.pyx":188
+ *         cdef int x
+ *         cdef const char * s
+ *         self._references = []             # <<<<<<<<<<<<<<
+ *         self._lengths = []
+ *         for x from 0 <= x < nreferences:
+ */
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 188, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_2);
+  __Pyx_GOTREF(__pyx_v_self->_references);
+  __Pyx_DECREF(__pyx_v_self->_references);
+  __pyx_v_self->_references = __pyx_t_2;
+  __pyx_t_2 = 0;
+
+  /* "pysam/libcfaidx.pyx":189
+ *         cdef const char * s
+ *         self._references = []
+ *         self._lengths = []             # <<<<<<<<<<<<<<
+ *         for x from 0 <= x < nreferences:
+ *             s = faidx_iseq(self.fastafile, x)
+ */
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 189, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_2);
+  __Pyx_GOTREF(__pyx_v_self->_lengths);
+  __Pyx_DECREF(__pyx_v_self->_lengths);
+  __pyx_v_self->_lengths = __pyx_t_2;
+  __pyx_t_2 = 0;
+
+  /* "pysam/libcfaidx.pyx":190
+ *         self._references = []
+ *         self._lengths = []
+ *         for x from 0 <= x < nreferences:             # <<<<<<<<<<<<<<
+ *             s = faidx_iseq(self.fastafile, x)
+ *             ss = force_str(s)
+ */
+  __pyx_t_9 = __pyx_v_nreferences;
+  for (__pyx_v_x = 0; __pyx_v_x < __pyx_t_9; __pyx_v_x++) {
+
+    /* "pysam/libcfaidx.pyx":191
+ *         self._lengths = []
+ *         for x from 0 <= x < nreferences:
+ *             s = faidx_iseq(self.fastafile, x)             # <<<<<<<<<<<<<<
+ *             ss = force_str(s)
+ *             self._references.append(ss)
+ */
+    __pyx_v_s = faidx_iseq(__pyx_v_self->fastafile, __pyx_v_x);
+
+    /* "pysam/libcfaidx.pyx":192
+ *         for x from 0 <= x < nreferences:
+ *             s = faidx_iseq(self.fastafile, x)
+ *             ss = force_str(s)             # <<<<<<<<<<<<<<
+ *             self._references.append(ss)
+ *             self._lengths.append(faidx_seq_len(self.fastafile, s))
+ */
+    __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_s); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 192, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_12 = __Pyx_PyObject_LookupSpecial(__pyx_t_2, __pyx_n_s_exit); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 167, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_11 = __Pyx_PyObject_LookupSpecial(__pyx_t_2, __pyx_n_s_enter); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 167, __pyx_L15_error)
-    __Pyx_GOTREF(__pyx_t_11);
-    __pyx_t_7 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_11))) {
-      __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_11);
-      if (likely(__pyx_t_7)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-        __Pyx_INCREF(__pyx_t_7);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_11, function);
-      }
-    }
-    if (__pyx_t_7) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 167, __pyx_L15_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    } else {
-      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_11); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 167, __pyx_L15_error)
-    }
+    __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_str(__pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 192, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-    __pyx_t_11 = __pyx_t_3;
-    __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    /*try:*/ {
-      {
-        __Pyx_PyThreadState_declare
-        __Pyx_PyThreadState_assign
-        __Pyx_ExceptionSave(&__pyx_t_13, &__pyx_t_14, &__pyx_t_15);
-        __Pyx_XGOTREF(__pyx_t_13);
-        __Pyx_XGOTREF(__pyx_t_14);
-        __Pyx_XGOTREF(__pyx_t_15);
-        /*try:*/ {
-          __pyx_v_inf = __pyx_t_11;
-          __pyx_t_11 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_ss, __pyx_t_3);
+    __pyx_t_3 = 0;
 
-          /* "pysam/libcfaidx.pyx":168
- * 
- *         with open(filepath_index) as inf:
- *             data = [x.split("\t") for x in inf]             # <<<<<<<<<<<<<<
- *             self._references = tuple(x[0] for x in data)
- *             self._lengths = tuple(int(x[1]) for x in data)
+    /* "pysam/libcfaidx.pyx":193
+ *             s = faidx_iseq(self.fastafile, x)
+ *             ss = force_str(s)
+ *             self._references.append(ss)             # <<<<<<<<<<<<<<
+ *             self._lengths.append(faidx_seq_len(self.fastafile, s))
+ *         self.reference2length = dict(zip(self._references, self._lengths))
  */
-          __pyx_t_11 = PyList_New(0); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 168, __pyx_L19_error)
-          __Pyx_GOTREF(__pyx_t_11);
-          if (likely(PyList_CheckExact(__pyx_v_inf)) || PyTuple_CheckExact(__pyx_v_inf)) {
-            __pyx_t_2 = __pyx_v_inf; __Pyx_INCREF(__pyx_t_2); __pyx_t_16 = 0;
-            __pyx_t_17 = NULL;
-          } else {
-            __pyx_t_16 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_v_inf); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 168, __pyx_L19_error)
-            __Pyx_GOTREF(__pyx_t_2);
-            __pyx_t_17 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 168, __pyx_L19_error)
-          }
-          for (;;) {
-            if (likely(!__pyx_t_17)) {
-              if (likely(PyList_CheckExact(__pyx_t_2))) {
-                if (__pyx_t_16 >= PyList_GET_SIZE(__pyx_t_2)) break;
-                #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-                __pyx_t_3 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_16); __Pyx_INCREF(__pyx_t_3); __pyx_t_16++; if (unlikely(0 < 0)) __PYX_ERR(0, 168, __pyx_L19_error)
-                #else
-                __pyx_t_3 = PySequence_ITEM(__pyx_t_2, __pyx_t_16); __pyx_t_16++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 168, __pyx_L19_error)
-                __Pyx_GOTREF(__pyx_t_3);
-                #endif
-              } else {
-                if (__pyx_t_16 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
-                #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-                __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_16); __Pyx_INCREF(__pyx_t_3); __pyx_t_16++; if (unlikely(0 < 0)) __PYX_ERR(0, 168, __pyx_L19_error)
-                #else
-                __pyx_t_3 = PySequence_ITEM(__pyx_t_2, __pyx_t_16); __pyx_t_16++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 168, __pyx_L19_error)
-                __Pyx_GOTREF(__pyx_t_3);
-                #endif
-              }
-            } else {
-              __pyx_t_3 = __pyx_t_17(__pyx_t_2);
-              if (unlikely(!__pyx_t_3)) {
-                PyObject* exc_type = PyErr_Occurred();
-                if (exc_type) {
-                  if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-                  else __PYX_ERR(0, 168, __pyx_L19_error)
-                }
-                break;
-              }
-              __Pyx_GOTREF(__pyx_t_3);
-            }
-            __Pyx_XDECREF_SET(__pyx_v_x, __pyx_t_3);
-            __pyx_t_3 = 0;
-            __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_x, __pyx_n_s_split); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 168, __pyx_L19_error)
-            __Pyx_GOTREF(__pyx_t_3);
-            __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 168, __pyx_L19_error)
-            __Pyx_GOTREF(__pyx_t_7);
-            __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-            if (unlikely(__Pyx_ListComp_Append(__pyx_t_11, (PyObject*)__pyx_t_7))) __PYX_ERR(0, 168, __pyx_L19_error)
-            __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-          }
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __Pyx_GIVEREF(__pyx_t_11);
-          __pyx_cur_scope->__pyx_v_data = ((PyObject*)__pyx_t_11);
-          __pyx_t_11 = 0;
+    __pyx_t_10 = __Pyx_PyObject_Append(__pyx_v_self->_references, __pyx_v_ss); if (unlikely(__pyx_t_10 == ((int)-1))) __PYX_ERR(0, 193, __pyx_L1_error)
 
-          /* "pysam/libcfaidx.pyx":169
- *         with open(filepath_index) as inf:
- *             data = [x.split("\t") for x in inf]
- *             self._references = tuple(x[0] for x in data)             # <<<<<<<<<<<<<<
- *             self._lengths = tuple(int(x[1]) for x in data)
- *             self.reference2length = dict(zip(self._references, self._lengths))
- */
-          __pyx_t_11 = __pyx_pf_5pysam_9libcfaidx_9FastaFile_5_open_genexpr(((PyObject*)__pyx_cur_scope)); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 169, __pyx_L19_error)
-          __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_2 = __Pyx_PySequence_Tuple(__pyx_t_11); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 169, __pyx_L19_error)
-          __Pyx_GOTREF(__pyx_t_2);
-          __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_GIVEREF(__pyx_t_2);
-          __Pyx_GOTREF(__pyx_v_self->_references);
-          __Pyx_DECREF(__pyx_v_self->_references);
-          __pyx_v_self->_references = __pyx_t_2;
-          __pyx_t_2 = 0;
-
-          /* "pysam/libcfaidx.pyx":170
- *             data = [x.split("\t") for x in inf]
- *             self._references = tuple(x[0] for x in data)
- *             self._lengths = tuple(int(x[1]) for x in data)             # <<<<<<<<<<<<<<
- *             self.reference2length = dict(zip(self._references, self._lengths))
+    /* "pysam/libcfaidx.pyx":194
+ *             ss = force_str(s)
+ *             self._references.append(ss)
+ *             self._lengths.append(faidx_seq_len(self.fastafile, s))             # <<<<<<<<<<<<<<
+ *         self.reference2length = dict(zip(self._references, self._lengths))
  * 
  */
-          __pyx_t_2 = __pyx_pf_5pysam_9libcfaidx_9FastaFile_5_open_3genexpr(((PyObject*)__pyx_cur_scope)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 170, __pyx_L19_error)
-          __Pyx_GOTREF(__pyx_t_2);
-          __pyx_t_11 = __Pyx_PySequence_Tuple(__pyx_t_2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 170, __pyx_L19_error)
-          __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __Pyx_GIVEREF(__pyx_t_11);
-          __Pyx_GOTREF(__pyx_v_self->_lengths);
-          __Pyx_DECREF(__pyx_v_self->_lengths);
-          __pyx_v_self->_lengths = __pyx_t_11;
-          __pyx_t_11 = 0;
+    __pyx_t_3 = __Pyx_PyInt_From_int(faidx_seq_len(__pyx_v_self->fastafile, __pyx_v_s)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 194, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_10 = __Pyx_PyObject_Append(__pyx_v_self->_lengths, __pyx_t_3); if (unlikely(__pyx_t_10 == ((int)-1))) __PYX_ERR(0, 194, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  }
 
-          /* "pysam/libcfaidx.pyx":171
- *             self._references = tuple(x[0] for x in data)
- *             self._lengths = tuple(int(x[1]) for x in data)
- *             self.reference2length = dict(zip(self._references, self._lengths))             # <<<<<<<<<<<<<<
+  /* "pysam/libcfaidx.pyx":195
+ *             self._references.append(ss)
+ *             self._lengths.append(faidx_seq_len(self.fastafile, s))
+ *         self.reference2length = dict(zip(self._references, self._lengths))             # <<<<<<<<<<<<<<
  * 
  *     def close(self):
  */
-          __pyx_t_11 = PyTuple_New(2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 171, __pyx_L19_error)
-          __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_INCREF(__pyx_v_self->_references);
-          __Pyx_GIVEREF(__pyx_v_self->_references);
-          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_v_self->_references);
-          __Pyx_INCREF(__pyx_v_self->_lengths);
-          __Pyx_GIVEREF(__pyx_v_self->_lengths);
-          PyTuple_SET_ITEM(__pyx_t_11, 1, __pyx_v_self->_lengths);
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_11, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 171, __pyx_L19_error)
-          __Pyx_GOTREF(__pyx_t_2);
-          __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __pyx_t_11 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyDict_Type)), __pyx_t_2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 171, __pyx_L19_error)
-          __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __Pyx_GIVEREF(__pyx_t_11);
-          __Pyx_GOTREF(__pyx_v_self->reference2length);
-          __Pyx_DECREF(__pyx_v_self->reference2length);
-          __pyx_v_self->reference2length = __pyx_t_11;
-          __pyx_t_11 = 0;
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 195, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_INCREF(__pyx_v_self->_references);
+  __Pyx_GIVEREF(__pyx_v_self->_references);
+  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_v_self->_references);
+  __Pyx_INCREF(__pyx_v_self->_lengths);
+  __Pyx_GIVEREF(__pyx_v_self->_lengths);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_v_self->_lengths);
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 195, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyDict_Type)), __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 195, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_GIVEREF(__pyx_t_3);
+  __Pyx_GOTREF(__pyx_v_self->reference2length);
+  __Pyx_DECREF(__pyx_v_self->reference2length);
+  __pyx_v_self->reference2length = __pyx_t_3;
+  __pyx_t_3 = 0;
 
-          /* "pysam/libcfaidx.pyx":167
- *                 filepath_index))
- * 
- *         with open(filepath_index) as inf:             # <<<<<<<<<<<<<<
- *             data = [x.split("\t") for x in inf]
- *             self._references = tuple(x[0] for x in data)
- */
-        }
-        __Pyx_XDECREF(__pyx_t_13); __pyx_t_13 = 0;
-        __Pyx_XDECREF(__pyx_t_14); __pyx_t_14 = 0;
-        __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
-        goto __pyx_L24_try_end;
-        __pyx_L19_error:;
-        __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
-        __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-        /*except:*/ {
-          __Pyx_AddTraceback("pysam.libcfaidx.FastaFile._open", __pyx_clineno, __pyx_lineno, __pyx_filename);
-          if (__Pyx_GetException(&__pyx_t_11, &__pyx_t_2, &__pyx_t_7) < 0) __PYX_ERR(0, 167, __pyx_L21_except_error)
-          __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_GOTREF(__pyx_t_2);
-          __Pyx_GOTREF(__pyx_t_7);
-          __pyx_t_3 = PyTuple_Pack(3, __pyx_t_11, __pyx_t_2, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 167, __pyx_L21_except_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __pyx_t_18 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_t_3, NULL);
-          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-          if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 167, __pyx_L21_except_error)
-          __Pyx_GOTREF(__pyx_t_18);
-          __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_18);
-          __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
-          if (__pyx_t_6 < 0) __PYX_ERR(0, 167, __pyx_L21_except_error)
-          __pyx_t_8 = ((!(__pyx_t_6 != 0)) != 0);
-          if (__pyx_t_8) {
-            __Pyx_GIVEREF(__pyx_t_11);
-            __Pyx_GIVEREF(__pyx_t_2);
-            __Pyx_XGIVEREF(__pyx_t_7);
-            __Pyx_ErrRestoreWithState(__pyx_t_11, __pyx_t_2, __pyx_t_7);
-            __pyx_t_11 = 0; __pyx_t_2 = 0; __pyx_t_7 = 0; 
-            __PYX_ERR(0, 167, __pyx_L21_except_error)
-          }
-          __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-          goto __pyx_L20_exception_handled;
-        }
-        __pyx_L21_except_error:;
-        __Pyx_XGIVEREF(__pyx_t_13);
-        __Pyx_XGIVEREF(__pyx_t_14);
-        __Pyx_XGIVEREF(__pyx_t_15);
-        __Pyx_ExceptionReset(__pyx_t_13, __pyx_t_14, __pyx_t_15);
-        goto __pyx_L1_error;
-        __pyx_L20_exception_handled:;
-        __Pyx_XGIVEREF(__pyx_t_13);
-        __Pyx_XGIVEREF(__pyx_t_14);
-        __Pyx_XGIVEREF(__pyx_t_15);
-        __Pyx_ExceptionReset(__pyx_t_13, __pyx_t_14, __pyx_t_15);
-        __pyx_L24_try_end:;
-      }
-    }
-    /*finally:*/ {
-      /*normal exit:*/{
-        if (__pyx_t_12) {
-          __pyx_t_15 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_tuple__8, NULL);
-          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-          if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 167, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_15);
-          __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
-        }
-        goto __pyx_L18;
-      }
-      __pyx_L18:;
-    }
-    goto __pyx_L30;
-    __pyx_L15_error:;
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    goto __pyx_L1_error;
-    __pyx_L30:;
-  }
-
-  /* "pysam/libcfaidx.pyx":126
+  /* "pysam/libcfaidx.pyx":135
  *         return faidx_nseq(self.fastafile)
  * 
- *     def _open(self, filename, filepath_index=None):             # <<<<<<<<<<<<<<
+ *     def _open(self, filename, filepath_index=None, filepath_index_compressed=None):             # <<<<<<<<<<<<<<
  *         '''open an indexed fasta file.
  * 
  */
@@ -4136,23 +3684,20 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6_open(struct __pyx_obj_5
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_XDECREF(__pyx_t_9);
-  __Pyx_XDECREF(__pyx_t_11);
   __Pyx_AddTraceback("pysam.libcfaidx.FastaFile._open", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_inf);
-  __Pyx_XDECREF(__pyx_v_x);
-  __Pyx_XDECREF(__pyx_v_filepath_index);
-  __Pyx_DECREF(((PyObject *)__pyx_cur_scope));
+  __Pyx_XDECREF(__pyx_v_bindex_filename);
+  __Pyx_XDECREF(__pyx_v_bindex_filename_compressed);
+  __Pyx_XDECREF(__pyx_v_ss);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_TraceReturn(__pyx_r, 0);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":173
- *             self.reference2length = dict(zip(self._references, self._lengths))
+/* "pysam/libcfaidx.pyx":197
+ *         self.reference2length = dict(zip(self._references, self._lengths))
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
  *         """close the file."""
@@ -4179,9 +3724,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_8close(struct __pyx_obj_5
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("close", 0);
-  __Pyx_TraceCall("close", __pyx_f[0], 173, 0, __PYX_ERR(0, 173, __pyx_L1_error));
+  __Pyx_TraceCall("close", __pyx_f[0], 197, 0, __PYX_ERR(0, 197, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":175
+  /* "pysam/libcfaidx.pyx":199
  *     def close(self):
  *         """close the file."""
  *         if self.fastafile != NULL:             # <<<<<<<<<<<<<<
@@ -4191,7 +3736,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_8close(struct __pyx_obj_5
   __pyx_t_1 = ((__pyx_v_self->fastafile != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcfaidx.pyx":176
+    /* "pysam/libcfaidx.pyx":200
  *         """close the file."""
  *         if self.fastafile != NULL:
  *             fai_destroy(self.fastafile)             # <<<<<<<<<<<<<<
@@ -4200,7 +3745,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_8close(struct __pyx_obj_5
  */
     fai_destroy(__pyx_v_self->fastafile);
 
-    /* "pysam/libcfaidx.pyx":177
+    /* "pysam/libcfaidx.pyx":201
  *         if self.fastafile != NULL:
  *             fai_destroy(self.fastafile)
  *             self.fastafile = NULL             # <<<<<<<<<<<<<<
@@ -4209,7 +3754,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_8close(struct __pyx_obj_5
  */
     __pyx_v_self->fastafile = NULL;
 
-    /* "pysam/libcfaidx.pyx":175
+    /* "pysam/libcfaidx.pyx":199
  *     def close(self):
  *         """close the file."""
  *         if self.fastafile != NULL:             # <<<<<<<<<<<<<<
@@ -4218,8 +3763,8 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_8close(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libcfaidx.pyx":173
- *             self.reference2length = dict(zip(self._references, self._lengths))
+  /* "pysam/libcfaidx.pyx":197
+ *         self.reference2length = dict(zip(self._references, self._lengths))
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
  *         """close the file."""
@@ -4239,7 +3784,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_8close(struct __pyx_obj_5
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":179
+/* "pysam/libcfaidx.pyx":203
  *             self.fastafile = NULL
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -4263,9 +3808,9 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastaFile_10__dealloc__(struct __pyx_obj
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
-  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 179, 0, __PYX_ERR(0, 179, __pyx_L1_error));
+  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 203, 0, __PYX_ERR(0, 203, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":180
+  /* "pysam/libcfaidx.pyx":204
  * 
  *     def __dealloc__(self):
  *         if self.fastafile != NULL:             # <<<<<<<<<<<<<<
@@ -4275,7 +3820,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastaFile_10__dealloc__(struct __pyx_obj
   __pyx_t_1 = ((__pyx_v_self->fastafile != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcfaidx.pyx":181
+    /* "pysam/libcfaidx.pyx":205
  *     def __dealloc__(self):
  *         if self.fastafile != NULL:
  *             fai_destroy(self.fastafile)             # <<<<<<<<<<<<<<
@@ -4284,7 +3829,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastaFile_10__dealloc__(struct __pyx_obj
  */
     fai_destroy(__pyx_v_self->fastafile);
 
-    /* "pysam/libcfaidx.pyx":182
+    /* "pysam/libcfaidx.pyx":206
  *         if self.fastafile != NULL:
  *             fai_destroy(self.fastafile)
  *             self.fastafile = NULL             # <<<<<<<<<<<<<<
@@ -4293,7 +3838,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastaFile_10__dealloc__(struct __pyx_obj
  */
     __pyx_v_self->fastafile = NULL;
 
-    /* "pysam/libcfaidx.pyx":180
+    /* "pysam/libcfaidx.pyx":204
  * 
  *     def __dealloc__(self):
  *         if self.fastafile != NULL:             # <<<<<<<<<<<<<<
@@ -4302,7 +3847,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastaFile_10__dealloc__(struct __pyx_obj
  */
   }
 
-  /* "pysam/libcfaidx.pyx":179
+  /* "pysam/libcfaidx.pyx":203
  *             self.fastafile = NULL
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -4319,7 +3864,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastaFile_10__dealloc__(struct __pyx_obj
   __Pyx_RefNannyFinishContext();
 }
 
-/* "pysam/libcfaidx.pyx":185
+/* "pysam/libcfaidx.pyx":209
  * 
  *     # context manager interface
  *     def __enter__(self):             # <<<<<<<<<<<<<<
@@ -4346,9 +3891,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_12__enter__(struct __pyx_
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__enter__", 0);
-  __Pyx_TraceCall("__enter__", __pyx_f[0], 185, 0, __PYX_ERR(0, 185, __pyx_L1_error));
+  __Pyx_TraceCall("__enter__", __pyx_f[0], 209, 0, __PYX_ERR(0, 209, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":186
+  /* "pysam/libcfaidx.pyx":210
  *     # context manager interface
  *     def __enter__(self):
  *         return self             # <<<<<<<<<<<<<<
@@ -4360,7 +3905,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_12__enter__(struct __pyx_
   __pyx_r = ((PyObject *)__pyx_v_self);
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":185
+  /* "pysam/libcfaidx.pyx":209
  * 
  *     # context manager interface
  *     def __enter__(self):             # <<<<<<<<<<<<<<
@@ -4379,7 +3924,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_12__enter__(struct __pyx_
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":188
+/* "pysam/libcfaidx.pyx":212
  *         return self
  * 
  *     def __exit__(self, exc_type, exc_value, traceback):             # <<<<<<<<<<<<<<
@@ -4422,17 +3967,17 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_15__exit__(PyObject *__py
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_exc_value)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 1); __PYX_ERR(0, 188, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 1); __PYX_ERR(0, 212, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_traceback)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 2); __PYX_ERR(0, 188, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 2); __PYX_ERR(0, 212, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__exit__") < 0)) __PYX_ERR(0, 188, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__exit__") < 0)) __PYX_ERR(0, 212, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -4447,7 +3992,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_15__exit__(PyObject *__py
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 188, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 212, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcfaidx.FastaFile.__exit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4468,16 +4013,16 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_14__exit__(struct __pyx_o
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__exit__", 0);
-  __Pyx_TraceCall("__exit__", __pyx_f[0], 188, 0, __PYX_ERR(0, 188, __pyx_L1_error));
+  __Pyx_TraceCall("__exit__", __pyx_f[0], 212, 0, __PYX_ERR(0, 212, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":189
+  /* "pysam/libcfaidx.pyx":213
  * 
  *     def __exit__(self, exc_type, exc_value, traceback):
  *         self.close()             # <<<<<<<<<<<<<<
  *         return False
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 189, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 213, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4490,16 +4035,16 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_14__exit__(struct __pyx_o
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 213, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 213, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libcfaidx.pyx":190
+  /* "pysam/libcfaidx.pyx":214
  *     def __exit__(self, exc_type, exc_value, traceback):
  *         self.close()
  *         return False             # <<<<<<<<<<<<<<
@@ -4511,7 +4056,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_14__exit__(struct __pyx_o
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":188
+  /* "pysam/libcfaidx.pyx":212
  *         return self
  * 
  *     def __exit__(self, exc_type, exc_value, traceback):             # <<<<<<<<<<<<<<
@@ -4533,7 +4078,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_14__exit__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":196
+/* "pysam/libcfaidx.pyx":220
  *         This is a read-only attribute; the close() method changes the value.
  *         """
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -4563,9 +4108,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6closed___get__(struct __
   PyObject *__pyx_t_3 = NULL;
   int __pyx_t_4;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 196, 0, __PYX_ERR(0, 196, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 220, 0, __PYX_ERR(0, 220, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":197
+  /* "pysam/libcfaidx.pyx":221
  *         """
  *         def __get__(self):
  *             return not self.is_open()             # <<<<<<<<<<<<<<
@@ -4573,7 +4118,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6closed___get__(struct __
  *     property filename:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 197, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4586,22 +4131,22 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6closed___get__(struct __
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 197, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 197, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 197, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyBool_FromLong((!__pyx_t_4)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 197, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((!__pyx_t_4)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":196
+  /* "pysam/libcfaidx.pyx":220
  *         This is a read-only attribute; the close() method changes the value.
  *         """
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -4623,7 +4168,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_6closed___get__(struct __
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":201
+/* "pysam/libcfaidx.pyx":225
  *     property filename:
  *         """filename associated with this object. This is a read-only attribute."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -4649,9 +4194,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_8filename___get__(struct 
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 201, 0, __PYX_ERR(0, 201, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 225, 0, __PYX_ERR(0, 225, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":202
+  /* "pysam/libcfaidx.pyx":226
  *         """filename associated with this object. This is a read-only attribute."""
  *         def __get__(self):
  *             return self._filename             # <<<<<<<<<<<<<<
@@ -4663,7 +4208,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_8filename___get__(struct 
   __pyx_r = __pyx_v_self->_filename;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":201
+  /* "pysam/libcfaidx.pyx":225
  *     property filename:
  *         """filename associated with this object. This is a read-only attribute."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -4682,7 +4227,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_8filename___get__(struct 
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":206
+/* "pysam/libcfaidx.pyx":230
  *     property references:
  *         '''tuple with the names of :term:`reference` sequences.'''
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -4708,9 +4253,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_10references___get__(stru
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 206, 0, __PYX_ERR(0, 206, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 230, 0, __PYX_ERR(0, 230, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":207
+  /* "pysam/libcfaidx.pyx":231
  *         '''tuple with the names of :term:`reference` sequences.'''
  *         def __get__(self):
  *             return self._references             # <<<<<<<<<<<<<<
@@ -4722,7 +4267,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_10references___get__(stru
   __pyx_r = __pyx_v_self->_references;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":206
+  /* "pysam/libcfaidx.pyx":230
  *     property references:
  *         '''tuple with the names of :term:`reference` sequences.'''
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -4741,7 +4286,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_10references___get__(stru
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":212
+/* "pysam/libcfaidx.pyx":236
  *         """"int with the number of :term:`reference` sequences in the file.
  *         This is a read-only attribute."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -4771,9 +4316,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_11nreferences___get__(str
   int __pyx_t_3;
   Py_ssize_t __pyx_t_4;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 212, 0, __PYX_ERR(0, 212, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 236, 0, __PYX_ERR(0, 236, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":213
+  /* "pysam/libcfaidx.pyx":237
  *         This is a read-only attribute."""
  *         def __get__(self):
  *             return len(self._references) if self.references else None             # <<<<<<<<<<<<<<
@@ -4781,16 +4326,16 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_11nreferences___get__(str
  *     property lengths:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_references); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_references); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 237, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 237, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (__pyx_t_3) {
     __pyx_t_2 = __pyx_v_self->_references;
     __Pyx_INCREF(__pyx_t_2);
-    __pyx_t_4 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 213, __pyx_L1_error)
+    __pyx_t_4 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 237, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 213, __pyx_L1_error)
+    __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 237, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_1 = __pyx_t_2;
     __pyx_t_2 = 0;
@@ -4802,7 +4347,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_11nreferences___get__(str
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":212
+  /* "pysam/libcfaidx.pyx":236
  *         """"int with the number of :term:`reference` sequences in the file.
  *         This is a read-only attribute."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -4823,7 +4368,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_11nreferences___get__(str
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":217
+/* "pysam/libcfaidx.pyx":241
  *     property lengths:
  *         """tuple with the lengths of :term:`reference` sequences."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -4849,9 +4394,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_7lengths___get__(struct _
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 217, 0, __PYX_ERR(0, 217, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 241, 0, __PYX_ERR(0, 241, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":218
+  /* "pysam/libcfaidx.pyx":242
  *         """tuple with the lengths of :term:`reference` sequences."""
  *         def __get__(self):
  *             return self._lengths             # <<<<<<<<<<<<<<
@@ -4863,7 +4408,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_7lengths___get__(struct _
   __pyx_r = __pyx_v_self->_lengths;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":217
+  /* "pysam/libcfaidx.pyx":241
  *     property lengths:
  *         """tuple with the lengths of :term:`reference` sequences."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -4882,7 +4427,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_7lengths___get__(struct _
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":220
+/* "pysam/libcfaidx.pyx":244
  *             return self._lengths
  * 
  *     def fetch(self,             # <<<<<<<<<<<<<<
@@ -4905,7 +4450,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_17fetch(PyObject *__pyx_v
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_reference,&__pyx_n_s_start,&__pyx_n_s_end,&__pyx_n_s_region,0};
     PyObject* values[4] = {0,0,0,0};
 
-    /* "pysam/libcfaidx.pyx":221
+    /* "pysam/libcfaidx.pyx":245
  * 
  *     def fetch(self,
  *               reference=None,             # <<<<<<<<<<<<<<
@@ -4914,7 +4459,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_17fetch(PyObject *__pyx_v
  */
     values[0] = ((PyObject *)Py_None);
 
-    /* "pysam/libcfaidx.pyx":222
+    /* "pysam/libcfaidx.pyx":246
  *     def fetch(self,
  *               reference=None,
  *               start=None,             # <<<<<<<<<<<<<<
@@ -4923,7 +4468,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_17fetch(PyObject *__pyx_v
  */
     values[1] = ((PyObject *)Py_None);
 
-    /* "pysam/libcfaidx.pyx":223
+    /* "pysam/libcfaidx.pyx":247
  *               reference=None,
  *               start=None,
  *               end=None,             # <<<<<<<<<<<<<<
@@ -4932,7 +4477,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_17fetch(PyObject *__pyx_v
  */
     values[2] = ((PyObject *)Py_None);
 
-    /* "pysam/libcfaidx.pyx":224
+    /* "pysam/libcfaidx.pyx":248
  *               start=None,
  *               end=None,
  *               region=None):             # <<<<<<<<<<<<<<
@@ -4982,7 +4527,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_17fetch(PyObject *__pyx_v
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fetch") < 0)) __PYX_ERR(0, 220, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fetch") < 0)) __PYX_ERR(0, 244, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -5005,7 +4550,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_17fetch(PyObject *__pyx_v
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fetch", 0, 0, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 220, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fetch", 0, 0, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 244, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcfaidx.FastaFile.fetch", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -5013,7 +4558,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastaFile_17fetch(PyObject *__pyx_v
   __pyx_L4_argument_unpacking_done:;
   __pyx_r = __pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(((struct __pyx_obj_5pysam_9libcfaidx_FastaFile *)__pyx_v_self), __pyx_v_reference, __pyx_v_start, __pyx_v_end, __pyx_v_region);
 
-  /* "pysam/libcfaidx.pyx":220
+  /* "pysam/libcfaidx.pyx":244
  *             return self._lengths
  * 
  *     def fetch(self,             # <<<<<<<<<<<<<<
@@ -5055,17 +4600,17 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
   PyObject *__pyx_t_18 = NULL;
   PyObject *__pyx_t_19 = NULL;
   __Pyx_RefNannySetupContext("fetch", 0);
-  __Pyx_TraceCall("fetch", __pyx_f[0], 220, 0, __PYX_ERR(0, 220, __pyx_L1_error));
+  __Pyx_TraceCall("fetch", __pyx_f[0], 244, 0, __PYX_ERR(0, 244, __pyx_L1_error));
   __Pyx_INCREF(__pyx_v_reference);
 
-  /* "pysam/libcfaidx.pyx":258
+  /* "pysam/libcfaidx.pyx":282
  *         """
  * 
  *         if not self.is_open():             # <<<<<<<<<<<<<<
  *             raise ValueError("I/O operation on closed file" )
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 282, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -5078,32 +4623,32 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 258, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 282, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 258, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 282, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 258, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 282, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_5 = ((!__pyx_t_4) != 0);
   if (unlikely(__pyx_t_5)) {
 
-    /* "pysam/libcfaidx.pyx":259
+    /* "pysam/libcfaidx.pyx":283
  * 
  *         if not self.is_open():
  *             raise ValueError("I/O operation on closed file" )             # <<<<<<<<<<<<<<
  * 
  *         cdef int length
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 259, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 259, __pyx_L1_error)
+    __PYX_ERR(0, 283, __pyx_L1_error)
 
-    /* "pysam/libcfaidx.pyx":258
+    /* "pysam/libcfaidx.pyx":282
  *         """
  * 
  *         if not self.is_open():             # <<<<<<<<<<<<<<
@@ -5112,7 +4657,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libcfaidx.pyx":266
+  /* "pysam/libcfaidx.pyx":290
  *         cdef int rstart, rend
  * 
  *         reference, rstart, rend = parse_region(reference, start, end, region)             # <<<<<<<<<<<<<<
@@ -5124,7 +4669,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
   __pyx_t_6.start = __pyx_v_start;
   __pyx_t_6.end = __pyx_v_end;
   __pyx_t_6.region = __pyx_v_region;
-  __pyx_t_1 = __pyx_f_5pysam_9libcutils_parse_region(0, &__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 266, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5pysam_9libcutils_parse_region(0, &__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 290, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if ((likely(PyTuple_CheckExact(__pyx_t_1))) || (PyList_CheckExact(__pyx_t_1))) {
     PyObject* sequence = __pyx_t_1;
@@ -5132,7 +4677,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
     if (unlikely(size != 3)) {
       if (size > 3) __Pyx_RaiseTooManyValuesError(3);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 266, __pyx_L1_error)
+      __PYX_ERR(0, 290, __pyx_L1_error)
     }
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -5148,17 +4693,17 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
     __Pyx_INCREF(__pyx_t_3);
     __Pyx_INCREF(__pyx_t_7);
     #else
-    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 266, __pyx_L1_error)
+    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 290, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 266, __pyx_L1_error)
+    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 290, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_7 = PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 266, __pyx_L1_error)
+    __pyx_t_7 = PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 290, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     #endif
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_8 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 266, __pyx_L1_error)
+    __pyx_t_8 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 290, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_9 = Py_TYPE(__pyx_t_8)->tp_iternext;
@@ -5168,7 +4713,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
     __Pyx_GOTREF(__pyx_t_3);
     index = 2; __pyx_t_7 = __pyx_t_9(__pyx_t_8); if (unlikely(!__pyx_t_7)) goto __pyx_L4_unpacking_failed;
     __Pyx_GOTREF(__pyx_t_7);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_9(__pyx_t_8), 3) < 0) __PYX_ERR(0, 266, __pyx_L1_error)
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_9(__pyx_t_8), 3) < 0) __PYX_ERR(0, 290, __pyx_L1_error)
     __pyx_t_9 = NULL;
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     goto __pyx_L5_unpacking_done;
@@ -5176,19 +4721,19 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __pyx_t_9 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 266, __pyx_L1_error)
+    __PYX_ERR(0, 290, __pyx_L1_error)
     __pyx_L5_unpacking_done:;
   }
-  __pyx_t_10 = __Pyx_PyInt_As_int(__pyx_t_3); if (unlikely((__pyx_t_10 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 266, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyInt_As_int(__pyx_t_3); if (unlikely((__pyx_t_10 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 290, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 266, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 290, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF_SET(__pyx_v_reference, __pyx_t_2);
   __pyx_t_2 = 0;
   __pyx_v_rstart = __pyx_t_10;
   __pyx_v_rend = __pyx_t_11;
 
-  /* "pysam/libcfaidx.pyx":268
+  /* "pysam/libcfaidx.pyx":292
  *         reference, rstart, rend = parse_region(reference, start, end, region)
  * 
  *         if reference is None:             # <<<<<<<<<<<<<<
@@ -5199,20 +4744,20 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
   __pyx_t_4 = (__pyx_t_5 != 0);
   if (unlikely(__pyx_t_4)) {
 
-    /* "pysam/libcfaidx.pyx":269
+    /* "pysam/libcfaidx.pyx":293
  * 
  *         if reference is None:
  *             raise ValueError("no sequence/region supplied.")             # <<<<<<<<<<<<<<
  * 
  *         if rstart == rend:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 269, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 293, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 269, __pyx_L1_error)
+    __PYX_ERR(0, 293, __pyx_L1_error)
 
-    /* "pysam/libcfaidx.pyx":268
+    /* "pysam/libcfaidx.pyx":292
  *         reference, rstart, rend = parse_region(reference, start, end, region)
  * 
  *         if reference is None:             # <<<<<<<<<<<<<<
@@ -5221,7 +4766,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libcfaidx.pyx":271
+  /* "pysam/libcfaidx.pyx":295
  *             raise ValueError("no sequence/region supplied.")
  * 
  *         if rstart == rend:             # <<<<<<<<<<<<<<
@@ -5231,7 +4776,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
   __pyx_t_4 = ((__pyx_v_rstart == __pyx_v_rend) != 0);
   if (__pyx_t_4) {
 
-    /* "pysam/libcfaidx.pyx":272
+    /* "pysam/libcfaidx.pyx":296
  * 
  *         if rstart == rend:
  *             return ""             # <<<<<<<<<<<<<<
@@ -5243,7 +4788,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
     __pyx_r = __pyx_kp_s__5;
     goto __pyx_L0;
 
-    /* "pysam/libcfaidx.pyx":271
+    /* "pysam/libcfaidx.pyx":295
  *             raise ValueError("no sequence/region supplied.")
  * 
  *         if rstart == rend:             # <<<<<<<<<<<<<<
@@ -5252,17 +4797,17 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libcfaidx.pyx":274
+  /* "pysam/libcfaidx.pyx":298
  *             return ""
  * 
  *         ref = reference             # <<<<<<<<<<<<<<
  *         with nogil:
  *             length = faidx_seq_len(self.fastafile, ref)
  */
-  __pyx_t_12 = __Pyx_PyObject_AsWritableString(__pyx_v_reference); if (unlikely((!__pyx_t_12) && PyErr_Occurred())) __PYX_ERR(0, 274, __pyx_L1_error)
+  __pyx_t_12 = __Pyx_PyObject_AsWritableString(__pyx_v_reference); if (unlikely((!__pyx_t_12) && PyErr_Occurred())) __PYX_ERR(0, 298, __pyx_L1_error)
   __pyx_v_ref = __pyx_t_12;
 
-  /* "pysam/libcfaidx.pyx":275
+  /* "pysam/libcfaidx.pyx":299
  * 
  *         ref = reference
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -5277,7 +4822,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
       #endif
       /*try:*/ {
 
-        /* "pysam/libcfaidx.pyx":276
+        /* "pysam/libcfaidx.pyx":300
  *         ref = reference
  *         with nogil:
  *             length = faidx_seq_len(self.fastafile, ref)             # <<<<<<<<<<<<<<
@@ -5287,7 +4832,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
         __pyx_v_length = faidx_seq_len(__pyx_v_self->fastafile, __pyx_v_ref);
       }
 
-      /* "pysam/libcfaidx.pyx":275
+      /* "pysam/libcfaidx.pyx":299
  * 
  *         ref = reference
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -5306,7 +4851,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
       }
   }
 
-  /* "pysam/libcfaidx.pyx":277
+  /* "pysam/libcfaidx.pyx":301
  *         with nogil:
  *             length = faidx_seq_len(self.fastafile, ref)
  *         if length == -1:             # <<<<<<<<<<<<<<
@@ -5316,23 +4861,23 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
   __pyx_t_4 = ((__pyx_v_length == -1L) != 0);
   if (unlikely(__pyx_t_4)) {
 
-    /* "pysam/libcfaidx.pyx":278
+    /* "pysam/libcfaidx.pyx":302
  *             length = faidx_seq_len(self.fastafile, ref)
  *         if length == -1:
  *             raise KeyError("sequence '%s' not present" % reference)             # <<<<<<<<<<<<<<
  *         if rstart >= length:
  *             return ""
  */
-    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_sequence_s_not_present, __pyx_v_reference); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 278, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_sequence_s_not_present, __pyx_v_reference); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 302, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_builtin_KeyError, __pyx_t_1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 278, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_builtin_KeyError, __pyx_t_1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 302, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_Raise(__pyx_t_7, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __PYX_ERR(0, 278, __pyx_L1_error)
+    __PYX_ERR(0, 302, __pyx_L1_error)
 
-    /* "pysam/libcfaidx.pyx":277
+    /* "pysam/libcfaidx.pyx":301
  *         with nogil:
  *             length = faidx_seq_len(self.fastafile, ref)
  *         if length == -1:             # <<<<<<<<<<<<<<
@@ -5341,7 +4886,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libcfaidx.pyx":279
+  /* "pysam/libcfaidx.pyx":303
  *         if length == -1:
  *             raise KeyError("sequence '%s' not present" % reference)
  *         if rstart >= length:             # <<<<<<<<<<<<<<
@@ -5351,7 +4896,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
   __pyx_t_4 = ((__pyx_v_rstart >= __pyx_v_length) != 0);
   if (__pyx_t_4) {
 
-    /* "pysam/libcfaidx.pyx":280
+    /* "pysam/libcfaidx.pyx":304
  *             raise KeyError("sequence '%s' not present" % reference)
  *         if rstart >= length:
  *             return ""             # <<<<<<<<<<<<<<
@@ -5363,7 +4908,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
     __pyx_r = __pyx_kp_s__5;
     goto __pyx_L0;
 
-    /* "pysam/libcfaidx.pyx":279
+    /* "pysam/libcfaidx.pyx":303
  *         if length == -1:
  *             raise KeyError("sequence '%s' not present" % reference)
  *         if rstart >= length:             # <<<<<<<<<<<<<<
@@ -5372,7 +4917,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libcfaidx.pyx":283
+  /* "pysam/libcfaidx.pyx":307
  * 
  *         # fai_fetch adds a '\0' at the end
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -5387,7 +4932,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
       #endif
       /*try:*/ {
 
-        /* "pysam/libcfaidx.pyx":284
+        /* "pysam/libcfaidx.pyx":308
  *         # fai_fetch adds a '\0' at the end
  *         with nogil:
  *             seq = faidx_fetch_seq(self.fastafile,             # <<<<<<<<<<<<<<
@@ -5397,7 +4942,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
         __pyx_v_seq = faidx_fetch_seq(__pyx_v_self->fastafile, __pyx_v_ref, __pyx_v_rstart, (__pyx_v_rend - 1), (&__pyx_v_length));
       }
 
-      /* "pysam/libcfaidx.pyx":283
+      /* "pysam/libcfaidx.pyx":307
  * 
  *         # fai_fetch adds a '\0' at the end
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -5416,51 +4961,90 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
       }
   }
 
-  /* "pysam/libcfaidx.pyx":290
+  /* "pysam/libcfaidx.pyx":314
  *                                   &length)
  * 
- *         if seq == NULL:             # <<<<<<<<<<<<<<
- *             raise ValueError(
- *                 "failure when retrieving sequence on '%s'" % reference)
+ *         if not seq:             # <<<<<<<<<<<<<<
+ *             if errno:
+ *                 raise IOError(errno, strerror(errno))
  */
-  __pyx_t_4 = ((__pyx_v_seq == NULL) != 0);
-  if (unlikely(__pyx_t_4)) {
+  __pyx_t_4 = ((!(__pyx_v_seq != 0)) != 0);
+  if (__pyx_t_4) {
 
-    /* "pysam/libcfaidx.pyx":292
- *         if seq == NULL:
- *             raise ValueError(
- *                 "failure when retrieving sequence on '%s'" % reference)             # <<<<<<<<<<<<<<
+    /* "pysam/libcfaidx.pyx":315
+ * 
+ *         if not seq:
+ *             if errno:             # <<<<<<<<<<<<<<
+ *                 raise IOError(errno, strerror(errno))
+ *             else:
+ */
+    __pyx_t_4 = (errno != 0);
+    if (unlikely(__pyx_t_4)) {
+
+      /* "pysam/libcfaidx.pyx":316
+ *         if not seq:
+ *             if errno:
+ *                 raise IOError(errno, strerror(errno))             # <<<<<<<<<<<<<<
+ *             else:
+ *                 raise ValueError("failure when retrieving sequence on '%s'" % reference)
+ */
+      __pyx_t_7 = __Pyx_PyInt_From_int(errno); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 316, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __pyx_t_1 = __Pyx_PyBytes_FromString(strerror(errno)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 316, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 316, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_GIVEREF(__pyx_t_7);
+      PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_7);
+      __Pyx_GIVEREF(__pyx_t_1);
+      PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_1);
+      __pyx_t_7 = 0;
+      __pyx_t_1 = 0;
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 316, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __PYX_ERR(0, 316, __pyx_L1_error)
+
+      /* "pysam/libcfaidx.pyx":315
+ * 
+ *         if not seq:
+ *             if errno:             # <<<<<<<<<<<<<<
+ *                 raise IOError(errno, strerror(errno))
+ *             else:
+ */
+    }
+
+    /* "pysam/libcfaidx.pyx":318
+ *                 raise IOError(errno, strerror(errno))
+ *             else:
+ *                 raise ValueError("failure when retrieving sequence on '%s'" % reference)             # <<<<<<<<<<<<<<
  * 
  *         try:
  */
-    __pyx_t_7 = __Pyx_PyString_Format(__pyx_kp_s_failure_when_retrieving_sequence, __pyx_v_reference); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 292, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
+    /*else*/ {
+      __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_failure_when_retrieving_sequence, __pyx_v_reference); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 318, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 318, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __PYX_ERR(0, 318, __pyx_L1_error)
+    }
 
-    /* "pysam/libcfaidx.pyx":291
- * 
- *         if seq == NULL:
- *             raise ValueError(             # <<<<<<<<<<<<<<
- *                 "failure when retrieving sequence on '%s'" % reference)
- * 
- */
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 291, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 291, __pyx_L1_error)
-
-    /* "pysam/libcfaidx.pyx":290
+    /* "pysam/libcfaidx.pyx":314
  *                                   &length)
  * 
- *         if seq == NULL:             # <<<<<<<<<<<<<<
- *             raise ValueError(
- *                 "failure when retrieving sequence on '%s'" % reference)
+ *         if not seq:             # <<<<<<<<<<<<<<
+ *             if errno:
+ *                 raise IOError(errno, strerror(errno))
  */
   }
 
-  /* "pysam/libcfaidx.pyx":294
- *                 "failure when retrieving sequence on '%s'" % reference)
+  /* "pysam/libcfaidx.pyx":320
+ *                 raise ValueError("failure when retrieving sequence on '%s'" % reference)
  * 
  *         try:             # <<<<<<<<<<<<<<
  *             return charptr_to_str(seq)
@@ -5468,7 +5052,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
  */
   /*try:*/ {
 
-    /* "pysam/libcfaidx.pyx":295
+    /* "pysam/libcfaidx.pyx":321
  * 
  *         try:
  *             return charptr_to_str(seq)             # <<<<<<<<<<<<<<
@@ -5476,31 +5060,31 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
  *             free(seq)
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_seq, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 295, __pyx_L18_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_r = __pyx_t_1;
-    __pyx_t_1 = 0;
-    goto __pyx_L17_return;
+    __pyx_t_3 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_seq, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 321, __pyx_L19_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_r = __pyx_t_3;
+    __pyx_t_3 = 0;
+    goto __pyx_L18_return;
   }
 
-  /* "pysam/libcfaidx.pyx":297
+  /* "pysam/libcfaidx.pyx":323
  *             return charptr_to_str(seq)
  *         finally:
  *             free(seq)             # <<<<<<<<<<<<<<
  * 
- *     cdef char * _fetch(self, char * reference, int start, int end, int * length):
+ *     cdef char *_fetch(self, char *reference, int start, int end, int *length) except? NULL:
  */
   /*finally:*/ {
-    __pyx_L18_error:;
+    __pyx_L19_error:;
     /*exception exit:*/{
       __Pyx_PyThreadState_declare
       __Pyx_PyThreadState_assign
       __pyx_t_14 = 0; __pyx_t_15 = 0; __pyx_t_16 = 0; __pyx_t_17 = 0; __pyx_t_18 = 0; __pyx_t_19 = 0;
       __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       if (PY_MAJOR_VERSION >= 3) __Pyx_ExceptionSwap(&__pyx_t_17, &__pyx_t_18, &__pyx_t_19);
       if ((PY_MAJOR_VERSION < 3) || unlikely(__Pyx_GetException(&__pyx_t_14, &__pyx_t_15, &__pyx_t_16) < 0)) __Pyx_ErrFetch(&__pyx_t_14, &__pyx_t_15, &__pyx_t_16);
       __Pyx_XGOTREF(__pyx_t_14);
@@ -5527,7 +5111,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
       __pyx_lineno = __pyx_t_11; __pyx_clineno = __pyx_t_10; __pyx_filename = __pyx_t_13;
       goto __pyx_L1_error;
     }
-    __pyx_L17_return: {
+    __pyx_L18_return: {
       __pyx_t_19 = __pyx_r;
       __pyx_r = 0;
       free(__pyx_v_seq);
@@ -5537,7 +5121,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
     }
   }
 
-  /* "pysam/libcfaidx.pyx":220
+  /* "pysam/libcfaidx.pyx":244
  *             return self._lengths
  * 
  *     def fetch(self,             # <<<<<<<<<<<<<<
@@ -5562,27 +5146,32 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_16fetch(struct __pyx_obj_
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":299
+/* "pysam/libcfaidx.pyx":325
  *             free(seq)
  * 
- *     cdef char * _fetch(self, char * reference, int start, int end, int * length):             # <<<<<<<<<<<<<<
+ *     cdef char *_fetch(self, char *reference, int start, int end, int *length) except? NULL:             # <<<<<<<<<<<<<<
  *         '''fetch sequence for reference, start and end'''
  * 
  */
 
 static char *__pyx_f_5pysam_9libcfaidx_9FastaFile__fetch(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *__pyx_v_self, char *__pyx_v_reference, int __pyx_v_start, int __pyx_v_end, int *__pyx_v_length) {
+  char *__pyx_v_seq;
   char *__pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("_fetch", 0);
-  __Pyx_TraceCall("_fetch", __pyx_f[0], 299, 0, __PYX_ERR(0, 299, __pyx_L1_error));
+  __Pyx_TraceCall("_fetch", __pyx_f[0], 325, 0, __PYX_ERR(0, 325, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":302
- *         '''fetch sequence for reference, start and end'''
+  /* "pysam/libcfaidx.pyx":329
  * 
+ *         cdef char *seq
  *         with nogil:             # <<<<<<<<<<<<<<
- *             return faidx_fetch_seq(self.fastafile,
- *                                    reference,
+ *             seq = faidx_fetch_seq(self.fastafile,
+ *                                   reference,
  */
   {
       #ifdef WITH_THREAD
@@ -5592,55 +5181,153 @@ static char *__pyx_f_5pysam_9libcfaidx_9FastaFile__fetch(struct __pyx_obj_5pysam
       #endif
       /*try:*/ {
 
-        /* "pysam/libcfaidx.pyx":303
- * 
+        /* "pysam/libcfaidx.pyx":330
+ *         cdef char *seq
  *         with nogil:
- *             return faidx_fetch_seq(self.fastafile,             # <<<<<<<<<<<<<<
- *                                    reference,
- *                                    start,
+ *             seq = faidx_fetch_seq(self.fastafile,             # <<<<<<<<<<<<<<
+ *                                   reference,
+ *                                   start,
  */
-        __pyx_r = faidx_fetch_seq(__pyx_v_self->fastafile, __pyx_v_reference, __pyx_v_start, (__pyx_v_end - 1), __pyx_v_length);
-        goto __pyx_L3_return;
+        __pyx_v_seq = faidx_fetch_seq(__pyx_v_self->fastafile, __pyx_v_reference, __pyx_v_start, (__pyx_v_end - 1), __pyx_v_length);
       }
 
-      /* "pysam/libcfaidx.pyx":302
- *         '''fetch sequence for reference, start and end'''
+      /* "pysam/libcfaidx.pyx":329
  * 
+ *         cdef char *seq
  *         with nogil:             # <<<<<<<<<<<<<<
- *             return faidx_fetch_seq(self.fastafile,
- *                                    reference,
+ *             seq = faidx_fetch_seq(self.fastafile,
+ *                                   reference,
  */
       /*finally:*/ {
-        __pyx_L3_return: {
+        /*normal exit:*/{
           #ifdef WITH_THREAD
           __Pyx_FastGIL_Forget();
           Py_BLOCK_THREADS
           #endif
-          goto __pyx_L0;
+          goto __pyx_L5;
         }
+        __pyx_L5:;
       }
   }
 
-  /* "pysam/libcfaidx.pyx":299
+  /* "pysam/libcfaidx.pyx":336
+ *                                   length)
+ * 
+ *         if not seq:             # <<<<<<<<<<<<<<
+ *             if errno:
+ *                 raise IOError(errno, strerror(errno))
+ */
+  __pyx_t_1 = ((!(__pyx_v_seq != 0)) != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libcfaidx.pyx":337
+ * 
+ *         if not seq:
+ *             if errno:             # <<<<<<<<<<<<<<
+ *                 raise IOError(errno, strerror(errno))
+ *             else:
+ */
+    __pyx_t_1 = (errno != 0);
+    if (unlikely(__pyx_t_1)) {
+
+      /* "pysam/libcfaidx.pyx":338
+ *         if not seq:
+ *             if errno:
+ *                 raise IOError(errno, strerror(errno))             # <<<<<<<<<<<<<<
+ *             else:
+ *                 raise ValueError("failure when retrieving sequence on '%s'" % reference)
+ */
+      __pyx_t_2 = __Pyx_PyInt_From_int(errno); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 338, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_3 = __Pyx_PyBytes_FromString(strerror(errno)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 338, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 338, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_GIVEREF(__pyx_t_2);
+      PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
+      __Pyx_GIVEREF(__pyx_t_3);
+      PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3);
+      __pyx_t_2 = 0;
+      __pyx_t_3 = 0;
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 338, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __PYX_ERR(0, 338, __pyx_L1_error)
+
+      /* "pysam/libcfaidx.pyx":337
+ * 
+ *         if not seq:
+ *             if errno:             # <<<<<<<<<<<<<<
+ *                 raise IOError(errno, strerror(errno))
+ *             else:
+ */
+    }
+
+    /* "pysam/libcfaidx.pyx":340
+ *                 raise IOError(errno, strerror(errno))
+ *             else:
+ *                 raise ValueError("failure when retrieving sequence on '%s'" % reference)             # <<<<<<<<<<<<<<
+ * 
+ *         return seq
+ */
+    /*else*/ {
+      __pyx_t_3 = __Pyx_PyBytes_FromString(__pyx_v_reference); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 340, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_failure_when_retrieving_sequence, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 340, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 340, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __PYX_ERR(0, 340, __pyx_L1_error)
+    }
+
+    /* "pysam/libcfaidx.pyx":336
+ *                                   length)
+ * 
+ *         if not seq:             # <<<<<<<<<<<<<<
+ *             if errno:
+ *                 raise IOError(errno, strerror(errno))
+ */
+  }
+
+  /* "pysam/libcfaidx.pyx":342
+ *                 raise ValueError("failure when retrieving sequence on '%s'" % reference)
+ * 
+ *         return seq             # <<<<<<<<<<<<<<
+ * 
+ *     def get_reference_length(self, reference):
+ */
+  __pyx_r = __pyx_v_seq;
+  goto __pyx_L0;
+
+  /* "pysam/libcfaidx.pyx":325
  *             free(seq)
  * 
- *     cdef char * _fetch(self, char * reference, int start, int end, int * length):             # <<<<<<<<<<<<<<
+ *     cdef char *_fetch(self, char *reference, int start, int end, int *length) except? NULL:             # <<<<<<<<<<<<<<
  *         '''fetch sequence for reference, start and end'''
  * 
  */
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_WriteUnraisable("pysam.libcfaidx.FastaFile._fetch", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
-  __pyx_r = 0;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastaFile._fetch", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":309
- *                                    length)
+/* "pysam/libcfaidx.pyx":344
+ *         return seq
  * 
  *     def get_reference_length(self, reference):             # <<<<<<<<<<<<<<
  *         '''return the length of reference.'''
@@ -5667,9 +5354,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_18get_reference_length(st
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_reference_length", 0);
-  __Pyx_TraceCall("get_reference_length", __pyx_f[0], 309, 0, __PYX_ERR(0, 309, __pyx_L1_error));
+  __Pyx_TraceCall("get_reference_length", __pyx_f[0], 344, 0, __PYX_ERR(0, 344, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":311
+  /* "pysam/libcfaidx.pyx":346
  *     def get_reference_length(self, reference):
  *         '''return the length of reference.'''
  *         return self.reference2length[reference]             # <<<<<<<<<<<<<<
@@ -5677,14 +5364,14 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_18get_reference_length(st
  *     def __getitem__(self, reference):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_self->reference2length, __pyx_v_reference); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 311, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_self->reference2length, __pyx_v_reference); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 346, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":309
- *                                    length)
+  /* "pysam/libcfaidx.pyx":344
+ *         return seq
  * 
  *     def get_reference_length(self, reference):             # <<<<<<<<<<<<<<
  *         '''return the length of reference.'''
@@ -5703,7 +5390,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_18get_reference_length(st
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":313
+/* "pysam/libcfaidx.pyx":348
  *         return self.reference2length[reference]
  * 
  *     def __getitem__(self, reference):             # <<<<<<<<<<<<<<
@@ -5733,9 +5420,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_20__getitem__(struct __py
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__getitem__", 0);
-  __Pyx_TraceCall("__getitem__", __pyx_f[0], 313, 0, __PYX_ERR(0, 313, __pyx_L1_error));
+  __Pyx_TraceCall("__getitem__", __pyx_f[0], 348, 0, __PYX_ERR(0, 348, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":314
+  /* "pysam/libcfaidx.pyx":349
  * 
  *     def __getitem__(self, reference):
  *         return self.fetch(reference)             # <<<<<<<<<<<<<<
@@ -5743,7 +5430,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_20__getitem__(struct __py
  *     def __contains__(self, reference):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_fetch); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 314, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_fetch); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 349, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -5756,13 +5443,13 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_20__getitem__(struct __py
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_reference); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 314, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_reference); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 349, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
   } else {
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_reference};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 314, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 349, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
@@ -5770,19 +5457,19 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_20__getitem__(struct __py
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_reference};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 314, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 349, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
     #endif
     {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 314, __pyx_L1_error)
+      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 349, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
       __Pyx_INCREF(__pyx_v_reference);
       __Pyx_GIVEREF(__pyx_v_reference);
       PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_reference);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 314, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 349, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
@@ -5792,7 +5479,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_20__getitem__(struct __py
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":313
+  /* "pysam/libcfaidx.pyx":348
  *         return self.reference2length[reference]
  * 
  *     def __getitem__(self, reference):             # <<<<<<<<<<<<<<
@@ -5815,7 +5502,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_20__getitem__(struct __py
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":316
+/* "pysam/libcfaidx.pyx":351
  *         return self.fetch(reference)
  * 
  *     def __contains__(self, reference):             # <<<<<<<<<<<<<<
@@ -5846,20 +5533,20 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastaFile_22__contains__(struct __pyx_obj
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__contains__", 0);
-  __Pyx_TraceCall("__contains__", __pyx_f[0], 316, 0, __PYX_ERR(0, 316, __pyx_L1_error));
+  __Pyx_TraceCall("__contains__", __pyx_f[0], 351, 0, __PYX_ERR(0, 351, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":318
+  /* "pysam/libcfaidx.pyx":353
  *     def __contains__(self, reference):
  *         '''return true if reference in fasta file.'''
  *         return reference in self.reference2length             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_1 = (__Pyx_PySequence_ContainsTF(__pyx_v_reference, __pyx_v_self->reference2length, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 318, __pyx_L1_error)
+  __pyx_t_1 = (__Pyx_PySequence_ContainsTF(__pyx_v_reference, __pyx_v_self->reference2length, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 353, __pyx_L1_error)
   __pyx_r = __pyx_t_1;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":316
+  /* "pysam/libcfaidx.pyx":351
  *         return self.fetch(reference)
  * 
  *     def __contains__(self, reference):             # <<<<<<<<<<<<<<
@@ -5911,7 +5598,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_24__reduce_cython__(CYTHO
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -5968,7 +5655,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_26__setstate_cython__(CYT
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -5992,7 +5679,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastaFile_26__setstate_cython__(CYT
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":323
+/* "pysam/libcfaidx.pyx":358
  * cdef class FastqProxy:
  *     """A single entry in a fastq file."""
  *     def __init__(self): pass             # <<<<<<<<<<<<<<
@@ -6021,7 +5708,7 @@ static int __pyx_pf_5pysam_9libcfaidx_10FastqProxy___init__(CYTHON_UNUSED struct
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__", 0);
-  __Pyx_TraceCall("__init__", __pyx_f[0], 323, 0, __PYX_ERR(0, 323, __pyx_L1_error));
+  __Pyx_TraceCall("__init__", __pyx_f[0], 358, 0, __PYX_ERR(0, 358, __pyx_L1_error));
 
   /* function exit code */
   __pyx_r = 0;
@@ -6035,7 +5722,7 @@ static int __pyx_pf_5pysam_9libcfaidx_10FastqProxy___init__(CYTHON_UNUSED struct
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":327
+/* "pysam/libcfaidx.pyx":362
  *     property name:
  *         """The name of each entry in the fastq file."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -6062,9 +5749,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_4name___get__(struct __
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 327, 0, __PYX_ERR(0, 327, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 362, 0, __PYX_ERR(0, 362, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":328
+  /* "pysam/libcfaidx.pyx":363
  *         """The name of each entry in the fastq file."""
  *         def __get__(self):
  *             return charptr_to_str(self._delegate.name.s)             # <<<<<<<<<<<<<<
@@ -6072,13 +5759,13 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_4name___get__(struct __
  *     property sequence:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_self->_delegate->name.s, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 328, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_self->_delegate->name.s, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 363, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":327
+  /* "pysam/libcfaidx.pyx":362
  *     property name:
  *         """The name of each entry in the fastq file."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -6098,7 +5785,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_4name___get__(struct __
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":332
+/* "pysam/libcfaidx.pyx":367
  *     property sequence:
  *         """The sequence of each entry in the fastq file."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -6125,9 +5812,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_8sequence___get__(struc
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 332, 0, __PYX_ERR(0, 332, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 367, 0, __PYX_ERR(0, 367, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":333
+  /* "pysam/libcfaidx.pyx":368
  *         """The sequence of each entry in the fastq file."""
  *         def __get__(self):
  *             return charptr_to_str(self._delegate.seq.s)             # <<<<<<<<<<<<<<
@@ -6135,13 +5822,13 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_8sequence___get__(struc
  *     property comment:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_self->_delegate->seq.s, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 333, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_self->_delegate->seq.s, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 368, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":332
+  /* "pysam/libcfaidx.pyx":367
  *     property sequence:
  *         """The sequence of each entry in the fastq file."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -6161,7 +5848,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_8sequence___get__(struc
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":336
+/* "pysam/libcfaidx.pyx":371
  * 
  *     property comment:
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -6189,9 +5876,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7comment___get__(struct
   int __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 336, 0, __PYX_ERR(0, 336, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 371, 0, __PYX_ERR(0, 371, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":337
+  /* "pysam/libcfaidx.pyx":372
  *     property comment:
  *         def __get__(self):
  *             if self._delegate.comment.l:             # <<<<<<<<<<<<<<
@@ -6201,7 +5888,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7comment___get__(struct
   __pyx_t_1 = (__pyx_v_self->_delegate->comment.l != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcfaidx.pyx":338
+    /* "pysam/libcfaidx.pyx":373
  *         def __get__(self):
  *             if self._delegate.comment.l:
  *                 return charptr_to_str(self._delegate.comment.s)             # <<<<<<<<<<<<<<
@@ -6209,13 +5896,13 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7comment___get__(struct
  *                 return None
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_self->_delegate->comment.s, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 338, __pyx_L1_error)
+    __pyx_t_2 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_self->_delegate->comment.s, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 373, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_r = __pyx_t_2;
     __pyx_t_2 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcfaidx.pyx":337
+    /* "pysam/libcfaidx.pyx":372
  *     property comment:
  *         def __get__(self):
  *             if self._delegate.comment.l:             # <<<<<<<<<<<<<<
@@ -6224,7 +5911,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7comment___get__(struct
  */
   }
 
-  /* "pysam/libcfaidx.pyx":340
+  /* "pysam/libcfaidx.pyx":375
  *                 return charptr_to_str(self._delegate.comment.s)
  *             else:
  *                 return None             # <<<<<<<<<<<<<<
@@ -6237,7 +5924,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7comment___get__(struct
     goto __pyx_L0;
   }
 
-  /* "pysam/libcfaidx.pyx":336
+  /* "pysam/libcfaidx.pyx":371
  * 
  *     property comment:
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -6257,7 +5944,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7comment___get__(struct
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":344
+/* "pysam/libcfaidx.pyx":379
  *     property quality:
  *         """The quality score of each entry in the fastq file, represented as a string."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -6285,9 +5972,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7quality___get__(struct
   int __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 344, 0, __PYX_ERR(0, 344, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 379, 0, __PYX_ERR(0, 379, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":345
+  /* "pysam/libcfaidx.pyx":380
  *         """The quality score of each entry in the fastq file, represented as a string."""
  *         def __get__(self):
  *             if self._delegate.qual.l:             # <<<<<<<<<<<<<<
@@ -6297,7 +5984,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7quality___get__(struct
   __pyx_t_1 = (__pyx_v_self->_delegate->qual.l != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcfaidx.pyx":346
+    /* "pysam/libcfaidx.pyx":381
  *         def __get__(self):
  *             if self._delegate.qual.l:
  *                 return charptr_to_str(self._delegate.qual.s)             # <<<<<<<<<<<<<<
@@ -6305,13 +5992,13 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7quality___get__(struct
  *                 return None
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_self->_delegate->qual.s, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 346, __pyx_L1_error)
+    __pyx_t_2 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_self->_delegate->qual.s, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 381, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_r = __pyx_t_2;
     __pyx_t_2 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcfaidx.pyx":345
+    /* "pysam/libcfaidx.pyx":380
  *         """The quality score of each entry in the fastq file, represented as a string."""
  *         def __get__(self):
  *             if self._delegate.qual.l:             # <<<<<<<<<<<<<<
@@ -6320,12 +6007,12 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7quality___get__(struct
  */
   }
 
-  /* "pysam/libcfaidx.pyx":348
+  /* "pysam/libcfaidx.pyx":383
  *                 return charptr_to_str(self._delegate.qual.s)
  *             else:
  *                 return None             # <<<<<<<<<<<<<<
  * 
- *     cdef cython.str tostring(self):
+ *     cdef cython.str to_string(self):
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
@@ -6333,7 +6020,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7quality___get__(struct
     goto __pyx_L0;
   }
 
-  /* "pysam/libcfaidx.pyx":344
+  /* "pysam/libcfaidx.pyx":379
  *     property quality:
  *         """The quality score of each entry in the fastq file, represented as a string."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -6353,15 +6040,15 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_7quality___get__(struct
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":350
+/* "pysam/libcfaidx.pyx":385
  *                 return None
  * 
- *     cdef cython.str tostring(self):             # <<<<<<<<<<<<<<
+ *     cdef cython.str to_string(self):             # <<<<<<<<<<<<<<
  *         if self.comment is None:
  *             comment = ""
  */
 
-static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_self) {
+static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_to_string(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_self) {
   PyObject *__pyx_v_comment = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
@@ -6372,25 +6059,25 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
-  __Pyx_RefNannySetupContext("tostring", 0);
-  __Pyx_TraceCall("tostring", __pyx_f[0], 350, 0, __PYX_ERR(0, 350, __pyx_L1_error));
+  __Pyx_RefNannySetupContext("to_string", 0);
+  __Pyx_TraceCall("to_string", __pyx_f[0], 385, 0, __PYX_ERR(0, 385, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":351
+  /* "pysam/libcfaidx.pyx":386
  * 
- *     cdef cython.str tostring(self):
+ *     cdef cython.str to_string(self):
  *         if self.comment is None:             # <<<<<<<<<<<<<<
  *             comment = ""
  *         else:
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_comment); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 351, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_comment); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 386, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = (__pyx_t_1 == Py_None);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_3 = (__pyx_t_2 != 0);
   if (__pyx_t_3) {
 
-    /* "pysam/libcfaidx.pyx":352
- *     cdef cython.str tostring(self):
+    /* "pysam/libcfaidx.pyx":387
+ *     cdef cython.str to_string(self):
  *         if self.comment is None:
  *             comment = ""             # <<<<<<<<<<<<<<
  *         else:
@@ -6399,9 +6086,9 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
     __Pyx_INCREF(__pyx_kp_s__5);
     __pyx_v_comment = __pyx_kp_s__5;
 
-    /* "pysam/libcfaidx.pyx":351
+    /* "pysam/libcfaidx.pyx":386
  * 
- *     cdef cython.str tostring(self):
+ *     cdef cython.str to_string(self):
  *         if self.comment is None:             # <<<<<<<<<<<<<<
  *             comment = ""
  *         else:
@@ -6409,7 +6096,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
     goto __pyx_L3;
   }
 
-  /* "pysam/libcfaidx.pyx":354
+  /* "pysam/libcfaidx.pyx":389
  *             comment = ""
  *         else:
  *             comment = " %s" % self.comment             # <<<<<<<<<<<<<<
@@ -6417,9 +6104,9 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
  *         if self.quality is None:
  */
   /*else*/ {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_comment); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 354, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_comment); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 389, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_s, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 354, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_s, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 389, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_v_comment = __pyx_t_4;
@@ -6427,21 +6114,21 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
   }
   __pyx_L3:;
 
-  /* "pysam/libcfaidx.pyx":356
+  /* "pysam/libcfaidx.pyx":391
  *             comment = " %s" % self.comment
  * 
  *         if self.quality is None:             # <<<<<<<<<<<<<<
  *             return ">%s%s\n%s" % (self.name, comment, self.sequence)
  *         else:
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_quality); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 356, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_quality); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 391, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_3 = (__pyx_t_4 == Py_None);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_2 = (__pyx_t_3 != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcfaidx.pyx":357
+    /* "pysam/libcfaidx.pyx":392
  * 
  *         if self.quality is None:
  *             return ">%s%s\n%s" % (self.name, comment, self.sequence)             # <<<<<<<<<<<<<<
@@ -6449,11 +6136,11 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
  *             return "@%s%s\n%s\n+\n%s" % (self.name, comment,
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_name); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 357, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_name); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 392, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_sequence); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 357, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_sequence); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 392, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 357, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 392, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
@@ -6464,15 +6151,15 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
     PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_t_1);
     __pyx_t_4 = 0;
     __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_s_s_s, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 357, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_s_s_s, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 392, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (!(likely(PyString_CheckExact(__pyx_t_1))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 357, __pyx_L1_error)
+    if (!(likely(PyString_CheckExact(__pyx_t_1))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 392, __pyx_L1_error)
     __pyx_r = ((PyObject*)__pyx_t_1);
     __pyx_t_1 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcfaidx.pyx":356
+    /* "pysam/libcfaidx.pyx":391
  *             comment = " %s" % self.comment
  * 
  *         if self.quality is None:             # <<<<<<<<<<<<<<
@@ -6481,7 +6168,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
  */
   }
 
-  /* "pysam/libcfaidx.pyx":359
+  /* "pysam/libcfaidx.pyx":394
  *             return ">%s%s\n%s" % (self.name, comment, self.sequence)
  *         else:
  *             return "@%s%s\n%s\n+\n%s" % (self.name, comment,             # <<<<<<<<<<<<<<
@@ -6490,29 +6177,29 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_name); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 359, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_name); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 394, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
 
-    /* "pysam/libcfaidx.pyx":360
+    /* "pysam/libcfaidx.pyx":395
  *         else:
  *             return "@%s%s\n%s\n+\n%s" % (self.name, comment,
  *                                          self.sequence, self.quality)             # <<<<<<<<<<<<<<
  * 
- *     def __str__(self):
+ *     cdef cython.str tostring(self):
  */
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_sequence); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 360, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_sequence); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 395, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_quality); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 360, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_quality); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 395, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
 
-    /* "pysam/libcfaidx.pyx":359
+    /* "pysam/libcfaidx.pyx":394
  *             return ">%s%s\n%s" % (self.name, comment, self.sequence)
  *         else:
  *             return "@%s%s\n%s\n+\n%s" % (self.name, comment,             # <<<<<<<<<<<<<<
  *                                          self.sequence, self.quality)
  * 
  */
-    __pyx_t_6 = PyTuple_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 359, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 394, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_1);
@@ -6526,19 +6213,19 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
     __pyx_t_1 = 0;
     __pyx_t_5 = 0;
     __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_s_s_s_s, __pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 359, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_s_s_s_s, __pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 394, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (!(likely(PyString_CheckExact(__pyx_t_4))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_4)->tp_name), 0))) __PYX_ERR(0, 359, __pyx_L1_error)
+    if (!(likely(PyString_CheckExact(__pyx_t_4))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_4)->tp_name), 0))) __PYX_ERR(0, 394, __pyx_L1_error)
     __pyx_r = ((PyObject*)__pyx_t_4);
     __pyx_t_4 = 0;
     goto __pyx_L0;
   }
 
-  /* "pysam/libcfaidx.pyx":350
+  /* "pysam/libcfaidx.pyx":385
  *                 return None
  * 
- *     cdef cython.str tostring(self):             # <<<<<<<<<<<<<<
+ *     cdef cython.str to_string(self):             # <<<<<<<<<<<<<<
  *         if self.comment is None:
  *             comment = ""
  */
@@ -6549,7 +6236,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("pysam.libcfaidx.FastqProxy.tostring", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastqProxy.to_string", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_comment);
@@ -6559,11 +6246,61 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":362
+/* "pysam/libcfaidx.pyx":397
  *                                          self.sequence, self.quality)
  * 
+ *     cdef cython.str tostring(self):             # <<<<<<<<<<<<<<
+ *         """deprecated : use :meth:`to_string`"""
+ *         return self.to_string()
+ */
+
+static PyObject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("tostring", 0);
+  __Pyx_TraceCall("tostring", __pyx_f[0], 397, 0, __PYX_ERR(0, 397, __pyx_L1_error));
+
+  /* "pysam/libcfaidx.pyx":399
+ *     cdef cython.str tostring(self):
+ *         """deprecated : use :meth:`to_string`"""
+ *         return self.to_string()             # <<<<<<<<<<<<<<
+ * 
+ *     def __str__(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqProxy *)__pyx_v_self->__pyx_vtab)->to_string(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 399, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libcfaidx.pyx":397
+ *                                          self.sequence, self.quality)
+ * 
+ *     cdef cython.str tostring(self):             # <<<<<<<<<<<<<<
+ *         """deprecated : use :meth:`to_string`"""
+ *         return self.to_string()
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastqProxy.tostring", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libcfaidx.pyx":401
+ *         return self.to_string()
+ * 
  *     def __str__(self):             # <<<<<<<<<<<<<<
- *         return self.tostring()
+ *         return self.to_string()
  * 
  */
 
@@ -6586,27 +6323,27 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_2__str__(struct __pyx_o
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__str__", 0);
-  __Pyx_TraceCall("__str__", __pyx_f[0], 362, 0, __PYX_ERR(0, 362, __pyx_L1_error));
+  __Pyx_TraceCall("__str__", __pyx_f[0], 401, 0, __PYX_ERR(0, 401, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":363
+  /* "pysam/libcfaidx.pyx":402
  * 
  *     def __str__(self):
- *         return self.tostring()             # <<<<<<<<<<<<<<
+ *         return self.to_string()             # <<<<<<<<<<<<<<
  * 
  *     cpdef array.array get_quality_array(self, int offset=33):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqProxy *)__pyx_v_self->__pyx_vtab)->tostring(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 363, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libcfaidx_FastqProxy *)__pyx_v_self->__pyx_vtab)->to_string(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 402, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":362
- *                                          self.sequence, self.quality)
+  /* "pysam/libcfaidx.pyx":401
+ *         return self.to_string()
  * 
  *     def __str__(self):             # <<<<<<<<<<<<<<
- *         return self.tostring()
+ *         return self.to_string()
  * 
  */
 
@@ -6622,8 +6359,8 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_2__str__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":365
- *         return self.tostring()
+/* "pysam/libcfaidx.pyx":404
+ *         return self.to_string()
  * 
  *     cpdef array.array get_quality_array(self, int offset=33):             # <<<<<<<<<<<<<<
  *         '''return quality values as integer array after subtracting offset.'''
@@ -6646,7 +6383,7 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_get_quality_array(str
   int __pyx_t_8;
   struct __pyx_opt_args_5pysam_9libcutils_qualitystring_to_array __pyx_t_9;
   __Pyx_RefNannySetupContext("get_quality_array", 0);
-  __Pyx_TraceCall("get_quality_array", __pyx_f[0], 365, 0, __PYX_ERR(0, 365, __pyx_L1_error));
+  __Pyx_TraceCall("get_quality_array", __pyx_f[0], 404, 0, __PYX_ERR(0, 404, __pyx_L1_error));
   if (__pyx_optional_args) {
     if (__pyx_optional_args->__pyx_n > 0) {
       __pyx_v_offset = __pyx_optional_args->offset;
@@ -6656,11 +6393,11 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_get_quality_array(str
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_quality_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 365, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_quality_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 404, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_5pysam_9libcfaidx_10FastqProxy_5get_quality_array)) {
       __Pyx_XDECREF(((PyObject *)__pyx_r));
-      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_offset); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 365, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_offset); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 404, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_4 = __pyx_t_1; __pyx_t_5 = NULL;
@@ -6674,14 +6411,14 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_get_quality_array(str
         }
       }
       if (!__pyx_t_5) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 365, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 404, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_GOTREF(__pyx_t_2);
       } else {
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_4)) {
           PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 365, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 404, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -6690,26 +6427,26 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_get_quality_array(str
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
           PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 365, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 404, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         } else
         #endif
         {
-          __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 365, __pyx_L1_error)
+          __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 404, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
           __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
           __Pyx_GIVEREF(__pyx_t_3);
           PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_t_3);
           __pyx_t_3 = 0;
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 365, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 404, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         }
       }
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7cpython_5array_array))))) __PYX_ERR(0, 365, __pyx_L1_error)
+      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7cpython_5array_array))))) __PYX_ERR(0, 404, __pyx_L1_error)
       __pyx_r = ((arrayobject *)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -6718,21 +6455,21 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_get_quality_array(str
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "pysam/libcfaidx.pyx":367
+  /* "pysam/libcfaidx.pyx":406
  *     cpdef array.array get_quality_array(self, int offset=33):
  *         '''return quality values as integer array after subtracting offset.'''
  *         if self.quality is None:             # <<<<<<<<<<<<<<
  *             return None
  *         return qualitystring_to_array(force_bytes(self.quality),
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_quality); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 367, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_quality); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 406, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_7 = (__pyx_t_1 == Py_None);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_8 = (__pyx_t_7 != 0);
   if (__pyx_t_8) {
 
-    /* "pysam/libcfaidx.pyx":368
+    /* "pysam/libcfaidx.pyx":407
  *         '''return quality values as integer array after subtracting offset.'''
  *         if self.quality is None:
  *             return None             # <<<<<<<<<<<<<<
@@ -6743,7 +6480,7 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_get_quality_array(str
     __pyx_r = ((arrayobject *)Py_None); __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcfaidx.pyx":367
+    /* "pysam/libcfaidx.pyx":406
  *     cpdef array.array get_quality_array(self, int offset=33):
  *         '''return quality values as integer array after subtracting offset.'''
  *         if self.quality is None:             # <<<<<<<<<<<<<<
@@ -6752,7 +6489,7 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_get_quality_array(str
  */
   }
 
-  /* "pysam/libcfaidx.pyx":369
+  /* "pysam/libcfaidx.pyx":408
  *         if self.quality is None:
  *             return None
  *         return qualitystring_to_array(force_bytes(self.quality),             # <<<<<<<<<<<<<<
@@ -6760,30 +6497,30 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_10FastqProxy_get_quality_array(str
  * 
  */
   __Pyx_XDECREF(((PyObject *)__pyx_r));
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_quality); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 369, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_quality); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 408, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 369, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 408, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libcfaidx.pyx":370
+  /* "pysam/libcfaidx.pyx":409
  *             return None
  *         return qualitystring_to_array(force_bytes(self.quality),
  *                                       offset=offset)             # <<<<<<<<<<<<<<
  * 
- * cdef class PersistentFastqProxy:
+ * cdef class FastxRecord:
  */
   __pyx_t_9.__pyx_n = 1;
   __pyx_t_9.offset = __pyx_v_offset;
-  __pyx_t_1 = ((PyObject *)__pyx_f_5pysam_9libcutils_qualitystring_to_array(__pyx_t_2, 0, &__pyx_t_9)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 369, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_5pysam_9libcutils_qualitystring_to_array(__pyx_t_2, 0, &__pyx_t_9)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 408, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_r = ((arrayobject *)__pyx_t_1);
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":365
- *         return self.tostring()
+  /* "pysam/libcfaidx.pyx":404
+ *         return self.to_string()
  * 
  *     cpdef array.array get_quality_array(self, int offset=33):             # <<<<<<<<<<<<<<
  *         '''return quality values as integer array after subtracting offset.'''
@@ -6836,7 +6573,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_10FastqProxy_5get_quality_array(PyOb
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_quality_array") < 0)) __PYX_ERR(0, 365, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_quality_array") < 0)) __PYX_ERR(0, 404, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -6847,14 +6584,14 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_10FastqProxy_5get_quality_array(PyOb
       }
     }
     if (values[0]) {
-      __pyx_v_offset = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 365, __pyx_L3_error)
+      __pyx_v_offset = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 404, __pyx_L3_error)
     } else {
       __pyx_v_offset = ((int)33);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_quality_array", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 365, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_quality_array", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 404, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcfaidx.FastqProxy.get_quality_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -6874,11 +6611,11 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_4get_quality_array(stru
   PyObject *__pyx_t_1 = NULL;
   struct __pyx_opt_args_5pysam_9libcfaidx_10FastqProxy_get_quality_array __pyx_t_2;
   __Pyx_RefNannySetupContext("get_quality_array", 0);
-  __Pyx_TraceCall("get_quality_array (wrapper)", __pyx_f[0], 365, 0, __PYX_ERR(0, 365, __pyx_L1_error));
+  __Pyx_TraceCall("get_quality_array (wrapper)", __pyx_f[0], 404, 0, __PYX_ERR(0, 404, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.offset = __pyx_v_offset;
-  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_5pysam_9libcfaidx_FastqProxy->get_quality_array(__pyx_v_self, 1, &__pyx_t_2)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 365, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_5pysam_9libcfaidx_FastqProxy->get_quality_array(__pyx_v_self, 1, &__pyx_t_2)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 404, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -6930,7 +6667,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_6__reduce_cython__(CYTH
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self._delegate cannot be converted to a Python object for pickling")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -6987,7 +6724,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_8__setstate_cython__(CY
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self._delegate cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -7011,28 +6748,85 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_10FastqProxy_8__setstate_cython__(CY
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":377
- *     Needed to compare multiple fastq records from the same file.
+/* "pysam/libcfaidx.pyx":418
+ * 
  *     """
- *     def __init__(self, FastqProxy FastqRead):             # <<<<<<<<<<<<<<
- *         self.comment = FastqRead.comment
- *         self.quality = FastqRead.quality
+ *     def __init__(self,             # <<<<<<<<<<<<<<
+ *                  name=None,
+ *                  comment=None,
  */
 
 /* Python wrapper */
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_FastqRead = 0;
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_name = 0;
+  PyObject *__pyx_v_comment = 0;
+  PyObject *__pyx_v_sequence = 0;
+  PyObject *__pyx_v_quality = 0;
+  struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_proxy = 0;
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_FastqRead,0};
-    PyObject* values[1] = {0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_name,&__pyx_n_s_comment,&__pyx_n_s_sequence,&__pyx_n_s_quality,&__pyx_n_s_proxy,0};
+    PyObject* values[5] = {0,0,0,0,0};
+
+    /* "pysam/libcfaidx.pyx":419
+ *     """
+ *     def __init__(self,
+ *                  name=None,             # <<<<<<<<<<<<<<
+ *                  comment=None,
+ *                  sequence=None,
+ */
+    values[0] = ((PyObject *)Py_None);
+
+    /* "pysam/libcfaidx.pyx":420
+ *     def __init__(self,
+ *                  name=None,
+ *                  comment=None,             # <<<<<<<<<<<<<<
+ *                  sequence=None,
+ *                  quality=None,
+ */
+    values[1] = ((PyObject *)Py_None);
+
+    /* "pysam/libcfaidx.pyx":421
+ *                  name=None,
+ *                  comment=None,
+ *                  sequence=None,             # <<<<<<<<<<<<<<
+ *                  quality=None,
+ *                  FastqProxy proxy=None):
+ */
+    values[2] = ((PyObject *)Py_None);
+
+    /* "pysam/libcfaidx.pyx":422
+ *                  comment=None,
+ *                  sequence=None,
+ *                  quality=None,             # <<<<<<<<<<<<<<
+ *                  FastqProxy proxy=None):
+ *         if proxy is not None:
+ */
+    values[3] = ((PyObject *)Py_None);
+
+    /* "pysam/libcfaidx.pyx":423
+ *                  sequence=None,
+ *                  quality=None,
+ *                  FastqProxy proxy=None):             # <<<<<<<<<<<<<<
+ *         if proxy is not None:
+ *             self.comment = proxy.comment
+ */
+    values[4] = (PyObject *)((struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *)Py_None);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        CYTHON_FALLTHROUGH;
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
         CYTHON_FALLTHROUGH;
         case  0: break;
@@ -7041,29 +6835,78 @@ static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_1__init__(PyObject 
       kw_args = PyDict_Size(__pyx_kwds);
       switch (pos_args) {
         case  0:
-        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_FastqRead)) != 0)) kw_args--;
-        else goto __pyx_L5_argtuple_error;
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_name);
+          if (value) { values[0] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_comment);
+          if (value) { values[1] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sequence);
+          if (value) { values[2] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_quality);
+          if (value) { values[3] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  4:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_proxy);
+          if (value) { values[4] = value; kw_args--; }
+        }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 377, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 418, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
-      goto __pyx_L5_argtuple_error;
     } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        CYTHON_FALLTHROUGH;
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
     }
-    __pyx_v_FastqRead = ((struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *)values[0]);
+    __pyx_v_name = values[0];
+    __pyx_v_comment = values[1];
+    __pyx_v_sequence = values[2];
+    __pyx_v_quality = values[3];
+    __pyx_v_proxy = ((struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *)values[4]);
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 377, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 0, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 418, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_FastqRead), __pyx_ptype_5pysam_9libcfaidx_FastqProxy, 1, "FastqRead", 0))) __PYX_ERR(0, 377, __pyx_L1_error)
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy___init__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self), __pyx_v_FastqRead);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_proxy), __pyx_ptype_5pysam_9libcfaidx_FastqProxy, 1, "proxy", 0))) __PYX_ERR(0, 423, __pyx_L1_error)
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord___init__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self), __pyx_v_name, __pyx_v_comment, __pyx_v_sequence, __pyx_v_quality, __pyx_v_proxy);
+
+  /* "pysam/libcfaidx.pyx":418
+ * 
+ *     """
+ *     def __init__(self,             # <<<<<<<<<<<<<<
+ *                  name=None,
+ *                  comment=None,
+ */
 
   /* function exit code */
   goto __pyx_L0;
@@ -7074,92 +6917,182 @@ static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_1__init__(PyObject 
   return __pyx_r;
 }
 
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy___init__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_FastqRead) {
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord___init__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_name, PyObject *__pyx_v_comment, PyObject *__pyx_v_sequence, PyObject *__pyx_v_quality, struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *__pyx_v_proxy) {
   int __pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_1;
+  int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
-  __Pyx_TraceCall("__init__", __pyx_f[0], 377, 0, __PYX_ERR(0, 377, __pyx_L1_error));
+  __Pyx_TraceCall("__init__", __pyx_f[0], 418, 0, __PYX_ERR(0, 418, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":378
- *     """
- *     def __init__(self, FastqProxy FastqRead):
- *         self.comment = FastqRead.comment             # <<<<<<<<<<<<<<
- *         self.quality = FastqRead.quality
- *         self.sequence = FastqRead.sequence
+  /* "pysam/libcfaidx.pyx":424
+ *                  quality=None,
+ *                  FastqProxy proxy=None):
+ *         if proxy is not None:             # <<<<<<<<<<<<<<
+ *             self.comment = proxy.comment
+ *             self.quality = proxy.quality
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_FastqRead), __pyx_n_s_comment); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 378, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 378, __pyx_L1_error)
-  __Pyx_GIVEREF(__pyx_t_1);
-  __Pyx_GOTREF(__pyx_v_self->comment);
-  __Pyx_DECREF(__pyx_v_self->comment);
-  __pyx_v_self->comment = ((PyObject*)__pyx_t_1);
-  __pyx_t_1 = 0;
+  __pyx_t_1 = (((PyObject *)__pyx_v_proxy) != Py_None);
+  __pyx_t_2 = (__pyx_t_1 != 0);
+  if (__pyx_t_2) {
 
-  /* "pysam/libcfaidx.pyx":379
- *     def __init__(self, FastqProxy FastqRead):
- *         self.comment = FastqRead.comment
- *         self.quality = FastqRead.quality             # <<<<<<<<<<<<<<
- *         self.sequence = FastqRead.sequence
- *         self.name = FastqRead.name
+    /* "pysam/libcfaidx.pyx":425
+ *                  FastqProxy proxy=None):
+ *         if proxy is not None:
+ *             self.comment = proxy.comment             # <<<<<<<<<<<<<<
+ *             self.quality = proxy.quality
+ *             self.sequence = proxy.sequence
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_FastqRead), __pyx_n_s_quality); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 379, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 379, __pyx_L1_error)
-  __Pyx_GIVEREF(__pyx_t_1);
-  __Pyx_GOTREF(__pyx_v_self->quality);
-  __Pyx_DECREF(__pyx_v_self->quality);
-  __pyx_v_self->quality = ((PyObject*)__pyx_t_1);
-  __pyx_t_1 = 0;
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_proxy), __pyx_n_s_comment); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 425, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    if (!(likely(PyString_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 425, __pyx_L1_error)
+    __Pyx_GIVEREF(__pyx_t_3);
+    __Pyx_GOTREF(__pyx_v_self->comment);
+    __Pyx_DECREF(__pyx_v_self->comment);
+    __pyx_v_self->comment = ((PyObject*)__pyx_t_3);
+    __pyx_t_3 = 0;
 
-  /* "pysam/libcfaidx.pyx":380
- *         self.comment = FastqRead.comment
- *         self.quality = FastqRead.quality
- *         self.sequence = FastqRead.sequence             # <<<<<<<<<<<<<<
- *         self.name = FastqRead.name
+    /* "pysam/libcfaidx.pyx":426
+ *         if proxy is not None:
+ *             self.comment = proxy.comment
+ *             self.quality = proxy.quality             # <<<<<<<<<<<<<<
+ *             self.sequence = proxy.sequence
+ *             self.name = proxy.name
+ */
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_proxy), __pyx_n_s_quality); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 426, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    if (!(likely(PyString_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 426, __pyx_L1_error)
+    __Pyx_GIVEREF(__pyx_t_3);
+    __Pyx_GOTREF(__pyx_v_self->quality);
+    __Pyx_DECREF(__pyx_v_self->quality);
+    __pyx_v_self->quality = ((PyObject*)__pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "pysam/libcfaidx.pyx":427
+ *             self.comment = proxy.comment
+ *             self.quality = proxy.quality
+ *             self.sequence = proxy.sequence             # <<<<<<<<<<<<<<
+ *             self.name = proxy.name
+ *         else:
+ */
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_proxy), __pyx_n_s_sequence); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 427, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    if (!(likely(PyString_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 427, __pyx_L1_error)
+    __Pyx_GIVEREF(__pyx_t_3);
+    __Pyx_GOTREF(__pyx_v_self->sequence);
+    __Pyx_DECREF(__pyx_v_self->sequence);
+    __pyx_v_self->sequence = ((PyObject*)__pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "pysam/libcfaidx.pyx":428
+ *             self.quality = proxy.quality
+ *             self.sequence = proxy.sequence
+ *             self.name = proxy.name             # <<<<<<<<<<<<<<
+ *         else:
+ *             self.comment = comment
+ */
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_proxy), __pyx_n_s_name); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 428, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    if (!(likely(PyString_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 428, __pyx_L1_error)
+    __Pyx_GIVEREF(__pyx_t_3);
+    __Pyx_GOTREF(__pyx_v_self->name);
+    __Pyx_DECREF(__pyx_v_self->name);
+    __pyx_v_self->name = ((PyObject*)__pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "pysam/libcfaidx.pyx":424
+ *                  quality=None,
+ *                  FastqProxy proxy=None):
+ *         if proxy is not None:             # <<<<<<<<<<<<<<
+ *             self.comment = proxy.comment
+ *             self.quality = proxy.quality
+ */
+    goto __pyx_L3;
+  }
+
+  /* "pysam/libcfaidx.pyx":430
+ *             self.name = proxy.name
+ *         else:
+ *             self.comment = comment             # <<<<<<<<<<<<<<
+ *             self.quality = quality
+ *             self.sequence = sequence
+ */
+  /*else*/ {
+    if (!(likely(PyString_CheckExact(__pyx_v_comment))||((__pyx_v_comment) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_comment)->tp_name), 0))) __PYX_ERR(0, 430, __pyx_L1_error)
+    __pyx_t_3 = __pyx_v_comment;
+    __Pyx_INCREF(__pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_3);
+    __Pyx_GOTREF(__pyx_v_self->comment);
+    __Pyx_DECREF(__pyx_v_self->comment);
+    __pyx_v_self->comment = ((PyObject*)__pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "pysam/libcfaidx.pyx":431
+ *         else:
+ *             self.comment = comment
+ *             self.quality = quality             # <<<<<<<<<<<<<<
+ *             self.sequence = sequence
+ *             self.name = name
+ */
+    if (!(likely(PyString_CheckExact(__pyx_v_quality))||((__pyx_v_quality) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_quality)->tp_name), 0))) __PYX_ERR(0, 431, __pyx_L1_error)
+    __pyx_t_3 = __pyx_v_quality;
+    __Pyx_INCREF(__pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_3);
+    __Pyx_GOTREF(__pyx_v_self->quality);
+    __Pyx_DECREF(__pyx_v_self->quality);
+    __pyx_v_self->quality = ((PyObject*)__pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "pysam/libcfaidx.pyx":432
+ *             self.comment = comment
+ *             self.quality = quality
+ *             self.sequence = sequence             # <<<<<<<<<<<<<<
+ *             self.name = name
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_FastqRead), __pyx_n_s_sequence); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 380, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 380, __pyx_L1_error)
-  __Pyx_GIVEREF(__pyx_t_1);
-  __Pyx_GOTREF(__pyx_v_self->sequence);
-  __Pyx_DECREF(__pyx_v_self->sequence);
-  __pyx_v_self->sequence = ((PyObject*)__pyx_t_1);
-  __pyx_t_1 = 0;
+    if (!(likely(PyString_CheckExact(__pyx_v_sequence))||((__pyx_v_sequence) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_sequence)->tp_name), 0))) __PYX_ERR(0, 432, __pyx_L1_error)
+    __pyx_t_3 = __pyx_v_sequence;
+    __Pyx_INCREF(__pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_3);
+    __Pyx_GOTREF(__pyx_v_self->sequence);
+    __Pyx_DECREF(__pyx_v_self->sequence);
+    __pyx_v_self->sequence = ((PyObject*)__pyx_t_3);
+    __pyx_t_3 = 0;
 
-  /* "pysam/libcfaidx.pyx":381
- *         self.quality = FastqRead.quality
- *         self.sequence = FastqRead.sequence
- *         self.name = FastqRead.name             # <<<<<<<<<<<<<<
+    /* "pysam/libcfaidx.pyx":433
+ *             self.quality = quality
+ *             self.sequence = sequence
+ *             self.name = name             # <<<<<<<<<<<<<<
  * 
- *     cdef cython.str tostring(self):
+ *     def __copy__(self):
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_FastqRead), __pyx_n_s_name); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 381, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 381, __pyx_L1_error)
-  __Pyx_GIVEREF(__pyx_t_1);
-  __Pyx_GOTREF(__pyx_v_self->name);
-  __Pyx_DECREF(__pyx_v_self->name);
-  __pyx_v_self->name = ((PyObject*)__pyx_t_1);
-  __pyx_t_1 = 0;
+    if (!(likely(PyString_CheckExact(__pyx_v_name))||((__pyx_v_name) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_name)->tp_name), 0))) __PYX_ERR(0, 433, __pyx_L1_error)
+    __pyx_t_3 = __pyx_v_name;
+    __Pyx_INCREF(__pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_3);
+    __Pyx_GOTREF(__pyx_v_self->name);
+    __Pyx_DECREF(__pyx_v_self->name);
+    __pyx_v_self->name = ((PyObject*)__pyx_t_3);
+    __pyx_t_3 = 0;
+  }
+  __pyx_L3:;
 
-  /* "pysam/libcfaidx.pyx":377
- *     Needed to compare multiple fastq records from the same file.
+  /* "pysam/libcfaidx.pyx":418
+ * 
  *     """
- *     def __init__(self, FastqProxy FastqRead):             # <<<<<<<<<<<<<<
- *         self.comment = FastqRead.comment
- *         self.quality = FastqRead.quality
+ *     def __init__(self,             # <<<<<<<<<<<<<<
+ *                  name=None,
+ *                  comment=None,
  */
 
   /* function exit code */
   __pyx_r = 0;
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
@@ -7167,15 +7100,177 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy___init__(struct __p
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":383
- *         self.name = FastqRead.name
+/* "pysam/libcfaidx.pyx":435
+ *             self.name = name
  * 
- *     cdef cython.str tostring(self):             # <<<<<<<<<<<<<<
- *         if self.comment is None:
- *             comment = ""
+ *     def __copy__(self):             # <<<<<<<<<<<<<<
+ *         return FastxRecord(self.name, self.comment, self.sequence, self.quality)
+ * 
  */
 
-static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self) {
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_3__copy__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_9libcfaidx_11FastxRecord_2__copy__[] = "FastxRecord.__copy__(self)";
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_3__copy__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__copy__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_2__copy__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_2__copy__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  __Pyx_RefNannySetupContext("__copy__", 0);
+  __Pyx_TraceCall("__copy__", __pyx_f[0], 435, 0, __PYX_ERR(0, 435, __pyx_L1_error));
+
+  /* "pysam/libcfaidx.pyx":436
+ * 
+ *     def __copy__(self):
+ *         return FastxRecord(self.name, self.comment, self.sequence, self.quality)             # <<<<<<<<<<<<<<
+ * 
+ *     def __deepcopy__(self, memo):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyTuple_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 436, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_v_self->name);
+  __Pyx_GIVEREF(__pyx_v_self->name);
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_self->name);
+  __Pyx_INCREF(__pyx_v_self->comment);
+  __Pyx_GIVEREF(__pyx_v_self->comment);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v_self->comment);
+  __Pyx_INCREF(__pyx_v_self->sequence);
+  __Pyx_GIVEREF(__pyx_v_self->sequence);
+  PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_v_self->sequence);
+  __Pyx_INCREF(__pyx_v_self->quality);
+  __Pyx_GIVEREF(__pyx_v_self->quality);
+  PyTuple_SET_ITEM(__pyx_t_1, 3, __pyx_v_self->quality);
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5pysam_9libcfaidx_FastxRecord), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 436, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libcfaidx.pyx":435
+ *             self.name = name
+ * 
+ *     def __copy__(self):             # <<<<<<<<<<<<<<
+ *         return FastxRecord(self.name, self.comment, self.sequence, self.quality)
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.__copy__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libcfaidx.pyx":438
+ *         return FastxRecord(self.name, self.comment, self.sequence, self.quality)
+ * 
+ *     def __deepcopy__(self, memo):             # <<<<<<<<<<<<<<
+ *         return FastxRecord(self.name, self.comment, self.sequence, self.quality)
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_5__deepcopy__(PyObject *__pyx_v_self, PyObject *__pyx_v_memo); /*proto*/
+static char __pyx_doc_5pysam_9libcfaidx_11FastxRecord_4__deepcopy__[] = "FastxRecord.__deepcopy__(self, memo)";
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_5__deepcopy__(PyObject *__pyx_v_self, PyObject *__pyx_v_memo) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__deepcopy__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_4__deepcopy__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self), ((PyObject *)__pyx_v_memo));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_4__deepcopy__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_memo) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  __Pyx_RefNannySetupContext("__deepcopy__", 0);
+  __Pyx_TraceCall("__deepcopy__", __pyx_f[0], 438, 0, __PYX_ERR(0, 438, __pyx_L1_error));
+
+  /* "pysam/libcfaidx.pyx":439
+ * 
+ *     def __deepcopy__(self, memo):
+ *         return FastxRecord(self.name, self.comment, self.sequence, self.quality)             # <<<<<<<<<<<<<<
+ * 
+ *     cdef cython.str to_string(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyTuple_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 439, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_v_self->name);
+  __Pyx_GIVEREF(__pyx_v_self->name);
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_self->name);
+  __Pyx_INCREF(__pyx_v_self->comment);
+  __Pyx_GIVEREF(__pyx_v_self->comment);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v_self->comment);
+  __Pyx_INCREF(__pyx_v_self->sequence);
+  __Pyx_GIVEREF(__pyx_v_self->sequence);
+  PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_v_self->sequence);
+  __Pyx_INCREF(__pyx_v_self->quality);
+  __Pyx_GIVEREF(__pyx_v_self->quality);
+  PyTuple_SET_ITEM(__pyx_t_1, 3, __pyx_v_self->quality);
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5pysam_9libcfaidx_FastxRecord), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 439, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libcfaidx.pyx":438
+ *         return FastxRecord(self.name, self.comment, self.sequence, self.quality)
+ * 
+ *     def __deepcopy__(self, memo):             # <<<<<<<<<<<<<<
+ *         return FastxRecord(self.name, self.comment, self.sequence, self.quality)
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.__deepcopy__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libcfaidx.pyx":441
+ *         return FastxRecord(self.name, self.comment, self.sequence, self.quality)
+ * 
+ *     cdef cython.str to_string(self):             # <<<<<<<<<<<<<<
+ *         if self.name is None:
+ *             raise ValueError("can not write record without name")
+ */
+
+static PyObject *__pyx_f_5pysam_9libcfaidx_11FastxRecord_to_string(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
   PyObject *__pyx_v_comment = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
@@ -7184,12 +7279,78 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struc
   int __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
-  __Pyx_RefNannySetupContext("tostring", 0);
-  __Pyx_TraceCall("tostring", __pyx_f[0], 383, 0, __PYX_ERR(0, 383, __pyx_L1_error));
+  __Pyx_RefNannySetupContext("to_string", 0);
+  __Pyx_TraceCall("to_string", __pyx_f[0], 441, 0, __PYX_ERR(0, 441, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":384
+  /* "pysam/libcfaidx.pyx":442
  * 
- *     cdef cython.str tostring(self):
+ *     cdef cython.str to_string(self):
+ *         if self.name is None:             # <<<<<<<<<<<<<<
+ *             raise ValueError("can not write record without name")
+ * 
+ */
+  __pyx_t_1 = (__pyx_v_self->name == ((PyObject*)Py_None));
+  __pyx_t_2 = (__pyx_t_1 != 0);
+  if (unlikely(__pyx_t_2)) {
+
+    /* "pysam/libcfaidx.pyx":443
+ *     cdef cython.str to_string(self):
+ *         if self.name is None:
+ *             raise ValueError("can not write record without name")             # <<<<<<<<<<<<<<
+ * 
+ *         if self.sequence is None:
+ */
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 443, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __PYX_ERR(0, 443, __pyx_L1_error)
+
+    /* "pysam/libcfaidx.pyx":442
+ * 
+ *     cdef cython.str to_string(self):
+ *         if self.name is None:             # <<<<<<<<<<<<<<
+ *             raise ValueError("can not write record without name")
+ * 
+ */
+  }
+
+  /* "pysam/libcfaidx.pyx":445
+ *             raise ValueError("can not write record without name")
+ * 
+ *         if self.sequence is None:             # <<<<<<<<<<<<<<
+ *             raise ValueError("can not write record without a sequence")
+ * 
+ */
+  __pyx_t_2 = (__pyx_v_self->sequence == ((PyObject*)Py_None));
+  __pyx_t_1 = (__pyx_t_2 != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libcfaidx.pyx":446
+ * 
+ *         if self.sequence is None:
+ *             raise ValueError("can not write record without a sequence")             # <<<<<<<<<<<<<<
+ * 
+ *         if self.comment is None:
+ */
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 446, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __PYX_ERR(0, 446, __pyx_L1_error)
+
+    /* "pysam/libcfaidx.pyx":445
+ *             raise ValueError("can not write record without name")
+ * 
+ *         if self.sequence is None:             # <<<<<<<<<<<<<<
+ *             raise ValueError("can not write record without a sequence")
+ * 
+ */
+  }
+
+  /* "pysam/libcfaidx.pyx":448
+ *             raise ValueError("can not write record without a sequence")
+ * 
  *         if self.comment is None:             # <<<<<<<<<<<<<<
  *             comment = ""
  *         else:
@@ -7198,8 +7359,8 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struc
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "pysam/libcfaidx.pyx":385
- *     cdef cython.str tostring(self):
+    /* "pysam/libcfaidx.pyx":449
+ * 
  *         if self.comment is None:
  *             comment = ""             # <<<<<<<<<<<<<<
  *         else:
@@ -7208,17 +7369,17 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struc
     __Pyx_INCREF(__pyx_kp_s__5);
     __pyx_v_comment = __pyx_kp_s__5;
 
-    /* "pysam/libcfaidx.pyx":384
+    /* "pysam/libcfaidx.pyx":448
+ *             raise ValueError("can not write record without a sequence")
  * 
- *     cdef cython.str tostring(self):
  *         if self.comment is None:             # <<<<<<<<<<<<<<
  *             comment = ""
  *         else:
  */
-    goto __pyx_L3;
+    goto __pyx_L5;
   }
 
-  /* "pysam/libcfaidx.pyx":387
+  /* "pysam/libcfaidx.pyx":451
  *             comment = ""
  *         else:
  *             comment = " %s" % self.comment             # <<<<<<<<<<<<<<
@@ -7226,14 +7387,14 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struc
  *         if self.quality is None:
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_s, __pyx_v_self->comment); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 387, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_s, __pyx_v_self->comment); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 451, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_v_comment = __pyx_t_3;
     __pyx_t_3 = 0;
   }
-  __pyx_L3:;
+  __pyx_L5:;
 
-  /* "pysam/libcfaidx.pyx":389
+  /* "pysam/libcfaidx.pyx":453
  *             comment = " %s" % self.comment
  * 
  *         if self.quality is None:             # <<<<<<<<<<<<<<
@@ -7244,7 +7405,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struc
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcfaidx.pyx":390
+    /* "pysam/libcfaidx.pyx":454
  * 
  *         if self.quality is None:
  *             return ">%s%s\n%s" % (self.name, comment, self.sequence)             # <<<<<<<<<<<<<<
@@ -7252,7 +7413,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struc
  *             return "@%s%s\n%s\n+\n%s" % (self.name, comment,
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 390, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 454, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_INCREF(__pyx_v_self->name);
     __Pyx_GIVEREF(__pyx_v_self->name);
@@ -7263,15 +7424,15 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struc
     __Pyx_INCREF(__pyx_v_self->sequence);
     __Pyx_GIVEREF(__pyx_v_self->sequence);
     PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_v_self->sequence);
-    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_s_s_s, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 390, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_s_s_s, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 454, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (!(likely(PyString_CheckExact(__pyx_t_4))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_4)->tp_name), 0))) __PYX_ERR(0, 390, __pyx_L1_error)
+    if (!(likely(PyString_CheckExact(__pyx_t_4))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_4)->tp_name), 0))) __PYX_ERR(0, 454, __pyx_L1_error)
     __pyx_r = ((PyObject*)__pyx_t_4);
     __pyx_t_4 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcfaidx.pyx":389
+    /* "pysam/libcfaidx.pyx":453
  *             comment = " %s" % self.comment
  * 
  *         if self.quality is None:             # <<<<<<<<<<<<<<
@@ -7280,7 +7441,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struc
  */
   }
 
-  /* "pysam/libcfaidx.pyx":392
+  /* "pysam/libcfaidx.pyx":456
  *             return ">%s%s\n%s" % (self.name, comment, self.sequence)
  *         else:
  *             return "@%s%s\n%s\n+\n%s" % (self.name, comment,             # <<<<<<<<<<<<<<
@@ -7290,14 +7451,14 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struc
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
 
-    /* "pysam/libcfaidx.pyx":393
+    /* "pysam/libcfaidx.pyx":457
  *         else:
  *             return "@%s%s\n%s\n+\n%s" % (self.name, comment,
  *                                          self.sequence, self.quality)             # <<<<<<<<<<<<<<
  * 
- *     def __str__(self):
+ *     cdef cython.str tostring(self):
  */
-    __pyx_t_4 = PyTuple_New(4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 392, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 456, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_INCREF(__pyx_v_self->name);
     __Pyx_GIVEREF(__pyx_v_self->name);
@@ -7312,35 +7473,35 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struc
     __Pyx_GIVEREF(__pyx_v_self->quality);
     PyTuple_SET_ITEM(__pyx_t_4, 3, __pyx_v_self->quality);
 
-    /* "pysam/libcfaidx.pyx":392
+    /* "pysam/libcfaidx.pyx":456
  *             return ">%s%s\n%s" % (self.name, comment, self.sequence)
  *         else:
  *             return "@%s%s\n%s\n+\n%s" % (self.name, comment,             # <<<<<<<<<<<<<<
  *                                          self.sequence, self.quality)
  * 
  */
-    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_s_s_s_s, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 392, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_s_s_s_s, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 456, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(PyString_CheckExact(__pyx_t_3))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 392, __pyx_L1_error)
+    if (!(likely(PyString_CheckExact(__pyx_t_3))||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 456, __pyx_L1_error)
     __pyx_r = ((PyObject*)__pyx_t_3);
     __pyx_t_3 = 0;
     goto __pyx_L0;
   }
 
-  /* "pysam/libcfaidx.pyx":383
- *         self.name = FastqRead.name
+  /* "pysam/libcfaidx.pyx":441
+ *         return FastxRecord(self.name, self.comment, self.sequence, self.quality)
  * 
- *     cdef cython.str tostring(self):             # <<<<<<<<<<<<<<
- *         if self.comment is None:
- *             comment = ""
+ *     cdef cython.str to_string(self):             # <<<<<<<<<<<<<<
+ *         if self.name is None:
+ *             raise ValueError("can not write record without name")
  */
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.tostring", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.to_string", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_comment);
@@ -7350,61 +7511,151 @@ static PyObject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring(struc
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":395
+/* "pysam/libcfaidx.pyx":459
  *                                          self.sequence, self.quality)
  * 
- *     def __str__(self):             # <<<<<<<<<<<<<<
- *         return self.tostring()
+ *     cdef cython.str tostring(self):             # <<<<<<<<<<<<<<
+ *         """deprecated : use :meth:`to_string`"""
+ *         return self.to_string()
+ */
+
+static PyObject *__pyx_f_5pysam_9libcfaidx_11FastxRecord_tostring(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("tostring", 0);
+  __Pyx_TraceCall("tostring", __pyx_f[0], 459, 0, __PYX_ERR(0, 459, __pyx_L1_error));
+
+  /* "pysam/libcfaidx.pyx":461
+ *     cdef cython.str tostring(self):
+ *         """deprecated : use :meth:`to_string`"""
+ *         return self.to_string()             # <<<<<<<<<<<<<<
  * 
+ *     def set_name(self, name):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self->__pyx_vtab)->to_string(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 461, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libcfaidx.pyx":459
+ *                                          self.sequence, self.quality)
+ * 
+ *     cdef cython.str tostring(self):             # <<<<<<<<<<<<<<
+ *         """deprecated : use :meth:`to_string`"""
+ *         return self.to_string()
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.tostring", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libcfaidx.pyx":463
+ *         return self.to_string()
+ * 
+ *     def set_name(self, name):             # <<<<<<<<<<<<<<
+ *         if name is None:
+ *             raise ValueError("FastxRecord must have a name and not None")
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_3__str__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_3__str__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_7set_name(PyObject *__pyx_v_self, PyObject *__pyx_v_name); /*proto*/
+static char __pyx_doc_5pysam_9libcfaidx_11FastxRecord_6set_name[] = "FastxRecord.set_name(self, name)";
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_7set_name(PyObject *__pyx_v_self, PyObject *__pyx_v_name) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__str__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_2__str__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("set_name (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_6set_name(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self), ((PyObject *)__pyx_v_name));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_2__str__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_6set_name(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_name) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  __Pyx_RefNannySetupContext("__str__", 0);
-  __Pyx_TraceCall("__str__", __pyx_f[0], 395, 0, __PYX_ERR(0, 395, __pyx_L1_error));
+  int __pyx_t_1;
+  int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  __Pyx_RefNannySetupContext("set_name", 0);
+  __Pyx_TraceCall("set_name", __pyx_f[0], 463, 0, __PYX_ERR(0, 463, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":396
+  /* "pysam/libcfaidx.pyx":464
  * 
- *     def __str__(self):
- *         return self.tostring()             # <<<<<<<<<<<<<<
- * 
- *     cpdef array.array get_quality_array(self, int offset=33):
+ *     def set_name(self, name):
+ *         if name is None:             # <<<<<<<<<<<<<<
+ *             raise ValueError("FastxRecord must have a name and not None")
+ *         self.name = name
  */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self->__pyx_vtab)->tostring(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 396, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
+  __pyx_t_1 = (__pyx_v_name == Py_None);
+  __pyx_t_2 = (__pyx_t_1 != 0);
+  if (unlikely(__pyx_t_2)) {
 
-  /* "pysam/libcfaidx.pyx":395
- *                                          self.sequence, self.quality)
+    /* "pysam/libcfaidx.pyx":465
+ *     def set_name(self, name):
+ *         if name is None:
+ *             raise ValueError("FastxRecord must have a name and not None")             # <<<<<<<<<<<<<<
+ *         self.name = name
  * 
- *     def __str__(self):             # <<<<<<<<<<<<<<
- *         return self.tostring()
+ */
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 465, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __PYX_ERR(0, 465, __pyx_L1_error)
+
+    /* "pysam/libcfaidx.pyx":464
  * 
+ *     def set_name(self, name):
+ *         if name is None:             # <<<<<<<<<<<<<<
+ *             raise ValueError("FastxRecord must have a name and not None")
+ *         self.name = name
+ */
+  }
+
+  /* "pysam/libcfaidx.pyx":466
+ *         if name is None:
+ *             raise ValueError("FastxRecord must have a name and not None")
+ *         self.name = name             # <<<<<<<<<<<<<<
+ * 
+ *     def set_comment(self, comment):
+ */
+  if (!(likely(PyString_CheckExact(__pyx_v_name))||((__pyx_v_name) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_name)->tp_name), 0))) __PYX_ERR(0, 466, __pyx_L1_error)
+  __pyx_t_3 = __pyx_v_name;
+  __Pyx_INCREF(__pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_3);
+  __Pyx_GOTREF(__pyx_v_self->name);
+  __Pyx_DECREF(__pyx_v_self->name);
+  __pyx_v_self->name = ((PyObject*)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "pysam/libcfaidx.pyx":463
+ *         return self.to_string()
+ * 
+ *     def set_name(self, name):             # <<<<<<<<<<<<<<
+ *         if name is None:
+ *             raise ValueError("FastxRecord must have a name and not None")
  */
 
   /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.__str__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.set_name", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -7413,16 +7664,443 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_2__str__(stru
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":398
- *         return self.tostring()
+/* "pysam/libcfaidx.pyx":468
+ *         self.name = name
+ * 
+ *     def set_comment(self, comment):             # <<<<<<<<<<<<<<
+ *         self.comment = comment
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_9set_comment(PyObject *__pyx_v_self, PyObject *__pyx_v_comment); /*proto*/
+static char __pyx_doc_5pysam_9libcfaidx_11FastxRecord_8set_comment[] = "FastxRecord.set_comment(self, comment)";
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_9set_comment(PyObject *__pyx_v_self, PyObject *__pyx_v_comment) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("set_comment (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_8set_comment(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self), ((PyObject *)__pyx_v_comment));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_8set_comment(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_comment) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("set_comment", 0);
+  __Pyx_TraceCall("set_comment", __pyx_f[0], 468, 0, __PYX_ERR(0, 468, __pyx_L1_error));
+
+  /* "pysam/libcfaidx.pyx":469
+ * 
+ *     def set_comment(self, comment):
+ *         self.comment = comment             # <<<<<<<<<<<<<<
+ * 
+ *     def set_sequence(self, sequence, quality=None):
+ */
+  if (!(likely(PyString_CheckExact(__pyx_v_comment))||((__pyx_v_comment) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_comment)->tp_name), 0))) __PYX_ERR(0, 469, __pyx_L1_error)
+  __pyx_t_1 = __pyx_v_comment;
+  __Pyx_INCREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF(__pyx_v_self->comment);
+  __Pyx_DECREF(__pyx_v_self->comment);
+  __pyx_v_self->comment = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "pysam/libcfaidx.pyx":468
+ *         self.name = name
+ * 
+ *     def set_comment(self, comment):             # <<<<<<<<<<<<<<
+ *         self.comment = comment
+ * 
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.set_comment", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libcfaidx.pyx":471
+ *         self.comment = comment
+ * 
+ *     def set_sequence(self, sequence, quality=None):             # <<<<<<<<<<<<<<
+ *         """set sequence of this record.
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_11set_sequence(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_9libcfaidx_11FastxRecord_10set_sequence[] = "FastxRecord.set_sequence(self, sequence, quality=None)\nset sequence of this record.\n\n        ";
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_11set_sequence(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_sequence = 0;
+  PyObject *__pyx_v_quality = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("set_sequence (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_sequence,&__pyx_n_s_quality,0};
+    PyObject* values[2] = {0,0};
+    values[1] = ((PyObject *)Py_None);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sequence)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_quality);
+          if (value) { values[1] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set_sequence") < 0)) __PYX_ERR(0, 471, __pyx_L3_error)
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_sequence = values[0];
+    __pyx_v_quality = values[1];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("set_sequence", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 471, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.set_sequence", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_10set_sequence(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self), __pyx_v_sequence, __pyx_v_quality);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_10set_sequence(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_sequence, PyObject *__pyx_v_quality) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9 = NULL;
+  int __pyx_t_10;
+  PyObject *__pyx_t_11 = NULL;
+  __Pyx_RefNannySetupContext("set_sequence", 0);
+  __Pyx_TraceCall("set_sequence", __pyx_f[0], 471, 0, __PYX_ERR(0, 471, __pyx_L1_error));
+
+  /* "pysam/libcfaidx.pyx":475
+ * 
+ *         """
+ *         self.sequence = sequence             # <<<<<<<<<<<<<<
+ *         if quality is not None:
+ *             if len(sequence) != len(quality):
+ */
+  if (!(likely(PyString_CheckExact(__pyx_v_sequence))||((__pyx_v_sequence) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_sequence)->tp_name), 0))) __PYX_ERR(0, 475, __pyx_L1_error)
+  __pyx_t_1 = __pyx_v_sequence;
+  __Pyx_INCREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF(__pyx_v_self->sequence);
+  __Pyx_DECREF(__pyx_v_self->sequence);
+  __pyx_v_self->sequence = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "pysam/libcfaidx.pyx":476
+ *         """
+ *         self.sequence = sequence
+ *         if quality is not None:             # <<<<<<<<<<<<<<
+ *             if len(sequence) != len(quality):
+ *                 raise ValueError("sequence and quality length do not match: {} vs {}".format(
+ */
+  __pyx_t_2 = (__pyx_v_quality != Py_None);
+  __pyx_t_3 = (__pyx_t_2 != 0);
+  if (__pyx_t_3) {
+
+    /* "pysam/libcfaidx.pyx":477
+ *         self.sequence = sequence
+ *         if quality is not None:
+ *             if len(sequence) != len(quality):             # <<<<<<<<<<<<<<
+ *                 raise ValueError("sequence and quality length do not match: {} vs {}".format(
+ *                     len(sequence), len(quality)))
+ */
+    __pyx_t_4 = PyObject_Length(__pyx_v_sequence); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 477, __pyx_L1_error)
+    __pyx_t_5 = PyObject_Length(__pyx_v_quality); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 477, __pyx_L1_error)
+    __pyx_t_3 = ((__pyx_t_4 != __pyx_t_5) != 0);
+    if (unlikely(__pyx_t_3)) {
+
+      /* "pysam/libcfaidx.pyx":478
+ *         if quality is not None:
+ *             if len(sequence) != len(quality):
+ *                 raise ValueError("sequence and quality length do not match: {} vs {}".format(             # <<<<<<<<<<<<<<
+ *                     len(sequence), len(quality)))
+ * 
+ */
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_sequence_and_quality_length_do_n, __pyx_n_s_format); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 478, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+
+      /* "pysam/libcfaidx.pyx":479
+ *             if len(sequence) != len(quality):
+ *                 raise ValueError("sequence and quality length do not match: {} vs {}".format(
+ *                     len(sequence), len(quality)))             # <<<<<<<<<<<<<<
+ * 
+ *             self.quality = quality
+ */
+      __pyx_t_5 = PyObject_Length(__pyx_v_sequence); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 479, __pyx_L1_error)
+      __pyx_t_7 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 479, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __pyx_t_5 = PyObject_Length(__pyx_v_quality); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 479, __pyx_L1_error)
+      __pyx_t_8 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 479, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __pyx_t_9 = NULL;
+      __pyx_t_10 = 0;
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_6))) {
+        __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_6);
+        if (likely(__pyx_t_9)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
+          __Pyx_INCREF(__pyx_t_9);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_6, function);
+          __pyx_t_10 = 1;
+        }
+      }
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_6)) {
+        PyObject *__pyx_temp[3] = {__pyx_t_9, __pyx_t_7, __pyx_t_8};
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_10, 2+__pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 478, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_6)) {
+        PyObject *__pyx_temp[3] = {__pyx_t_9, __pyx_t_7, __pyx_t_8};
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_10, 2+__pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 478, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      } else
+      #endif
+      {
+        __pyx_t_11 = PyTuple_New(2+__pyx_t_10); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 478, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_11);
+        if (__pyx_t_9) {
+          __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_9); __pyx_t_9 = NULL;
+        }
+        __Pyx_GIVEREF(__pyx_t_7);
+        PyTuple_SET_ITEM(__pyx_t_11, 0+__pyx_t_10, __pyx_t_7);
+        __Pyx_GIVEREF(__pyx_t_8);
+        PyTuple_SET_ITEM(__pyx_t_11, 1+__pyx_t_10, __pyx_t_8);
+        __pyx_t_7 = 0;
+        __pyx_t_8 = 0;
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 478, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+      }
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+      /* "pysam/libcfaidx.pyx":478
+ *         if quality is not None:
+ *             if len(sequence) != len(quality):
+ *                 raise ValueError("sequence and quality length do not match: {} vs {}".format(             # <<<<<<<<<<<<<<
+ *                     len(sequence), len(quality)))
+ * 
+ */
+      __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 478, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __PYX_ERR(0, 478, __pyx_L1_error)
+
+      /* "pysam/libcfaidx.pyx":477
+ *         self.sequence = sequence
+ *         if quality is not None:
+ *             if len(sequence) != len(quality):             # <<<<<<<<<<<<<<
+ *                 raise ValueError("sequence and quality length do not match: {} vs {}".format(
+ *                     len(sequence), len(quality)))
+ */
+    }
+
+    /* "pysam/libcfaidx.pyx":481
+ *                     len(sequence), len(quality)))
+ * 
+ *             self.quality = quality             # <<<<<<<<<<<<<<
+ *         else:
+ *             self.quality = None
+ */
+    if (!(likely(PyString_CheckExact(__pyx_v_quality))||((__pyx_v_quality) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_quality)->tp_name), 0))) __PYX_ERR(0, 481, __pyx_L1_error)
+    __pyx_t_6 = __pyx_v_quality;
+    __Pyx_INCREF(__pyx_t_6);
+    __Pyx_GIVEREF(__pyx_t_6);
+    __Pyx_GOTREF(__pyx_v_self->quality);
+    __Pyx_DECREF(__pyx_v_self->quality);
+    __pyx_v_self->quality = ((PyObject*)__pyx_t_6);
+    __pyx_t_6 = 0;
+
+    /* "pysam/libcfaidx.pyx":476
+ *         """
+ *         self.sequence = sequence
+ *         if quality is not None:             # <<<<<<<<<<<<<<
+ *             if len(sequence) != len(quality):
+ *                 raise ValueError("sequence and quality length do not match: {} vs {}".format(
+ */
+    goto __pyx_L3;
+  }
+
+  /* "pysam/libcfaidx.pyx":483
+ *             self.quality = quality
+ *         else:
+ *             self.quality = None             # <<<<<<<<<<<<<<
+ * 
+ *     def __str__(self):
+ */
+  /*else*/ {
+    __Pyx_INCREF(Py_None);
+    __Pyx_GIVEREF(Py_None);
+    __Pyx_GOTREF(__pyx_v_self->quality);
+    __Pyx_DECREF(__pyx_v_self->quality);
+    __pyx_v_self->quality = ((PyObject*)Py_None);
+  }
+  __pyx_L3:;
+
+  /* "pysam/libcfaidx.pyx":471
+ *         self.comment = comment
+ * 
+ *     def set_sequence(self, sequence, quality=None):             # <<<<<<<<<<<<<<
+ *         """set sequence of this record.
+ * 
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_9);
+  __Pyx_XDECREF(__pyx_t_11);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.set_sequence", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libcfaidx.pyx":485
+ *             self.quality = None
+ * 
+ *     def __str__(self):             # <<<<<<<<<<<<<<
+ *         return self.to_string()
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_13__str__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_13__str__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__str__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_12__str__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_12__str__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__str__", 0);
+  __Pyx_TraceCall("__str__", __pyx_f[0], 485, 0, __PYX_ERR(0, 485, __pyx_L1_error));
+
+  /* "pysam/libcfaidx.pyx":486
+ * 
+ *     def __str__(self):
+ *         return self.to_string()             # <<<<<<<<<<<<<<
+ * 
+ *     cpdef array.array get_quality_array(self, int offset=33):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self->__pyx_vtab)->to_string(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 486, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libcfaidx.pyx":485
+ *             self.quality = None
+ * 
+ *     def __str__(self):             # <<<<<<<<<<<<<<
+ *         return self.to_string()
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.__str__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libcfaidx.pyx":488
+ *         return self.to_string()
  * 
  *     cpdef array.array get_quality_array(self, int offset=33):             # <<<<<<<<<<<<<<
  *         '''return quality values as array after subtracting offset.'''
  *         if self.quality is None:
  */
 
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_5get_quality_array(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array *__pyx_optional_args) {
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_15get_quality_array(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static arrayobject *__pyx_f_5pysam_9libcfaidx_11FastxRecord_get_quality_array(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_11FastxRecord_get_quality_array *__pyx_optional_args) {
   int __pyx_v_offset = ((int)33);
   arrayobject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
@@ -7437,7 +8115,7 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
   int __pyx_t_8;
   struct __pyx_opt_args_5pysam_9libcutils_qualitystring_to_array __pyx_t_9;
   __Pyx_RefNannySetupContext("get_quality_array", 0);
-  __Pyx_TraceCall("get_quality_array", __pyx_f[0], 398, 0, __PYX_ERR(0, 398, __pyx_L1_error));
+  __Pyx_TraceCall("get_quality_array", __pyx_f[0], 488, 0, __PYX_ERR(0, 488, __pyx_L1_error));
   if (__pyx_optional_args) {
     if (__pyx_optional_args->__pyx_n > 0) {
       __pyx_v_offset = __pyx_optional_args->offset;
@@ -7447,11 +8125,11 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_quality_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 398, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_quality_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 488, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_5get_quality_array)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_5pysam_9libcfaidx_11FastxRecord_15get_quality_array)) {
       __Pyx_XDECREF(((PyObject *)__pyx_r));
-      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_offset); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 398, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_offset); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 488, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_4 = __pyx_t_1; __pyx_t_5 = NULL;
@@ -7465,14 +8143,14 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
         }
       }
       if (!__pyx_t_5) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 398, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 488, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_GOTREF(__pyx_t_2);
       } else {
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_4)) {
           PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 398, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 488, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -7481,26 +8159,26 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
           PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 398, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 488, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         } else
         #endif
         {
-          __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 398, __pyx_L1_error)
+          __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 488, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
           __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
           __Pyx_GIVEREF(__pyx_t_3);
           PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_t_3);
           __pyx_t_3 = 0;
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 398, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 488, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         }
       }
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7cpython_5array_array))))) __PYX_ERR(0, 398, __pyx_L1_error)
+      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7cpython_5array_array))))) __PYX_ERR(0, 488, __pyx_L1_error)
       __pyx_r = ((arrayobject *)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -7509,7 +8187,7 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "pysam/libcfaidx.pyx":400
+  /* "pysam/libcfaidx.pyx":490
  *     cpdef array.array get_quality_array(self, int offset=33):
  *         '''return quality values as array after subtracting offset.'''
  *         if self.quality is None:             # <<<<<<<<<<<<<<
@@ -7520,7 +8198,7 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
   __pyx_t_8 = (__pyx_t_7 != 0);
   if (__pyx_t_8) {
 
-    /* "pysam/libcfaidx.pyx":401
+    /* "pysam/libcfaidx.pyx":491
  *         '''return quality values as array after subtracting offset.'''
  *         if self.quality is None:
  *             return None             # <<<<<<<<<<<<<<
@@ -7531,7 +8209,7 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
     __pyx_r = ((arrayobject *)Py_None); __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "pysam/libcfaidx.pyx":400
+    /* "pysam/libcfaidx.pyx":490
  *     cpdef array.array get_quality_array(self, int offset=33):
  *         '''return quality values as array after subtracting offset.'''
  *         if self.quality is None:             # <<<<<<<<<<<<<<
@@ -7540,7 +8218,7 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
  */
   }
 
-  /* "pysam/libcfaidx.pyx":402
+  /* "pysam/libcfaidx.pyx":492
  *         if self.quality is None:
  *             return None
  *         return qualitystring_to_array(force_bytes(self.quality),             # <<<<<<<<<<<<<<
@@ -7550,11 +8228,11 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
   __Pyx_XDECREF(((PyObject *)__pyx_r));
   __pyx_t_1 = __pyx_v_self->quality;
   __Pyx_INCREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 402, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 492, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libcfaidx.pyx":403
+  /* "pysam/libcfaidx.pyx":493
  *             return None
  *         return qualitystring_to_array(force_bytes(self.quality),
  *                                       offset=offset)             # <<<<<<<<<<<<<<
@@ -7563,15 +8241,15 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
  */
   __pyx_t_9.__pyx_n = 1;
   __pyx_t_9.offset = __pyx_v_offset;
-  __pyx_t_1 = ((PyObject *)__pyx_f_5pysam_9libcutils_qualitystring_to_array(__pyx_t_2, 0, &__pyx_t_9)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 402, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_5pysam_9libcutils_qualitystring_to_array(__pyx_t_2, 0, &__pyx_t_9)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 492, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_r = ((arrayobject *)__pyx_t_1);
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":398
- *         return self.tostring()
+  /* "pysam/libcfaidx.pyx":488
+ *         return self.to_string()
  * 
  *     cpdef array.array get_quality_array(self, int offset=33):             # <<<<<<<<<<<<<<
  *         '''return quality values as array after subtracting offset.'''
@@ -7586,7 +8264,7 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.get_quality_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.get_quality_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF((PyObject *)__pyx_r);
@@ -7596,9 +8274,9 @@ static arrayobject *__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_5get_quality_array(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libcfaidx_20PersistentFastqProxy_4get_quality_array[] = "PersistentFastqProxy.get_quality_array(self, int offset=33) -> array\nreturn quality values as array after subtracting offset.";
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_5get_quality_array(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_15get_quality_array(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_9libcfaidx_11FastxRecord_14get_quality_array[] = "FastxRecord.get_quality_array(self, int offset=33) -> array\nreturn quality values as array after subtracting offset.";
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_15get_quality_array(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_offset;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -7624,7 +8302,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_5get_quality_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_quality_array") < 0)) __PYX_ERR(0, 398, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_quality_array") < 0)) __PYX_ERR(0, 488, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -7635,38 +8313,38 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_5get_quality_
       }
     }
     if (values[0]) {
-      __pyx_v_offset = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 398, __pyx_L3_error)
+      __pyx_v_offset = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 488, __pyx_L3_error)
     } else {
       __pyx_v_offset = ((int)33);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_quality_array", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 398, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_quality_array", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 488, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.get_quality_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.get_quality_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4get_quality_array(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self), __pyx_v_offset);
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_14get_quality_array(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self), __pyx_v_offset);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4get_quality_array(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, int __pyx_v_offset) {
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_14get_quality_array(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, int __pyx_v_offset) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  struct __pyx_opt_args_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array __pyx_t_2;
+  struct __pyx_opt_args_5pysam_9libcfaidx_11FastxRecord_get_quality_array __pyx_t_2;
   __Pyx_RefNannySetupContext("get_quality_array", 0);
-  __Pyx_TraceCall("get_quality_array (wrapper)", __pyx_f[0], 398, 0, __PYX_ERR(0, 398, __pyx_L1_error));
+  __Pyx_TraceCall("get_quality_array (wrapper)", __pyx_f[0], 488, 0, __PYX_ERR(0, 488, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.offset = __pyx_v_offset;
-  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_5pysam_9libcfaidx_PersistentFastqProxy->get_quality_array(__pyx_v_self, 1, &__pyx_t_2)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 398, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_vtabptr_5pysam_9libcfaidx_FastxRecord->get_quality_array(__pyx_v_self, 1, &__pyx_t_2)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 488, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -7675,7 +8353,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4get_quality_
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.get_quality_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.get_quality_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -7684,33 +8362,33 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4get_quality_
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pxd":55
+/* "pysam/libcfaidx.pxd":56
  *     Python container for pysam.libcfaidx.FastqProxy with persistence.
  *     """
  *     cdef public str comment, quality, sequence, name             # <<<<<<<<<<<<<<
+ *     cdef cython.str to_string(self)
  *     cdef cython.str tostring(self)
- *     cpdef array.array get_quality_array(self, int offset=*)
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_7comment_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_7comment_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment___get__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7comment___get__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment___get__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_7comment___get__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_self->comment);
   __pyx_r = __pyx_v_self->comment;
@@ -7718,7 +8396,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment___ge
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.comment.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.comment.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -7728,26 +8406,26 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment___ge
 }
 
 /* Python wrapper */
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7comment_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7comment_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_2__set__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7comment_2__set__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self), ((PyObject *)__pyx_v_value));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_2__set__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7comment_2__set__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__set__", 0);
-  __Pyx_TraceCall("__set__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
-  if (!(likely(PyString_CheckExact(__pyx_v_value))||((__pyx_v_value) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_value)->tp_name), 0))) __PYX_ERR(2, 55, __pyx_L1_error)
+  __Pyx_TraceCall("__set__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
+  if (!(likely(PyString_CheckExact(__pyx_v_value))||((__pyx_v_value) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_value)->tp_name), 0))) __PYX_ERR(2, 56, __pyx_L1_error)
   __pyx_t_1 = __pyx_v_value;
   __Pyx_INCREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
@@ -7761,7 +8439,7 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_2__set__(s
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.comment.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.comment.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
@@ -7770,24 +8448,24 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_2__set__(s
 }
 
 /* Python wrapper */
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_5__del__(PyObject *__pyx_v_self); /*proto*/
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_5__del__(PyObject *__pyx_v_self) {
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7comment_5__del__(PyObject *__pyx_v_self); /*proto*/
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7comment_5__del__(PyObject *__pyx_v_self) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__del__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_4__del__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7comment_4__del__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_4__del__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self) {
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7comment_4__del__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
   int __pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__del__", 0);
-  __Pyx_TraceCall("__del__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
+  __Pyx_TraceCall("__del__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
   __Pyx_INCREF(Py_None);
   __Pyx_GIVEREF(Py_None);
   __Pyx_GOTREF(__pyx_v_self->comment);
@@ -7798,7 +8476,7 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_4__del__(s
   __pyx_r = 0;
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.comment.__del__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.comment.__del__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
@@ -7807,24 +8485,24 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_4__del__(s
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_7quality_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_7quality_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality___get__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7quality___get__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality___get__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_7quality___get__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_self->quality);
   __pyx_r = __pyx_v_self->quality;
@@ -7832,7 +8510,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality___ge
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.quality.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.quality.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -7842,26 +8520,26 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality___ge
 }
 
 /* Python wrapper */
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7quality_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7quality_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_2__set__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7quality_2__set__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self), ((PyObject *)__pyx_v_value));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_2__set__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7quality_2__set__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__set__", 0);
-  __Pyx_TraceCall("__set__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
-  if (!(likely(PyString_CheckExact(__pyx_v_value))||((__pyx_v_value) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_value)->tp_name), 0))) __PYX_ERR(2, 55, __pyx_L1_error)
+  __Pyx_TraceCall("__set__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
+  if (!(likely(PyString_CheckExact(__pyx_v_value))||((__pyx_v_value) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_value)->tp_name), 0))) __PYX_ERR(2, 56, __pyx_L1_error)
   __pyx_t_1 = __pyx_v_value;
   __Pyx_INCREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
@@ -7875,7 +8553,7 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_2__set__(s
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.quality.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.quality.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
@@ -7884,24 +8562,24 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_2__set__(s
 }
 
 /* Python wrapper */
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_5__del__(PyObject *__pyx_v_self); /*proto*/
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_5__del__(PyObject *__pyx_v_self) {
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7quality_5__del__(PyObject *__pyx_v_self); /*proto*/
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7quality_5__del__(PyObject *__pyx_v_self) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__del__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_4__del__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7quality_4__del__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_4__del__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self) {
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_7quality_4__del__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
   int __pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__del__", 0);
-  __Pyx_TraceCall("__del__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
+  __Pyx_TraceCall("__del__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
   __Pyx_INCREF(Py_None);
   __Pyx_GIVEREF(Py_None);
   __Pyx_GOTREF(__pyx_v_self->quality);
@@ -7912,7 +8590,7 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_4__del__(s
   __pyx_r = 0;
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.quality.__del__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.quality.__del__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
@@ -7921,24 +8599,24 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_4__del__(s
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_8sequence_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_8sequence_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence___get__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_8sequence___get__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence___get__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_8sequence___get__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_self->sequence);
   __pyx_r = __pyx_v_self->sequence;
@@ -7946,7 +8624,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence___g
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.sequence.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.sequence.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -7956,26 +8634,26 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence___g
 }
 
 /* Python wrapper */
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_8sequence_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_8sequence_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_2__set__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_8sequence_2__set__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self), ((PyObject *)__pyx_v_value));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_2__set__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_8sequence_2__set__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__set__", 0);
-  __Pyx_TraceCall("__set__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
-  if (!(likely(PyString_CheckExact(__pyx_v_value))||((__pyx_v_value) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_value)->tp_name), 0))) __PYX_ERR(2, 55, __pyx_L1_error)
+  __Pyx_TraceCall("__set__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
+  if (!(likely(PyString_CheckExact(__pyx_v_value))||((__pyx_v_value) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_value)->tp_name), 0))) __PYX_ERR(2, 56, __pyx_L1_error)
   __pyx_t_1 = __pyx_v_value;
   __Pyx_INCREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
@@ -7989,7 +8667,7 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_2__set__(
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.sequence.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.sequence.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
@@ -7998,24 +8676,24 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_2__set__(
 }
 
 /* Python wrapper */
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_5__del__(PyObject *__pyx_v_self); /*proto*/
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_5__del__(PyObject *__pyx_v_self) {
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_8sequence_5__del__(PyObject *__pyx_v_self); /*proto*/
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_8sequence_5__del__(PyObject *__pyx_v_self) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__del__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_4__del__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_8sequence_4__del__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_4__del__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self) {
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_8sequence_4__del__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
   int __pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__del__", 0);
-  __Pyx_TraceCall("__del__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
+  __Pyx_TraceCall("__del__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
   __Pyx_INCREF(Py_None);
   __Pyx_GIVEREF(Py_None);
   __Pyx_GOTREF(__pyx_v_self->sequence);
@@ -8026,7 +8704,7 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_4__del__(
   __pyx_r = 0;
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.sequence.__del__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.sequence.__del__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
@@ -8035,24 +8713,24 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_4__del__(
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_4name_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_4name_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_4name_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_4name_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name___get__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_4name___get__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name___get__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_4name___get__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_self->name);
   __pyx_r = __pyx_v_self->name;
@@ -8060,7 +8738,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name___get__
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.name.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.name.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -8070,26 +8748,26 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name___get__
 }
 
 /* Python wrapper */
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_4name_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_4name_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_4name_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_4name_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name_2__set__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_4name_2__set__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self), ((PyObject *)__pyx_v_value));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name_2__set__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_4name_2__set__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__set__", 0);
-  __Pyx_TraceCall("__set__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
-  if (!(likely(PyString_CheckExact(__pyx_v_value))||((__pyx_v_value) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_value)->tp_name), 0))) __PYX_ERR(2, 55, __pyx_L1_error)
+  __Pyx_TraceCall("__set__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
+  if (!(likely(PyString_CheckExact(__pyx_v_value))||((__pyx_v_value) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_value)->tp_name), 0))) __PYX_ERR(2, 56, __pyx_L1_error)
   __pyx_t_1 = __pyx_v_value;
   __Pyx_INCREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
@@ -8103,7 +8781,7 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name_2__set__(stru
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.name.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.name.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
@@ -8112,24 +8790,24 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name_2__set__(stru
 }
 
 /* Python wrapper */
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_4name_5__del__(PyObject *__pyx_v_self); /*proto*/
-static int __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_4name_5__del__(PyObject *__pyx_v_self) {
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_4name_5__del__(PyObject *__pyx_v_self); /*proto*/
+static int __pyx_pw_5pysam_9libcfaidx_11FastxRecord_4name_5__del__(PyObject *__pyx_v_self) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__del__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name_4__del__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_4name_4__del__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name_4__del__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self) {
+static int __pyx_pf_5pysam_9libcfaidx_11FastxRecord_4name_4__del__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
   int __pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__del__", 0);
-  __Pyx_TraceCall("__del__", __pyx_f[2], 55, 0, __PYX_ERR(2, 55, __pyx_L1_error));
+  __Pyx_TraceCall("__del__", __pyx_f[2], 56, 0, __PYX_ERR(2, 56, __pyx_L1_error));
   __Pyx_INCREF(Py_None);
   __Pyx_GIVEREF(Py_None);
   __Pyx_GOTREF(__pyx_v_self->name);
@@ -8140,7 +8818,7 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name_4__del__(stru
   __pyx_r = 0;
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.name.__del__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.name.__del__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_TraceReturn(Py_None, 0);
@@ -8155,20 +8833,20 @@ static int __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_4name_4__del__(stru
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_5pysam_9libcfaidx_20PersistentFastqProxy_6__reduce_cython__[] = "PersistentFastqProxy.__reduce_cython__(self)";
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_17__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_9libcfaidx_11FastxRecord_16__reduce_cython__[] = "FastxRecord.__reduce_cython__(self)";
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_17__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_6__reduce_cython__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_16__reduce_cython__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_6__reduce_cython__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_16__reduce_cython__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self) {
   int __pyx_v_use_setstate;
   PyObject *__pyx_v_state = NULL;
   PyObject *__pyx_v__dict = NULL;
@@ -8273,7 +8951,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_6__reduce_cyt
  *     else:
  *         use_setstate = self.comment is not None or self.name is not None or self.quality is not None or self.sequence is not None             # <<<<<<<<<<<<<<
  *     if use_setstate:
- *         return __pyx_unpickle_PersistentFastqProxy, (type(self), 0x43fd151, None), state
+ *         return __pyx_unpickle_FastxRecord, (type(self), 0x43fd151, None), state
  */
   /*else*/ {
     __pyx_t_2 = (__pyx_v_self->comment != ((PyObject*)Py_None));
@@ -8309,7 +8987,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_6__reduce_cyt
  *     else:
  *         use_setstate = self.comment is not None or self.name is not None or self.quality is not None or self.sequence is not None
  *     if use_setstate:             # <<<<<<<<<<<<<<
- *         return __pyx_unpickle_PersistentFastqProxy, (type(self), 0x43fd151, None), state
+ *         return __pyx_unpickle_FastxRecord, (type(self), 0x43fd151, None), state
  *     else:
  */
   __pyx_t_3 = (__pyx_v_use_setstate != 0);
@@ -8318,12 +8996,12 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_6__reduce_cyt
     /* "(tree fragment)":11
  *         use_setstate = self.comment is not None or self.name is not None or self.quality is not None or self.sequence is not None
  *     if use_setstate:
- *         return __pyx_unpickle_PersistentFastqProxy, (type(self), 0x43fd151, None), state             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_FastxRecord, (type(self), 0x43fd151, None), state             # <<<<<<<<<<<<<<
  *     else:
- *         return __pyx_unpickle_PersistentFastqProxy, (type(self), 0x43fd151, state)
+ *         return __pyx_unpickle_FastxRecord, (type(self), 0x43fd151, state)
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_pyx_unpickle_PersistentFastqPr); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 11, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_pyx_unpickle_FastxRecord); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 11, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 11, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
@@ -8355,21 +9033,21 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_6__reduce_cyt
  *     else:
  *         use_setstate = self.comment is not None or self.name is not None or self.quality is not None or self.sequence is not None
  *     if use_setstate:             # <<<<<<<<<<<<<<
- *         return __pyx_unpickle_PersistentFastqProxy, (type(self), 0x43fd151, None), state
+ *         return __pyx_unpickle_FastxRecord, (type(self), 0x43fd151, None), state
  *     else:
  */
   }
 
   /* "(tree fragment)":13
- *         return __pyx_unpickle_PersistentFastqProxy, (type(self), 0x43fd151, None), state
+ *         return __pyx_unpickle_FastxRecord, (type(self), 0x43fd151, None), state
  *     else:
- *         return __pyx_unpickle_PersistentFastqProxy, (type(self), 0x43fd151, state)             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_FastxRecord, (type(self), 0x43fd151, state)             # <<<<<<<<<<<<<<
  * def __setstate_cython__(self, __pyx_state):
- *     __pyx_unpickle_PersistentFastqProxy__set_state(self, __pyx_state)
+ *     __pyx_unpickle_FastxRecord__set_state(self, __pyx_state)
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_pyx_unpickle_PersistentFastqPr); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 13, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_pyx_unpickle_FastxRecord); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 13, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 13, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
@@ -8406,7 +9084,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_6__reduce_cyt
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_state);
@@ -8419,26 +9097,26 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_6__reduce_cyt
 
 /* "(tree fragment)":14
  *     else:
- *         return __pyx_unpickle_PersistentFastqProxy, (type(self), 0x43fd151, state)
+ *         return __pyx_unpickle_FastxRecord, (type(self), 0x43fd151, state)
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
- *     __pyx_unpickle_PersistentFastqProxy__set_state(self, __pyx_state)
+ *     __pyx_unpickle_FastxRecord__set_state(self, __pyx_state)
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_9__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static char __pyx_doc_5pysam_9libcfaidx_20PersistentFastqProxy_8__setstate_cython__[] = "PersistentFastqProxy.__setstate_cython__(self, __pyx_state)";
-static PyObject *__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_9__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_19__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static char __pyx_doc_5pysam_9libcfaidx_11FastxRecord_18__setstate_cython__[] = "FastxRecord.__setstate_cython__(self, __pyx_state)";
+static PyObject *__pyx_pw_5pysam_9libcfaidx_11FastxRecord_19__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8__setstate_cython__(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx_11FastxRecord_18__setstate_cython__(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8__setstate_cython__(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_5pysam_9libcfaidx_11FastxRecord_18__setstate_cython__(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -8447,20 +9125,20 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8__setstate_c
   __Pyx_TraceCall("__setstate_cython__", __pyx_f[1], 14, 0, __PYX_ERR(1, 14, __pyx_L1_error));
 
   /* "(tree fragment)":15
- *         return __pyx_unpickle_PersistentFastqProxy, (type(self), 0x43fd151, state)
+ *         return __pyx_unpickle_FastxRecord, (type(self), 0x43fd151, state)
  * def __setstate_cython__(self, __pyx_state):
- *     __pyx_unpickle_PersistentFastqProxy__set_state(self, __pyx_state)             # <<<<<<<<<<<<<<
+ *     __pyx_unpickle_FastxRecord__set_state(self, __pyx_state)             # <<<<<<<<<<<<<<
  */
   if (!(likely(PyTuple_CheckExact(__pyx_v___pyx_state))||((__pyx_v___pyx_state) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "tuple", Py_TYPE(__pyx_v___pyx_state)->tp_name), 0))) __PYX_ERR(1, 15, __pyx_L1_error)
-  __pyx_t_1 = __pyx_f_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy__set_state(__pyx_v_self, ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 15, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5pysam_9libcfaidx___pyx_unpickle_FastxRecord__set_state(__pyx_v_self, ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 15, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "(tree fragment)":14
  *     else:
- *         return __pyx_unpickle_PersistentFastqProxy, (type(self), 0x43fd151, state)
+ *         return __pyx_unpickle_FastxRecord, (type(self), 0x43fd151, state)
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
- *     __pyx_unpickle_PersistentFastqProxy__set_state(self, __pyx_state)
+ *     __pyx_unpickle_FastxRecord__set_state(self, __pyx_state)
  */
 
   /* function exit code */
@@ -8468,7 +9146,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8__setstate_c
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pysam.libcfaidx.PersistentFastqProxy.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.FastxRecord.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -8477,7 +9155,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_20PersistentFastqProxy_8__setstate_c
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":452
+/* "pysam/libcfaidx.pyx":545
  * 
  *     """
  *     def __cinit__(self, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -8518,9 +9196,9 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastxFile___cinit__(struct __pyx_obj_5pys
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__cinit__", 0);
-  __Pyx_TraceCall("__cinit__", __pyx_f[0], 452, 0, __PYX_ERR(0, 452, __pyx_L1_error));
+  __Pyx_TraceCall("__cinit__", __pyx_f[0], 545, 0, __PYX_ERR(0, 545, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":454
+  /* "pysam/libcfaidx.pyx":547
  *     def __cinit__(self, *args, **kwargs):
  *         # self.fastqfile = <gzFile*>NULL
  *         self._filename = None             # <<<<<<<<<<<<<<
@@ -8533,7 +9211,7 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastxFile___cinit__(struct __pyx_obj_5pys
   __Pyx_DECREF(__pyx_v_self->_filename);
   __pyx_v_self->_filename = Py_None;
 
-  /* "pysam/libcfaidx.pyx":455
+  /* "pysam/libcfaidx.pyx":548
  *         # self.fastqfile = <gzFile*>NULL
  *         self._filename = None
  *         self.entry = NULL             # <<<<<<<<<<<<<<
@@ -8542,21 +9220,21 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastxFile___cinit__(struct __pyx_obj_5pys
  */
   __pyx_v_self->entry = NULL;
 
-  /* "pysam/libcfaidx.pyx":456
+  /* "pysam/libcfaidx.pyx":549
  *         self._filename = None
  *         self.entry = NULL
  *         self._open(*args, **kwargs)             # <<<<<<<<<<<<<<
  * 
  *     def is_open(self):
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_open_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 456, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_open); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 549, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_v_args, __pyx_v_kwargs); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 456, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_v_args, __pyx_v_kwargs); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 549, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libcfaidx.pyx":452
+  /* "pysam/libcfaidx.pyx":545
  * 
  *     """
  *     def __cinit__(self, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -8578,7 +9256,7 @@ static int __pyx_pf_5pysam_9libcfaidx_9FastxFile___cinit__(struct __pyx_obj_5pys
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":458
+/* "pysam/libcfaidx.pyx":551
  *         self._open(*args, **kwargs)
  * 
  *     def is_open(self):             # <<<<<<<<<<<<<<
@@ -8606,9 +9284,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_2is_open(struct __pyx_obj
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("is_open", 0);
-  __Pyx_TraceCall("is_open", __pyx_f[0], 458, 0, __PYX_ERR(0, 458, __pyx_L1_error));
+  __Pyx_TraceCall("is_open", __pyx_f[0], 551, 0, __PYX_ERR(0, 551, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":460
+  /* "pysam/libcfaidx.pyx":553
  *     def is_open(self):
  *         '''return true if samfile has been opened.'''
  *         return self.entry != NULL             # <<<<<<<<<<<<<<
@@ -8616,13 +9294,13 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_2is_open(struct __pyx_obj
  *     def _open(self, filename, persist=True):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->entry != NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 460, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->entry != NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 553, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":458
+  /* "pysam/libcfaidx.pyx":551
  *         self._open(*args, **kwargs)
  * 
  *     def is_open(self):             # <<<<<<<<<<<<<<
@@ -8642,7 +9320,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_2is_open(struct __pyx_obj
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":462
+/* "pysam/libcfaidx.pyx":555
  *         return self.entry != NULL
  * 
  *     def _open(self, filename, persist=True):             # <<<<<<<<<<<<<<
@@ -8687,7 +9365,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastxFile_5_open(PyObject *__pyx_v_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_open") < 0)) __PYX_ERR(0, 462, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_open") < 0)) __PYX_ERR(0, 555, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -8703,7 +9381,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastxFile_5_open(PyObject *__pyx_v_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_open", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 462, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_open", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 555, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcfaidx.FastxFile._open", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8730,9 +9408,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
   PyObject *__pyx_t_7 = NULL;
   int __pyx_t_8;
   __Pyx_RefNannySetupContext("_open", 0);
-  __Pyx_TraceCall("_open", __pyx_f[0], 462, 0, __PYX_ERR(0, 462, __pyx_L1_error));
+  __Pyx_TraceCall("_open", __pyx_f[0], 555, 0, __PYX_ERR(0, 555, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":475
+  /* "pysam/libcfaidx.pyx":568
  * 
  *         '''
  *         if self.fastqfile != NULL:             # <<<<<<<<<<<<<<
@@ -8742,14 +9420,14 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
   __pyx_t_1 = ((__pyx_v_self->fastqfile != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcfaidx.pyx":476
+    /* "pysam/libcfaidx.pyx":569
  *         '''
  *         if self.fastqfile != NULL:
  *             self.close()             # <<<<<<<<<<<<<<
  * 
  *         self._filename = encode_filename(filename)
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 476, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 569, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_4 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -8762,16 +9440,16 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
       }
     }
     if (__pyx_t_4) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 476, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 569, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     } else {
-      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 476, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 569, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "pysam/libcfaidx.pyx":475
+    /* "pysam/libcfaidx.pyx":568
  * 
  *         '''
  *         if self.fastqfile != NULL:             # <<<<<<<<<<<<<<
@@ -8780,14 +9458,14 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libcfaidx.pyx":478
+  /* "pysam/libcfaidx.pyx":571
  *             self.close()
  * 
  *         self._filename = encode_filename(filename)             # <<<<<<<<<<<<<<
  *         cdef char *cfilename = self._filename
  *         self.is_remote = hisremote(cfilename)
  */
-  __pyx_t_2 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 478, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 571, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
   __Pyx_GOTREF(__pyx_v_self->_filename);
@@ -8795,17 +9473,17 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
   __pyx_v_self->_filename = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "pysam/libcfaidx.pyx":479
+  /* "pysam/libcfaidx.pyx":572
  * 
  *         self._filename = encode_filename(filename)
  *         cdef char *cfilename = self._filename             # <<<<<<<<<<<<<<
  *         self.is_remote = hisremote(cfilename)
  * 
  */
-  __pyx_t_5 = __Pyx_PyObject_AsWritableString(__pyx_v_self->_filename); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 479, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_AsWritableString(__pyx_v_self->_filename); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 572, __pyx_L1_error)
   __pyx_v_cfilename = __pyx_t_5;
 
-  /* "pysam/libcfaidx.pyx":480
+  /* "pysam/libcfaidx.pyx":573
  *         self._filename = encode_filename(filename)
  *         cdef char *cfilename = self._filename
  *         self.is_remote = hisremote(cfilename)             # <<<<<<<<<<<<<<
@@ -8814,21 +9492,21 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
  */
   __pyx_v_self->is_remote = hisremote(__pyx_v_cfilename);
 
-  /* "pysam/libcfaidx.pyx":483
+  /* "pysam/libcfaidx.pyx":576
  * 
  *         # open file for reading
  *         if (self._filename != b"-"             # <<<<<<<<<<<<<<
  *             and not self.is_remote
  *             and not os.path.exists(filename)):
  */
-  __pyx_t_6 = (__Pyx_PyBytes_Equals(__pyx_v_self->_filename, __pyx_kp_b__3, Py_NE)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 483, __pyx_L1_error)
+  __pyx_t_6 = (__Pyx_PyBytes_Equals(__pyx_v_self->_filename, __pyx_kp_b__2, Py_NE)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 576, __pyx_L1_error)
   if (__pyx_t_6) {
   } else {
     __pyx_t_1 = __pyx_t_6;
     goto __pyx_L5_bool_binop_done;
   }
 
-  /* "pysam/libcfaidx.pyx":484
+  /* "pysam/libcfaidx.pyx":577
  *         # open file for reading
  *         if (self._filename != b"-"
  *             and not self.is_remote             # <<<<<<<<<<<<<<
@@ -8842,19 +9520,19 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
     goto __pyx_L5_bool_binop_done;
   }
 
-  /* "pysam/libcfaidx.pyx":485
+  /* "pysam/libcfaidx.pyx":578
  *         if (self._filename != b"-"
  *             and not self.is_remote
  *             and not os.path.exists(filename)):             # <<<<<<<<<<<<<<
  *             raise IOError("file `%s` not found" % filename)
  * 
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 485, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 578, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 485, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 578, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_exists); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 485, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_exists); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 578, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -8868,13 +9546,13 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 485, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 578, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
   } else {
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_3)) {
       PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filename};
-      __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 485, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 578, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_2);
     } else
@@ -8882,31 +9560,31 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
       PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filename};
-      __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 485, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 578, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_2);
     } else
     #endif
     {
-      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 485, __pyx_L1_error)
+      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 578, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_4); __pyx_t_4 = NULL;
       __Pyx_INCREF(__pyx_v_filename);
       __Pyx_GIVEREF(__pyx_v_filename);
       PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_filename);
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 485, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 578, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     }
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 485, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 578, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_8 = ((!__pyx_t_6) != 0);
   __pyx_t_1 = __pyx_t_8;
   __pyx_L5_bool_binop_done:;
 
-  /* "pysam/libcfaidx.pyx":483
+  /* "pysam/libcfaidx.pyx":576
  * 
  *         # open file for reading
  *         if (self._filename != b"-"             # <<<<<<<<<<<<<<
@@ -8915,23 +9593,23 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
  */
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libcfaidx.pyx":486
+    /* "pysam/libcfaidx.pyx":579
  *             and not self.is_remote
  *             and not os.path.exists(filename)):
  *             raise IOError("file `%s` not found" % filename)             # <<<<<<<<<<<<<<
  * 
  *         self.persist = persist
  */
-    __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_file_s_not_found, __pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 486, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_file_s_not_found, __pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 579, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 486, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 579, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 486, __pyx_L1_error)
+    __PYX_ERR(0, 579, __pyx_L1_error)
 
-    /* "pysam/libcfaidx.pyx":483
+    /* "pysam/libcfaidx.pyx":576
  * 
  *         # open file for reading
  *         if (self._filename != b"-"             # <<<<<<<<<<<<<<
@@ -8940,17 +9618,17 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libcfaidx.pyx":488
+  /* "pysam/libcfaidx.pyx":581
  *             raise IOError("file `%s` not found" % filename)
  * 
  *         self.persist = persist             # <<<<<<<<<<<<<<
  * 
  *         with nogil:
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_persist); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 488, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_persist); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 581, __pyx_L1_error)
   __pyx_v_self->persist = __pyx_t_1;
 
-  /* "pysam/libcfaidx.pyx":490
+  /* "pysam/libcfaidx.pyx":583
  *         self.persist = persist
  * 
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -8965,7 +9643,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
       #endif
       /*try:*/ {
 
-        /* "pysam/libcfaidx.pyx":491
+        /* "pysam/libcfaidx.pyx":584
  * 
  *         with nogil:
  *             self.fastqfile = bgzf_open(cfilename, "r")             # <<<<<<<<<<<<<<
@@ -8974,7 +9652,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
  */
         __pyx_v_self->fastqfile = bgzf_open(__pyx_v_cfilename, ((char const *)"r"));
 
-        /* "pysam/libcfaidx.pyx":492
+        /* "pysam/libcfaidx.pyx":585
  *         with nogil:
  *             self.fastqfile = bgzf_open(cfilename, "r")
  *             self.entry = kseq_init(self.fastqfile)             # <<<<<<<<<<<<<<
@@ -8984,7 +9662,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
         __pyx_v_self->entry = kseq_init(__pyx_v_self->fastqfile);
       }
 
-      /* "pysam/libcfaidx.pyx":490
+      /* "pysam/libcfaidx.pyx":583
  *         self.persist = persist
  * 
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -9003,7 +9681,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
       }
   }
 
-  /* "pysam/libcfaidx.pyx":493
+  /* "pysam/libcfaidx.pyx":586
  *             self.fastqfile = bgzf_open(cfilename, "r")
  *             self.entry = kseq_init(self.fastqfile)
  *         self._filename = filename             # <<<<<<<<<<<<<<
@@ -9016,7 +9694,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
   __Pyx_DECREF(__pyx_v_self->_filename);
   __pyx_v_self->_filename = __pyx_v_filename;
 
-  /* "pysam/libcfaidx.pyx":462
+  /* "pysam/libcfaidx.pyx":555
  *         return self.entry != NULL
  * 
  *     def _open(self, filename, persist=True):             # <<<<<<<<<<<<<<
@@ -9041,7 +9719,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_4_open(struct __pyx_obj_5
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":495
+/* "pysam/libcfaidx.pyx":588
  *         self._filename = filename
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
@@ -9069,9 +9747,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6close(struct __pyx_obj_5
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("close", 0);
-  __Pyx_TraceCall("close", __pyx_f[0], 495, 0, __PYX_ERR(0, 495, __pyx_L1_error));
+  __Pyx_TraceCall("close", __pyx_f[0], 588, 0, __PYX_ERR(0, 588, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":497
+  /* "pysam/libcfaidx.pyx":590
  *     def close(self):
  *         '''close the file.'''
  *         if self.fastqfile != NULL:             # <<<<<<<<<<<<<<
@@ -9081,7 +9759,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6close(struct __pyx_obj_5
   __pyx_t_1 = ((__pyx_v_self->fastqfile != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcfaidx.pyx":498
+    /* "pysam/libcfaidx.pyx":591
  *         '''close the file.'''
  *         if self.fastqfile != NULL:
  *             bgzf_close(self.fastqfile)             # <<<<<<<<<<<<<<
@@ -9090,7 +9768,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6close(struct __pyx_obj_5
  */
     (void)(bgzf_close(__pyx_v_self->fastqfile));
 
-    /* "pysam/libcfaidx.pyx":499
+    /* "pysam/libcfaidx.pyx":592
  *         if self.fastqfile != NULL:
  *             bgzf_close(self.fastqfile)
  *             self.fastqfile = NULL             # <<<<<<<<<<<<<<
@@ -9099,7 +9777,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6close(struct __pyx_obj_5
  */
     __pyx_v_self->fastqfile = NULL;
 
-    /* "pysam/libcfaidx.pyx":497
+    /* "pysam/libcfaidx.pyx":590
  *     def close(self):
  *         '''close the file.'''
  *         if self.fastqfile != NULL:             # <<<<<<<<<<<<<<
@@ -9108,7 +9786,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6close(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libcfaidx.pyx":500
+  /* "pysam/libcfaidx.pyx":593
  *             bgzf_close(self.fastqfile)
  *             self.fastqfile = NULL
  *         if self.entry != NULL:             # <<<<<<<<<<<<<<
@@ -9118,7 +9796,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6close(struct __pyx_obj_5
   __pyx_t_1 = ((__pyx_v_self->entry != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcfaidx.pyx":501
+    /* "pysam/libcfaidx.pyx":594
  *             self.fastqfile = NULL
  *         if self.entry != NULL:
  *             kseq_destroy(self.entry)             # <<<<<<<<<<<<<<
@@ -9127,7 +9805,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6close(struct __pyx_obj_5
  */
     kseq_destroy(__pyx_v_self->entry);
 
-    /* "pysam/libcfaidx.pyx":502
+    /* "pysam/libcfaidx.pyx":595
  *         if self.entry != NULL:
  *             kseq_destroy(self.entry)
  *             self.entry = NULL             # <<<<<<<<<<<<<<
@@ -9136,7 +9814,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6close(struct __pyx_obj_5
  */
     __pyx_v_self->entry = NULL;
 
-    /* "pysam/libcfaidx.pyx":500
+    /* "pysam/libcfaidx.pyx":593
  *             bgzf_close(self.fastqfile)
  *             self.fastqfile = NULL
  *         if self.entry != NULL:             # <<<<<<<<<<<<<<
@@ -9145,7 +9823,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6close(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libcfaidx.pyx":495
+  /* "pysam/libcfaidx.pyx":588
  *         self._filename = filename
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
@@ -9166,7 +9844,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6close(struct __pyx_obj_5
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":504
+/* "pysam/libcfaidx.pyx":597
  *             self.entry = NULL
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -9190,9 +9868,9 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastxFile_8__dealloc__(struct __pyx_obj_
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
-  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 504, 0, __PYX_ERR(0, 504, __pyx_L1_error));
+  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 597, 0, __PYX_ERR(0, 597, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":505
+  /* "pysam/libcfaidx.pyx":598
  * 
  *     def __dealloc__(self):
  *         if self.fastqfile != NULL:             # <<<<<<<<<<<<<<
@@ -9202,7 +9880,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastxFile_8__dealloc__(struct __pyx_obj_
   __pyx_t_1 = ((__pyx_v_self->fastqfile != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcfaidx.pyx":506
+    /* "pysam/libcfaidx.pyx":599
  *     def __dealloc__(self):
  *         if self.fastqfile != NULL:
  *             bgzf_close(self.fastqfile)             # <<<<<<<<<<<<<<
@@ -9211,7 +9889,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastxFile_8__dealloc__(struct __pyx_obj_
  */
     (void)(bgzf_close(__pyx_v_self->fastqfile));
 
-    /* "pysam/libcfaidx.pyx":505
+    /* "pysam/libcfaidx.pyx":598
  * 
  *     def __dealloc__(self):
  *         if self.fastqfile != NULL:             # <<<<<<<<<<<<<<
@@ -9220,7 +9898,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastxFile_8__dealloc__(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libcfaidx.pyx":507
+  /* "pysam/libcfaidx.pyx":600
  *         if self.fastqfile != NULL:
  *             bgzf_close(self.fastqfile)
  *         if self.entry:             # <<<<<<<<<<<<<<
@@ -9230,7 +9908,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastxFile_8__dealloc__(struct __pyx_obj_
   __pyx_t_1 = (__pyx_v_self->entry != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libcfaidx.pyx":508
+    /* "pysam/libcfaidx.pyx":601
  *             bgzf_close(self.fastqfile)
  *         if self.entry:
  *             kseq_destroy(self.entry)             # <<<<<<<<<<<<<<
@@ -9239,7 +9917,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastxFile_8__dealloc__(struct __pyx_obj_
  */
     kseq_destroy(__pyx_v_self->entry);
 
-    /* "pysam/libcfaidx.pyx":507
+    /* "pysam/libcfaidx.pyx":600
  *         if self.fastqfile != NULL:
  *             bgzf_close(self.fastqfile)
  *         if self.entry:             # <<<<<<<<<<<<<<
@@ -9248,7 +9926,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastxFile_8__dealloc__(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libcfaidx.pyx":504
+  /* "pysam/libcfaidx.pyx":597
  *             self.entry = NULL
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -9265,7 +9943,7 @@ static void __pyx_pf_5pysam_9libcfaidx_9FastxFile_8__dealloc__(struct __pyx_obj_
   __Pyx_RefNannyFinishContext();
 }
 
-/* "pysam/libcfaidx.pyx":511
+/* "pysam/libcfaidx.pyx":604
  * 
  *     # context manager interface
  *     def __enter__(self):             # <<<<<<<<<<<<<<
@@ -9292,9 +9970,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_10__enter__(struct __pyx_
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__enter__", 0);
-  __Pyx_TraceCall("__enter__", __pyx_f[0], 511, 0, __PYX_ERR(0, 511, __pyx_L1_error));
+  __Pyx_TraceCall("__enter__", __pyx_f[0], 604, 0, __PYX_ERR(0, 604, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":512
+  /* "pysam/libcfaidx.pyx":605
  *     # context manager interface
  *     def __enter__(self):
  *         return self             # <<<<<<<<<<<<<<
@@ -9306,7 +9984,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_10__enter__(struct __pyx_
   __pyx_r = ((PyObject *)__pyx_v_self);
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":511
+  /* "pysam/libcfaidx.pyx":604
  * 
  *     # context manager interface
  *     def __enter__(self):             # <<<<<<<<<<<<<<
@@ -9325,7 +10003,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_10__enter__(struct __pyx_
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":514
+/* "pysam/libcfaidx.pyx":607
  *         return self
  * 
  *     def __exit__(self, exc_type, exc_value, traceback):             # <<<<<<<<<<<<<<
@@ -9368,17 +10046,17 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastxFile_13__exit__(PyObject *__py
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_exc_value)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 1); __PYX_ERR(0, 514, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 1); __PYX_ERR(0, 607, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_traceback)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 2); __PYX_ERR(0, 514, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 2); __PYX_ERR(0, 607, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__exit__") < 0)) __PYX_ERR(0, 514, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__exit__") < 0)) __PYX_ERR(0, 607, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -9393,7 +10071,7 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_9FastxFile_13__exit__(PyObject *__py
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 514, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 607, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libcfaidx.FastxFile.__exit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9414,16 +10092,16 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_12__exit__(struct __pyx_o
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__exit__", 0);
-  __Pyx_TraceCall("__exit__", __pyx_f[0], 514, 0, __PYX_ERR(0, 514, __pyx_L1_error));
+  __Pyx_TraceCall("__exit__", __pyx_f[0], 607, 0, __PYX_ERR(0, 607, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":515
+  /* "pysam/libcfaidx.pyx":608
  * 
  *     def __exit__(self, exc_type, exc_value, traceback):
  *         self.close()             # <<<<<<<<<<<<<<
  *         return False
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 515, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 608, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -9436,16 +10114,16 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_12__exit__(struct __pyx_o
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 515, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 608, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 515, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 608, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libcfaidx.pyx":516
+  /* "pysam/libcfaidx.pyx":609
  *     def __exit__(self, exc_type, exc_value, traceback):
  *         self.close()
  *         return False             # <<<<<<<<<<<<<<
@@ -9457,7 +10135,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_12__exit__(struct __pyx_o
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":514
+  /* "pysam/libcfaidx.pyx":607
  *         return self
  * 
  *     def __exit__(self, exc_type, exc_value, traceback):             # <<<<<<<<<<<<<<
@@ -9479,7 +10157,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_12__exit__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":522
+/* "pysam/libcfaidx.pyx":615
  *         This is a read-only attribute; the close() method changes the value.
  *         """
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -9509,9 +10187,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6closed___get__(struct __
   PyObject *__pyx_t_3 = NULL;
   int __pyx_t_4;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 522, 0, __PYX_ERR(0, 522, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 615, 0, __PYX_ERR(0, 615, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":523
+  /* "pysam/libcfaidx.pyx":616
  *         """
  *         def __get__(self):
  *             return not self.is_open()             # <<<<<<<<<<<<<<
@@ -9519,7 +10197,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6closed___get__(struct __
  *     property filename:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 523, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 616, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -9532,22 +10210,22 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6closed___get__(struct __
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 523, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 616, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 523, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 616, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 523, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 616, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyBool_FromLong((!__pyx_t_4)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 523, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((!__pyx_t_4)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 616, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":522
+  /* "pysam/libcfaidx.pyx":615
  *         This is a read-only attribute; the close() method changes the value.
  *         """
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -9569,7 +10247,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_6closed___get__(struct __
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":527
+/* "pysam/libcfaidx.pyx":620
  *     property filename:
  *         """string with the filename associated with this object."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -9595,9 +10273,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_8filename___get__(struct 
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 527, 0, __PYX_ERR(0, 527, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 620, 0, __PYX_ERR(0, 620, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":528
+  /* "pysam/libcfaidx.pyx":621
  *         """string with the filename associated with this object."""
  *         def __get__(self):
  *             return self._filename             # <<<<<<<<<<<<<<
@@ -9609,7 +10287,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_8filename___get__(struct 
   __pyx_r = __pyx_v_self->_filename;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":527
+  /* "pysam/libcfaidx.pyx":620
  *     property filename:
  *         """string with the filename associated with this object."""
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -9628,7 +10306,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_8filename___get__(struct 
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":530
+/* "pysam/libcfaidx.pyx":623
  *             return self._filename
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -9659,16 +10337,16 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_14__iter__(struct __pyx_o
   int __pyx_t_4;
   int __pyx_t_5;
   __Pyx_RefNannySetupContext("__iter__", 0);
-  __Pyx_TraceCall("__iter__", __pyx_f[0], 530, 0, __PYX_ERR(0, 530, __pyx_L1_error));
+  __Pyx_TraceCall("__iter__", __pyx_f[0], 623, 0, __PYX_ERR(0, 623, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":531
+  /* "pysam/libcfaidx.pyx":624
  * 
  *     def __iter__(self):
  *         if not self.is_open():             # <<<<<<<<<<<<<<
  *             raise ValueError("I/O operation on closed file")
  *         return self
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 531, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 624, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -9681,32 +10359,32 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_14__iter__(struct __pyx_o
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 531, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 624, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 531, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 624, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 531, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 624, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_5 = ((!__pyx_t_4) != 0);
   if (unlikely(__pyx_t_5)) {
 
-    /* "pysam/libcfaidx.pyx":532
+    /* "pysam/libcfaidx.pyx":625
  *     def __iter__(self):
  *         if not self.is_open():
  *             raise ValueError("I/O operation on closed file")             # <<<<<<<<<<<<<<
  *         return self
  * 
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 532, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 625, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 532, __pyx_L1_error)
+    __PYX_ERR(0, 625, __pyx_L1_error)
 
-    /* "pysam/libcfaidx.pyx":531
+    /* "pysam/libcfaidx.pyx":624
  * 
  *     def __iter__(self):
  *         if not self.is_open():             # <<<<<<<<<<<<<<
@@ -9715,7 +10393,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_14__iter__(struct __pyx_o
  */
   }
 
-  /* "pysam/libcfaidx.pyx":533
+  /* "pysam/libcfaidx.pyx":626
  *         if not self.is_open():
  *             raise ValueError("I/O operation on closed file")
  *         return self             # <<<<<<<<<<<<<<
@@ -9727,7 +10405,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_14__iter__(struct __pyx_o
   __pyx_r = ((PyObject *)__pyx_v_self);
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":530
+  /* "pysam/libcfaidx.pyx":623
  *             return self._filename
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -9749,7 +10427,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_14__iter__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":535
+/* "pysam/libcfaidx.pyx":628
  *         return self
  * 
  *     cdef kseq_t * getCurrent(self):             # <<<<<<<<<<<<<<
@@ -9762,9 +10440,9 @@ static kseq_t *__pyx_f_5pysam_9libcfaidx_9FastxFile_getCurrent(struct __pyx_obj_
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("getCurrent", 0);
-  __Pyx_TraceCall("getCurrent", __pyx_f[0], 535, 0, __PYX_ERR(0, 535, __pyx_L1_error));
+  __Pyx_TraceCall("getCurrent", __pyx_f[0], 628, 0, __PYX_ERR(0, 628, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":536
+  /* "pysam/libcfaidx.pyx":629
  * 
  *     cdef kseq_t * getCurrent(self):
  *         return self.entry             # <<<<<<<<<<<<<<
@@ -9774,7 +10452,7 @@ static kseq_t *__pyx_f_5pysam_9libcfaidx_9FastxFile_getCurrent(struct __pyx_obj_
   __pyx_r = __pyx_v_self->entry;
   goto __pyx_L0;
 
-  /* "pysam/libcfaidx.pyx":535
+  /* "pysam/libcfaidx.pyx":628
  *         return self
  * 
  *     cdef kseq_t * getCurrent(self):             # <<<<<<<<<<<<<<
@@ -9792,7 +10470,7 @@ static kseq_t *__pyx_f_5pysam_9libcfaidx_9FastxFile_getCurrent(struct __pyx_obj_
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":538
+/* "pysam/libcfaidx.pyx":631
  *         return self.entry
  * 
  *     cdef int cnext(self):             # <<<<<<<<<<<<<<
@@ -9805,9 +10483,9 @@ static int __pyx_f_5pysam_9libcfaidx_9FastxFile_cnext(struct __pyx_obj_5pysam_9l
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("cnext", 0);
-  __Pyx_TraceCall("cnext", __pyx_f[0], 538, 0, __PYX_ERR(0, 538, __pyx_L1_error));
+  __Pyx_TraceCall("cnext", __pyx_f[0], 631, 0, __PYX_ERR(0, 631, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":541
+  /* "pysam/libcfaidx.pyx":634
  *         '''C version of iterator
  *         '''
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -9822,7 +10500,7 @@ static int __pyx_f_5pysam_9libcfaidx_9FastxFile_cnext(struct __pyx_obj_5pysam_9l
       #endif
       /*try:*/ {
 
-        /* "pysam/libcfaidx.pyx":542
+        /* "pysam/libcfaidx.pyx":635
  *         '''
  *         with nogil:
  *             return kseq_read(self.entry)             # <<<<<<<<<<<<<<
@@ -9833,7 +10511,7 @@ static int __pyx_f_5pysam_9libcfaidx_9FastxFile_cnext(struct __pyx_obj_5pysam_9l
         goto __pyx_L3_return;
       }
 
-      /* "pysam/libcfaidx.pyx":541
+      /* "pysam/libcfaidx.pyx":634
  *         '''C version of iterator
  *         '''
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -9851,7 +10529,7 @@ static int __pyx_f_5pysam_9libcfaidx_9FastxFile_cnext(struct __pyx_obj_5pysam_9l
       }
   }
 
-  /* "pysam/libcfaidx.pyx":538
+  /* "pysam/libcfaidx.pyx":631
  *         return self.entry
  * 
  *     cdef int cnext(self):             # <<<<<<<<<<<<<<
@@ -9869,7 +10547,7 @@ static int __pyx_f_5pysam_9libcfaidx_9FastxFile_cnext(struct __pyx_obj_5pysam_9l
   return __pyx_r;
 }
 
-/* "pysam/libcfaidx.pyx":544
+/* "pysam/libcfaidx.pyx":637
  *             return kseq_read(self.entry)
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -9903,9 +10581,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_16__next__(struct __pyx_o
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__next__", 0);
-  __Pyx_TraceCall("__next__", __pyx_f[0], 544, 0, __PYX_ERR(0, 544, __pyx_L1_error));
+  __Pyx_TraceCall("__next__", __pyx_f[0], 637, 0, __PYX_ERR(0, 637, __pyx_L1_error));
 
-  /* "pysam/libcfaidx.pyx":549
+  /* "pysam/libcfaidx.pyx":642
  *         """
  *         cdef int l
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -9920,7 +10598,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_16__next__(struct __pyx_o
       #endif
       /*try:*/ {
 
-        /* "pysam/libcfaidx.pyx":550
+        /* "pysam/libcfaidx.pyx":643
  *         cdef int l
  *         with nogil:
  *             l = kseq_read(self.entry)             # <<<<<<<<<<<<<<
@@ -9930,7 +10608,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_16__next__(struct __pyx_o
         __pyx_v_l = kseq_read(__pyx_v_self->entry);
       }
 
-      /* "pysam/libcfaidx.pyx":549
+      /* "pysam/libcfaidx.pyx":642
  *         """
  *         cdef int l
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -9949,76 +10627,80 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_16__next__(struct __pyx_o
       }
   }
 
-  /* "pysam/libcfaidx.pyx":551
+  /* "pysam/libcfaidx.pyx":644
  *         with nogil:
  *             l = kseq_read(self.entry)
  *         if (l >= 0):             # <<<<<<<<<<<<<<
  *             if self.persist:
- *                 return PersistentFastqProxy(makeFastqProxy(self.entry))
+ *                 return FastxRecord(proxy=makeFastqProxy(self.entry))
  */
   __pyx_t_1 = ((__pyx_v_l >= 0) != 0);
   if (likely(__pyx_t_1)) {
 
-    /* "pysam/libcfaidx.pyx":552
+    /* "pysam/libcfaidx.pyx":645
  *             l = kseq_read(self.entry)
  *         if (l >= 0):
  *             if self.persist:             # <<<<<<<<<<<<<<
- *                 return PersistentFastqProxy(makeFastqProxy(self.entry))
+ *                 return FastxRecord(proxy=makeFastqProxy(self.entry))
  *             return makeFastqProxy(self.entry)
  */
     __pyx_t_1 = (__pyx_v_self->persist != 0);
     if (__pyx_t_1) {
 
-      /* "pysam/libcfaidx.pyx":553
+      /* "pysam/libcfaidx.pyx":646
  *         if (l >= 0):
  *             if self.persist:
- *                 return PersistentFastqProxy(makeFastqProxy(self.entry))             # <<<<<<<<<<<<<<
+ *                 return FastxRecord(proxy=makeFastqProxy(self.entry))             # <<<<<<<<<<<<<<
  *             return makeFastqProxy(self.entry)
  *         else:
  */
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_2 = __pyx_f_5pysam_9libcfaidx_makeFastqProxy(__pyx_v_self->entry); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 553, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 646, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_9libcfaidx_PersistentFastqProxy), __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 553, __pyx_L1_error)
+      __pyx_t_3 = __pyx_f_5pysam_9libcfaidx_makeFastqProxy(__pyx_v_self->entry); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 646, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_proxy, __pyx_t_3) < 0) __PYX_ERR(0, 646, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5pysam_9libcfaidx_FastxRecord), __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 646, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_r = __pyx_t_3;
       __pyx_t_3 = 0;
       goto __pyx_L0;
 
-      /* "pysam/libcfaidx.pyx":552
+      /* "pysam/libcfaidx.pyx":645
  *             l = kseq_read(self.entry)
  *         if (l >= 0):
  *             if self.persist:             # <<<<<<<<<<<<<<
- *                 return PersistentFastqProxy(makeFastqProxy(self.entry))
+ *                 return FastxRecord(proxy=makeFastqProxy(self.entry))
  *             return makeFastqProxy(self.entry)
  */
     }
 
-    /* "pysam/libcfaidx.pyx":554
+    /* "pysam/libcfaidx.pyx":647
  *             if self.persist:
- *                 return PersistentFastqProxy(makeFastqProxy(self.entry))
+ *                 return FastxRecord(proxy=makeFastqProxy(self.entry))
  *             return makeFastqProxy(self.entry)             # <<<<<<<<<<<<<<
  *         else:
  *             raise StopIteration
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_3 = __pyx_f_5pysam_9libcfaidx_makeFastqProxy(__pyx_v_self->entry); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 554, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_5pysam_9libcfaidx_makeFastqProxy(__pyx_v_self->entry); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 647, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_r = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libcfaidx.pyx":551
+    /* "pysam/libcfaidx.pyx":644
  *         with nogil:
  *             l = kseq_read(self.entry)
  *         if (l >= 0):             # <<<<<<<<<<<<<<
  *             if self.persist:
- *                 return PersistentFastqProxy(makeFastqProxy(self.entry))
+ *                 return FastxRecord(proxy=makeFastqProxy(self.entry))
  */
   }
 
-  /* "pysam/libcfaidx.pyx":556
+  /* "pysam/libcfaidx.pyx":649
  *             return makeFastqProxy(self.entry)
  *         else:
  *             raise StopIteration             # <<<<<<<<<<<<<<
@@ -10027,10 +10709,10 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_16__next__(struct __pyx_o
  */
   /*else*/ {
     __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
-    __PYX_ERR(0, 556, __pyx_L1_error)
+    __PYX_ERR(0, 649, __pyx_L1_error)
   }
 
-  /* "pysam/libcfaidx.pyx":544
+  /* "pysam/libcfaidx.pyx":637
  *             return kseq_read(self.entry)
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -10085,7 +10767,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_18__reduce_cython__(CYTHO
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -10142,7 +10824,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastxFile_20__setstate_cython__(CYT
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -10200,7 +10882,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastqFile___reduce_cython__(CYTHON_
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -10257,7 +10939,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9FastqFile_2__setstate_cython__(CYTH
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -10315,7 +10997,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9Fastafile___reduce_cython__(CYTHON_
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__20, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -10372,7 +11054,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9Fastafile_2__setstate_cython__(CYTH
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__21, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -10397,22 +11079,22 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx_9Fastafile_2__setstate_cython__(CYTH
 }
 
 /* "(tree fragment)":1
- * def __pyx_unpickle_PersistentFastqProxy(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ * def __pyx_unpickle_FastxRecord(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     if __pyx_checksum != 0x43fd151:
  *         from pickle import PickleError as __pyx_PickleError
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libcfaidx_1__pyx_unpickle_PersistentFastqProxy(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy[] = "__pyx_unpickle_PersistentFastqProxy(__pyx_type, long __pyx_checksum, __pyx_state)";
-static PyMethodDef __pyx_mdef_5pysam_9libcfaidx_1__pyx_unpickle_PersistentFastqProxy = {"__pyx_unpickle_PersistentFastqProxy", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_1__pyx_unpickle_PersistentFastqProxy, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy};
-static PyObject *__pyx_pw_5pysam_9libcfaidx_1__pyx_unpickle_PersistentFastqProxy(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_9libcfaidx_1__pyx_unpickle_FastxRecord(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_9libcfaidx___pyx_unpickle_FastxRecord[] = "__pyx_unpickle_FastxRecord(__pyx_type, long __pyx_checksum, __pyx_state)";
+static PyMethodDef __pyx_mdef_5pysam_9libcfaidx_1__pyx_unpickle_FastxRecord = {"__pyx_unpickle_FastxRecord", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_1__pyx_unpickle_FastxRecord, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libcfaidx___pyx_unpickle_FastxRecord};
+static PyObject *__pyx_pw_5pysam_9libcfaidx_1__pyx_unpickle_FastxRecord(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v___pyx_type = 0;
   long __pyx_v___pyx_checksum;
   PyObject *__pyx_v___pyx_state = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__pyx_unpickle_PersistentFastqProxy (wrapper)", 0);
+  __Pyx_RefNannySetupContext("__pyx_unpickle_FastxRecord (wrapper)", 0);
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_pyx_type,&__pyx_n_s_pyx_checksum,&__pyx_n_s_pyx_state,0};
     PyObject* values[3] = {0,0,0};
@@ -10438,17 +11120,17 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_1__pyx_unpickle_PersistentFastqProxy
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pyx_checksum)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_PersistentFastqProxy", 1, 3, 3, 1); __PYX_ERR(1, 1, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_FastxRecord", 1, 3, 3, 1); __PYX_ERR(1, 1, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pyx_state)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_PersistentFastqProxy", 1, 3, 3, 2); __PYX_ERR(1, 1, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_FastxRecord", 1, 3, 3, 2); __PYX_ERR(1, 1, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_unpickle_PersistentFastqProxy") < 0)) __PYX_ERR(1, 1, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_unpickle_FastxRecord") < 0)) __PYX_ERR(1, 1, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -10463,20 +11145,20 @@ static PyObject *__pyx_pw_5pysam_9libcfaidx_1__pyx_unpickle_PersistentFastqProxy
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_PersistentFastqProxy", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 1, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_FastxRecord", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 1, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("pysam.libcfaidx.__pyx_unpickle_PersistentFastqProxy", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.__pyx_unpickle_FastxRecord", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_5pysam_9libcfaidx___pyx_unpickle_FastxRecord(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_FastxRecord(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_v___pyx_PickleError = NULL;
   PyObject *__pyx_v___pyx_result = NULL;
   PyObject *__pyx_r = NULL;
@@ -10489,12 +11171,12 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   int __pyx_t_7;
-  __Pyx_TraceFrameInit(__pyx_codeobj__22)
-  __Pyx_RefNannySetupContext("__pyx_unpickle_PersistentFastqProxy", 0);
-  __Pyx_TraceCall("__pyx_unpickle_PersistentFastqProxy", __pyx_f[1], 1, 0, __PYX_ERR(1, 1, __pyx_L1_error));
+  __Pyx_TraceFrameInit(__pyx_codeobj__20)
+  __Pyx_RefNannySetupContext("__pyx_unpickle_FastxRecord", 0);
+  __Pyx_TraceCall("__pyx_unpickle_FastxRecord", __pyx_f[1], 1, 0, __PYX_ERR(1, 1, __pyx_L1_error));
 
   /* "(tree fragment)":2
- * def __pyx_unpickle_PersistentFastqProxy(__pyx_type, long __pyx_checksum, __pyx_state):
+ * def __pyx_unpickle_FastxRecord(__pyx_type, long __pyx_checksum, __pyx_state):
  *     if __pyx_checksum != 0x43fd151:             # <<<<<<<<<<<<<<
  *         from pickle import PickleError as __pyx_PickleError
  *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x43fd151 = (comment, name, quality, sequence))" % __pyx_checksum)
@@ -10503,11 +11185,11 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(
   if (__pyx_t_1) {
 
     /* "(tree fragment)":3
- * def __pyx_unpickle_PersistentFastqProxy(__pyx_type, long __pyx_checksum, __pyx_state):
+ * def __pyx_unpickle_FastxRecord(__pyx_type, long __pyx_checksum, __pyx_state):
  *     if __pyx_checksum != 0x43fd151:
  *         from pickle import PickleError as __pyx_PickleError             # <<<<<<<<<<<<<<
  *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x43fd151 = (comment, name, quality, sequence))" % __pyx_checksum)
- *     __pyx_result = PersistentFastqProxy.__new__(__pyx_type)
+ *     __pyx_result = FastxRecord.__new__(__pyx_type)
  */
     __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -10528,7 +11210,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(
  *     if __pyx_checksum != 0x43fd151:
  *         from pickle import PickleError as __pyx_PickleError
  *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x43fd151 = (comment, name, quality, sequence))" % __pyx_checksum)             # <<<<<<<<<<<<<<
- *     __pyx_result = PersistentFastqProxy.__new__(__pyx_type)
+ *     __pyx_result = FastxRecord.__new__(__pyx_type)
  *     if __pyx_state is not None:
  */
     __pyx_t_2 = __Pyx_PyInt_From_long(__pyx_v___pyx_checksum); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 4, __pyx_L1_error)
@@ -10588,7 +11270,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(
     __PYX_ERR(1, 4, __pyx_L1_error)
 
     /* "(tree fragment)":2
- * def __pyx_unpickle_PersistentFastqProxy(__pyx_type, long __pyx_checksum, __pyx_state):
+ * def __pyx_unpickle_FastxRecord(__pyx_type, long __pyx_checksum, __pyx_state):
  *     if __pyx_checksum != 0x43fd151:             # <<<<<<<<<<<<<<
  *         from pickle import PickleError as __pyx_PickleError
  *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x43fd151 = (comment, name, quality, sequence))" % __pyx_checksum)
@@ -10598,11 +11280,11 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(
   /* "(tree fragment)":5
  *         from pickle import PickleError as __pyx_PickleError
  *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x43fd151 = (comment, name, quality, sequence))" % __pyx_checksum)
- *     __pyx_result = PersistentFastqProxy.__new__(__pyx_type)             # <<<<<<<<<<<<<<
+ *     __pyx_result = FastxRecord.__new__(__pyx_type)             # <<<<<<<<<<<<<<
  *     if __pyx_state is not None:
- *         __pyx_unpickle_PersistentFastqProxy__set_state(<PersistentFastqProxy> __pyx_result, __pyx_state)
+ *         __pyx_unpickle_FastxRecord__set_state(<FastxRecord> __pyx_result, __pyx_state)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_ptype_5pysam_9libcfaidx_PersistentFastqProxy), __pyx_n_s_new); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 5, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_ptype_5pysam_9libcfaidx_FastxRecord), __pyx_n_s_new); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_6 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -10652,9 +11334,9 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(
 
   /* "(tree fragment)":6
  *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x43fd151 = (comment, name, quality, sequence))" % __pyx_checksum)
- *     __pyx_result = PersistentFastqProxy.__new__(__pyx_type)
+ *     __pyx_result = FastxRecord.__new__(__pyx_type)
  *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
- *         __pyx_unpickle_PersistentFastqProxy__set_state(<PersistentFastqProxy> __pyx_result, __pyx_state)
+ *         __pyx_unpickle_FastxRecord__set_state(<FastxRecord> __pyx_result, __pyx_state)
  *     return __pyx_result
  */
   __pyx_t_1 = (__pyx_v___pyx_state != Py_None);
@@ -10662,31 +11344,31 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(
   if (__pyx_t_7) {
 
     /* "(tree fragment)":7
- *     __pyx_result = PersistentFastqProxy.__new__(__pyx_type)
+ *     __pyx_result = FastxRecord.__new__(__pyx_type)
  *     if __pyx_state is not None:
- *         __pyx_unpickle_PersistentFastqProxy__set_state(<PersistentFastqProxy> __pyx_result, __pyx_state)             # <<<<<<<<<<<<<<
+ *         __pyx_unpickle_FastxRecord__set_state(<FastxRecord> __pyx_result, __pyx_state)             # <<<<<<<<<<<<<<
  *     return __pyx_result
- * cdef __pyx_unpickle_PersistentFastqProxy__set_state(PersistentFastqProxy __pyx_result, tuple __pyx_state):
+ * cdef __pyx_unpickle_FastxRecord__set_state(FastxRecord __pyx_result, tuple __pyx_state):
  */
     if (!(likely(PyTuple_CheckExact(__pyx_v___pyx_state))||((__pyx_v___pyx_state) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "tuple", Py_TYPE(__pyx_v___pyx_state)->tp_name), 0))) __PYX_ERR(1, 7, __pyx_L1_error)
-    __pyx_t_3 = __pyx_f_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy__set_state(((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)__pyx_v___pyx_result), ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 7, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_5pysam_9libcfaidx___pyx_unpickle_FastxRecord__set_state(((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)__pyx_v___pyx_result), ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 7, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
     /* "(tree fragment)":6
  *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x43fd151 = (comment, name, quality, sequence))" % __pyx_checksum)
- *     __pyx_result = PersistentFastqProxy.__new__(__pyx_type)
+ *     __pyx_result = FastxRecord.__new__(__pyx_type)
  *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
- *         __pyx_unpickle_PersistentFastqProxy__set_state(<PersistentFastqProxy> __pyx_result, __pyx_state)
+ *         __pyx_unpickle_FastxRecord__set_state(<FastxRecord> __pyx_result, __pyx_state)
  *     return __pyx_result
  */
   }
 
   /* "(tree fragment)":8
  *     if __pyx_state is not None:
- *         __pyx_unpickle_PersistentFastqProxy__set_state(<PersistentFastqProxy> __pyx_result, __pyx_state)
+ *         __pyx_unpickle_FastxRecord__set_state(<FastxRecord> __pyx_result, __pyx_state)
  *     return __pyx_result             # <<<<<<<<<<<<<<
- * cdef __pyx_unpickle_PersistentFastqProxy__set_state(PersistentFastqProxy __pyx_result, tuple __pyx_state):
+ * cdef __pyx_unpickle_FastxRecord__set_state(FastxRecord __pyx_result, tuple __pyx_state):
  *     __pyx_result.comment = __pyx_state[0]; __pyx_result.name = __pyx_state[1]; __pyx_result.quality = __pyx_state[2]; __pyx_result.sequence = __pyx_state[3]
  */
   __Pyx_XDECREF(__pyx_r);
@@ -10695,7 +11377,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(
   goto __pyx_L0;
 
   /* "(tree fragment)":1
- * def __pyx_unpickle_PersistentFastqProxy(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ * def __pyx_unpickle_FastxRecord(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     if __pyx_checksum != 0x43fd151:
  *         from pickle import PickleError as __pyx_PickleError
  */
@@ -10707,7 +11389,7 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("pysam.libcfaidx.__pyx_unpickle_PersistentFastqProxy", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.__pyx_unpickle_FastxRecord", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v___pyx_PickleError);
@@ -10719,14 +11401,14 @@ static PyObject *__pyx_pf_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy(
 }
 
 /* "(tree fragment)":9
- *         __pyx_unpickle_PersistentFastqProxy__set_state(<PersistentFastqProxy> __pyx_result, __pyx_state)
+ *         __pyx_unpickle_FastxRecord__set_state(<FastxRecord> __pyx_result, __pyx_state)
  *     return __pyx_result
- * cdef __pyx_unpickle_PersistentFastqProxy__set_state(PersistentFastqProxy __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ * cdef __pyx_unpickle_FastxRecord__set_state(FastxRecord __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
  *     __pyx_result.comment = __pyx_state[0]; __pyx_result.name = __pyx_state[1]; __pyx_result.quality = __pyx_state[2]; __pyx_result.sequence = __pyx_state[3]
  *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
  */
 
-static PyObject *__pyx_f_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy__set_state(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *__pyx_v___pyx_result, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_f_5pysam_9libcfaidx___pyx_unpickle_FastxRecord__set_state(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *__pyx_v___pyx_result, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -10739,12 +11421,12 @@ static PyObject *__pyx_f_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy__
   PyObject *__pyx_t_7 = NULL;
   PyObject *__pyx_t_8 = NULL;
   PyObject *__pyx_t_9 = NULL;
-  __Pyx_RefNannySetupContext("__pyx_unpickle_PersistentFastqProxy__set_state", 0);
-  __Pyx_TraceCall("__pyx_unpickle_PersistentFastqProxy__set_state", __pyx_f[1], 9, 0, __PYX_ERR(1, 9, __pyx_L1_error));
+  __Pyx_RefNannySetupContext("__pyx_unpickle_FastxRecord__set_state", 0);
+  __Pyx_TraceCall("__pyx_unpickle_FastxRecord__set_state", __pyx_f[1], 9, 0, __PYX_ERR(1, 9, __pyx_L1_error));
 
   /* "(tree fragment)":10
  *     return __pyx_result
- * cdef __pyx_unpickle_PersistentFastqProxy__set_state(PersistentFastqProxy __pyx_result, tuple __pyx_state):
+ * cdef __pyx_unpickle_FastxRecord__set_state(FastxRecord __pyx_result, tuple __pyx_state):
  *     __pyx_result.comment = __pyx_state[0]; __pyx_result.name = __pyx_state[1]; __pyx_result.quality = __pyx_state[2]; __pyx_result.sequence = __pyx_state[3]             # <<<<<<<<<<<<<<
  *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
  *         __pyx_result.__dict__.update(__pyx_state[4])
@@ -10799,7 +11481,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy__
   __pyx_t_1 = 0;
 
   /* "(tree fragment)":11
- * cdef __pyx_unpickle_PersistentFastqProxy__set_state(PersistentFastqProxy __pyx_result, tuple __pyx_state):
+ * cdef __pyx_unpickle_FastxRecord__set_state(FastxRecord __pyx_result, tuple __pyx_state):
  *     __pyx_result.comment = __pyx_state[0]; __pyx_result.name = __pyx_state[1]; __pyx_result.quality = __pyx_state[2]; __pyx_result.sequence = __pyx_state[3]
  *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):             # <<<<<<<<<<<<<<
  *         __pyx_result.__dict__.update(__pyx_state[4])
@@ -10886,7 +11568,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy__
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
     /* "(tree fragment)":11
- * cdef __pyx_unpickle_PersistentFastqProxy__set_state(PersistentFastqProxy __pyx_result, tuple __pyx_state):
+ * cdef __pyx_unpickle_FastxRecord__set_state(FastxRecord __pyx_result, tuple __pyx_state):
  *     __pyx_result.comment = __pyx_state[0]; __pyx_result.name = __pyx_state[1]; __pyx_result.quality = __pyx_state[2]; __pyx_result.sequence = __pyx_state[3]
  *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):             # <<<<<<<<<<<<<<
  *         __pyx_result.__dict__.update(__pyx_state[4])
@@ -10894,9 +11576,9 @@ static PyObject *__pyx_f_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy__
   }
 
   /* "(tree fragment)":9
- *         __pyx_unpickle_PersistentFastqProxy__set_state(<PersistentFastqProxy> __pyx_result, __pyx_state)
+ *         __pyx_unpickle_FastxRecord__set_state(<FastxRecord> __pyx_result, __pyx_state)
  *     return __pyx_result
- * cdef __pyx_unpickle_PersistentFastqProxy__set_state(PersistentFastqProxy __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ * cdef __pyx_unpickle_FastxRecord__set_state(FastxRecord __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
  *     __pyx_result.comment = __pyx_state[0]; __pyx_result.name = __pyx_state[1]; __pyx_result.quality = __pyx_state[2]; __pyx_result.sequence = __pyx_state[3]
  *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
  */
@@ -10910,7 +11592,7 @@ static PyObject *__pyx_f_5pysam_9libcfaidx___pyx_unpickle_PersistentFastqProxy__
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
   __Pyx_XDECREF(__pyx_t_9);
-  __Pyx_AddTraceback("pysam.libcfaidx.__pyx_unpickle_PersistentFastqProxy__set_state", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pysam.libcfaidx.__pyx_unpickle_FastxRecord__set_state", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -11760,7 +12442,7 @@ static PyTypeObject __pyx_type_5pysam_9libcfaidx_FastaFile = {
   0, /*tp_setattro*/
   0, /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-  "Random access to fasta formatted files that\n    have been indexed by :term:`faidx`.\n\n    The file is automatically opened. The index file of file\n    ``<filename>`` is expected to be called ``<filename>.fai``.\n\n    Parameters\n    ----------\n\n    filename : string\n        Filename of fasta file to be opened.\n\n    filepath_index : string\n        Optional, filename of the index. By default this is\n        the filename + \".fai\".\n\n    Raises\n    ------\n\n    ValueError\n        if index file is missing\n\n    IOError\n        if file could not be opened\n\n    ", /*tp_doc*/
+  "Random access to fasta formatted files that\n    have been indexed by :term:`faidx`.\n\n    The file is automatically opened. The index file of file\n    ``<filename>`` is expected to be called ``<filename>.fai``.\n\n    Parameters\n    ----------\n\n    filename : string\n        Filename of fasta file to be opened.\n\n    filepath_index : string\n        Optional, filename of the index. By default this is\n        the filename + \".fai\".\n\n    filepath_index_compressed : string\n        Optional, filename of the index if fasta file is. By default this is\n        the filename + \".gzi\".\n\n    Raises\n    ------\n\n    ValueError\n        if index file is missing\n\n    IOError\n        if file could not be opened\n\n    ", /*tp_doc*/
   __pyx_tp_traverse_5pysam_9libcfaidx_FastaFile, /*tp_traverse*/
   __pyx_tp_clear_5pysam_9libcfaidx_FastaFile, /*tp_clear*/
   0, /*tp_richcompare*/
@@ -11904,10 +12586,10 @@ static PyTypeObject __pyx_type_5pysam_9libcfaidx_FastqProxy = {
   0, /*tp_finalize*/
   #endif
 };
-static struct __pyx_vtabstruct_5pysam_9libcfaidx_PersistentFastqProxy __pyx_vtable_5pysam_9libcfaidx_PersistentFastqProxy;
+static struct __pyx_vtabstruct_5pysam_9libcfaidx_FastxRecord __pyx_vtable_5pysam_9libcfaidx_FastxRecord;
 
-static PyObject *__pyx_tp_new_5pysam_9libcfaidx_PersistentFastqProxy(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
-  struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *p;
+static PyObject *__pyx_tp_new_5pysam_9libcfaidx_FastxRecord(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
+  struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *p;
   PyObject *o;
   if (likely((t->tp_flags & Py_TPFLAGS_IS_ABSTRACT) == 0)) {
     o = (*t->tp_alloc)(t, 0);
@@ -11915,8 +12597,8 @@ static PyObject *__pyx_tp_new_5pysam_9libcfaidx_PersistentFastqProxy(PyTypeObjec
     o = (PyObject *) PyBaseObject_Type.tp_new(t, __pyx_empty_tuple, 0);
   }
   if (unlikely(!o)) return 0;
-  p = ((struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)o);
-  p->__pyx_vtab = __pyx_vtabptr_5pysam_9libcfaidx_PersistentFastqProxy;
+  p = ((struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)o);
+  p->__pyx_vtab = __pyx_vtabptr_5pysam_9libcfaidx_FastxRecord;
   p->comment = ((PyObject*)Py_None); Py_INCREF(Py_None);
   p->quality = ((PyObject*)Py_None); Py_INCREF(Py_None);
   p->sequence = ((PyObject*)Py_None); Py_INCREF(Py_None);
@@ -11924,8 +12606,8 @@ static PyObject *__pyx_tp_new_5pysam_9libcfaidx_PersistentFastqProxy(PyTypeObjec
   return o;
 }
 
-static void __pyx_tp_dealloc_5pysam_9libcfaidx_PersistentFastqProxy(PyObject *o) {
-  struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *p = (struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *)o;
+static void __pyx_tp_dealloc_5pysam_9libcfaidx_FastxRecord(PyObject *o) {
+  struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *p = (struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *)o;
   #if CYTHON_USE_TP_FINALIZE
   if (unlikely(PyType_HasFeature(Py_TYPE(o), Py_TPFLAGS_HAVE_FINALIZE) && Py_TYPE(o)->tp_finalize) && (!PyType_IS_GC(Py_TYPE(o)) || !_PyGC_FINALIZED(o))) {
     if (PyObject_CallFinalizerFromDealloc(o)) return;
@@ -11938,79 +12620,84 @@ static void __pyx_tp_dealloc_5pysam_9libcfaidx_PersistentFastqProxy(PyObject *o)
   (*Py_TYPE(o)->tp_free)(o);
 }
 
-static PyObject *__pyx_getprop_5pysam_9libcfaidx_20PersistentFastqProxy_comment(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_1__get__(o);
+static PyObject *__pyx_getprop_5pysam_9libcfaidx_11FastxRecord_comment(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7comment_1__get__(o);
 }
 
-static int __pyx_setprop_5pysam_9libcfaidx_20PersistentFastqProxy_comment(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+static int __pyx_setprop_5pysam_9libcfaidx_11FastxRecord_comment(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
   if (v) {
-    return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_3__set__(o, v);
+    return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7comment_3__set__(o, v);
   }
   else {
-    return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7comment_5__del__(o);
+    return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7comment_5__del__(o);
   }
 }
 
-static PyObject *__pyx_getprop_5pysam_9libcfaidx_20PersistentFastqProxy_quality(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_1__get__(o);
+static PyObject *__pyx_getprop_5pysam_9libcfaidx_11FastxRecord_quality(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7quality_1__get__(o);
 }
 
-static int __pyx_setprop_5pysam_9libcfaidx_20PersistentFastqProxy_quality(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+static int __pyx_setprop_5pysam_9libcfaidx_11FastxRecord_quality(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
   if (v) {
-    return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_3__set__(o, v);
+    return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7quality_3__set__(o, v);
   }
   else {
-    return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7quality_5__del__(o);
+    return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_7quality_5__del__(o);
   }
 }
 
-static PyObject *__pyx_getprop_5pysam_9libcfaidx_20PersistentFastqProxy_sequence(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_1__get__(o);
+static PyObject *__pyx_getprop_5pysam_9libcfaidx_11FastxRecord_sequence(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_8sequence_1__get__(o);
 }
 
-static int __pyx_setprop_5pysam_9libcfaidx_20PersistentFastqProxy_sequence(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+static int __pyx_setprop_5pysam_9libcfaidx_11FastxRecord_sequence(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
   if (v) {
-    return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_3__set__(o, v);
+    return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_8sequence_3__set__(o, v);
   }
   else {
-    return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_8sequence_5__del__(o);
+    return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_8sequence_5__del__(o);
   }
 }
 
-static PyObject *__pyx_getprop_5pysam_9libcfaidx_20PersistentFastqProxy_name(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_4name_1__get__(o);
+static PyObject *__pyx_getprop_5pysam_9libcfaidx_11FastxRecord_name(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_4name_1__get__(o);
 }
 
-static int __pyx_setprop_5pysam_9libcfaidx_20PersistentFastqProxy_name(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+static int __pyx_setprop_5pysam_9libcfaidx_11FastxRecord_name(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
   if (v) {
-    return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_4name_3__set__(o, v);
+    return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_4name_3__set__(o, v);
   }
   else {
-    return __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_4name_5__del__(o);
+    return __pyx_pw_5pysam_9libcfaidx_11FastxRecord_4name_5__del__(o);
   }
 }
 
-static PyMethodDef __pyx_methods_5pysam_9libcfaidx_PersistentFastqProxy[] = {
-  {"get_quality_array", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_5get_quality_array, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libcfaidx_20PersistentFastqProxy_4get_quality_array},
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_7__reduce_cython__, METH_NOARGS, __pyx_doc_5pysam_9libcfaidx_20PersistentFastqProxy_6__reduce_cython__},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_9__setstate_cython__, METH_O, __pyx_doc_5pysam_9libcfaidx_20PersistentFastqProxy_8__setstate_cython__},
+static PyMethodDef __pyx_methods_5pysam_9libcfaidx_FastxRecord[] = {
+  {"__copy__", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_11FastxRecord_3__copy__, METH_NOARGS, __pyx_doc_5pysam_9libcfaidx_11FastxRecord_2__copy__},
+  {"__deepcopy__", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_11FastxRecord_5__deepcopy__, METH_O, __pyx_doc_5pysam_9libcfaidx_11FastxRecord_4__deepcopy__},
+  {"set_name", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_11FastxRecord_7set_name, METH_O, __pyx_doc_5pysam_9libcfaidx_11FastxRecord_6set_name},
+  {"set_comment", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_11FastxRecord_9set_comment, METH_O, __pyx_doc_5pysam_9libcfaidx_11FastxRecord_8set_comment},
+  {"set_sequence", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_11FastxRecord_11set_sequence, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libcfaidx_11FastxRecord_10set_sequence},
+  {"get_quality_array", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_11FastxRecord_15get_quality_array, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libcfaidx_11FastxRecord_14get_quality_array},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_11FastxRecord_17__reduce_cython__, METH_NOARGS, __pyx_doc_5pysam_9libcfaidx_11FastxRecord_16__reduce_cython__},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_5pysam_9libcfaidx_11FastxRecord_19__setstate_cython__, METH_O, __pyx_doc_5pysam_9libcfaidx_11FastxRecord_18__setstate_cython__},
   {0, 0, 0, 0}
 };
 
-static struct PyGetSetDef __pyx_getsets_5pysam_9libcfaidx_PersistentFastqProxy[] = {
-  {(char *)"comment", __pyx_getprop_5pysam_9libcfaidx_20PersistentFastqProxy_comment, __pyx_setprop_5pysam_9libcfaidx_20PersistentFastqProxy_comment, (char *)"comment: str", 0},
-  {(char *)"quality", __pyx_getprop_5pysam_9libcfaidx_20PersistentFastqProxy_quality, __pyx_setprop_5pysam_9libcfaidx_20PersistentFastqProxy_quality, (char *)"quality: str", 0},
-  {(char *)"sequence", __pyx_getprop_5pysam_9libcfaidx_20PersistentFastqProxy_sequence, __pyx_setprop_5pysam_9libcfaidx_20PersistentFastqProxy_sequence, (char *)"sequence: str", 0},
-  {(char *)"name", __pyx_getprop_5pysam_9libcfaidx_20PersistentFastqProxy_name, __pyx_setprop_5pysam_9libcfaidx_20PersistentFastqProxy_name, (char *)"name: str", 0},
+static struct PyGetSetDef __pyx_getsets_5pysam_9libcfaidx_FastxRecord[] = {
+  {(char *)"comment", __pyx_getprop_5pysam_9libcfaidx_11FastxRecord_comment, __pyx_setprop_5pysam_9libcfaidx_11FastxRecord_comment, (char *)"comment: str", 0},
+  {(char *)"quality", __pyx_getprop_5pysam_9libcfaidx_11FastxRecord_quality, __pyx_setprop_5pysam_9libcfaidx_11FastxRecord_quality, (char *)"quality: str", 0},
+  {(char *)"sequence", __pyx_getprop_5pysam_9libcfaidx_11FastxRecord_sequence, __pyx_setprop_5pysam_9libcfaidx_11FastxRecord_sequence, (char *)"sequence: str", 0},
+  {(char *)"name", __pyx_getprop_5pysam_9libcfaidx_11FastxRecord_name, __pyx_setprop_5pysam_9libcfaidx_11FastxRecord_name, (char *)"name: str", 0},
   {0, 0, 0, 0, 0}
 };
 
-static PyTypeObject __pyx_type_5pysam_9libcfaidx_PersistentFastqProxy = {
+static PyTypeObject __pyx_type_5pysam_9libcfaidx_FastxRecord = {
   PyVarObject_HEAD_INIT(0, 0)
-  "pysam.libcfaidx.PersistentFastqProxy", /*tp_name*/
-  sizeof(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy), /*tp_basicsize*/
+  "pysam.libcfaidx.FastxRecord", /*tp_name*/
+  sizeof(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord), /*tp_basicsize*/
   0, /*tp_itemsize*/
-  __pyx_tp_dealloc_5pysam_9libcfaidx_PersistentFastqProxy, /*tp_dealloc*/
+  __pyx_tp_dealloc_5pysam_9libcfaidx_FastxRecord, /*tp_dealloc*/
   0, /*tp_print*/
   0, /*tp_getattr*/
   0, /*tp_setattr*/
@@ -12026,29 +12713,29 @@ static PyTypeObject __pyx_type_5pysam_9libcfaidx_PersistentFastqProxy = {
   0, /*tp_as_mapping*/
   0, /*tp_hash*/
   0, /*tp_call*/
-  __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_3__str__, /*tp_str*/
+  __pyx_pw_5pysam_9libcfaidx_11FastxRecord_13__str__, /*tp_str*/
   0, /*tp_getattro*/
   0, /*tp_setattro*/
   0, /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE, /*tp_flags*/
-  "PersistentFastqProxy(FastqProxy FastqRead)\n\n    Python container for pysam.libcfaidx.FastqProxy with persistence.\n    Needed to compare multiple fastq records from the same file.\n    ", /*tp_doc*/
+  "FastxRecord(name=None, comment=None, sequence=None, quality=None, FastqProxy proxy=None)\nA fasta/fastq record.\n\n    A record must contain a name and a sequence. If either of them are\n    None, a ValueError is raised on writing.\n\n    ", /*tp_doc*/
   0, /*tp_traverse*/
   0, /*tp_clear*/
   0, /*tp_richcompare*/
   0, /*tp_weaklistoffset*/
   0, /*tp_iter*/
   0, /*tp_iternext*/
-  __pyx_methods_5pysam_9libcfaidx_PersistentFastqProxy, /*tp_methods*/
+  __pyx_methods_5pysam_9libcfaidx_FastxRecord, /*tp_methods*/
   0, /*tp_members*/
-  __pyx_getsets_5pysam_9libcfaidx_PersistentFastqProxy, /*tp_getset*/
+  __pyx_getsets_5pysam_9libcfaidx_FastxRecord, /*tp_getset*/
   0, /*tp_base*/
   0, /*tp_dict*/
   0, /*tp_descr_get*/
   0, /*tp_descr_set*/
   0, /*tp_dictoffset*/
-  __pyx_pw_5pysam_9libcfaidx_20PersistentFastqProxy_1__init__, /*tp_init*/
+  __pyx_pw_5pysam_9libcfaidx_11FastxRecord_1__init__, /*tp_init*/
   0, /*tp_alloc*/
-  __pyx_tp_new_5pysam_9libcfaidx_PersistentFastqProxy, /*tp_new*/
+  __pyx_tp_new_5pysam_9libcfaidx_FastxRecord, /*tp_new*/
   0, /*tp_free*/
   0, /*tp_is_gc*/
   0, /*tp_bases*/
@@ -12173,7 +12860,7 @@ static PyTypeObject __pyx_type_5pysam_9libcfaidx_FastxFile = {
   0, /*tp_setattro*/
   0, /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-  "Stream access to :term:`fasta` or :term:`fastq` formatted files.\n\n    The file is automatically opened.\n\n    Entries in the file can be both fastq or fasta formatted or even a\n    mixture of the two.\n\n    This file object permits iterating over all entries in the\n    file. Random access is not implemented. The iteration returns\n    objects of type :class:`FastqProxy`\n\n    Parameters\n    ----------\n\n    filename : string\n        Filename of fasta/fastq file to be opened.\n\n    persist : bool\n\n        If True (default) make a copy of the entry in the file during\n        iteration. If set to False, no copy will be made. This will\n        permit faster iteration, but an entry will not persist when\n        the iteration continues.\n\n    Notes\n    -----\n    Prior to version 0.8.2, this was called FastqFile.\n\n    Raises\n    ------\n\n    IOError\n        if file could not be opened\n\n\n    Examples\n    --------\n    >>> with pysam.FastxFile(filename) as fh:\n    ...    for entry in fh:\n    ...        print(entry.name)\n    ...        print(entry.sequence)\n    ...        print(entry.comment)\n    ...        print(entry.quality)\n\n    ", /*tp_doc*/
+  "Stream access to :term:`fasta` or :term:`fastq` formatted files.\n\n    The file is automatically opened.\n\n    Entries in the file can be both fastq or fasta formatted or even a\n    mixture of the two.\n\n    This file object permits iterating over all entries in the\n    file. Random access is not implemented. The iteration returns\n    objects of type :class:`FastqProxy`\n\n    Parameters\n    ----------\n\n    filename : string\n        Filename of fasta/fastq file to be opened.\n\n    persist : bool\n\n        If True (default) make a copy of the entry in the file during\n        iteration. If set to False, no copy will be made. This will\n        permit much faster iteration, but an entry will not persist\n        when the iteration continues and an entry is read-only.\n\n    Notes\n    -----\n    Prior to version 0.8.2, this class was called FastqFile.\n\n    Raises\n    ------\n\n    IOError\n        if file could not be opened\n\n\n    Examples\n    --------\n    >>> with pysam.FastxFile(filename) as fh:\n    ...    for entry in fh:\n    ...        print(entry.name)\n    ...        print(entry.sequence)\n    ...        print(entry.comment)\n    ...        print(entry.quality)\n    >>> with pysam.FastxFile(filename) as fin, open(out_filename, mode='w') as fout:\n    ...    for entry in fin:\n    ...        fout.write(str(entry))\n\n    ", /*tp_doc*/
   __pyx_tp_traverse_5pysam_9libcfaidx_FastxFile, /*tp_traverse*/
   __pyx_tp_clear_5pysam_9libcfaidx_FastxFile, /*tp_clear*/
   0, /*tp_richcompare*/
@@ -12361,316 +13048,6 @@ static PyTypeObject __pyx_type_5pysam_9libcfaidx_Fastafile = {
   #endif
 };
 
-static struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *__pyx_freelist_5pysam_9libcfaidx___pyx_scope_struct___open[8];
-static int __pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct___open = 0;
-
-static PyObject *__pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct___open(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
-  PyObject *o;
-  if (CYTHON_COMPILING_IN_CPYTHON && likely((__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct___open > 0) & (t->tp_basicsize == sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open)))) {
-    o = (PyObject*)__pyx_freelist_5pysam_9libcfaidx___pyx_scope_struct___open[--__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct___open];
-    memset(o, 0, sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open));
-    (void) PyObject_INIT(o, t);
-    PyObject_GC_Track(o);
-  } else {
-    o = (*t->tp_alloc)(t, 0);
-    if (unlikely(!o)) return 0;
-  }
-  return o;
-}
-
-static void __pyx_tp_dealloc_5pysam_9libcfaidx___pyx_scope_struct___open(PyObject *o) {
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *p = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *)o;
-  PyObject_GC_UnTrack(o);
-  Py_CLEAR(p->__pyx_v_data);
-  if (CYTHON_COMPILING_IN_CPYTHON && ((__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct___open < 8) & (Py_TYPE(o)->tp_basicsize == sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open)))) {
-    __pyx_freelist_5pysam_9libcfaidx___pyx_scope_struct___open[__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct___open++] = ((struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *)o);
-  } else {
-    (*Py_TYPE(o)->tp_free)(o);
-  }
-}
-
-static int __pyx_tp_traverse_5pysam_9libcfaidx___pyx_scope_struct___open(PyObject *o, visitproc v, void *a) {
-  int e;
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *p = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *)o;
-  if (p->__pyx_v_data) {
-    e = (*v)(p->__pyx_v_data, a); if (e) return e;
-  }
-  return 0;
-}
-
-static int __pyx_tp_clear_5pysam_9libcfaidx___pyx_scope_struct___open(PyObject *o) {
-  PyObject* tmp;
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *p = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open *)o;
-  tmp = ((PyObject*)p->__pyx_v_data);
-  p->__pyx_v_data = ((PyObject*)Py_None); Py_INCREF(Py_None);
-  Py_XDECREF(tmp);
-  return 0;
-}
-
-static PyTypeObject __pyx_type_5pysam_9libcfaidx___pyx_scope_struct___open = {
-  PyVarObject_HEAD_INIT(0, 0)
-  "pysam.libcfaidx.__pyx_scope_struct___open", /*tp_name*/
-  sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct___open), /*tp_basicsize*/
-  0, /*tp_itemsize*/
-  __pyx_tp_dealloc_5pysam_9libcfaidx___pyx_scope_struct___open, /*tp_dealloc*/
-  0, /*tp_print*/
-  0, /*tp_getattr*/
-  0, /*tp_setattr*/
-  #if PY_MAJOR_VERSION < 3
-  0, /*tp_compare*/
-  #endif
-  #if PY_MAJOR_VERSION >= 3
-  0, /*tp_as_async*/
-  #endif
-  0, /*tp_repr*/
-  0, /*tp_as_number*/
-  0, /*tp_as_sequence*/
-  0, /*tp_as_mapping*/
-  0, /*tp_hash*/
-  0, /*tp_call*/
-  0, /*tp_str*/
-  0, /*tp_getattro*/
-  0, /*tp_setattro*/
-  0, /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-  0, /*tp_doc*/
-  __pyx_tp_traverse_5pysam_9libcfaidx___pyx_scope_struct___open, /*tp_traverse*/
-  __pyx_tp_clear_5pysam_9libcfaidx___pyx_scope_struct___open, /*tp_clear*/
-  0, /*tp_richcompare*/
-  0, /*tp_weaklistoffset*/
-  0, /*tp_iter*/
-  0, /*tp_iternext*/
-  0, /*tp_methods*/
-  0, /*tp_members*/
-  0, /*tp_getset*/
-  0, /*tp_base*/
-  0, /*tp_dict*/
-  0, /*tp_descr_get*/
-  0, /*tp_descr_set*/
-  0, /*tp_dictoffset*/
-  0, /*tp_init*/
-  0, /*tp_alloc*/
-  __pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct___open, /*tp_new*/
-  0, /*tp_free*/
-  0, /*tp_is_gc*/
-  0, /*tp_bases*/
-  0, /*tp_mro*/
-  0, /*tp_cache*/
-  0, /*tp_subclasses*/
-  0, /*tp_weaklist*/
-  0, /*tp_del*/
-  0, /*tp_version_tag*/
-  #if PY_VERSION_HEX >= 0x030400a1
-  0, /*tp_finalize*/
-  #endif
-};
-
-static struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr *__pyx_freelist_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr[8];
-static int __pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr = 0;
-
-static PyObject *__pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
-  PyObject *o;
-  if (CYTHON_COMPILING_IN_CPYTHON && likely((__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr > 0) & (t->tp_basicsize == sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr)))) {
-    o = (PyObject*)__pyx_freelist_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr[--__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr];
-    memset(o, 0, sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr));
-    (void) PyObject_INIT(o, t);
-    PyObject_GC_Track(o);
-  } else {
-    o = (*t->tp_alloc)(t, 0);
-    if (unlikely(!o)) return 0;
-  }
-  return o;
-}
-
-static void __pyx_tp_dealloc_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr(PyObject *o) {
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr *p = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr *)o;
-  PyObject_GC_UnTrack(o);
-  Py_CLEAR(p->__pyx_outer_scope);
-  Py_CLEAR(p->__pyx_v_x);
-  Py_CLEAR(p->__pyx_t_0);
-  if (CYTHON_COMPILING_IN_CPYTHON && ((__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr < 8) & (Py_TYPE(o)->tp_basicsize == sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr)))) {
-    __pyx_freelist_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr[__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr++] = ((struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr *)o);
-  } else {
-    (*Py_TYPE(o)->tp_free)(o);
-  }
-}
-
-static int __pyx_tp_traverse_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr(PyObject *o, visitproc v, void *a) {
-  int e;
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr *p = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr *)o;
-  if (p->__pyx_outer_scope) {
-    e = (*v)(((PyObject *)p->__pyx_outer_scope), a); if (e) return e;
-  }
-  if (p->__pyx_v_x) {
-    e = (*v)(p->__pyx_v_x, a); if (e) return e;
-  }
-  if (p->__pyx_t_0) {
-    e = (*v)(p->__pyx_t_0, a); if (e) return e;
-  }
-  return 0;
-}
-
-static PyTypeObject __pyx_type_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr = {
-  PyVarObject_HEAD_INIT(0, 0)
-  "pysam.libcfaidx.__pyx_scope_struct_1_genexpr", /*tp_name*/
-  sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr), /*tp_basicsize*/
-  0, /*tp_itemsize*/
-  __pyx_tp_dealloc_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr, /*tp_dealloc*/
-  0, /*tp_print*/
-  0, /*tp_getattr*/
-  0, /*tp_setattr*/
-  #if PY_MAJOR_VERSION < 3
-  0, /*tp_compare*/
-  #endif
-  #if PY_MAJOR_VERSION >= 3
-  0, /*tp_as_async*/
-  #endif
-  0, /*tp_repr*/
-  0, /*tp_as_number*/
-  0, /*tp_as_sequence*/
-  0, /*tp_as_mapping*/
-  0, /*tp_hash*/
-  0, /*tp_call*/
-  0, /*tp_str*/
-  0, /*tp_getattro*/
-  0, /*tp_setattro*/
-  0, /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-  0, /*tp_doc*/
-  __pyx_tp_traverse_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr, /*tp_traverse*/
-  0, /*tp_clear*/
-  0, /*tp_richcompare*/
-  0, /*tp_weaklistoffset*/
-  0, /*tp_iter*/
-  0, /*tp_iternext*/
-  0, /*tp_methods*/
-  0, /*tp_members*/
-  0, /*tp_getset*/
-  0, /*tp_base*/
-  0, /*tp_dict*/
-  0, /*tp_descr_get*/
-  0, /*tp_descr_set*/
-  0, /*tp_dictoffset*/
-  0, /*tp_init*/
-  0, /*tp_alloc*/
-  __pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr, /*tp_new*/
-  0, /*tp_free*/
-  0, /*tp_is_gc*/
-  0, /*tp_bases*/
-  0, /*tp_mro*/
-  0, /*tp_cache*/
-  0, /*tp_subclasses*/
-  0, /*tp_weaklist*/
-  0, /*tp_del*/
-  0, /*tp_version_tag*/
-  #if PY_VERSION_HEX >= 0x030400a1
-  0, /*tp_finalize*/
-  #endif
-};
-
-static struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr *__pyx_freelist_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr[8];
-static int __pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr = 0;
-
-static PyObject *__pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
-  PyObject *o;
-  if (CYTHON_COMPILING_IN_CPYTHON && likely((__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr > 0) & (t->tp_basicsize == sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr)))) {
-    o = (PyObject*)__pyx_freelist_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr[--__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr];
-    memset(o, 0, sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr));
-    (void) PyObject_INIT(o, t);
-    PyObject_GC_Track(o);
-  } else {
-    o = (*t->tp_alloc)(t, 0);
-    if (unlikely(!o)) return 0;
-  }
-  return o;
-}
-
-static void __pyx_tp_dealloc_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr(PyObject *o) {
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr *p = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr *)o;
-  PyObject_GC_UnTrack(o);
-  Py_CLEAR(p->__pyx_outer_scope);
-  Py_CLEAR(p->__pyx_v_x);
-  Py_CLEAR(p->__pyx_t_0);
-  if (CYTHON_COMPILING_IN_CPYTHON && ((__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr < 8) & (Py_TYPE(o)->tp_basicsize == sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr)))) {
-    __pyx_freelist_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr[__pyx_freecount_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr++] = ((struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr *)o);
-  } else {
-    (*Py_TYPE(o)->tp_free)(o);
-  }
-}
-
-static int __pyx_tp_traverse_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr(PyObject *o, visitproc v, void *a) {
-  int e;
-  struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr *p = (struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr *)o;
-  if (p->__pyx_outer_scope) {
-    e = (*v)(((PyObject *)p->__pyx_outer_scope), a); if (e) return e;
-  }
-  if (p->__pyx_v_x) {
-    e = (*v)(p->__pyx_v_x, a); if (e) return e;
-  }
-  if (p->__pyx_t_0) {
-    e = (*v)(p->__pyx_t_0, a); if (e) return e;
-  }
-  return 0;
-}
-
-static PyTypeObject __pyx_type_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr = {
-  PyVarObject_HEAD_INIT(0, 0)
-  "pysam.libcfaidx.__pyx_scope_struct_2_genexpr", /*tp_name*/
-  sizeof(struct __pyx_obj_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr), /*tp_basicsize*/
-  0, /*tp_itemsize*/
-  __pyx_tp_dealloc_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr, /*tp_dealloc*/
-  0, /*tp_print*/
-  0, /*tp_getattr*/
-  0, /*tp_setattr*/
-  #if PY_MAJOR_VERSION < 3
-  0, /*tp_compare*/
-  #endif
-  #if PY_MAJOR_VERSION >= 3
-  0, /*tp_as_async*/
-  #endif
-  0, /*tp_repr*/
-  0, /*tp_as_number*/
-  0, /*tp_as_sequence*/
-  0, /*tp_as_mapping*/
-  0, /*tp_hash*/
-  0, /*tp_call*/
-  0, /*tp_str*/
-  0, /*tp_getattro*/
-  0, /*tp_setattro*/
-  0, /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-  0, /*tp_doc*/
-  __pyx_tp_traverse_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr, /*tp_traverse*/
-  0, /*tp_clear*/
-  0, /*tp_richcompare*/
-  0, /*tp_weaklistoffset*/
-  0, /*tp_iter*/
-  0, /*tp_iternext*/
-  0, /*tp_methods*/
-  0, /*tp_members*/
-  0, /*tp_getset*/
-  0, /*tp_base*/
-  0, /*tp_dict*/
-  0, /*tp_descr_get*/
-  0, /*tp_descr_set*/
-  0, /*tp_dictoffset*/
-  0, /*tp_init*/
-  0, /*tp_alloc*/
-  __pyx_tp_new_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr, /*tp_new*/
-  0, /*tp_free*/
-  0, /*tp_is_gc*/
-  0, /*tp_bases*/
-  0, /*tp_mro*/
-  0, /*tp_cache*/
-  0, /*tp_subclasses*/
-  0, /*tp_weaklist*/
-  0, /*tp_del*/
-  0, /*tp_version_tag*/
-  #if PY_VERSION_HEX >= 0x030400a1
-  0, /*tp_finalize*/
-  #endif
-};
-
 static PyMethodDef __pyx_methods[] = {
   {0, 0, 0, 0}
 };
@@ -12712,46 +13089,42 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_Fastafile, __pyx_k_Fastafile, sizeof(__pyx_k_Fastafile), 0, 0, 1, 1},
   {&__pyx_n_s_FastqFile, __pyx_k_FastqFile, sizeof(__pyx_k_FastqFile), 0, 0, 1, 1},
   {&__pyx_n_s_FastqProxy, __pyx_k_FastqProxy, sizeof(__pyx_k_FastqProxy), 0, 0, 1, 1},
-  {&__pyx_n_s_FastqRead, __pyx_k_FastqRead, sizeof(__pyx_k_FastqRead), 0, 0, 1, 1},
   {&__pyx_n_s_FastxFile, __pyx_k_FastxFile, sizeof(__pyx_k_FastxFile), 0, 0, 1, 1},
+  {&__pyx_n_s_FastxRecord, __pyx_k_FastxRecord, sizeof(__pyx_k_FastxRecord), 0, 0, 1, 1},
+  {&__pyx_kp_s_FastxRecord_must_have_a_name_and, __pyx_k_FastxRecord_must_have_a_name_and, sizeof(__pyx_k_FastxRecord_must_have_a_name_and), 0, 0, 1, 0},
   {&__pyx_n_s_IOError, __pyx_k_IOError, sizeof(__pyx_k_IOError), 0, 0, 1, 1},
   {&__pyx_kp_s_I_O_operation_on_closed_file, __pyx_k_I_O_operation_on_closed_file, sizeof(__pyx_k_I_O_operation_on_closed_file), 0, 0, 1, 0},
   {&__pyx_kp_s_Incompatible_checksums_s_vs_0x43, __pyx_k_Incompatible_checksums_s_vs_0x43, sizeof(__pyx_k_Incompatible_checksums_s_vs_0x43), 0, 0, 1, 0},
   {&__pyx_n_s_KeyError, __pyx_k_KeyError, sizeof(__pyx_k_KeyError), 0, 0, 1, 1},
   {&__pyx_n_s_MemoryError, __pyx_k_MemoryError, sizeof(__pyx_k_MemoryError), 0, 0, 1, 1},
-  {&__pyx_n_s_NotImplementedError, __pyx_k_NotImplementedError, sizeof(__pyx_k_NotImplementedError), 0, 0, 1, 1},
   {&__pyx_n_s_PickleError, __pyx_k_PickleError, sizeof(__pyx_k_PickleError), 0, 0, 1, 1},
   {&__pyx_n_s_StopIteration, __pyx_k_StopIteration, sizeof(__pyx_k_StopIteration), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
-  {&__pyx_kp_b__3, __pyx_k__3, sizeof(__pyx_k__3), 0, 0, 0, 0},
-  {&__pyx_kp_s__4, __pyx_k__4, sizeof(__pyx_k__4), 0, 0, 1, 0},
+  {&__pyx_kp_b__2, __pyx_k__2, sizeof(__pyx_k__2), 0, 0, 0, 0},
   {&__pyx_kp_s__5, __pyx_k__5, sizeof(__pyx_k__5), 0, 0, 1, 0},
-  {&__pyx_kp_s__6, __pyx_k__6, sizeof(__pyx_k__6), 0, 0, 1, 0},
   {&__pyx_n_s_all, __pyx_k_all, sizeof(__pyx_k_all), 0, 0, 1, 1},
-  {&__pyx_n_s_args, __pyx_k_args, sizeof(__pyx_k_args), 0, 0, 1, 1},
-  {&__pyx_n_s_basename, __pyx_k_basename, sizeof(__pyx_k_basename), 0, 0, 1, 1},
+  {&__pyx_n_s_append, __pyx_k_append, sizeof(__pyx_k_append), 0, 0, 1, 1},
   {&__pyx_kp_s_calling_len_on_closed_file, __pyx_k_calling_len_on_closed_file, sizeof(__pyx_k_calling_len_on_closed_file), 0, 0, 1, 0},
+  {&__pyx_kp_s_can_not_write_record_without_a_s, __pyx_k_can_not_write_record_without_a_s, sizeof(__pyx_k_can_not_write_record_without_a_s), 0, 0, 1, 0},
+  {&__pyx_kp_s_can_not_write_record_without_nam, __pyx_k_can_not_write_record_without_nam, sizeof(__pyx_k_can_not_write_record_without_nam), 0, 0, 1, 0},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_n_s_close, __pyx_k_close, sizeof(__pyx_k_close), 0, 0, 1, 1},
   {&__pyx_n_s_comment, __pyx_k_comment, sizeof(__pyx_k_comment), 0, 0, 1, 1},
-  {&__pyx_kp_s_could_not_locate_index_file, __pyx_k_could_not_locate_index_file, sizeof(__pyx_k_could_not_locate_index_file), 0, 0, 1, 0},
-  {&__pyx_kp_s_could_not_open_file_s, __pyx_k_could_not_open_file_s, sizeof(__pyx_k_could_not_open_file_s), 0, 0, 1, 0},
   {&__pyx_n_s_dict, __pyx_k_dict, sizeof(__pyx_k_dict), 0, 0, 1, 1},
   {&__pyx_n_s_end, __pyx_k_end, sizeof(__pyx_k_end), 0, 0, 1, 1},
-  {&__pyx_n_s_enter, __pyx_k_enter, sizeof(__pyx_k_enter), 0, 0, 1, 1},
+  {&__pyx_kp_s_error_when_opening_file_s, __pyx_k_error_when_opening_file_s, sizeof(__pyx_k_error_when_opening_file_s), 0, 0, 1, 0},
   {&__pyx_n_s_exc_type, __pyx_k_exc_type, sizeof(__pyx_k_exc_type), 0, 0, 1, 1},
   {&__pyx_n_s_exc_value, __pyx_k_exc_value, sizeof(__pyx_k_exc_value), 0, 0, 1, 1},
   {&__pyx_n_s_exists, __pyx_k_exists, sizeof(__pyx_k_exists), 0, 0, 1, 1},
-  {&__pyx_n_s_exit, __pyx_k_exit, sizeof(__pyx_k_exit), 0, 0, 1, 1},
-  {&__pyx_kp_s_fai, __pyx_k_fai, sizeof(__pyx_k_fai), 0, 0, 1, 0},
   {&__pyx_kp_s_failure_when_retrieving_sequence, __pyx_k_failure_when_retrieving_sequence, sizeof(__pyx_k_failure_when_retrieving_sequence), 0, 0, 1, 0},
   {&__pyx_n_s_fetch, __pyx_k_fetch, sizeof(__pyx_k_fetch), 0, 0, 1, 1},
   {&__pyx_kp_s_file_s_not_found, __pyx_k_file_s_not_found, sizeof(__pyx_k_file_s_not_found), 0, 0, 1, 0},
   {&__pyx_n_s_filename, __pyx_k_filename, sizeof(__pyx_k_filename), 0, 0, 1, 1},
+  {&__pyx_kp_s_filename_does_not_exist, __pyx_k_filename_does_not_exist, sizeof(__pyx_k_filename_does_not_exist), 0, 0, 1, 0},
   {&__pyx_n_s_filepath_index, __pyx_k_filepath_index, sizeof(__pyx_k_filepath_index), 0, 0, 1, 1},
+  {&__pyx_n_s_filepath_index_compressed, __pyx_k_filepath_index_compressed, sizeof(__pyx_k_filepath_index_compressed), 0, 0, 1, 1},
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
-  {&__pyx_n_s_genexpr, __pyx_k_genexpr, sizeof(__pyx_k_genexpr), 0, 0, 1, 1},
   {&__pyx_n_s_get_quality_array, __pyx_k_get_quality_array, sizeof(__pyx_k_get_quality_array), 0, 0, 1, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
@@ -12764,19 +13137,18 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_no_sequence_region_supplied, __pyx_k_no_sequence_region_supplied, sizeof(__pyx_k_no_sequence_region_supplied), 0, 0, 1, 0},
   {&__pyx_n_s_offset, __pyx_k_offset, sizeof(__pyx_k_offset), 0, 0, 1, 1},
   {&__pyx_n_s_open, __pyx_k_open, sizeof(__pyx_k_open), 0, 0, 1, 1},
-  {&__pyx_n_s_open_2, __pyx_k_open_2, sizeof(__pyx_k_open_2), 0, 0, 1, 1},
-  {&__pyx_n_s_open_locals_genexpr, __pyx_k_open_locals_genexpr, sizeof(__pyx_k_open_locals_genexpr), 0, 0, 1, 1},
   {&__pyx_n_s_os, __pyx_k_os, sizeof(__pyx_k_os), 0, 0, 1, 1},
   {&__pyx_n_s_path, __pyx_k_path, sizeof(__pyx_k_path), 0, 0, 1, 1},
   {&__pyx_n_s_persist, __pyx_k_persist, sizeof(__pyx_k_persist), 0, 0, 1, 1},
   {&__pyx_n_s_pickle, __pyx_k_pickle, sizeof(__pyx_k_pickle), 0, 0, 1, 1},
+  {&__pyx_n_s_proxy, __pyx_k_proxy, sizeof(__pyx_k_proxy), 0, 0, 1, 1},
   {&__pyx_n_s_pysam_libcfaidx, __pyx_k_pysam_libcfaidx, sizeof(__pyx_k_pysam_libcfaidx), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_PickleError, __pyx_k_pyx_PickleError, sizeof(__pyx_k_pyx_PickleError), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_checksum, __pyx_k_pyx_checksum, sizeof(__pyx_k_pyx_checksum), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_result, __pyx_k_pyx_result, sizeof(__pyx_k_pyx_result), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_state, __pyx_k_pyx_state, sizeof(__pyx_k_pyx_state), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_type, __pyx_k_pyx_type, sizeof(__pyx_k_pyx_type), 0, 0, 1, 1},
-  {&__pyx_n_s_pyx_unpickle_PersistentFastqPr, __pyx_k_pyx_unpickle_PersistentFastqPr, sizeof(__pyx_k_pyx_unpickle_PersistentFastqPr), 0, 0, 1, 1},
+  {&__pyx_n_s_pyx_unpickle_FastxRecord, __pyx_k_pyx_unpickle_FastxRecord, sizeof(__pyx_k_pyx_unpickle_FastxRecord), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
   {&__pyx_n_s_quality, __pyx_k_quality, sizeof(__pyx_k_quality), 0, 0, 1, 1},
   {&__pyx_n_s_re, __pyx_k_re, sizeof(__pyx_k_re), 0, 0, 1, 1},
@@ -12790,33 +13162,27 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_s_s_s, __pyx_k_s_s_s, sizeof(__pyx_k_s_s_s), 0, 0, 1, 0},
   {&__pyx_kp_s_s_s_s_s, __pyx_k_s_s_s_s, sizeof(__pyx_k_s_s_s_s), 0, 0, 1, 0},
   {&__pyx_kp_s_self__delegate_cannot_be_convert, __pyx_k_self__delegate_cannot_be_convert, sizeof(__pyx_k_self__delegate_cannot_be_convert), 0, 0, 1, 0},
-  {&__pyx_n_s_send, __pyx_k_send, sizeof(__pyx_k_send), 0, 0, 1, 1},
   {&__pyx_n_s_sequence, __pyx_k_sequence, sizeof(__pyx_k_sequence), 0, 0, 1, 1},
+  {&__pyx_kp_s_sequence_and_quality_length_do_n, __pyx_k_sequence_and_quality_length_do_n, sizeof(__pyx_k_sequence_and_quality_length_do_n), 0, 0, 1, 0},
   {&__pyx_kp_s_sequence_s_not_present, __pyx_k_sequence_s_not_present, sizeof(__pyx_k_sequence_s_not_present), 0, 0, 1, 0},
   {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
   {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
-  {&__pyx_kp_s_setting_an_explicit_path_for_the, __pyx_k_setting_an_explicit_path_for_the, sizeof(__pyx_k_setting_an_explicit_path_for_the), 0, 0, 1, 0},
-  {&__pyx_n_s_split, __pyx_k_split, sizeof(__pyx_k_split), 0, 0, 1, 1},
   {&__pyx_n_s_start, __pyx_k_start, sizeof(__pyx_k_start), 0, 0, 1, 1},
   {&__pyx_kp_s_stringsource, __pyx_k_stringsource, sizeof(__pyx_k_stringsource), 0, 0, 1, 0},
-  {&__pyx_n_s_sub, __pyx_k_sub, sizeof(__pyx_k_sub), 0, 0, 1, 1},
   {&__pyx_n_s_sys, __pyx_k_sys, sizeof(__pyx_k_sys), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
-  {&__pyx_n_s_throw, __pyx_k_throw, sizeof(__pyx_k_throw), 0, 0, 1, 1},
   {&__pyx_n_s_traceback, __pyx_k_traceback, sizeof(__pyx_k_traceback), 0, 0, 1, 1},
   {&__pyx_n_s_update, __pyx_k_update, sizeof(__pyx_k_update), 0, 0, 1, 1},
   {&__pyx_n_s_zip, __pyx_k_zip, sizeof(__pyx_k_zip), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 122, __pyx_L1_error)
-  __pyx_builtin_NotImplementedError = __Pyx_GetBuiltinName(__pyx_n_s_NotImplementedError); if (!__pyx_builtin_NotImplementedError) __PYX_ERR(0, 141, __pyx_L1_error)
-  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 149, __pyx_L1_error)
-  __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 167, __pyx_L1_error)
-  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) __PYX_ERR(0, 171, __pyx_L1_error)
-  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 278, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) __PYX_ERR(0, 195, __pyx_L1_error)
+  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 302, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
-  __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) __PYX_ERR(0, 556, __pyx_L1_error)
+  __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) __PYX_ERR(0, 649, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(3, 109, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -12827,118 +13193,137 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "pysam/libcfaidx.pyx":122
+  /* "pysam/libcfaidx.pyx":131
  *     def __len__(self):
  *         if self.fastafile == NULL:
  *             raise ValueError("calling len() on closed file")             # <<<<<<<<<<<<<<
  * 
  *         return faidx_nseq(self.fastafile)
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_calling_len_on_closed_file); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 122, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_calling_len_on_closed_file); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "pysam/libcfaidx.pyx":141
- * 
- *         if filepath_index is not None:
- *             raise NotImplementedError(             # <<<<<<<<<<<<<<
- *                 "setting an explicit path for the index "
- *                 "is not implemented")
- */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_setting_an_explicit_path_for_the); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 141, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__2);
-  __Pyx_GIVEREF(__pyx_tuple__2);
-
-  /* "pysam/libcfaidx.pyx":168
- * 
- *         with open(filepath_index) as inf:
- *             data = [x.split("\t") for x in inf]             # <<<<<<<<<<<<<<
- *             self._references = tuple(x[0] for x in data)
- *             self._lengths = tuple(int(x[1]) for x in data)
- */
-  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s__6); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 168, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__7);
-  __Pyx_GIVEREF(__pyx_tuple__7);
-
-  /* "pysam/libcfaidx.pyx":167
- *                 filepath_index))
- * 
- *         with open(filepath_index) as inf:             # <<<<<<<<<<<<<<
- *             data = [x.split("\t") for x in inf]
- *             self._references = tuple(x[0] for x in data)
- */
-  __pyx_tuple__8 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 167, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__8);
-  __Pyx_GIVEREF(__pyx_tuple__8);
-
-  /* "pysam/libcfaidx.pyx":259
+  /* "pysam/libcfaidx.pyx":283
  * 
  *         if not self.is_open():
  *             raise ValueError("I/O operation on closed file" )             # <<<<<<<<<<<<<<
  * 
  *         cdef int length
  */
-  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 259, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__9);
-  __Pyx_GIVEREF(__pyx_tuple__9);
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 283, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__3);
+  __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "pysam/libcfaidx.pyx":269
+  /* "pysam/libcfaidx.pyx":293
  * 
  *         if reference is None:
  *             raise ValueError("no sequence/region supplied.")             # <<<<<<<<<<<<<<
  * 
  *         if rstart == rend:
  */
-  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_s_no_sequence_region_supplied); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 269, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_no_sequence_region_supplied); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 293, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__4);
+  __Pyx_GIVEREF(__pyx_tuple__4);
+
+  /* "(tree fragment)":2
+ * def __reduce_cython__(self):
+ *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
+ */
+  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__6);
+  __Pyx_GIVEREF(__pyx_tuple__6);
+
+  /* "(tree fragment)":4
+ *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
+ */
+  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__7);
+  __Pyx_GIVEREF(__pyx_tuple__7);
+
+  /* "(tree fragment)":2
+ * def __reduce_cython__(self):
+ *     raise TypeError("self._delegate cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self._delegate cannot be converted to a Python object for pickling")
+ */
+  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s_self__delegate_cannot_be_convert); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__8);
+  __Pyx_GIVEREF(__pyx_tuple__8);
+
+  /* "(tree fragment)":4
+ *     raise TypeError("self._delegate cannot be converted to a Python object for pickling")
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self._delegate cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ */
+  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_self__delegate_cannot_be_convert); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__9);
+  __Pyx_GIVEREF(__pyx_tuple__9);
+
+  /* "pysam/libcfaidx.pyx":443
+ *     cdef cython.str to_string(self):
+ *         if self.name is None:
+ *             raise ValueError("can not write record without name")             # <<<<<<<<<<<<<<
+ * 
+ *         if self.sequence is None:
+ */
+  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_s_can_not_write_record_without_nam); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 443, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
 
-  /* "(tree fragment)":2
- * def __reduce_cython__(self):
- *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
- * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
+  /* "pysam/libcfaidx.pyx":446
+ * 
+ *         if self.sequence is None:
+ *             raise ValueError("can not write record without a sequence")             # <<<<<<<<<<<<<<
+ * 
+ *         if self.comment is None:
  */
-  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_s_can_not_write_record_without_a_s); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 446, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
 
-  /* "(tree fragment)":4
- *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
- * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
+  /* "pysam/libcfaidx.pyx":465
+ *     def set_name(self, name):
+ *         if name is None:
+ *             raise ValueError("FastxRecord must have a name and not None")             # <<<<<<<<<<<<<<
+ *         self.name = name
+ * 
  */
-  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s_FastxRecord_must_have_a_name_and); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 465, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
 
-  /* "(tree fragment)":2
- * def __reduce_cython__(self):
- *     raise TypeError("self._delegate cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
- * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("self._delegate cannot be converted to a Python object for pickling")
- */
-  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_self__delegate_cannot_be_convert); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(1, 2, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__13);
-  __Pyx_GIVEREF(__pyx_tuple__13);
-
-  /* "(tree fragment)":4
- *     raise TypeError("self._delegate cannot be converted to a Python object for pickling")
- * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("self._delegate cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
- */
-  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_self__delegate_cannot_be_convert); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(1, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__14);
-  __Pyx_GIVEREF(__pyx_tuple__14);
-
-  /* "pysam/libcfaidx.pyx":532
+  /* "pysam/libcfaidx.pyx":625
  *     def __iter__(self):
  *         if not self.is_open():
  *             raise ValueError("I/O operation on closed file")             # <<<<<<<<<<<<<<
  *         return self
  * 
  */
-  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 532, __pyx_L1_error)
+  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 625, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__13);
+  __Pyx_GIVEREF(__pyx_tuple__13);
+
+  /* "(tree fragment)":2
+ * def __reduce_cython__(self):
+ *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
+ */
+  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__14);
+  __Pyx_GIVEREF(__pyx_tuple__14);
+
+  /* "(tree fragment)":4
+ *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
+ */
+  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
 
@@ -12980,34 +13365,15 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
 
-  /* "(tree fragment)":2
- * def __reduce_cython__(self):
- *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
- * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
- */
-  __pyx_tuple__20 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(1, 2, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__20);
-  __Pyx_GIVEREF(__pyx_tuple__20);
-
-  /* "(tree fragment)":4
- *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
- * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
- */
-  __pyx_tuple__21 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(1, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__21);
-  __Pyx_GIVEREF(__pyx_tuple__21);
-
   /* "(tree fragment)":1
- * def __pyx_unpickle_PersistentFastqProxy(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ * def __pyx_unpickle_FastxRecord(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     if __pyx_checksum != 0x43fd151:
  *         from pickle import PickleError as __pyx_PickleError
  */
-  __pyx_tuple__23 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__23);
-  __Pyx_GIVEREF(__pyx_tuple__23);
-  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_PersistentFastqPr, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__21 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__21);
+  __Pyx_GIVEREF(__pyx_tuple__21);
+  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_FastxRecord, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -13061,14 +13427,14 @@ static int __Pyx_modinit_type_init_code(void) {
   /*--- Type init code ---*/
   __pyx_vtabptr_5pysam_9libcfaidx_FastaFile = &__pyx_vtable_5pysam_9libcfaidx_FastaFile;
   __pyx_vtable_5pysam_9libcfaidx_FastaFile._fetch = (char *(*)(struct __pyx_obj_5pysam_9libcfaidx_FastaFile *, char *, int, int, int *))__pyx_f_5pysam_9libcfaidx_9FastaFile__fetch;
-  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_FastaFile) < 0) __PYX_ERR(0, 80, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_FastaFile) < 0) __PYX_ERR(0, 85, __pyx_L1_error)
   __pyx_type_5pysam_9libcfaidx_FastaFile.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libcfaidx_FastaFile.tp_dictoffset && __pyx_type_5pysam_9libcfaidx_FastaFile.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libcfaidx_FastaFile.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libcfaidx_FastaFile, "__contains__"); if (unlikely(!wrapper)) __PYX_ERR(0, 80, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libcfaidx_FastaFile, "__contains__"); if (unlikely(!wrapper)) __PYX_ERR(0, 85, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_5pysam_9libcfaidx_9FastaFile_22__contains__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_5pysam_9libcfaidx_9FastaFile_22__contains__.doc = __pyx_doc_5pysam_9libcfaidx_9FastaFile_22__contains__;
@@ -13076,45 +13442,47 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_FastaFile.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_FastaFile) < 0) __PYX_ERR(0, 80, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "FastaFile", (PyObject *)&__pyx_type_5pysam_9libcfaidx_FastaFile) < 0) __PYX_ERR(0, 80, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_FastaFile) < 0) __PYX_ERR(0, 80, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_FastaFile.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_FastaFile) < 0) __PYX_ERR(0, 85, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "FastaFile", (PyObject *)&__pyx_type_5pysam_9libcfaidx_FastaFile) < 0) __PYX_ERR(0, 85, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_FastaFile) < 0) __PYX_ERR(0, 85, __pyx_L1_error)
   __pyx_ptype_5pysam_9libcfaidx_FastaFile = &__pyx_type_5pysam_9libcfaidx_FastaFile;
   __pyx_vtabptr_5pysam_9libcfaidx_FastqProxy = &__pyx_vtable_5pysam_9libcfaidx_FastqProxy;
+  __pyx_vtable_5pysam_9libcfaidx_FastqProxy.to_string = (PyObject *(*)(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *))__pyx_f_5pysam_9libcfaidx_10FastqProxy_to_string;
   __pyx_vtable_5pysam_9libcfaidx_FastqProxy.tostring = (PyObject *(*)(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *))__pyx_f_5pysam_9libcfaidx_10FastqProxy_tostring;
   __pyx_vtable_5pysam_9libcfaidx_FastqProxy.get_quality_array = (arrayobject *(*)(struct __pyx_obj_5pysam_9libcfaidx_FastqProxy *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_10FastqProxy_get_quality_array *__pyx_optional_args))__pyx_f_5pysam_9libcfaidx_10FastqProxy_get_quality_array;
-  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_FastqProxy) < 0) __PYX_ERR(0, 321, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_FastqProxy) < 0) __PYX_ERR(0, 356, __pyx_L1_error)
   __pyx_type_5pysam_9libcfaidx_FastqProxy.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libcfaidx_FastqProxy.tp_dictoffset && __pyx_type_5pysam_9libcfaidx_FastqProxy.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libcfaidx_FastqProxy.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_FastqProxy.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_FastqProxy) < 0) __PYX_ERR(0, 321, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "FastqProxy", (PyObject *)&__pyx_type_5pysam_9libcfaidx_FastqProxy) < 0) __PYX_ERR(0, 321, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_FastqProxy) < 0) __PYX_ERR(0, 321, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_FastqProxy.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_FastqProxy) < 0) __PYX_ERR(0, 356, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "FastqProxy", (PyObject *)&__pyx_type_5pysam_9libcfaidx_FastqProxy) < 0) __PYX_ERR(0, 356, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_FastqProxy) < 0) __PYX_ERR(0, 356, __pyx_L1_error)
   __pyx_ptype_5pysam_9libcfaidx_FastqProxy = &__pyx_type_5pysam_9libcfaidx_FastqProxy;
-  __pyx_vtabptr_5pysam_9libcfaidx_PersistentFastqProxy = &__pyx_vtable_5pysam_9libcfaidx_PersistentFastqProxy;
-  __pyx_vtable_5pysam_9libcfaidx_PersistentFastqProxy.tostring = (PyObject *(*)(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *))__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_tostring;
-  __pyx_vtable_5pysam_9libcfaidx_PersistentFastqProxy.get_quality_array = (arrayobject *(*)(struct __pyx_obj_5pysam_9libcfaidx_PersistentFastqProxy *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array *__pyx_optional_args))__pyx_f_5pysam_9libcfaidx_20PersistentFastqProxy_get_quality_array;
-  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_PersistentFastqProxy) < 0) __PYX_ERR(0, 372, __pyx_L1_error)
-  __pyx_type_5pysam_9libcfaidx_PersistentFastqProxy.tp_print = 0;
-  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libcfaidx_PersistentFastqProxy.tp_dictoffset && __pyx_type_5pysam_9libcfaidx_PersistentFastqProxy.tp_getattro == PyObject_GenericGetAttr)) {
-    __pyx_type_5pysam_9libcfaidx_PersistentFastqProxy.tp_getattro = __Pyx_PyObject_GenericGetAttr;
+  __pyx_vtabptr_5pysam_9libcfaidx_FastxRecord = &__pyx_vtable_5pysam_9libcfaidx_FastxRecord;
+  __pyx_vtable_5pysam_9libcfaidx_FastxRecord.to_string = (PyObject *(*)(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *))__pyx_f_5pysam_9libcfaidx_11FastxRecord_to_string;
+  __pyx_vtable_5pysam_9libcfaidx_FastxRecord.tostring = (PyObject *(*)(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *))__pyx_f_5pysam_9libcfaidx_11FastxRecord_tostring;
+  __pyx_vtable_5pysam_9libcfaidx_FastxRecord.get_quality_array = (arrayobject *(*)(struct __pyx_obj_5pysam_9libcfaidx_FastxRecord *, int __pyx_skip_dispatch, struct __pyx_opt_args_5pysam_9libcfaidx_11FastxRecord_get_quality_array *__pyx_optional_args))__pyx_f_5pysam_9libcfaidx_11FastxRecord_get_quality_array;
+  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_FastxRecord) < 0) __PYX_ERR(0, 411, __pyx_L1_error)
+  __pyx_type_5pysam_9libcfaidx_FastxRecord.tp_print = 0;
+  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libcfaidx_FastxRecord.tp_dictoffset && __pyx_type_5pysam_9libcfaidx_FastxRecord.tp_getattro == PyObject_GenericGetAttr)) {
+    __pyx_type_5pysam_9libcfaidx_FastxRecord.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_PersistentFastqProxy.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_PersistentFastqProxy) < 0) __PYX_ERR(0, 372, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "PersistentFastqProxy", (PyObject *)&__pyx_type_5pysam_9libcfaidx_PersistentFastqProxy) < 0) __PYX_ERR(0, 372, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_PersistentFastqProxy) < 0) __PYX_ERR(0, 372, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libcfaidx_PersistentFastqProxy = &__pyx_type_5pysam_9libcfaidx_PersistentFastqProxy;
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_FastxRecord.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_FastxRecord) < 0) __PYX_ERR(0, 411, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "FastxRecord", (PyObject *)&__pyx_type_5pysam_9libcfaidx_FastxRecord) < 0) __PYX_ERR(0, 411, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_FastxRecord) < 0) __PYX_ERR(0, 411, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libcfaidx_FastxRecord = &__pyx_type_5pysam_9libcfaidx_FastxRecord;
   __pyx_vtabptr_5pysam_9libcfaidx_FastxFile = &__pyx_vtable_5pysam_9libcfaidx_FastxFile;
   __pyx_vtable_5pysam_9libcfaidx_FastxFile.getCurrent = (kseq_t *(*)(struct __pyx_obj_5pysam_9libcfaidx_FastxFile *))__pyx_f_5pysam_9libcfaidx_9FastxFile_getCurrent;
   __pyx_vtable_5pysam_9libcfaidx_FastxFile.cnext = (int (*)(struct __pyx_obj_5pysam_9libcfaidx_FastxFile *))__pyx_f_5pysam_9libcfaidx_9FastxFile_cnext;
-  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_FastxFile) < 0) __PYX_ERR(0, 406, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_FastxFile) < 0) __PYX_ERR(0, 496, __pyx_L1_error)
   __pyx_type_5pysam_9libcfaidx_FastxFile.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libcfaidx_FastxFile.tp_dictoffset && __pyx_type_5pysam_9libcfaidx_FastxFile.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libcfaidx_FastxFile.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libcfaidx_FastxFile, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 406, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libcfaidx_FastxFile, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 496, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_5pysam_9libcfaidx_9FastxFile_16__next__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_5pysam_9libcfaidx_9FastxFile_16__next__.doc = __pyx_doc_5pysam_9libcfaidx_9FastxFile_16__next__;
@@ -13122,52 +13490,34 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_FastxFile.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_FastxFile) < 0) __PYX_ERR(0, 406, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "FastxFile", (PyObject *)&__pyx_type_5pysam_9libcfaidx_FastxFile) < 0) __PYX_ERR(0, 406, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_FastxFile) < 0) __PYX_ERR(0, 406, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_FastxFile.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_FastxFile) < 0) __PYX_ERR(0, 496, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "FastxFile", (PyObject *)&__pyx_type_5pysam_9libcfaidx_FastxFile) < 0) __PYX_ERR(0, 496, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_FastxFile) < 0) __PYX_ERR(0, 496, __pyx_L1_error)
   __pyx_ptype_5pysam_9libcfaidx_FastxFile = &__pyx_type_5pysam_9libcfaidx_FastxFile;
   __pyx_vtabptr_5pysam_9libcfaidx_FastqFile = &__pyx_vtable_5pysam_9libcfaidx_FastqFile;
   __pyx_vtable_5pysam_9libcfaidx_FastqFile.__pyx_base = *__pyx_vtabptr_5pysam_9libcfaidx_FastxFile;
   __pyx_type_5pysam_9libcfaidx_FastqFile.tp_base = __pyx_ptype_5pysam_9libcfaidx_FastxFile;
-  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_FastqFile) < 0) __PYX_ERR(0, 559, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_FastqFile) < 0) __PYX_ERR(0, 652, __pyx_L1_error)
   __pyx_type_5pysam_9libcfaidx_FastqFile.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libcfaidx_FastqFile.tp_dictoffset && __pyx_type_5pysam_9libcfaidx_FastqFile.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libcfaidx_FastqFile.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_FastqFile.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_FastqFile) < 0) __PYX_ERR(0, 559, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "FastqFile", (PyObject *)&__pyx_type_5pysam_9libcfaidx_FastqFile) < 0) __PYX_ERR(0, 559, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_FastqFile) < 0) __PYX_ERR(0, 559, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_FastqFile.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_FastqFile) < 0) __PYX_ERR(0, 652, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "FastqFile", (PyObject *)&__pyx_type_5pysam_9libcfaidx_FastqFile) < 0) __PYX_ERR(0, 652, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_FastqFile) < 0) __PYX_ERR(0, 652, __pyx_L1_error)
   __pyx_ptype_5pysam_9libcfaidx_FastqFile = &__pyx_type_5pysam_9libcfaidx_FastqFile;
   __pyx_vtabptr_5pysam_9libcfaidx_Fastafile = &__pyx_vtable_5pysam_9libcfaidx_Fastafile;
   __pyx_vtable_5pysam_9libcfaidx_Fastafile.__pyx_base = *__pyx_vtabptr_5pysam_9libcfaidx_FastaFile;
   __pyx_type_5pysam_9libcfaidx_Fastafile.tp_base = __pyx_ptype_5pysam_9libcfaidx_FastaFile;
-  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_Fastafile) < 0) __PYX_ERR(0, 564, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx_Fastafile) < 0) __PYX_ERR(0, 657, __pyx_L1_error)
   __pyx_type_5pysam_9libcfaidx_Fastafile.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libcfaidx_Fastafile.tp_dictoffset && __pyx_type_5pysam_9libcfaidx_Fastafile.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libcfaidx_Fastafile.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_Fastafile.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_Fastafile) < 0) __PYX_ERR(0, 564, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "Fastafile", (PyObject *)&__pyx_type_5pysam_9libcfaidx_Fastafile) < 0) __PYX_ERR(0, 564, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_Fastafile) < 0) __PYX_ERR(0, 564, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libcfaidx_Fastafile.tp_dict, __pyx_vtabptr_5pysam_9libcfaidx_Fastafile) < 0) __PYX_ERR(0, 657, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "Fastafile", (PyObject *)&__pyx_type_5pysam_9libcfaidx_Fastafile) < 0) __PYX_ERR(0, 657, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libcfaidx_Fastafile) < 0) __PYX_ERR(0, 657, __pyx_L1_error)
   __pyx_ptype_5pysam_9libcfaidx_Fastafile = &__pyx_type_5pysam_9libcfaidx_Fastafile;
-  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx___pyx_scope_struct___open) < 0) __PYX_ERR(0, 126, __pyx_L1_error)
-  __pyx_type_5pysam_9libcfaidx___pyx_scope_struct___open.tp_print = 0;
-  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libcfaidx___pyx_scope_struct___open.tp_dictoffset && __pyx_type_5pysam_9libcfaidx___pyx_scope_struct___open.tp_getattro == PyObject_GenericGetAttr)) {
-    __pyx_type_5pysam_9libcfaidx___pyx_scope_struct___open.tp_getattro = __Pyx_PyObject_GenericGetAttrNoDict;
-  }
-  __pyx_ptype_5pysam_9libcfaidx___pyx_scope_struct___open = &__pyx_type_5pysam_9libcfaidx___pyx_scope_struct___open;
-  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr) < 0) __PYX_ERR(0, 169, __pyx_L1_error)
-  __pyx_type_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr.tp_print = 0;
-  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr.tp_dictoffset && __pyx_type_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr.tp_getattro == PyObject_GenericGetAttr)) {
-    __pyx_type_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr.tp_getattro = __Pyx_PyObject_GenericGetAttrNoDict;
-  }
-  __pyx_ptype_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr = &__pyx_type_5pysam_9libcfaidx___pyx_scope_struct_1_genexpr;
-  if (PyType_Ready(&__pyx_type_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr) < 0) __PYX_ERR(0, 170, __pyx_L1_error)
-  __pyx_type_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr.tp_print = 0;
-  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr.tp_dictoffset && __pyx_type_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr.tp_getattro == PyObject_GenericGetAttr)) {
-    __pyx_type_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr.tp_getattro = __Pyx_PyObject_GenericGetAttrNoDict;
-  }
-  __pyx_ptype_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr = &__pyx_type_5pysam_9libcfaidx___pyx_scope_struct_2_genexpr;
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -13189,8 +13539,8 @@ static int __Pyx_modinit_type_import_code(void) {
   __pyx_ptype_7cpython_4bool_bool = __Pyx_ImportType(__Pyx_BUILTIN_MODULE_NAME, "bool", sizeof(PyBoolObject), 0); if (unlikely(!__pyx_ptype_7cpython_4bool_bool)) __PYX_ERR(5, 8, __pyx_L1_error)
   __pyx_ptype_7cpython_7complex_complex = __Pyx_ImportType(__Pyx_BUILTIN_MODULE_NAME, "complex", sizeof(PyComplexObject), 0); if (unlikely(!__pyx_ptype_7cpython_7complex_complex)) __PYX_ERR(6, 15, __pyx_L1_error)
   __pyx_ptype_7cpython_5array_array = __Pyx_ImportType("array", "array", sizeof(arrayobject), 0); if (unlikely(!__pyx_ptype_7cpython_5array_array)) __PYX_ERR(3, 58, __pyx_L1_error)
-  __pyx_ptype_5pysam_10libchtslib_HTSFile = __Pyx_ImportType("pysam.libchtslib", "HTSFile", sizeof(struct __pyx_obj_5pysam_10libchtslib_HTSFile), 1); if (unlikely(!__pyx_ptype_5pysam_10libchtslib_HTSFile)) __PYX_ERR(7, 1904, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_10libchtslib_HTSFile = (struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_10libchtslib_HTSFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_10libchtslib_HTSFile)) __PYX_ERR(7, 1904, __pyx_L1_error)
+  __pyx_ptype_5pysam_10libchtslib_HTSFile = __Pyx_ImportType("pysam.libchtslib", "HTSFile", sizeof(struct __pyx_obj_5pysam_10libchtslib_HTSFile), 1); if (unlikely(!__pyx_ptype_5pysam_10libchtslib_HTSFile)) __PYX_ERR(7, 2590, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_10libchtslib_HTSFile = (struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_10libchtslib_HTSFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_10libchtslib_HTSFile)) __PYX_ERR(7, 2590, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -13420,7 +13770,7 @@ if (!__Pyx_RefNanny) {
  * import sys
  * import os             # <<<<<<<<<<<<<<
  * import re
- * from cpython cimport array
+ * 
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_os, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 49, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -13431,7 +13781,7 @@ if (!__Pyx_RefNanny) {
  * import sys
  * import os
  * import re             # <<<<<<<<<<<<<<
- * from cpython cimport array
+ * 
  * 
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_re, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
@@ -13439,14 +13789,14 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_re, __pyx_t_1) < 0) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libcfaidx.pyx":568
+  /* "pysam/libcfaidx.pyx":661
  *     pass
  * 
  * __all__ = ["FastaFile",             # <<<<<<<<<<<<<<
  *            "FastqFile",
  *            "FastxFile",
  */
-  __pyx_t_1 = PyList_New(5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 568, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 661, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_FastaFile);
   __Pyx_GIVEREF(__pyx_n_s_FastaFile);
@@ -13460,20 +13810,23 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_n_s_Fastafile);
   __Pyx_GIVEREF(__pyx_n_s_Fastafile);
   PyList_SET_ITEM(__pyx_t_1, 3, __pyx_n_s_Fastafile);
+  __Pyx_INCREF(__pyx_n_s_FastxRecord);
+  __Pyx_GIVEREF(__pyx_n_s_FastxRecord);
+  PyList_SET_ITEM(__pyx_t_1, 4, __pyx_n_s_FastxRecord);
   __Pyx_INCREF(__pyx_n_s_FastqProxy);
   __Pyx_GIVEREF(__pyx_n_s_FastqProxy);
-  PyList_SET_ITEM(__pyx_t_1, 4, __pyx_n_s_FastqProxy);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_all, __pyx_t_1) < 0) __PYX_ERR(0, 568, __pyx_L1_error)
+  PyList_SET_ITEM(__pyx_t_1, 5, __pyx_n_s_FastqProxy);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_all, __pyx_t_1) < 0) __PYX_ERR(0, 661, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "(tree fragment)":1
- * def __pyx_unpickle_PersistentFastqProxy(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ * def __pyx_unpickle_FastxRecord(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     if __pyx_checksum != 0x43fd151:
  *         from pickle import PickleError as __pyx_PickleError
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libcfaidx_1__pyx_unpickle_PersistentFastqProxy, NULL, __pyx_n_s_pysam_libcfaidx); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libcfaidx_1__pyx_unpickle_FastxRecord, NULL, __pyx_n_s_pysam_libcfaidx); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_PersistentFastqPr, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_FastxRecord, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "pysam/libcfaidx.pyx":1
@@ -14043,98 +14396,6 @@ static void __Pyx_RaiseArgtupleInvalid(
                  (num_expected == 1) ? "" : "s", num_found);
 }
 
-/* None */
-static CYTHON_INLINE void __Pyx_RaiseClosureNameError(const char *varname) {
-    PyErr_Format(PyExc_NameError, "free variable '%s' referenced before assignment in enclosing scope", varname);
-}
-
-/* GetItemInt */
-static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
-    PyObject *r;
-    if (!j) return NULL;
-    r = PyObject_GetItem(o, j);
-    Py_DECREF(j);
-    return r;
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyList_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely((0 <= wrapped_i) & (wrapped_i < PyList_GET_SIZE(o)))) {
-        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyTuple_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely((0 <= wrapped_i) & (wrapped_i < PyTuple_GET_SIZE(o)))) {
-        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
-                                                     CYTHON_NCP_UNUSED int wraparound,
-                                                     CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
-    if (is_list || PyList_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
-        if ((!boundscheck) || (likely((n >= 0) & (n < PyList_GET_SIZE(o))))) {
-            PyObject *r = PyList_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    }
-    else if (PyTuple_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
-        if ((!boundscheck) || likely((n >= 0) & (n < PyTuple_GET_SIZE(o)))) {
-            PyObject *r = PyTuple_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    } else {
-        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
-        if (likely(m && m->sq_item)) {
-            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
-                Py_ssize_t l = m->sq_length(o);
-                if (likely(l >= 0)) {
-                    i += l;
-                } else {
-                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
-                        return NULL;
-                    PyErr_Clear();
-                }
-            }
-            return m->sq_item(o, i);
-        }
-    }
-#else
-    if (is_list || PySequence_Check(o)) {
-        return PySequence_GetItem(o, i);
-    }
-#endif
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-}
-
 /* PyCFunctionFastCall */
 #if CYTHON_FAST_PYCCALL
 static CYTHON_INLINE PyObject * __Pyx_PyCFunction_FastCall(PyObject *func_obj, PyObject **args, Py_ssize_t nargs) {
@@ -14433,44 +14694,171 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func) {
     return result;
 }
 
-/* SaveResetException */
-      #if CYTHON_FAST_THREAD_STATE
-static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
-    #if PY_VERSION_HEX >= 0x030700A2
-    *type = tstate->exc_state.exc_type;
-    *value = tstate->exc_state.exc_value;
-    *tb = tstate->exc_state.exc_traceback;
-    #else
-    *type = tstate->exc_type;
-    *value = tstate->exc_value;
-    *tb = tstate->exc_traceback;
-    #endif
-    Py_XINCREF(*type);
-    Py_XINCREF(*value);
-    Py_XINCREF(*tb);
-}
-static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
-    PyObject *tmp_type, *tmp_value, *tmp_tb;
-    #if PY_VERSION_HEX >= 0x030700A2
-    tmp_type = tstate->exc_state.exc_type;
-    tmp_value = tstate->exc_state.exc_value;
-    tmp_tb = tstate->exc_state.exc_traceback;
-    tstate->exc_state.exc_type = type;
-    tstate->exc_state.exc_value = value;
-    tstate->exc_state.exc_traceback = tb;
-    #else
-    tmp_type = tstate->exc_type;
-    tmp_value = tstate->exc_value;
-    tmp_tb = tstate->exc_traceback;
-    tstate->exc_type = type;
-    tstate->exc_value = value;
-    tstate->exc_traceback = tb;
-    #endif
-    Py_XDECREF(tmp_type);
-    Py_XDECREF(tmp_value);
-    Py_XDECREF(tmp_tb);
-}
+/* PyObjectCallMethod1 */
+      static PyObject* __Pyx__PyObject_CallMethod1(PyObject* method, PyObject* arg) {
+    PyObject *result = NULL;
+#if CYTHON_UNPACK_METHODS
+    if (likely(PyMethod_Check(method))) {
+        PyObject *self = PyMethod_GET_SELF(method);
+        if (likely(self)) {
+            PyObject *args;
+            PyObject *function = PyMethod_GET_FUNCTION(method);
+            #if CYTHON_FAST_PYCALL
+            if (PyFunction_Check(function)) {
+                PyObject *args[2] = {self, arg};
+                result = __Pyx_PyFunction_FastCall(function, args, 2);
+                goto done;
+            }
+            #endif
+            #if CYTHON_FAST_PYCCALL
+            if (__Pyx_PyFastCFunction_Check(function)) {
+                PyObject *args[2] = {self, arg};
+                result = __Pyx_PyCFunction_FastCall(function, args, 2);
+                goto done;
+            }
+            #endif
+            args = PyTuple_New(2);
+            if (unlikely(!args)) goto done;
+            Py_INCREF(self);
+            PyTuple_SET_ITEM(args, 0, self);
+            Py_INCREF(arg);
+            PyTuple_SET_ITEM(args, 1, arg);
+            Py_INCREF(function);
+            result = __Pyx_PyObject_Call(function, args, NULL);
+            Py_DECREF(args);
+            Py_DECREF(function);
+            return result;
+        }
+    }
 #endif
+    result = __Pyx_PyObject_CallOneArg(method, arg);
+    goto done;
+done:
+    return result;
+}
+static PyObject* __Pyx_PyObject_CallMethod1(PyObject* obj, PyObject* method_name, PyObject* arg) {
+    PyObject *method, *result;
+    method = __Pyx_PyObject_GetAttrStr(obj, method_name);
+    if (unlikely(!method)) return NULL;
+    result = __Pyx__PyObject_CallMethod1(method, arg);
+    Py_DECREF(method);
+    return result;
+}
+
+/* append */
+      static CYTHON_INLINE int __Pyx_PyObject_Append(PyObject* L, PyObject* x) {
+    if (likely(PyList_CheckExact(L))) {
+        if (unlikely(__Pyx_PyList_Append(L, x) < 0)) return -1;
+    } else {
+        PyObject* retval = __Pyx_PyObject_CallMethod1(L, __pyx_n_s_append, x);
+        if (unlikely(!retval))
+            return -1;
+        Py_DECREF(retval);
+    }
+    return 0;
+}
+
+/* WriteUnraisableException */
+      static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
+                                  CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
+                                  int full_traceback, CYTHON_UNUSED int nogil) {
+    PyObject *old_exc, *old_val, *old_tb;
+    PyObject *ctx;
+    __Pyx_PyThreadState_declare
+#ifdef WITH_THREAD
+    PyGILState_STATE state;
+    if (nogil)
+        state = PyGILState_Ensure();
+#ifdef _MSC_VER
+    else state = (PyGILState_STATE)-1;
+#endif
+#endif
+    __Pyx_PyThreadState_assign
+    __Pyx_ErrFetch(&old_exc, &old_val, &old_tb);
+    if (full_traceback) {
+        Py_XINCREF(old_exc);
+        Py_XINCREF(old_val);
+        Py_XINCREF(old_tb);
+        __Pyx_ErrRestore(old_exc, old_val, old_tb);
+        PyErr_PrintEx(1);
+    }
+    #if PY_MAJOR_VERSION < 3
+    ctx = PyString_FromString(name);
+    #else
+    ctx = PyUnicode_FromString(name);
+    #endif
+    __Pyx_ErrRestore(old_exc, old_val, old_tb);
+    if (!ctx) {
+        PyErr_WriteUnraisable(Py_None);
+    } else {
+        PyErr_WriteUnraisable(ctx);
+        Py_DECREF(ctx);
+    }
+#ifdef WITH_THREAD
+    if (nogil)
+        PyGILState_Release(state);
+#endif
+}
+
+/* RaiseTooManyValuesToUnpack */
+      static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
+    PyErr_Format(PyExc_ValueError,
+                 "too many values to unpack (expected %" CYTHON_FORMAT_SSIZE_T "d)", expected);
+}
+
+/* RaiseNeedMoreValuesToUnpack */
+      static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index) {
+    PyErr_Format(PyExc_ValueError,
+                 "need more than %" CYTHON_FORMAT_SSIZE_T "d value%.1s to unpack",
+                 index, (index == 1) ? "" : "s");
+}
+
+/* IterFinish */
+      static CYTHON_INLINE int __Pyx_IterFinish(void) {
+#if CYTHON_FAST_THREAD_STATE
+    PyThreadState *tstate = __Pyx_PyThreadState_Current;
+    PyObject* exc_type = tstate->curexc_type;
+    if (unlikely(exc_type)) {
+        if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) {
+            PyObject *exc_value, *exc_tb;
+            exc_value = tstate->curexc_value;
+            exc_tb = tstate->curexc_traceback;
+            tstate->curexc_type = 0;
+            tstate->curexc_value = 0;
+            tstate->curexc_traceback = 0;
+            Py_DECREF(exc_type);
+            Py_XDECREF(exc_value);
+            Py_XDECREF(exc_tb);
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+    return 0;
+#else
+    if (unlikely(PyErr_Occurred())) {
+        if (likely(PyErr_ExceptionMatches(PyExc_StopIteration))) {
+            PyErr_Clear();
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+    return 0;
+#endif
+}
+
+/* UnpackItemEndCheck */
+      static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected) {
+    if (unlikely(retval)) {
+        Py_DECREF(retval);
+        __Pyx_RaiseTooManyValuesError(expected);
+        return -1;
+    } else {
+        return __Pyx_IterFinish();
+    }
+    return 0;
+}
 
 /* GetException */
       #if CYTHON_FAST_THREAD_STATE
@@ -14542,108 +14930,6 @@ bad:
     return -1;
 }
 
-/* WriteUnraisableException */
-        static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
-                                  CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
-                                  int full_traceback, CYTHON_UNUSED int nogil) {
-    PyObject *old_exc, *old_val, *old_tb;
-    PyObject *ctx;
-    __Pyx_PyThreadState_declare
-#ifdef WITH_THREAD
-    PyGILState_STATE state;
-    if (nogil)
-        state = PyGILState_Ensure();
-#ifdef _MSC_VER
-    else state = (PyGILState_STATE)-1;
-#endif
-#endif
-    __Pyx_PyThreadState_assign
-    __Pyx_ErrFetch(&old_exc, &old_val, &old_tb);
-    if (full_traceback) {
-        Py_XINCREF(old_exc);
-        Py_XINCREF(old_val);
-        Py_XINCREF(old_tb);
-        __Pyx_ErrRestore(old_exc, old_val, old_tb);
-        PyErr_PrintEx(1);
-    }
-    #if PY_MAJOR_VERSION < 3
-    ctx = PyString_FromString(name);
-    #else
-    ctx = PyUnicode_FromString(name);
-    #endif
-    __Pyx_ErrRestore(old_exc, old_val, old_tb);
-    if (!ctx) {
-        PyErr_WriteUnraisable(Py_None);
-    } else {
-        PyErr_WriteUnraisable(ctx);
-        Py_DECREF(ctx);
-    }
-#ifdef WITH_THREAD
-    if (nogil)
-        PyGILState_Release(state);
-#endif
-}
-
-/* RaiseTooManyValuesToUnpack */
-        static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
-    PyErr_Format(PyExc_ValueError,
-                 "too many values to unpack (expected %" CYTHON_FORMAT_SSIZE_T "d)", expected);
-}
-
-/* RaiseNeedMoreValuesToUnpack */
-        static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index) {
-    PyErr_Format(PyExc_ValueError,
-                 "need more than %" CYTHON_FORMAT_SSIZE_T "d value%.1s to unpack",
-                 index, (index == 1) ? "" : "s");
-}
-
-/* IterFinish */
-        static CYTHON_INLINE int __Pyx_IterFinish(void) {
-#if CYTHON_FAST_THREAD_STATE
-    PyThreadState *tstate = __Pyx_PyThreadState_Current;
-    PyObject* exc_type = tstate->curexc_type;
-    if (unlikely(exc_type)) {
-        if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) {
-            PyObject *exc_value, *exc_tb;
-            exc_value = tstate->curexc_value;
-            exc_tb = tstate->curexc_traceback;
-            tstate->curexc_type = 0;
-            tstate->curexc_value = 0;
-            tstate->curexc_traceback = 0;
-            Py_DECREF(exc_type);
-            Py_XDECREF(exc_value);
-            Py_XDECREF(exc_tb);
-            return 0;
-        } else {
-            return -1;
-        }
-    }
-    return 0;
-#else
-    if (unlikely(PyErr_Occurred())) {
-        if (likely(PyErr_ExceptionMatches(PyExc_StopIteration))) {
-            PyErr_Clear();
-            return 0;
-        } else {
-            return -1;
-        }
-    }
-    return 0;
-#endif
-}
-
-/* UnpackItemEndCheck */
-        static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected) {
-    if (unlikely(retval)) {
-        Py_DECREF(retval);
-        __Pyx_RaiseTooManyValuesError(expected);
-        return -1;
-    } else {
-        return __Pyx_IterFinish();
-    }
-    return 0;
-}
-
 /* SwapException */
         #if CYTHON_FAST_THREAD_STATE
 static CYTHON_INLINE void __Pyx__ExceptionSwap(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
@@ -14677,6 +14963,132 @@ static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value,
     *tb = tmp_tb;
 }
 #endif
+
+/* SaveResetException */
+        #if CYTHON_FAST_THREAD_STATE
+static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
+    #if PY_VERSION_HEX >= 0x030700A2
+    *type = tstate->exc_state.exc_type;
+    *value = tstate->exc_state.exc_value;
+    *tb = tstate->exc_state.exc_traceback;
+    #else
+    *type = tstate->exc_type;
+    *value = tstate->exc_value;
+    *tb = tstate->exc_traceback;
+    #endif
+    Py_XINCREF(*type);
+    Py_XINCREF(*value);
+    Py_XINCREF(*tb);
+}
+static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
+    PyObject *tmp_type, *tmp_value, *tmp_tb;
+    #if PY_VERSION_HEX >= 0x030700A2
+    tmp_type = tstate->exc_state.exc_type;
+    tmp_value = tstate->exc_state.exc_value;
+    tmp_tb = tstate->exc_state.exc_traceback;
+    tstate->exc_state.exc_type = type;
+    tstate->exc_state.exc_value = value;
+    tstate->exc_state.exc_traceback = tb;
+    #else
+    tmp_type = tstate->exc_type;
+    tmp_value = tstate->exc_value;
+    tmp_tb = tstate->exc_traceback;
+    tstate->exc_type = type;
+    tstate->exc_value = value;
+    tstate->exc_traceback = tb;
+    #endif
+    Py_XDECREF(tmp_type);
+    Py_XDECREF(tmp_value);
+    Py_XDECREF(tmp_tb);
+}
+#endif
+
+/* GetItemInt */
+        static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
+    PyObject *r;
+    if (!j) return NULL;
+    r = PyObject_GetItem(o, j);
+    Py_DECREF(j);
+    return r;
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyList_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely((0 <= wrapped_i) & (wrapped_i < PyList_GET_SIZE(o)))) {
+        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyTuple_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely((0 <= wrapped_i) & (wrapped_i < PyTuple_GET_SIZE(o)))) {
+        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
+                                                     CYTHON_NCP_UNUSED int wraparound,
+                                                     CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
+    if (is_list || PyList_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
+        if ((!boundscheck) || (likely((n >= 0) & (n < PyList_GET_SIZE(o))))) {
+            PyObject *r = PyList_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    }
+    else if (PyTuple_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
+        if ((!boundscheck) || likely((n >= 0) & (n < PyTuple_GET_SIZE(o)))) {
+            PyObject *r = PyTuple_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    } else {
+        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
+        if (likely(m && m->sq_item)) {
+            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
+                Py_ssize_t l = m->sq_length(o);
+                if (likely(l >= 0)) {
+                    i += l;
+                } else {
+                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
+                        return NULL;
+                    PyErr_Clear();
+                }
+            }
+            return m->sq_item(o, i);
+        }
+    }
+#else
+    if (is_list || PySequence_Check(o)) {
+        return PySequence_GetItem(o, i);
+    }
+#endif
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+}
 
 /* ObjectGetItem */
         #if CYTHON_USE_TYPE_SLOTS
@@ -15283,37 +15695,6 @@ bad:
     }
 
 /* CIntToPy */
-        static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
-    const long neg_one = (long) -1, const_zero = (long) 0;
-    const int is_unsigned = neg_one > const_zero;
-    if (is_unsigned) {
-        if (sizeof(long) < sizeof(long)) {
-            return PyInt_FromLong((long) value);
-        } else if (sizeof(long) <= sizeof(unsigned long)) {
-            return PyLong_FromUnsignedLong((unsigned long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(long) <= sizeof(unsigned PY_LONG_LONG)) {
-            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
-#endif
-        }
-    } else {
-        if (sizeof(long) <= sizeof(long)) {
-            return PyInt_FromLong((long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(long) <= sizeof(PY_LONG_LONG)) {
-            return PyLong_FromLongLong((PY_LONG_LONG) value);
-#endif
-        }
-    }
-    {
-        int one = 1; int little = (int)*(unsigned char *)&one;
-        unsigned char *bytes = (unsigned char *)&value;
-        return _PyLong_FromByteArray(bytes, sizeof(long),
-                                     little, !is_unsigned);
-    }
-}
-
-/* CIntToPy */
         static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
     const int neg_one = (int) -1, const_zero = (int) 0;
     const int is_unsigned = neg_one > const_zero;
@@ -15340,6 +15721,37 @@ bad:
         int one = 1; int little = (int)*(unsigned char *)&one;
         unsigned char *bytes = (unsigned char *)&value;
         return _PyLong_FromByteArray(bytes, sizeof(int),
+                                     little, !is_unsigned);
+    }
+}
+
+/* CIntToPy */
+        static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
+    const long neg_one = (long) -1, const_zero = (long) 0;
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(long) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(long) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(long) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(long) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(long) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
+        }
+    }
+    {
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        unsigned char *bytes = (unsigned char *)&value;
+        return _PyLong_FromByteArray(bytes, sizeof(long),
                                      little, !is_unsigned);
     }
 }
@@ -15794,999 +16206,8 @@ static CYTHON_INLINE int __Pyx_PyErr_GivenExceptionMatches2(PyObject *err, PyObj
 }
 #endif
 
-/* FetchCommonType */
-        static PyTypeObject* __Pyx_FetchCommonType(PyTypeObject* type) {
-    PyObject* fake_module;
-    PyTypeObject* cached_type = NULL;
-    fake_module = PyImport_AddModule((char*) "_cython_" CYTHON_ABI);
-    if (!fake_module) return NULL;
-    Py_INCREF(fake_module);
-    cached_type = (PyTypeObject*) PyObject_GetAttrString(fake_module, type->tp_name);
-    if (cached_type) {
-        if (!PyType_Check((PyObject*)cached_type)) {
-            PyErr_Format(PyExc_TypeError,
-                "Shared Cython type %.200s is not a type object",
-                type->tp_name);
-            goto bad;
-        }
-        if (cached_type->tp_basicsize != type->tp_basicsize) {
-            PyErr_Format(PyExc_TypeError,
-                "Shared Cython type %.200s has the wrong size, try recompiling",
-                type->tp_name);
-            goto bad;
-        }
-    } else {
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) goto bad;
-        PyErr_Clear();
-        if (PyType_Ready(type) < 0) goto bad;
-        if (PyObject_SetAttrString(fake_module, type->tp_name, (PyObject*) type) < 0)
-            goto bad;
-        Py_INCREF(type);
-        cached_type = type;
-    }
-done:
-    Py_DECREF(fake_module);
-    return cached_type;
-bad:
-    Py_XDECREF(cached_type);
-    cached_type = NULL;
-    goto done;
-}
-
-/* PyObjectCallMethod1 */
-        static PyObject* __Pyx__PyObject_CallMethod1(PyObject* method, PyObject* arg) {
-    PyObject *result = NULL;
-#if CYTHON_UNPACK_METHODS
-    if (likely(PyMethod_Check(method))) {
-        PyObject *self = PyMethod_GET_SELF(method);
-        if (likely(self)) {
-            PyObject *args;
-            PyObject *function = PyMethod_GET_FUNCTION(method);
-            #if CYTHON_FAST_PYCALL
-            if (PyFunction_Check(function)) {
-                PyObject *args[2] = {self, arg};
-                result = __Pyx_PyFunction_FastCall(function, args, 2);
-                goto done;
-            }
-            #endif
-            #if CYTHON_FAST_PYCCALL
-            if (__Pyx_PyFastCFunction_Check(function)) {
-                PyObject *args[2] = {self, arg};
-                result = __Pyx_PyCFunction_FastCall(function, args, 2);
-                goto done;
-            }
-            #endif
-            args = PyTuple_New(2);
-            if (unlikely(!args)) goto done;
-            Py_INCREF(self);
-            PyTuple_SET_ITEM(args, 0, self);
-            Py_INCREF(arg);
-            PyTuple_SET_ITEM(args, 1, arg);
-            Py_INCREF(function);
-            result = __Pyx_PyObject_Call(function, args, NULL);
-            Py_DECREF(args);
-            Py_DECREF(function);
-            return result;
-        }
-    }
-#endif
-    result = __Pyx_PyObject_CallOneArg(method, arg);
-    goto done;
-done:
-    return result;
-}
-static PyObject* __Pyx_PyObject_CallMethod1(PyObject* obj, PyObject* method_name, PyObject* arg) {
-    PyObject *method, *result;
-    method = __Pyx_PyObject_GetAttrStr(obj, method_name);
-    if (unlikely(!method)) return NULL;
-    result = __Pyx__PyObject_CallMethod1(method, arg);
-    Py_DECREF(method);
-    return result;
-}
-
-/* CoroutineBase */
-        #include <structmember.h>
-#include <frameobject.h>
-#define __Pyx_Coroutine_Undelegate(gen) Py_CLEAR((gen)->yieldfrom)
-static int __Pyx_PyGen__FetchStopIterationValue(CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject **pvalue) {
-    PyObject *et, *ev, *tb;
-    PyObject *value = NULL;
-    __Pyx_ErrFetch(&et, &ev, &tb);
-    if (!et) {
-        Py_XDECREF(tb);
-        Py_XDECREF(ev);
-        Py_INCREF(Py_None);
-        *pvalue = Py_None;
-        return 0;
-    }
-    if (likely(et == PyExc_StopIteration)) {
-        if (!ev) {
-            Py_INCREF(Py_None);
-            value = Py_None;
-        }
-#if PY_VERSION_HEX >= 0x030300A0
-        else if (Py_TYPE(ev) == (PyTypeObject*)PyExc_StopIteration) {
-            value = ((PyStopIterationObject *)ev)->value;
-            Py_INCREF(value);
-            Py_DECREF(ev);
-        }
-#endif
-        else if (unlikely(PyTuple_Check(ev))) {
-            if (PyTuple_GET_SIZE(ev) >= 1) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-                value = PyTuple_GET_ITEM(ev, 0);
-                Py_INCREF(value);
-#else
-                value = PySequence_ITEM(ev, 0);
-#endif
-            } else {
-                Py_INCREF(Py_None);
-                value = Py_None;
-            }
-            Py_DECREF(ev);
-        }
-        else if (!__Pyx_TypeCheck(ev, (PyTypeObject*)PyExc_StopIteration)) {
-            value = ev;
-        }
-        if (likely(value)) {
-            Py_XDECREF(tb);
-            Py_DECREF(et);
-            *pvalue = value;
-            return 0;
-        }
-    } else if (!__Pyx_PyErr_GivenExceptionMatches(et, PyExc_StopIteration)) {
-        __Pyx_ErrRestore(et, ev, tb);
-        return -1;
-    }
-    PyErr_NormalizeException(&et, &ev, &tb);
-    if (unlikely(!PyObject_TypeCheck(ev, (PyTypeObject*)PyExc_StopIteration))) {
-        __Pyx_ErrRestore(et, ev, tb);
-        return -1;
-    }
-    Py_XDECREF(tb);
-    Py_DECREF(et);
-#if PY_VERSION_HEX >= 0x030300A0
-    value = ((PyStopIterationObject *)ev)->value;
-    Py_INCREF(value);
-    Py_DECREF(ev);
-#else
-    {
-        PyObject* args = __Pyx_PyObject_GetAttrStr(ev, __pyx_n_s_args);
-        Py_DECREF(ev);
-        if (likely(args)) {
-            value = PySequence_GetItem(args, 0);
-            Py_DECREF(args);
-        }
-        if (unlikely(!value)) {
-            __Pyx_ErrRestore(NULL, NULL, NULL);
-            Py_INCREF(Py_None);
-            value = Py_None;
-        }
-    }
-#endif
-    *pvalue = value;
-    return 0;
-}
-static CYTHON_INLINE
-void __Pyx_Coroutine_ExceptionClear(__pyx_CoroutineObject *self) {
-    PyObject *exc_type = self->exc_type;
-    PyObject *exc_value = self->exc_value;
-    PyObject *exc_traceback = self->exc_traceback;
-    self->exc_type = NULL;
-    self->exc_value = NULL;
-    self->exc_traceback = NULL;
-    Py_XDECREF(exc_type);
-    Py_XDECREF(exc_value);
-    Py_XDECREF(exc_traceback);
-}
-#define __Pyx_Coroutine_AlreadyRunningError(gen)  (__Pyx__Coroutine_AlreadyRunningError(gen), (PyObject*)NULL)
-static void __Pyx__Coroutine_AlreadyRunningError(CYTHON_UNUSED __pyx_CoroutineObject *gen) {
-    const char *msg;
-    if (0) {
-    #ifdef __Pyx_Coroutine_USED
-    } else if (__Pyx_Coroutine_Check((PyObject*)gen)) {
-        msg = "coroutine already executing";
-    #endif
-    #ifdef __Pyx_AsyncGen_USED
-    } else if (__Pyx_AsyncGen_CheckExact((PyObject*)gen)) {
-        msg = "async generator already executing";
-    #endif
-    } else {
-        msg = "generator already executing";
-    }
-    PyErr_SetString(PyExc_ValueError, msg);
-}
-#define __Pyx_Coroutine_NotStartedError(gen)  (__Pyx__Coroutine_NotStartedError(gen), (PyObject*)NULL)
-static void __Pyx__Coroutine_NotStartedError(CYTHON_UNUSED PyObject *gen) {
-    const char *msg;
-    if (0) {
-    #ifdef __Pyx_Coroutine_USED
-    } else if (__Pyx_Coroutine_Check(gen)) {
-        msg = "can't send non-None value to a just-started coroutine";
-    #endif
-    #ifdef __Pyx_AsyncGen_USED
-    } else if (__Pyx_AsyncGen_CheckExact(gen)) {
-        msg = "can't send non-None value to a just-started async generator";
-    #endif
-    } else {
-        msg = "can't send non-None value to a just-started generator";
-    }
-    PyErr_SetString(PyExc_TypeError, msg);
-}
-#define __Pyx_Coroutine_AlreadyTerminatedError(gen, value, closing)  (__Pyx__Coroutine_AlreadyTerminatedError(gen, value, closing), (PyObject*)NULL)
-static void __Pyx__Coroutine_AlreadyTerminatedError(CYTHON_UNUSED PyObject *gen, PyObject *value, CYTHON_UNUSED int closing) {
-    #ifdef __Pyx_Coroutine_USED
-    if (!closing && __Pyx_Coroutine_Check(gen)) {
-        PyErr_SetString(PyExc_RuntimeError, "cannot reuse already awaited coroutine");
-    } else
-    #endif
-    if (value) {
-        #ifdef __Pyx_AsyncGen_USED
-        if (__Pyx_AsyncGen_CheckExact(gen))
-            PyErr_SetNone(__Pyx_PyExc_StopAsyncIteration);
-        else
-        #endif
-        PyErr_SetNone(PyExc_StopIteration);
-    }
-}
-static
-PyObject *__Pyx_Coroutine_SendEx(__pyx_CoroutineObject *self, PyObject *value, int closing) {
-    __Pyx_PyThreadState_declare
-    PyThreadState *tstate;
-    PyObject *retval;
-    assert(!self->is_running);
-    if (unlikely(self->resume_label == 0)) {
-        if (unlikely(value && value != Py_None)) {
-            return __Pyx_Coroutine_NotStartedError((PyObject*)self);
-        }
-    }
-    if (unlikely(self->resume_label == -1)) {
-        return __Pyx_Coroutine_AlreadyTerminatedError((PyObject*)self, value, closing);
-    }
-#if CYTHON_FAST_THREAD_STATE
-    __Pyx_PyThreadState_assign
-    tstate = __pyx_tstate;
-#else
-    tstate = __Pyx_PyThreadState_Current;
-#endif
-    if (self->exc_type) {
-#if CYTHON_COMPILING_IN_PYPY || CYTHON_COMPILING_IN_PYSTON
-#else
-        if (self->exc_traceback) {
-            PyTracebackObject *tb = (PyTracebackObject *) self->exc_traceback;
-            PyFrameObject *f = tb->tb_frame;
-            Py_XINCREF(tstate->frame);
-            assert(f->f_back == NULL);
-            f->f_back = tstate->frame;
-        }
-#endif
-        __Pyx_ExceptionSwap(&self->exc_type, &self->exc_value,
-                            &self->exc_traceback);
-    } else {
-        __Pyx_Coroutine_ExceptionClear(self);
-        __Pyx_ExceptionSave(&self->exc_type, &self->exc_value, &self->exc_traceback);
-    }
-    self->is_running = 1;
-    retval = self->body((PyObject *) self, tstate, value);
-    self->is_running = 0;
-    return retval;
-}
-static CYTHON_INLINE void __Pyx_Coroutine_ResetFrameBackpointer(__pyx_CoroutineObject *self) {
-    if (likely(self->exc_traceback)) {
-#if CYTHON_COMPILING_IN_PYPY || CYTHON_COMPILING_IN_PYSTON
-#else
-        PyTracebackObject *tb = (PyTracebackObject *) self->exc_traceback;
-        PyFrameObject *f = tb->tb_frame;
-        Py_CLEAR(f->f_back);
-#endif
-    }
-}
-static CYTHON_INLINE
-PyObject *__Pyx_Coroutine_MethodReturn(CYTHON_UNUSED PyObject* gen, PyObject *retval) {
-    if (unlikely(!retval)) {
-        __Pyx_PyThreadState_declare
-        __Pyx_PyThreadState_assign
-        if (!__Pyx_PyErr_Occurred()) {
-            PyObject *exc = PyExc_StopIteration;
-            #ifdef __Pyx_AsyncGen_USED
-            if (__Pyx_AsyncGen_CheckExact(gen))
-                exc = __Pyx_PyExc_StopAsyncIteration;
-            #endif
-            __Pyx_PyErr_SetNone(exc);
-        }
-    }
-    return retval;
-}
-static CYTHON_INLINE
-PyObject *__Pyx_Coroutine_FinishDelegation(__pyx_CoroutineObject *gen) {
-    PyObject *ret;
-    PyObject *val = NULL;
-    __Pyx_Coroutine_Undelegate(gen);
-    __Pyx_PyGen__FetchStopIterationValue(__Pyx_PyThreadState_Current, &val);
-    ret = __Pyx_Coroutine_SendEx(gen, val, 0);
-    Py_XDECREF(val);
-    return ret;
-}
-static PyObject *__Pyx_Coroutine_Send(PyObject *self, PyObject *value) {
-    PyObject *retval;
-    __pyx_CoroutineObject *gen = (__pyx_CoroutineObject*) self;
-    PyObject *yf = gen->yieldfrom;
-    if (unlikely(gen->is_running))
-        return __Pyx_Coroutine_AlreadyRunningError(gen);
-    if (yf) {
-        PyObject *ret;
-        gen->is_running = 1;
-        #ifdef __Pyx_Generator_USED
-        if (__Pyx_Generator_CheckExact(yf)) {
-            ret = __Pyx_Coroutine_Send(yf, value);
-        } else
-        #endif
-        #ifdef __Pyx_Coroutine_USED
-        if (__Pyx_Coroutine_Check(yf)) {
-            ret = __Pyx_Coroutine_Send(yf, value);
-        } else
-        #endif
-        #ifdef __Pyx_AsyncGen_USED
-        if (__pyx_PyAsyncGenASend_CheckExact(yf)) {
-            ret = __Pyx_async_gen_asend_send(yf, value);
-        } else
-        #endif
-        #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x03030000 && (defined(__linux__) || PY_VERSION_HEX >= 0x030600B3)
-        if (PyGen_CheckExact(yf)) {
-            ret = _PyGen_Send((PyGenObject*)yf, value == Py_None ? NULL : value);
-        } else
-        #endif
-        #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x03050000 && defined(PyCoro_CheckExact) && (defined(__linux__) || PY_VERSION_HEX >= 0x030600B3)
-        if (PyCoro_CheckExact(yf)) {
-            ret = _PyGen_Send((PyGenObject*)yf, value == Py_None ? NULL : value);
-        } else
-        #endif
-        {
-            if (value == Py_None)
-                ret = Py_TYPE(yf)->tp_iternext(yf);
-            else
-                ret = __Pyx_PyObject_CallMethod1(yf, __pyx_n_s_send, value);
-        }
-        gen->is_running = 0;
-        if (likely(ret)) {
-            return ret;
-        }
-        retval = __Pyx_Coroutine_FinishDelegation(gen);
-    } else {
-        retval = __Pyx_Coroutine_SendEx(gen, value, 0);
-    }
-    return __Pyx_Coroutine_MethodReturn(self, retval);
-}
-static int __Pyx_Coroutine_CloseIter(__pyx_CoroutineObject *gen, PyObject *yf) {
-    PyObject *retval = NULL;
-    int err = 0;
-    #ifdef __Pyx_Generator_USED
-    if (__Pyx_Generator_CheckExact(yf)) {
-        retval = __Pyx_Coroutine_Close(yf);
-        if (!retval)
-            return -1;
-    } else
-    #endif
-    #ifdef __Pyx_Coroutine_USED
-    if (__Pyx_Coroutine_Check(yf)) {
-        retval = __Pyx_Coroutine_Close(yf);
-        if (!retval)
-            return -1;
-    } else
-    if (__Pyx_CoroutineAwait_CheckExact(yf)) {
-        retval = __Pyx_CoroutineAwait_Close((__pyx_CoroutineAwaitObject*)yf);
-        if (!retval)
-            return -1;
-    } else
-    #endif
-    #ifdef __Pyx_AsyncGen_USED
-    if (__pyx_PyAsyncGenASend_CheckExact(yf)) {
-        retval = __Pyx_async_gen_asend_close(yf, NULL);
-    } else
-    if (__pyx_PyAsyncGenAThrow_CheckExact(yf)) {
-        retval = __Pyx_async_gen_athrow_close(yf, NULL);
-    } else
-    #endif
-    {
-        PyObject *meth;
-        gen->is_running = 1;
-        meth = __Pyx_PyObject_GetAttrStr(yf, __pyx_n_s_close);
-        if (unlikely(!meth)) {
-            if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
-                PyErr_WriteUnraisable(yf);
-            }
-            PyErr_Clear();
-        } else {
-            retval = PyObject_CallFunction(meth, NULL);
-            Py_DECREF(meth);
-            if (!retval)
-                err = -1;
-        }
-        gen->is_running = 0;
-    }
-    Py_XDECREF(retval);
-    return err;
-}
-static PyObject *__Pyx_Generator_Next(PyObject *self) {
-    __pyx_CoroutineObject *gen = (__pyx_CoroutineObject*) self;
-    PyObject *yf = gen->yieldfrom;
-    if (unlikely(gen->is_running))
-        return __Pyx_Coroutine_AlreadyRunningError(gen);
-    if (yf) {
-        PyObject *ret;
-        gen->is_running = 1;
-        #ifdef __Pyx_Generator_USED
-        if (__Pyx_Generator_CheckExact(yf)) {
-            ret = __Pyx_Generator_Next(yf);
-        } else
-        #endif
-        #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x03030000 && (defined(__linux__) || PY_VERSION_HEX >= 0x030600B3)
-        if (PyGen_CheckExact(yf)) {
-            ret = _PyGen_Send((PyGenObject*)yf, NULL);
-        } else
-        #endif
-        #ifdef __Pyx_Coroutine_USED
-        if (__Pyx_Coroutine_Check(yf)) {
-            ret = __Pyx_Coroutine_Send(yf, Py_None);
-        } else
-        #endif
-            ret = Py_TYPE(yf)->tp_iternext(yf);
-        gen->is_running = 0;
-        if (likely(ret)) {
-            return ret;
-        }
-        return __Pyx_Coroutine_FinishDelegation(gen);
-    }
-    return __Pyx_Coroutine_SendEx(gen, Py_None, 0);
-}
-static PyObject *__Pyx_Coroutine_Close(PyObject *self) {
-    __pyx_CoroutineObject *gen = (__pyx_CoroutineObject *) self;
-    PyObject *retval, *raised_exception;
-    PyObject *yf = gen->yieldfrom;
-    int err = 0;
-    if (unlikely(gen->is_running))
-        return __Pyx_Coroutine_AlreadyRunningError(gen);
-    if (yf) {
-        Py_INCREF(yf);
-        err = __Pyx_Coroutine_CloseIter(gen, yf);
-        __Pyx_Coroutine_Undelegate(gen);
-        Py_DECREF(yf);
-    }
-    if (err == 0)
-        PyErr_SetNone(PyExc_GeneratorExit);
-    retval = __Pyx_Coroutine_SendEx(gen, NULL, 1);
-    if (unlikely(retval)) {
-        const char *msg;
-        Py_DECREF(retval);
-        if ((0)) {
-        #ifdef __Pyx_Coroutine_USED
-        } else if (__Pyx_Coroutine_Check(self)) {
-            msg = "coroutine ignored GeneratorExit";
-        #endif
-        #ifdef __Pyx_AsyncGen_USED
-        } else if (__Pyx_AsyncGen_CheckExact(self)) {
-#if PY_VERSION_HEX < 0x03060000
-            msg = "async generator ignored GeneratorExit - might require Python 3.6+ finalisation (PEP 525)";
-#else
-            msg = "async generator ignored GeneratorExit";
-#endif
-        #endif
-        } else {
-            msg = "generator ignored GeneratorExit";
-        }
-        PyErr_SetString(PyExc_RuntimeError, msg);
-        return NULL;
-    }
-    raised_exception = PyErr_Occurred();
-    if (likely(!raised_exception || __Pyx_PyErr_GivenExceptionMatches2(raised_exception, PyExc_GeneratorExit, PyExc_StopIteration))) {
-        if (raised_exception) PyErr_Clear();
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-    return NULL;
-}
-static PyObject *__Pyx__Coroutine_Throw(PyObject *self, PyObject *typ, PyObject *val, PyObject *tb,
-                                        PyObject *args, int close_on_genexit) {
-    __pyx_CoroutineObject *gen = (__pyx_CoroutineObject *) self;
-    PyObject *yf = gen->yieldfrom;
-    if (unlikely(gen->is_running))
-        return __Pyx_Coroutine_AlreadyRunningError(gen);
-    if (yf) {
-        PyObject *ret;
-        Py_INCREF(yf);
-        if (__Pyx_PyErr_GivenExceptionMatches(typ, PyExc_GeneratorExit) && close_on_genexit) {
-            int err = __Pyx_Coroutine_CloseIter(gen, yf);
-            Py_DECREF(yf);
-            __Pyx_Coroutine_Undelegate(gen);
-            if (err < 0)
-                return __Pyx_Coroutine_MethodReturn(self, __Pyx_Coroutine_SendEx(gen, NULL, 0));
-            goto throw_here;
-        }
-        gen->is_running = 1;
-        if (0
-        #ifdef __Pyx_Generator_USED
-            || __Pyx_Generator_CheckExact(yf)
-        #endif
-        #ifdef __Pyx_Coroutine_USED
-            || __Pyx_Coroutine_Check(yf)
-        #endif
-            ) {
-            ret = __Pyx__Coroutine_Throw(yf, typ, val, tb, args, close_on_genexit);
-        #ifdef __Pyx_Coroutine_USED
-        } else if (__Pyx_CoroutineAwait_CheckExact(yf)) {
-            ret = __Pyx__Coroutine_Throw(((__pyx_CoroutineAwaitObject*)yf)->coroutine, typ, val, tb, args, close_on_genexit);
-        #endif
-        } else {
-            PyObject *meth = __Pyx_PyObject_GetAttrStr(yf, __pyx_n_s_throw);
-            if (unlikely(!meth)) {
-                Py_DECREF(yf);
-                if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
-                    gen->is_running = 0;
-                    return NULL;
-                }
-                PyErr_Clear();
-                __Pyx_Coroutine_Undelegate(gen);
-                gen->is_running = 0;
-                goto throw_here;
-            }
-            if (likely(args)) {
-                ret = PyObject_CallObject(meth, args);
-            } else {
-                ret = PyObject_CallFunctionObjArgs(meth, typ, val, tb, NULL);
-            }
-            Py_DECREF(meth);
-        }
-        gen->is_running = 0;
-        Py_DECREF(yf);
-        if (!ret) {
-            ret = __Pyx_Coroutine_FinishDelegation(gen);
-        }
-        return __Pyx_Coroutine_MethodReturn(self, ret);
-    }
-throw_here:
-    __Pyx_Raise(typ, val, tb, NULL);
-    return __Pyx_Coroutine_MethodReturn(self, __Pyx_Coroutine_SendEx(gen, NULL, 0));
-}
-static PyObject *__Pyx_Coroutine_Throw(PyObject *self, PyObject *args) {
-    PyObject *typ;
-    PyObject *val = NULL;
-    PyObject *tb = NULL;
-    if (!PyArg_UnpackTuple(args, (char *)"throw", 1, 3, &typ, &val, &tb))
-        return NULL;
-    return __Pyx__Coroutine_Throw(self, typ, val, tb, args, 1);
-}
-static int __Pyx_Coroutine_traverse(__pyx_CoroutineObject *gen, visitproc visit, void *arg) {
-    Py_VISIT(gen->closure);
-    Py_VISIT(gen->classobj);
-    Py_VISIT(gen->yieldfrom);
-    Py_VISIT(gen->exc_type);
-    Py_VISIT(gen->exc_value);
-    Py_VISIT(gen->exc_traceback);
-    return 0;
-}
-static int __Pyx_Coroutine_clear(PyObject *self) {
-    __pyx_CoroutineObject *gen = (__pyx_CoroutineObject *) self;
-    Py_CLEAR(gen->closure);
-    Py_CLEAR(gen->classobj);
-    Py_CLEAR(gen->yieldfrom);
-    Py_CLEAR(gen->exc_type);
-    Py_CLEAR(gen->exc_value);
-    Py_CLEAR(gen->exc_traceback);
-#ifdef __Pyx_AsyncGen_USED
-    if (__Pyx_AsyncGen_CheckExact(self)) {
-        Py_CLEAR(((__pyx_PyAsyncGenObject*)gen)->ag_finalizer);
-    }
-#endif
-    Py_CLEAR(gen->gi_code);
-    Py_CLEAR(gen->gi_name);
-    Py_CLEAR(gen->gi_qualname);
-    Py_CLEAR(gen->gi_modulename);
-    return 0;
-}
-static void __Pyx_Coroutine_dealloc(PyObject *self) {
-    __pyx_CoroutineObject *gen = (__pyx_CoroutineObject *) self;
-    PyObject_GC_UnTrack(gen);
-    if (gen->gi_weakreflist != NULL)
-        PyObject_ClearWeakRefs(self);
-    if (gen->resume_label >= 0) {
-        PyObject_GC_Track(self);
-#if PY_VERSION_HEX >= 0x030400a1 && CYTHON_USE_TP_FINALIZE
-        if (PyObject_CallFinalizerFromDealloc(self))
-#else
-        Py_TYPE(gen)->tp_del(self);
-        if (self->ob_refcnt > 0)
-#endif
-        {
-            return;
-        }
-        PyObject_GC_UnTrack(self);
-    }
-#ifdef __Pyx_AsyncGen_USED
-    if (__Pyx_AsyncGen_CheckExact(self)) {
-        /* We have to handle this case for asynchronous generators
-           right here, because this code has to be between UNTRACK
-           and GC_Del. */
-        Py_CLEAR(((__pyx_PyAsyncGenObject*)self)->ag_finalizer);
-    }
-#endif
-    __Pyx_Coroutine_clear(self);
-    PyObject_GC_Del(gen);
-}
-static void __Pyx_Coroutine_del(PyObject *self) {
-    PyObject *error_type, *error_value, *error_traceback;
-    __pyx_CoroutineObject *gen = (__pyx_CoroutineObject *) self;
-    __Pyx_PyThreadState_declare
-    if (gen->resume_label < 0) {
-        return;
-    }
-#if !CYTHON_USE_TP_FINALIZE
-    assert(self->ob_refcnt == 0);
-    self->ob_refcnt = 1;
-#endif
-    __Pyx_PyThreadState_assign
-    __Pyx_ErrFetch(&error_type, &error_value, &error_traceback);
-#ifdef __Pyx_AsyncGen_USED
-    if (__Pyx_AsyncGen_CheckExact(self)) {
-        __pyx_PyAsyncGenObject *agen = (__pyx_PyAsyncGenObject*)self;
-        PyObject *finalizer = agen->ag_finalizer;
-        if (finalizer && !agen->ag_closed) {
-            PyObject *res = __Pyx_PyObject_CallOneArg(finalizer, self);
-            if (unlikely(!res)) {
-                PyErr_WriteUnraisable(self);
-            } else {
-                Py_DECREF(res);
-            }
-            __Pyx_ErrRestore(error_type, error_value, error_traceback);
-            return;
-        }
-    }
-#endif
-    if (unlikely(gen->resume_label == 0 && !error_value)) {
-#ifdef __Pyx_Coroutine_USED
-#ifdef __Pyx_Generator_USED
-    if (!__Pyx_Generator_CheckExact(self))
-#endif
-        {
-        PyObject_GC_UnTrack(self);
-#if PY_MAJOR_VERSION >= 3  || defined(PyErr_WarnFormat)
-        if (unlikely(PyErr_WarnFormat(PyExc_RuntimeWarning, 1, "coroutine '%.50S' was never awaited", gen->gi_qualname) < 0))
-            PyErr_WriteUnraisable(self);
-#else
-        {PyObject *msg;
-        char *cmsg;
-        #if CYTHON_COMPILING_IN_PYPY
-        msg = NULL;
-        cmsg = (char*) "coroutine was never awaited";
-        #else
-        char *cname;
-        PyObject *qualname;
-        qualname = gen->gi_qualname;
-        cname = PyString_AS_STRING(qualname);
-        msg = PyString_FromFormat("coroutine '%.50s' was never awaited", cname);
-        if (unlikely(!msg)) {
-            PyErr_Clear();
-            cmsg = (char*) "coroutine was never awaited";
-        } else {
-            cmsg = PyString_AS_STRING(msg);
-        }
-        #endif
-        if (unlikely(PyErr_WarnEx(PyExc_RuntimeWarning, cmsg, 1) < 0))
-            PyErr_WriteUnraisable(self);
-        Py_XDECREF(msg);}
-#endif
-        PyObject_GC_Track(self);
-        }
-#endif
-    } else {
-        PyObject *res = __Pyx_Coroutine_Close(self);
-        if (unlikely(!res)) {
-            if (PyErr_Occurred())
-                PyErr_WriteUnraisable(self);
-        } else {
-            Py_DECREF(res);
-        }
-    }
-    __Pyx_ErrRestore(error_type, error_value, error_traceback);
-#if !CYTHON_USE_TP_FINALIZE
-    assert(self->ob_refcnt > 0);
-    if (--self->ob_refcnt == 0) {
-        return;
-    }
-    {
-        Py_ssize_t refcnt = self->ob_refcnt;
-        _Py_NewReference(self);
-        self->ob_refcnt = refcnt;
-    }
-#if CYTHON_COMPILING_IN_CPYTHON
-    assert(PyType_IS_GC(self->ob_type) &&
-           _Py_AS_GC(self)->gc.gc_refs != _PyGC_REFS_UNTRACKED);
-    _Py_DEC_REFTOTAL;
-#endif
-#ifdef COUNT_ALLOCS
-    --Py_TYPE(self)->tp_frees;
-    --Py_TYPE(self)->tp_allocs;
-#endif
-#endif
-}
-static PyObject *
-__Pyx_Coroutine_get_name(__pyx_CoroutineObject *self)
-{
-    PyObject *name = self->gi_name;
-    if (unlikely(!name)) name = Py_None;
-    Py_INCREF(name);
-    return name;
-}
-static int
-__Pyx_Coroutine_set_name(__pyx_CoroutineObject *self, PyObject *value)
-{
-    PyObject *tmp;
-#if PY_MAJOR_VERSION >= 3
-    if (unlikely(value == NULL || !PyUnicode_Check(value))) {
-#else
-    if (unlikely(value == NULL || !PyString_Check(value))) {
-#endif
-        PyErr_SetString(PyExc_TypeError,
-                        "__name__ must be set to a string object");
-        return -1;
-    }
-    tmp = self->gi_name;
-    Py_INCREF(value);
-    self->gi_name = value;
-    Py_XDECREF(tmp);
-    return 0;
-}
-static PyObject *
-__Pyx_Coroutine_get_qualname(__pyx_CoroutineObject *self)
-{
-    PyObject *name = self->gi_qualname;
-    if (unlikely(!name)) name = Py_None;
-    Py_INCREF(name);
-    return name;
-}
-static int
-__Pyx_Coroutine_set_qualname(__pyx_CoroutineObject *self, PyObject *value)
-{
-    PyObject *tmp;
-#if PY_MAJOR_VERSION >= 3
-    if (unlikely(value == NULL || !PyUnicode_Check(value))) {
-#else
-    if (unlikely(value == NULL || !PyString_Check(value))) {
-#endif
-        PyErr_SetString(PyExc_TypeError,
-                        "__qualname__ must be set to a string object");
-        return -1;
-    }
-    tmp = self->gi_qualname;
-    Py_INCREF(value);
-    self->gi_qualname = value;
-    Py_XDECREF(tmp);
-    return 0;
-}
-static __pyx_CoroutineObject *__Pyx__Coroutine_New(
-            PyTypeObject* type, __pyx_coroutine_body_t body, PyObject *code, PyObject *closure,
-            PyObject *name, PyObject *qualname, PyObject *module_name) {
-    __pyx_CoroutineObject *gen = PyObject_GC_New(__pyx_CoroutineObject, type);
-    if (unlikely(!gen))
-        return NULL;
-    return __Pyx__Coroutine_NewInit(gen, body, code, closure, name, qualname, module_name);
-}
-static __pyx_CoroutineObject *__Pyx__Coroutine_NewInit(
-            __pyx_CoroutineObject *gen, __pyx_coroutine_body_t body, PyObject *code, PyObject *closure,
-            PyObject *name, PyObject *qualname, PyObject *module_name) {
-    gen->body = body;
-    gen->closure = closure;
-    Py_XINCREF(closure);
-    gen->is_running = 0;
-    gen->resume_label = 0;
-    gen->classobj = NULL;
-    gen->yieldfrom = NULL;
-    gen->exc_type = NULL;
-    gen->exc_value = NULL;
-    gen->exc_traceback = NULL;
-    gen->gi_weakreflist = NULL;
-    Py_XINCREF(qualname);
-    gen->gi_qualname = qualname;
-    Py_XINCREF(name);
-    gen->gi_name = name;
-    Py_XINCREF(module_name);
-    gen->gi_modulename = module_name;
-    Py_XINCREF(code);
-    gen->gi_code = code;
-    PyObject_GC_Track(gen);
-    return gen;
-}
-
-/* PatchModuleWithCoroutine */
-            static PyObject* __Pyx_Coroutine_patch_module(PyObject* module, const char* py_code) {
-#if defined(__Pyx_Generator_USED) || defined(__Pyx_Coroutine_USED)
-    int result;
-    PyObject *globals, *result_obj;
-    globals = PyDict_New();  if (unlikely(!globals)) goto ignore;
-    result = PyDict_SetItemString(globals, "_cython_coroutine_type",
-    #ifdef __Pyx_Coroutine_USED
-        (PyObject*)__pyx_CoroutineType);
-    #else
-        Py_None);
-    #endif
-    if (unlikely(result < 0)) goto ignore;
-    result = PyDict_SetItemString(globals, "_cython_generator_type",
-    #ifdef __Pyx_Generator_USED
-        (PyObject*)__pyx_GeneratorType);
-    #else
-        Py_None);
-    #endif
-    if (unlikely(result < 0)) goto ignore;
-    if (unlikely(PyDict_SetItemString(globals, "_module", module) < 0)) goto ignore;
-    if (unlikely(PyDict_SetItemString(globals, "__builtins__", __pyx_b) < 0)) goto ignore;
-    result_obj = PyRun_String(py_code, Py_file_input, globals, globals);
-    if (unlikely(!result_obj)) goto ignore;
-    Py_DECREF(result_obj);
-    Py_DECREF(globals);
-    return module;
-ignore:
-    Py_XDECREF(globals);
-    PyErr_WriteUnraisable(module);
-    if (unlikely(PyErr_WarnEx(PyExc_RuntimeWarning, "Cython module failed to patch module with custom type", 1) < 0)) {
-        Py_DECREF(module);
-        module = NULL;
-    }
-#else
-    py_code++;
-#endif
-    return module;
-}
-
-/* PatchGeneratorABC */
-            #ifndef CYTHON_REGISTER_ABCS
-#define CYTHON_REGISTER_ABCS 1
-#endif
-#if defined(__Pyx_Generator_USED) || defined(__Pyx_Coroutine_USED)
-static PyObject* __Pyx_patch_abc_module(PyObject *module);
-static PyObject* __Pyx_patch_abc_module(PyObject *module) {
-    module = __Pyx_Coroutine_patch_module(
-        module, ""
-"if _cython_generator_type is not None:\n"
-"    try: Generator = _module.Generator\n"
-"    except AttributeError: pass\n"
-"    else: Generator.register(_cython_generator_type)\n"
-"if _cython_coroutine_type is not None:\n"
-"    try: Coroutine = _module.Coroutine\n"
-"    except AttributeError: pass\n"
-"    else: Coroutine.register(_cython_coroutine_type)\n"
-    );
-    return module;
-}
-#endif
-static int __Pyx_patch_abc(void) {
-#if defined(__Pyx_Generator_USED) || defined(__Pyx_Coroutine_USED)
-    static int abc_patched = 0;
-    if (CYTHON_REGISTER_ABCS && !abc_patched) {
-        PyObject *module;
-        module = PyImport_ImportModule((PY_MAJOR_VERSION >= 3) ? "collections.abc" : "collections");
-        if (!module) {
-            PyErr_WriteUnraisable(NULL);
-            if (unlikely(PyErr_WarnEx(PyExc_RuntimeWarning,
-                    ((PY_MAJOR_VERSION >= 3) ?
-                        "Cython module failed to register with collections.abc module" :
-                        "Cython module failed to register with collections module"), 1) < 0)) {
-                return -1;
-            }
-        } else {
-            module = __Pyx_patch_abc_module(module);
-            abc_patched = 1;
-            if (unlikely(!module))
-                return -1;
-            Py_DECREF(module);
-        }
-        module = PyImport_ImportModule("backports_abc");
-        if (module) {
-            module = __Pyx_patch_abc_module(module);
-            Py_XDECREF(module);
-        }
-        if (!module) {
-            PyErr_Clear();
-        }
-    }
-#else
-    if ((0)) __Pyx_Coroutine_patch_module(NULL, NULL);
-#endif
-    return 0;
-}
-
-/* Generator */
-            static PyMethodDef __pyx_Generator_methods[] = {
-    {"send", (PyCFunction) __Pyx_Coroutine_Send, METH_O,
-     (char*) PyDoc_STR("send(arg) -> send 'arg' into generator,\nreturn next yielded value or raise StopIteration.")},
-    {"throw", (PyCFunction) __Pyx_Coroutine_Throw, METH_VARARGS,
-     (char*) PyDoc_STR("throw(typ[,val[,tb]]) -> raise exception in generator,\nreturn next yielded value or raise StopIteration.")},
-    {"close", (PyCFunction) __Pyx_Coroutine_Close, METH_NOARGS,
-     (char*) PyDoc_STR("close() -> raise GeneratorExit inside generator.")},
-    {0, 0, 0, 0}
-};
-static PyMemberDef __pyx_Generator_memberlist[] = {
-    {(char *) "gi_running", T_BOOL, offsetof(__pyx_CoroutineObject, is_running), READONLY, NULL},
-    {(char*) "gi_yieldfrom", T_OBJECT, offsetof(__pyx_CoroutineObject, yieldfrom), READONLY,
-     (char*) PyDoc_STR("object being iterated by 'yield from', or None")},
-    {(char*) "gi_code", T_OBJECT, offsetof(__pyx_CoroutineObject, gi_code), READONLY, NULL},
-    {0, 0, 0, 0, 0}
-};
-static PyGetSetDef __pyx_Generator_getsets[] = {
-    {(char *) "__name__", (getter)__Pyx_Coroutine_get_name, (setter)__Pyx_Coroutine_set_name,
-     (char*) PyDoc_STR("name of the generator"), 0},
-    {(char *) "__qualname__", (getter)__Pyx_Coroutine_get_qualname, (setter)__Pyx_Coroutine_set_qualname,
-     (char*) PyDoc_STR("qualified name of the generator"), 0},
-    {0, 0, 0, 0, 0}
-};
-static PyTypeObject __pyx_GeneratorType_type = {
-    PyVarObject_HEAD_INIT(0, 0)
-    "generator",
-    sizeof(__pyx_CoroutineObject),
-    0,
-    (destructor) __Pyx_Coroutine_dealloc,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_HAVE_FINALIZE,
-    0,
-    (traverseproc) __Pyx_Coroutine_traverse,
-    0,
-    0,
-    offsetof(__pyx_CoroutineObject, gi_weakreflist),
-    0,
-    (iternextfunc) __Pyx_Generator_Next,
-    __pyx_Generator_methods,
-    __pyx_Generator_memberlist,
-    __pyx_Generator_getsets,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-#if CYTHON_USE_TP_FINALIZE
-    0,
-#else
-    __Pyx_Coroutine_del,
-#endif
-    0,
-#if CYTHON_USE_TP_FINALIZE
-    __Pyx_Coroutine_del,
-#elif PY_VERSION_HEX >= 0x030400a1
-    0,
-#endif
-};
-static int __pyx_Generator_init(void) {
-    __pyx_GeneratorType_type.tp_getattro = __Pyx_PyObject_GenericGetAttrNoDict;
-    __pyx_GeneratorType_type.tp_iter = PyObject_SelfIter;
-    __pyx_GeneratorType = __Pyx_FetchCommonType(&__pyx_GeneratorType_type);
-    if (unlikely(!__pyx_GeneratorType)) {
-        return -1;
-    }
-    return 0;
-}
-
 /* CheckBinaryVersion */
-            static int __Pyx_check_binary_version(void) {
+        static int __Pyx_check_binary_version(void) {
     char ctversion[4], rtversion[4];
     PyOS_snprintf(ctversion, 4, "%d.%d", PY_MAJOR_VERSION, PY_MINOR_VERSION);
     PyOS_snprintf(rtversion, 4, "%s", Py_GetVersion());
@@ -16802,7 +16223,7 @@ static int __pyx_Generator_init(void) {
 }
 
 /* ModuleImport */
-            #ifndef __PYX_HAVE_RT_ImportModule
+        #ifndef __PYX_HAVE_RT_ImportModule
 #define __PYX_HAVE_RT_ImportModule
 static PyObject *__Pyx_ImportModule(const char *name) {
     PyObject *py_name = 0;
@@ -16820,7 +16241,7 @@ bad:
 #endif
 
 /* TypeImport */
-            #ifndef __PYX_HAVE_RT_ImportType
+        #ifndef __PYX_HAVE_RT_ImportType
 #define __PYX_HAVE_RT_ImportType
 static PyTypeObject *__Pyx_ImportType(const char *module_name, const char *class_name,
     size_t size, int strict)
@@ -16885,7 +16306,7 @@ bad:
 #endif
 
 /* FunctionImport */
-            #ifndef __PYX_HAVE_RT_ImportFunction
+        #ifndef __PYX_HAVE_RT_ImportFunction
 #define __PYX_HAVE_RT_ImportFunction
 static int __Pyx_ImportFunction(PyObject *module, const char *funcname, void (**f)(void), const char *sig) {
     PyObject *d = 0;
@@ -16939,7 +16360,7 @@ bad:
 #endif
 
 /* InitStrings */
-            static int __Pyx_InitStrings(__Pyx_StringTabEntry *t) {
+        static int __Pyx_InitStrings(__Pyx_StringTabEntry *t) {
     while (t->p) {
         #if PY_MAJOR_VERSION < 3
         if (t->is_unicode) {

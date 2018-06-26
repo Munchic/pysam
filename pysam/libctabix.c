@@ -569,6 +569,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "fcntl.h"
 #include "unistd.h"
 #include <sys/types.h>
+#include "stdarg.h"
 #include "htslib/kstring.h"
 #include "htslib_util.h"
 #include "htslib/hfile.h"
@@ -579,11 +580,11 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "htslib/tbx.h"
 #include "htslib/vcf.h"
 #include "htslib/vcfutils.h"
+#include "htslib/cram.h"
 #include "pysam_stream.h"
 #include <errno.h>
 #include <unistd.h>
 #include "pythread.h"
-#include "pysam_util.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -816,8 +817,9 @@ typedef struct arrayobject arrayobject;
 #endif
 struct __pyx_obj_5pysam_10libchtslib_HTSFile;
 struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy;
-struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy;
 struct __pyx_obj_5pysam_16libctabixproxies_NamedTupleProxy;
+struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy;
+struct __pyx_obj_5pysam_16libctabixproxies_GFF3Proxy;
 struct __pyx_obj_5pysam_16libctabixproxies_BedProxy;
 struct __pyx_obj_5pysam_16libctabixproxies_VCFProxy;
 struct __pyx_obj_5pysam_9libctabix_tabix_file_iterator;
@@ -825,6 +827,7 @@ struct __pyx_obj_5pysam_9libctabix_TabixFile;
 struct __pyx_obj_5pysam_9libctabix_Parser;
 struct __pyx_obj_5pysam_9libctabix_asTuple;
 struct __pyx_obj_5pysam_9libctabix_asGTF;
+struct __pyx_obj_5pysam_9libctabix_asGFF3;
 struct __pyx_obj_5pysam_9libctabix_asBed;
 struct __pyx_obj_5pysam_9libctabix_asVCF;
 struct __pyx_obj_5pysam_9libctabix_TabixIterator;
@@ -967,7 +970,7 @@ struct __pyx_opt_args_5pysam_9libcutils_force_bytes {
   PyObject *encoding;
 };
 
-/* "pysam/libchtslib.pxd":1904
+/* "pysam/libchtslib.pxd":2590
  * 
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
@@ -981,6 +984,7 @@ struct __pyx_obj_5pysam_10libchtslib_HTSFile {
   int64_t start_offset;
   PyObject *filename;
   PyObject *mode;
+  PyObject *threads;
   PyObject *index_filename;
   int is_stream;
   int is_remote;
@@ -1009,22 +1013,8 @@ struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy {
 };
 
 
-/* "pysam/libctabixproxies.pxd":28
- *     cdef update(self, char * buffer, size_t nbytes)
+/* "pysam/libctabixproxies.pxd":29
  * 
- * cdef class GTFProxy(TupleProxy) :             # <<<<<<<<<<<<<<
- * 
- *     cdef:
- */
-struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy {
-  struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy __pyx_base;
-  char *_attributes;
-  int hasOwnAttributes;
-};
-
-
-/* "pysam/libctabixproxies.pxd":38
- *     cdef char * getAttributes(self)
  * 
  * cdef class NamedTupleProxy(TupleProxy):             # <<<<<<<<<<<<<<
  *     pass
@@ -1035,8 +1025,33 @@ struct __pyx_obj_5pysam_16libctabixproxies_NamedTupleProxy {
 };
 
 
-/* "pysam/libctabixproxies.pxd":41
+/* "pysam/libctabixproxies.pxd":33
+ * 
+ * 
+ * cdef class GTFProxy(NamedTupleProxy):             # <<<<<<<<<<<<<<
+ *     cdef object attribute_dict
+ *     cpdef int getMaxFields(self)
+ */
+struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy {
+  struct __pyx_obj_5pysam_16libctabixproxies_NamedTupleProxy __pyx_base;
+  PyObject *attribute_dict;
+};
+
+
+/* "pysam/libctabixproxies.pxd":39
+ * 
+ * 
+ * cdef class GFF3Proxy(GTFProxy):             # <<<<<<<<<<<<<<
  *     pass
+ * 
+ */
+struct __pyx_obj_5pysam_16libctabixproxies_GFF3Proxy {
+  struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy __pyx_base;
+};
+
+
+/* "pysam/libctabixproxies.pxd":43
+ * 
  * 
  * cdef class BedProxy(NamedTupleProxy):             # <<<<<<<<<<<<<<
  * 
@@ -1051,7 +1066,7 @@ struct __pyx_obj_5pysam_16libctabixproxies_BedProxy {
 };
 
 
-/* "pysam/libctabixproxies.pxd":53
+/* "pysam/libctabixproxies.pxd":55
  *     cdef update(self, char * buffer, size_t nbytes)
  * 
  * cdef class VCFProxy(NamedTupleProxy) :             # <<<<<<<<<<<<<<
@@ -1143,6 +1158,18 @@ struct __pyx_obj_5pysam_9libctabix_asGTF {
 /* "pysam/libctabix.pxd":84
  * 
  * 
+ * cdef class asGFF3(Parser):             # <<<<<<<<<<<<<<
+ *     pass
+ * 
+ */
+struct __pyx_obj_5pysam_9libctabix_asGFF3 {
+  struct __pyx_obj_5pysam_9libctabix_Parser __pyx_base;
+};
+
+
+/* "pysam/libctabix.pxd":88
+ * 
+ * 
  * cdef class asBed(Parser):             # <<<<<<<<<<<<<<
  *     pass
  * 
@@ -1152,7 +1179,7 @@ struct __pyx_obj_5pysam_9libctabix_asBed {
 };
 
 
-/* "pysam/libctabix.pxd":88
+/* "pysam/libctabix.pxd":92
  * 
  * 
  * cdef class asVCF(Parser):             # <<<<<<<<<<<<<<
@@ -1164,7 +1191,7 @@ struct __pyx_obj_5pysam_9libctabix_asVCF {
 };
 
 
-/* "pysam/libctabix.pxd":92
+/* "pysam/libctabix.pxd":96
  * 
  * 
  * cdef class TabixIterator:             # <<<<<<<<<<<<<<
@@ -1181,7 +1208,7 @@ struct __pyx_obj_5pysam_9libctabix_TabixIterator {
 };
 
 
-/* "pysam/libctabix.pxd":100
+/* "pysam/libctabix.pxd":104
  * 
  * 
  * cdef class TabixIteratorParsed(TabixIterator):             # <<<<<<<<<<<<<<
@@ -1194,7 +1221,7 @@ struct __pyx_obj_5pysam_9libctabix_TabixIteratorParsed {
 };
 
 
-/* "pysam/libctabix.pxd":104
+/* "pysam/libctabix.pxd":108
  * 
  * 
  * cdef class GZIterator:             # <<<<<<<<<<<<<<
@@ -1212,7 +1239,7 @@ struct __pyx_obj_5pysam_9libctabix_GZIterator {
 };
 
 
-/* "pysam/libctabix.pxd":113
+/* "pysam/libctabix.pxd":117
  * 
  * 
  * cdef class GZIteratorHead(GZIterator):             # <<<<<<<<<<<<<<
@@ -1224,7 +1251,7 @@ struct __pyx_obj_5pysam_9libctabix_GZIteratorHead {
 };
 
 
-/* "pysam/libctabix.pxd":117
+/* "pysam/libctabix.pxd":121
  * 
  * 
  * cdef class GZIteratorParsed(GZIterator):             # <<<<<<<<<<<<<<
@@ -1237,7 +1264,7 @@ struct __pyx_obj_5pysam_9libctabix_GZIteratorParsed {
 };
 
 
-/* "pysam/libctabix.pxd":122
+/* "pysam/libctabix.pxd":126
  * 
  * # Compatibility Layer for pysam < 0.8
  * cdef class Tabixfile(TabixFile):             # <<<<<<<<<<<<<<
@@ -1249,7 +1276,7 @@ struct __pyx_obj_5pysam_9libctabix_Tabixfile {
 
 
 
-/* "pysam/libchtslib.pxd":1904
+/* "pysam/libchtslib.pxd":2590
  * 
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
@@ -1282,23 +1309,8 @@ struct __pyx_vtabstruct_5pysam_16libctabixproxies_TupleProxy {
 static struct __pyx_vtabstruct_5pysam_16libctabixproxies_TupleProxy *__pyx_vtabptr_5pysam_16libctabixproxies_TupleProxy;
 
 
-/* "pysam/libctabixproxies.pxd":28
- *     cdef update(self, char * buffer, size_t nbytes)
+/* "pysam/libctabixproxies.pxd":29
  * 
- * cdef class GTFProxy(TupleProxy) :             # <<<<<<<<<<<<<<
- * 
- *     cdef:
- */
-
-struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy {
-  struct __pyx_vtabstruct_5pysam_16libctabixproxies_TupleProxy __pyx_base;
-  char *(*getAttributes)(struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy *);
-};
-static struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy *__pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy;
-
-
-/* "pysam/libctabixproxies.pxd":38
- *     cdef char * getAttributes(self)
  * 
  * cdef class NamedTupleProxy(TupleProxy):             # <<<<<<<<<<<<<<
  *     pass
@@ -1311,8 +1323,36 @@ struct __pyx_vtabstruct_5pysam_16libctabixproxies_NamedTupleProxy {
 static struct __pyx_vtabstruct_5pysam_16libctabixproxies_NamedTupleProxy *__pyx_vtabptr_5pysam_16libctabixproxies_NamedTupleProxy;
 
 
-/* "pysam/libctabixproxies.pxd":41
+/* "pysam/libctabixproxies.pxd":33
+ * 
+ * 
+ * cdef class GTFProxy(NamedTupleProxy):             # <<<<<<<<<<<<<<
+ *     cdef object attribute_dict
+ *     cpdef int getMaxFields(self)
+ */
+
+struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy {
+  struct __pyx_vtabstruct_5pysam_16libctabixproxies_NamedTupleProxy __pyx_base;
+};
+static struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy *__pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy;
+
+
+/* "pysam/libctabixproxies.pxd":39
+ * 
+ * 
+ * cdef class GFF3Proxy(GTFProxy):             # <<<<<<<<<<<<<<
  *     pass
+ * 
+ */
+
+struct __pyx_vtabstruct_5pysam_16libctabixproxies_GFF3Proxy {
+  struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy __pyx_base;
+};
+static struct __pyx_vtabstruct_5pysam_16libctabixproxies_GFF3Proxy *__pyx_vtabptr_5pysam_16libctabixproxies_GFF3Proxy;
+
+
+/* "pysam/libctabixproxies.pxd":43
+ * 
  * 
  * cdef class BedProxy(NamedTupleProxy):             # <<<<<<<<<<<<<<
  * 
@@ -1325,7 +1365,7 @@ struct __pyx_vtabstruct_5pysam_16libctabixproxies_BedProxy {
 static struct __pyx_vtabstruct_5pysam_16libctabixproxies_BedProxy *__pyx_vtabptr_5pysam_16libctabixproxies_BedProxy;
 
 
-/* "pysam/libctabixproxies.pxd":53
+/* "pysam/libctabixproxies.pxd":55
  *     cdef update(self, char * buffer, size_t nbytes)
  * 
  * cdef class VCFProxy(NamedTupleProxy) :             # <<<<<<<<<<<<<<
@@ -1339,7 +1379,7 @@ struct __pyx_vtabstruct_5pysam_16libctabixproxies_VCFProxy {
 static struct __pyx_vtabstruct_5pysam_16libctabixproxies_VCFProxy *__pyx_vtabptr_5pysam_16libctabixproxies_VCFProxy;
 
 
-/* "pysam/libctabix.pyx":995
+/* "pysam/libctabix.pyx":1115
  * 
  * 
  * cdef class tabix_file_iterator:             # <<<<<<<<<<<<<<
@@ -1353,7 +1393,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_tabix_file_iterator {
 static struct __pyx_vtabstruct_5pysam_9libctabix_tabix_file_iterator *__pyx_vtabptr_5pysam_9libctabix_tabix_file_iterator;
 
 
-/* "pysam/libctabix.pyx":249
+/* "pysam/libctabix.pyx":289
  * 
  * 
  * cdef class TabixFile:             # <<<<<<<<<<<<<<
@@ -1367,7 +1407,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_TabixFile {
 static struct __pyx_vtabstruct_5pysam_9libctabix_TabixFile *__pyx_vtabptr_5pysam_9libctabix_TabixFile;
 
 
-/* "pysam/libctabix.pyx":80
+/* "pysam/libctabix.pyx":84
  * from pysam.libcutils cimport encode_filename, from_string_and_size
  * 
  * cdef class Parser:             # <<<<<<<<<<<<<<
@@ -1381,7 +1421,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_Parser {
 static struct __pyx_vtabstruct_5pysam_9libctabix_Parser *__pyx_vtabptr_5pysam_9libctabix_Parser;
 
 
-/* "pysam/libctabix.pyx":99
+/* "pysam/libctabix.pyx":103
  * 
  * 
  * cdef class asTuple(Parser):             # <<<<<<<<<<<<<<
@@ -1395,7 +1435,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_asTuple {
 static struct __pyx_vtabstruct_5pysam_9libctabix_asTuple *__pyx_vtabptr_5pysam_9libctabix_asTuple;
 
 
-/* "pysam/libctabix.pyx":113
+/* "pysam/libctabix.pyx":153
  * 
  * 
  * cdef class asGTF(Parser):             # <<<<<<<<<<<<<<
@@ -1409,7 +1449,21 @@ struct __pyx_vtabstruct_5pysam_9libctabix_asGTF {
 static struct __pyx_vtabstruct_5pysam_9libctabix_asGTF *__pyx_vtabptr_5pysam_9libctabix_asGTF;
 
 
-/* "pysam/libctabix.pyx":160
+/* "pysam/libctabix.pyx":117
+ * 
+ * 
+ * cdef class asGFF3(Parser):             # <<<<<<<<<<<<<<
+ *     '''converts a :term:`tabix row` into a GFF record with the following
+ *     fields:
+ */
+
+struct __pyx_vtabstruct_5pysam_9libctabix_asGFF3 {
+  struct __pyx_vtabstruct_5pysam_9libctabix_Parser __pyx_base;
+};
+static struct __pyx_vtabstruct_5pysam_9libctabix_asGFF3 *__pyx_vtabptr_5pysam_9libctabix_asGFF3;
+
+
+/* "pysam/libctabix.pyx":200
  * 
  * 
  * cdef class asBed(Parser):             # <<<<<<<<<<<<<<
@@ -1423,7 +1477,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_asBed {
 static struct __pyx_vtabstruct_5pysam_9libctabix_asBed *__pyx_vtabptr_5pysam_9libctabix_asBed;
 
 
-/* "pysam/libctabix.pyx":208
+/* "pysam/libctabix.pyx":248
  * 
  * 
  * cdef class asVCF(Parser):             # <<<<<<<<<<<<<<
@@ -1437,7 +1491,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_asVCF {
 static struct __pyx_vtabstruct_5pysam_9libctabix_asVCF *__pyx_vtabptr_5pysam_9libctabix_asVCF;
 
 
-/* "pysam/libctabix.pyx":546
+/* "pysam/libctabix.pyx":621
  * 
  * 
  * cdef class TabixIterator:             # <<<<<<<<<<<<<<
@@ -1451,7 +1505,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_TabixIterator {
 static struct __pyx_vtabstruct_5pysam_9libctabix_TabixIterator *__pyx_vtabptr_5pysam_9libctabix_TabixIterator;
 
 
-/* "pysam/libctabix.pyx":625
+/* "pysam/libctabix.pyx":700
  * 
  * 
  * cdef class TabixIteratorParsed(TabixIterator):             # <<<<<<<<<<<<<<
@@ -1465,7 +1519,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_TabixIteratorParsed {
 static struct __pyx_vtabstruct_5pysam_9libctabix_TabixIteratorParsed *__pyx_vtabptr_5pysam_9libctabix_TabixIteratorParsed;
 
 
-/* "pysam/libctabix.pyx":655
+/* "pysam/libctabix.pyx":730
  * 
  * 
  * cdef class GZIterator:             # <<<<<<<<<<<<<<
@@ -1479,7 +1533,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_GZIterator {
 static struct __pyx_vtabstruct_5pysam_9libctabix_GZIterator *__pyx_vtabptr_5pysam_9libctabix_GZIterator;
 
 
-/* "pysam/libctabix.pyx":710
+/* "pysam/libctabix.pyx":785
  * 
  * 
  * cdef class GZIteratorHead(GZIterator):             # <<<<<<<<<<<<<<
@@ -1493,7 +1547,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorHead {
 static struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorHead *__pyx_vtabptr_5pysam_9libctabix_GZIteratorHead;
 
 
-/* "pysam/libctabix.pyx":727
+/* "pysam/libctabix.pyx":802
  * 
  * 
  * cdef class GZIteratorParsed(GZIterator):             # <<<<<<<<<<<<<<
@@ -1507,7 +1561,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorParsed {
 static struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorParsed *__pyx_vtabptr_5pysam_9libctabix_GZIteratorParsed;
 
 
-/* "pysam/libctabix.pyx":1169
+/* "pysam/libctabix.pyx":1290
  * #            return tabix_generic_iterator( infile, parser )
  * 
  * cdef class Tabixfile(TabixFile):             # <<<<<<<<<<<<<<
@@ -2039,14 +2093,6 @@ static PyObject* __Pyx__CallUnboundCMethod0(__Pyx_CachedCFunction* cfunc, PyObje
 #define __Pyx_CallUnboundCMethod0(cfunc, self)  __Pyx__CallUnboundCMethod0(cfunc, self)
 #endif
 
-/* PyIntBinop.proto */
-#if !CYTHON_COMPILING_IN_PYPY
-static PyObject* __Pyx_PyInt_OrObjC(PyObject *op1, PyObject *op2, long intval, int inplace);
-#else
-#define __Pyx_PyInt_OrObjC(op1, op2, intval, inplace)\
-    (inplace ? PyNumber_InPlaceOr(op1, op2) : PyNumber_Or(op1, op2))
-#endif
-
 /* UnicodeAsUCS4.proto */
 static CYTHON_INLINE Py_UCS4 __Pyx_PyUnicode_AsPy_UCS4(PyObject*);
 
@@ -2249,6 +2295,9 @@ static void __Pyx_AddTraceback(const char *funcname, int c_line,
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 
 /* CIntToPy.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int8_t(int8_t value);
+
+/* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
 
 /* ArrayAPI.proto */
@@ -2417,6 +2466,7 @@ static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
 static PyObject *__pyx_f_5pysam_9libctabix_6Parser_parse(struct __pyx_obj_5pysam_9libctabix_Parser *__pyx_v_self, CYTHON_UNUSED char *__pyx_v_buffer, CYTHON_UNUSED int __pyx_v_length); /* proto*/
 static PyObject *__pyx_f_5pysam_9libctabix_7asTuple_parse(struct __pyx_obj_5pysam_9libctabix_asTuple *__pyx_v_self, char *__pyx_v_buffer, int __pyx_v_len); /* proto*/
+static PyObject *__pyx_f_5pysam_9libctabix_6asGFF3_parse(struct __pyx_obj_5pysam_9libctabix_asGFF3 *__pyx_v_self, char *__pyx_v_buffer, int __pyx_v_len); /* proto*/
 static PyObject *__pyx_f_5pysam_9libctabix_5asGTF_parse(struct __pyx_obj_5pysam_9libctabix_asGTF *__pyx_v_self, char *__pyx_v_buffer, int __pyx_v_len); /* proto*/
 static PyObject *__pyx_f_5pysam_9libctabix_5asBed_parse(struct __pyx_obj_5pysam_9libctabix_asBed *__pyx_v_self, char *__pyx_v_buffer, int __pyx_v_len); /* proto*/
 static PyObject *__pyx_f_5pysam_9libctabix_5asVCF_parse(struct __pyx_obj_5pysam_9libctabix_asVCF *__pyx_v_self, char *__pyx_v_buffer, int __pyx_v_len); /* proto*/
@@ -2522,8 +2572,9 @@ static PyTypeObject *__pyx_ptype_7cpython_7complex_complex = 0;
 
 /* Module declarations from 'pysam.libctabixproxies' */
 static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_TupleProxy = 0;
-static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_GTFProxy = 0;
 static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy = 0;
+static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_GTFProxy = 0;
+static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_GFF3Proxy = 0;
 static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_BedProxy = 0;
 static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_VCFProxy = 0;
 
@@ -2548,6 +2599,7 @@ static PyTypeObject *__pyx_ptype_5pysam_9libctabix_TabixFile = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_Parser = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_asTuple = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_asGTF = 0;
+static PyTypeObject *__pyx_ptype_5pysam_9libctabix_asGFF3 = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_asBed = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_asVCF = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_TabixIterator = 0;
@@ -2558,6 +2610,7 @@ static PyTypeObject *__pyx_ptype_5pysam_9libctabix_GZIteratorParsed = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_Tabixfile = 0;
 static PyObject *__pyx_f_5pysam_9libctabix___pyx_unpickle_Parser__set_state(struct __pyx_obj_5pysam_9libctabix_Parser *, PyObject *); /*proto*/
 static PyObject *__pyx_f_5pysam_9libctabix___pyx_unpickle_asTuple__set_state(struct __pyx_obj_5pysam_9libctabix_asTuple *, PyObject *); /*proto*/
+static PyObject *__pyx_f_5pysam_9libctabix___pyx_unpickle_asGFF3__set_state(struct __pyx_obj_5pysam_9libctabix_asGFF3 *, PyObject *); /*proto*/
 static PyObject *__pyx_f_5pysam_9libctabix___pyx_unpickle_asGTF__set_state(struct __pyx_obj_5pysam_9libctabix_asGTF *, PyObject *); /*proto*/
 static PyObject *__pyx_f_5pysam_9libctabix___pyx_unpickle_asBed__set_state(struct __pyx_obj_5pysam_9libctabix_asBed *, PyObject *); /*proto*/
 static PyObject *__pyx_f_5pysam_9libctabix___pyx_unpickle_asVCF__set_state(struct __pyx_obj_5pysam_9libctabix_asVCF *, PyObject *); /*proto*/
@@ -2569,10 +2622,9 @@ int __pyx_module_is_main_pysam__libctabix = 0;
 static PyObject *__pyx_builtin_NotImplementedError;
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_IOError;
-static PyObject *__pyx_builtin_AttributeError;
+static PyObject *__pyx_builtin_OSError;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_StopIteration;
-static PyObject *__pyx_builtin_OSError;
 static PyObject *__pyx_builtin_KeyError;
 static PyObject *__pyx_builtin_MemoryError;
 static const char __pyx_k_[] = "-";
@@ -2580,19 +2632,23 @@ static const char __pyx_k_b[] = "b";
 static const char __pyx_k_c[] = "c";
 static const char __pyx_k_r[] = "r";
 static const char __pyx_k_s[] = "%s";
+static const char __pyx_k_fd[] = "fd";
 static const char __pyx_k_fn[] = "fn";
 static const char __pyx_k_fp[] = "fp";
 static const char __pyx_k_gz[] = ".gz";
 static const char __pyx_k_os[] = "os";
 static const char __pyx_k__24[] = "#";
-static const char __pyx_k__35[] = ",";
+static const char __pyx_k__27[] = ",";
 static const char __pyx_k_all[] = "__all__";
+static const char __pyx_k_bcf[] = "bcf";
 static const char __pyx_k_bed[] = "bed";
 static const char __pyx_k_cfn[] = "cfn";
 static const char __pyx_k_cpy[] = "cpy";
+static const char __pyx_k_csi[] = "csi";
 static const char __pyx_k_doc[] = "__doc__";
 static const char __pyx_k_dup[] = "_dup";
 static const char __pyx_k_end[] = "end";
+static const char __pyx_k_fmt[] = "fmt";
 static const char __pyx_k_gff[] = "gff";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_s_2[] = "s";
@@ -2601,6 +2657,7 @@ static const char __pyx_k_sam[] = "sam";
 static const char __pyx_k_sys[] = "sys";
 static const char __pyx_k_tbi[] = ".tbi";
 static const char __pyx_k_vcf[] = "vcf";
+static const char __pyx_k_1f8b[] = "1f8b";
 static const char __pyx_k_conf[] = "conf";
 static const char __pyx_k_dict[] = "__dict__";
 static const char __pyx_k_init[] = "__init__";
@@ -2614,6 +2671,7 @@ static const char __pyx_k_name[] = "__name__";
 static const char __pyx_k_next[] = "__next__";
 static const char __pyx_k_open[] = "_open";
 static const char __pyx_k_path[] = "path";
+static const char __pyx_k_read[] = "read";
 static const char __pyx_k_self[] = "self";
 static const char __pyx_k_tell[] = "tell";
 static const char __pyx_k_test[] = "__test__";
@@ -2622,42 +2680,52 @@ static const char __pyx_k_asGTF[] = "asGTF";
 static const char __pyx_k_asVCF[] = "asVCF";
 static const char __pyx_k_ascii[] = "ascii";
 static const char __pyx_k_close[] = "close";
+static const char __pyx_k_csi_2[] = ".csi";
+static const char __pyx_k_fnidx[] = "fnidx";
 static const char __pyx_k_force[] = "force";
 static const char __pyx_k_index[] = "index";
 static const char __pyx_k_s_i_i[] = "%s:%i-%i";
 static const char __pyx_k_start[] = "start";
+static const char __pyx_k_asGFF3[] = "asGFF3";
 static const char __pyx_k_buffer[] = "buffer";
 static const char __pyx_k_closed[] = "closed";
 static const char __pyx_k_exists[] = "exists";
 static const char __pyx_k_fd_src[] = "fd_src";
+static const char __pyx_k_format[] = "format";
+static const char __pyx_k_header[] = "header";
 static const char __pyx_k_import[] = "__import__";
 static const char __pyx_k_infile[] = "infile";
 static const char __pyx_k_length[] = "length";
 static const char __pyx_k_module[] = "__module__";
 static const char __pyx_k_nbytes[] = "nbytes";
 static const char __pyx_k_next_2[] = "next";
+static const char __pyx_k_open_2[] = "open";
 static const char __pyx_k_parser[] = "parser";
 static const char __pyx_k_pickle[] = "pickle";
-static const char __pyx_k_pileup[] = "pileup";
 static const char __pyx_k_preset[] = "preset";
 static const char __pyx_k_psltbl[] = "psltbl";
 static const char __pyx_k_reduce[] = "__reduce__";
 static const char __pyx_k_region[] = "region";
+static const char __pyx_k_retval[] = "retval";
+static const char __pyx_k_suffix[] = "suffix";
 static const char __pyx_k_unlink[] = "unlink";
 static const char __pyx_k_update[] = "update";
 static const char __pyx_k_IOError[] = "IOError";
 static const char __pyx_k_OSError[] = "OSError";
+static const char __pyx_k_a2b_hex[] = "a2b_hex";
 static const char __pyx_k_asTuple[] = "asTuple";
 static const char __pyx_k_contigs[] = "contigs";
 static const char __pyx_k_end_col[] = "end_col";
 static const char __pyx_k_is_open[] = "is_open";
 static const char __pyx_k_prepare[] = "__prepare__";
 static const char __pyx_k_seq_col[] = "seq_col";
+static const char __pyx_k_threads[] = "threads";
 static const char __pyx_k_KeyError[] = "KeyError";
 static const char __pyx_k_O_RDONLY[] = "O_RDONLY";
+static const char __pyx_k_binascii[] = "binascii";
 static const char __pyx_k_encoding[] = "encoding";
-static const char __pyx_k_endswith[] = "endswith";
 static const char __pyx_k_filename[] = "filename";
+static const char __pyx_k_fn_index[] = "fn_index";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_is_empty[] = "is_empty";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
@@ -2669,6 +2737,7 @@ static const char __pyx_k_Tabixfile[] = "Tabixfile";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_bytes_cpy[] = "bytes_cpy";
 static const char __pyx_k_conf_data[] = "conf_data";
+static const char __pyx_k_line_skip[] = "line_skip";
 static const char __pyx_k_meta_char[] = "meta_char";
 static const char __pyx_k_metaclass[] = "__metaclass__";
 static const char __pyx_k_min_shift[] = "min_shift";
@@ -2690,17 +2759,19 @@ static const char __pyx_k_preset2conf[] = "preset2conf";
 static const char __pyx_k_tabix_index[] = "tabix_index";
 static const char __pyx_k_filename_out[] = "filename_out";
 static const char __pyx_k_get_encoding[] = "get_encoding";
+static const char __pyx_k_is_gzip_file[] = "is_gzip_file";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_set_encoding[] = "set_encoding";
 static const char __pyx_k_stringsource[] = "stringsource";
 static const char __pyx_k_EmptyIterator[] = "EmptyIterator";
 static const char __pyx_k_StopIteration[] = "StopIteration";
+static const char __pyx_k_keep_original[] = "keep_original";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_start_i_end_i[] = "start (%i) >= end (%i)";
-static const char __pyx_k_AttributeError[] = "AttributeError";
 static const char __pyx_k_GZIteratorHead[] = "GZIteratorHead";
 static const char __pyx_k_No_such_file_s[] = "No such file '%s'";
 static const char __pyx_k_empty_iterator[] = "empty iterator";
+static const char __pyx_k_gzip_magic_hex[] = "gzip_magic_hex";
 static const char __pyx_k_tabix_compress[] = "tabix_compress";
 static const char __pyx_k_tabix_iterator[] = "tabix_iterator";
 static const char __pyx_k_writing_failed[] = "writing failed";
@@ -2719,6 +2790,7 @@ static const char __pyx_k_pyx_unpickle_asVCF[] = "__pyx_unpickle_asVCF";
 static const char __pyx_k_NotImplementedError[] = "NotImplementedError";
 static const char __pyx_k_pysam_libctabix_pyx[] = "pysam/libctabix.pyx";
 static const char __pyx_k_pyx_unpickle_Parser[] = "__pyx_unpickle_Parser";
+static const char __pyx_k_pyx_unpickle_asGFF3[] = "__pyx_unpickle_asGFF3";
 static const char __pyx_k_tabix_file_iterator[] = "tabix_file_iterator";
 static const char __pyx_k_EmptyIterator___iter[] = "EmptyIterator.__iter__";
 static const char __pyx_k_EmptyIterator___next[] = "EmptyIterator.__next__";
@@ -2734,6 +2806,7 @@ static const char __pyx_k_error_i_when_closing_file_s[] = "error %i when closing
 static const char __pyx_k_invalid_file_opening_mode_s[] = "invalid file opening mode `%s`";
 static const char __pyx_k_tabix_generic_iterator_next[] = "tabix_generic_iterator.next";
 static const char __pyx_k_I_O_operation_on_closed_file[] = "I/O operation on closed file";
+static const char __pyx_k_building_of_index_for_failed[] = "building of index for {} failed";
 static const char __pyx_k_could_not_open_s_for_reading[] = "could not open '%s' for reading";
 static const char __pyx_k_could_not_open_s_for_writing[] = "could not open '%s' for writing";
 static const char __pyx_k_tabix_generic_iterator___init[] = "tabix_generic_iterator.__init__";
@@ -2741,13 +2814,14 @@ static const char __pyx_k_tabix_generic_iterator___iter[] = "tabix_generic_itera
 static const char __pyx_k_tabix_generic_iterator___next[] = "tabix_generic_iterator.__next__";
 static const char __pyx_k_I_O_operation_on_closed_file_2[] = "I/O operation on closed file.";
 static const char __pyx_k_error_i_when_writing_to_file_s[] = "error %i when writing to file %s";
+static const char __pyx_k_could_not_load_tbi_csi_index_of[] = "could not load .tbi/.csi index of {}";
 static const char __pyx_k_iterate_over_infile_Permits_the[] = "iterate over ``infile``.\n    \n    Permits the use of file-like objects for example from the gzip module.\n    ";
-static const char __pyx_k_the_header_is_not_available_for[] = "the header is not available for remote files";
 static const char __pyx_k_Filename_s_already_exists_use_fo[] = "Filename '%s' already exists, use *force* to overwrite";
-static const char __pyx_k_Filename_s_tbi_already_exists_us[] = "Filename '%s.tbi' already exists, use *force* to overwrite";
 static const char __pyx_k_Incompatible_checksums_s_vs_0x84[] = "Incompatible checksums (%s vs 0x84bea1f = (encoding))";
 static const char __pyx_k_could_not_create_iterator_for_re[] = "could not create iterator for region '%s'";
 static const char __pyx_k_could_not_create_iterator_possib[] = "could not create iterator, possible tabix version mismatch";
+static const char __pyx_k_could_not_open_for_reading_heade[] = "could not open {} for reading header";
+static const char __pyx_k_filename_s_already_exists_use_fo[] = "filename '%s' already exists, use *force* to overwrite";
 static const char __pyx_k_neither_preset_nor_seq_col_start[] = "neither preset nor seq_col,start_col and end_col given";
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
 static const char __pyx_k_parse_method_of_s_not_implemente[] = "parse method of %s not implemented";
@@ -2755,13 +2829,12 @@ static const char __pyx_k_self_gzipfile_self_kstream_canno[] = "self.gzipfile,se
 static const char __pyx_k_self_iterator_cannot_be_converte[] = "self.iterator cannot be converted to a Python object for pickling";
 static const char __pyx_k_unknown_preset_s_valid_presets_a[] = "unknown preset '%s', valid presets are '%s'";
 static PyObject *__pyx_kp_b_;
-static PyObject *__pyx_n_s_AttributeError;
+static PyObject *__pyx_kp_b_1f8b;
 static PyObject *__pyx_n_s_EmptyIterator;
 static PyObject *__pyx_n_s_EmptyIterator___iter;
 static PyObject *__pyx_n_s_EmptyIterator___next;
 static PyObject *__pyx_n_s_EmptyIterator_next;
 static PyObject *__pyx_kp_s_Filename_s_already_exists_use_fo;
-static PyObject *__pyx_kp_s_Filename_s_tbi_already_exists_us;
 static PyObject *__pyx_n_s_GZIterator;
 static PyObject *__pyx_n_s_GZIteratorHead;
 static PyObject *__pyx_n_s_IOError;
@@ -2783,17 +2856,22 @@ static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_n_s_WINDOW_SIZE;
 static PyObject *__pyx_kp_s__24;
-static PyObject *__pyx_kp_s__35;
+static PyObject *__pyx_kp_s__27;
+static PyObject *__pyx_n_s_a2b_hex;
 static PyObject *__pyx_n_s_all;
 static PyObject *__pyx_n_s_asBed;
+static PyObject *__pyx_n_s_asGFF3;
 static PyObject *__pyx_n_s_asGTF;
 static PyObject *__pyx_n_s_asTuple;
 static PyObject *__pyx_n_s_asVCF;
 static PyObject *__pyx_n_s_ascii;
 static PyObject *__pyx_n_s_b;
+static PyObject *__pyx_n_s_bcf;
 static PyObject *__pyx_n_s_bed;
+static PyObject *__pyx_n_s_binascii;
 static PyObject *__pyx_n_s_buffer;
 static PyObject *__pyx_n_s_buffer_size;
+static PyObject *__pyx_kp_s_building_of_index_for_failed;
 static PyObject *__pyx_n_s_bytes_cpy;
 static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_s_cfn;
@@ -2805,11 +2883,15 @@ static PyObject *__pyx_n_s_conf_data;
 static PyObject *__pyx_n_s_contigs;
 static PyObject *__pyx_kp_s_could_not_create_iterator_for_re;
 static PyObject *__pyx_kp_s_could_not_create_iterator_possib;
+static PyObject *__pyx_kp_s_could_not_load_tbi_csi_index_of;
 static PyObject *__pyx_kp_s_could_not_open_file_s;
+static PyObject *__pyx_kp_s_could_not_open_for_reading_heade;
 static PyObject *__pyx_kp_s_could_not_open_index_for_s;
 static PyObject *__pyx_kp_s_could_not_open_s_for_reading;
 static PyObject *__pyx_kp_s_could_not_open_s_for_writing;
 static PyObject *__pyx_n_s_cpy;
+static PyObject *__pyx_n_s_csi;
+static PyObject *__pyx_kp_s_csi_2;
 static PyObject *__pyx_n_s_dict;
 static PyObject *__pyx_n_s_doc;
 static PyObject *__pyx_n_s_dup;
@@ -2818,22 +2900,29 @@ static PyObject *__pyx_n_s_encoding;
 static PyObject *__pyx_n_s_end;
 static PyObject *__pyx_n_s_end_col;
 static PyObject *__pyx_kp_s_end_out_of_range_i;
-static PyObject *__pyx_n_s_endswith;
 static PyObject *__pyx_kp_s_error_i_when_closing_file_s;
 static PyObject *__pyx_kp_s_error_i_when_writing_to_file_s;
 static PyObject *__pyx_n_s_exists;
+static PyObject *__pyx_n_s_fd;
 static PyObject *__pyx_n_s_fd_src;
 static PyObject *__pyx_kp_s_file_s_not_found;
 static PyObject *__pyx_n_s_filename;
 static PyObject *__pyx_n_s_filename_in;
 static PyObject *__pyx_n_s_filename_out;
+static PyObject *__pyx_kp_s_filename_s_already_exists_use_fo;
+static PyObject *__pyx_n_s_fmt;
 static PyObject *__pyx_n_s_fn;
+static PyObject *__pyx_n_s_fn_index;
+static PyObject *__pyx_n_s_fnidx;
 static PyObject *__pyx_n_s_force;
+static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fp;
 static PyObject *__pyx_n_s_get_encoding;
 static PyObject *__pyx_n_s_getstate;
 static PyObject *__pyx_n_s_gff;
 static PyObject *__pyx_kp_s_gz;
+static PyObject *__pyx_n_s_gzip_magic_hex;
+static PyObject *__pyx_n_s_header;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_kp_s_incomplete_line_at_s;
 static PyObject *__pyx_n_s_index;
@@ -2842,14 +2931,17 @@ static PyObject *__pyx_n_s_infile;
 static PyObject *__pyx_n_s_init;
 static PyObject *__pyx_kp_s_invalid_file_opening_mode_s;
 static PyObject *__pyx_n_s_is_empty;
+static PyObject *__pyx_n_s_is_gzip_file;
 static PyObject *__pyx_n_s_is_open;
 static PyObject *__pyx_n_s_iter;
 static PyObject *__pyx_kp_s_iterate_over_infile_Permits_the;
 static PyObject *__pyx_kp_s_iteration_on_closed_file;
 static PyObject *__pyx_n_s_join;
+static PyObject *__pyx_n_s_keep_original;
 static PyObject *__pyx_n_s_keys;
 static PyObject *__pyx_n_s_length;
 static PyObject *__pyx_n_s_line;
+static PyObject *__pyx_n_s_line_skip;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_meta_char;
 static PyObject *__pyx_n_s_metaclass;
@@ -2865,12 +2957,12 @@ static PyObject *__pyx_n_s_next;
 static PyObject *__pyx_n_s_next_2;
 static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
 static PyObject *__pyx_n_s_open;
+static PyObject *__pyx_n_s_open_2;
 static PyObject *__pyx_n_s_os;
 static PyObject *__pyx_kp_s_parse_method_of_s_not_implemente;
 static PyObject *__pyx_n_s_parser;
 static PyObject *__pyx_n_s_path;
 static PyObject *__pyx_n_s_pickle;
-static PyObject *__pyx_n_s_pileup;
 static PyObject *__pyx_n_s_prepare;
 static PyObject *__pyx_n_s_preset;
 static PyObject *__pyx_n_s_preset2conf;
@@ -2884,18 +2976,21 @@ static PyObject *__pyx_n_s_pyx_state;
 static PyObject *__pyx_n_s_pyx_type;
 static PyObject *__pyx_n_s_pyx_unpickle_Parser;
 static PyObject *__pyx_n_s_pyx_unpickle_asBed;
+static PyObject *__pyx_n_s_pyx_unpickle_asGFF3;
 static PyObject *__pyx_n_s_pyx_unpickle_asGTF;
 static PyObject *__pyx_n_s_pyx_unpickle_asTuple;
 static PyObject *__pyx_n_s_pyx_unpickle_asVCF;
 static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_qualname;
 static PyObject *__pyx_n_s_r;
+static PyObject *__pyx_n_s_read;
 static PyObject *__pyx_n_s_readline;
 static PyObject *__pyx_n_s_reduce;
 static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_reduce_ex;
 static PyObject *__pyx_n_s_reference;
 static PyObject *__pyx_n_s_region;
+static PyObject *__pyx_n_s_retval;
 static PyObject *__pyx_kp_s_s;
 static PyObject *__pyx_n_s_s_2;
 static PyObject *__pyx_kp_s_s_i;
@@ -2913,6 +3008,7 @@ static PyObject *__pyx_n_s_start_col;
 static PyObject *__pyx_kp_s_start_i_end_i;
 static PyObject *__pyx_kp_s_start_out_of_range_i;
 static PyObject *__pyx_kp_s_stringsource;
+static PyObject *__pyx_n_s_suffix;
 static PyObject *__pyx_n_s_sys;
 static PyObject *__pyx_n_s_tabix_compress;
 static PyObject *__pyx_n_s_tabix_file_iterator;
@@ -2926,7 +3022,7 @@ static PyObject *__pyx_n_s_tabix_iterator;
 static PyObject *__pyx_kp_s_tbi;
 static PyObject *__pyx_n_s_tell;
 static PyObject *__pyx_n_s_test;
-static PyObject *__pyx_kp_s_the_header_is_not_available_for;
+static PyObject *__pyx_n_s_threads;
 static PyObject *__pyx_kp_s_unknown_preset_s_valid_presets_a;
 static PyObject *__pyx_n_s_unlink;
 static PyObject *__pyx_n_s_update;
@@ -2941,14 +3037,16 @@ static PyObject *__pyx_pf_5pysam_9libctabix_6Parser_8__reduce_cython__(struct __
 static PyObject *__pyx_pf_5pysam_9libctabix_6Parser_10__setstate_cython__(struct __pyx_obj_5pysam_9libctabix_Parser *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_7asTuple___reduce_cython__(struct __pyx_obj_5pysam_9libctabix_asTuple *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_7asTuple_2__setstate_cython__(struct __pyx_obj_5pysam_9libctabix_asTuple *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_6asGFF3___reduce_cython__(struct __pyx_obj_5pysam_9libctabix_asGFF3 *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_6asGFF3_2__setstate_cython__(struct __pyx_obj_5pysam_9libctabix_asGFF3 *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_5asGTF___reduce_cython__(struct __pyx_obj_5pysam_9libctabix_asGTF *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_5asGTF_2__setstate_cython__(struct __pyx_obj_5pysam_9libctabix_asGTF *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_5asBed___reduce_cython__(struct __pyx_obj_5pysam_9libctabix_asBed *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_5asBed_2__setstate_cython__(struct __pyx_obj_5pysam_9libctabix_asBed *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_5asVCF___reduce_cython__(struct __pyx_obj_5pysam_9libctabix_asVCF *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_5asVCF_2__setstate_cython__(struct __pyx_obj_5pysam_9libctabix_asVCF *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
-static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_mode, PyObject *__pyx_v_parser, PyObject *__pyx_v_index, PyObject *__pyx_v_encoding, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs); /* proto */
-static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_mode, PyObject *__pyx_v_index); /* proto */
+static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_mode, PyObject *__pyx_v_parser, PyObject *__pyx_v_index, PyObject *__pyx_v_encoding, PyObject *__pyx_v_threads, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_mode, PyObject *__pyx_v_index, PyObject *__pyx_v_threads); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_4_dup(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self, PyObject *__pyx_v_reference, PyObject *__pyx_v_start, PyObject *__pyx_v_end, PyObject *__pyx_v_region, PyObject *__pyx_v_parser, PyObject *__pyx_v_multiple_iterators); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6header___get__(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self); /* proto */
@@ -2986,7 +3084,8 @@ static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_2__next__(struct 
 static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_4__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_9libctabix_GZIteratorParsed *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_6__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_9libctabix_GZIteratorParsed *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_filename_in, PyObject *__pyx_v_filename_out, PyObject *__pyx_v_force); /* proto */
-static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_force, PyObject *__pyx_v_seq_col, PyObject *__pyx_v_start_col, PyObject *__pyx_v_end_col, PyObject *__pyx_v_preset, PyObject *__pyx_v_meta_char, PyObject *__pyx_v_zerobased, int __pyx_v_min_shift); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_2is_gzip_file(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_filename); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_index(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_force, PyObject *__pyx_v_seq_col, PyObject *__pyx_v_start_col, PyObject *__pyx_v_end_col, PyObject *__pyx_v_preset, PyObject *__pyx_v_meta_char, int __pyx_v_line_skip, PyObject *__pyx_v_zerobased, int __pyx_v_min_shift, PyObject *__pyx_v_index, PyObject *__pyx_v_keep_original, PyObject *__pyx_v_csi); /* proto */
 static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __pyx_obj_5pysam_9libctabix_tabix_file_iterator *__pyx_v_self, PyObject *__pyx_v_infile, struct __pyx_obj_5pysam_9libctabix_Parser *__pyx_v_parser, int __pyx_v_buffer_size); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_2__iter__(struct __pyx_obj_5pysam_9libctabix_tabix_file_iterator *__pyx_v_self); /* proto */
 static void __pyx_pf_5pysam_9libctabix_19tabix_file_iterator_4__dealloc__(struct __pyx_obj_5pysam_9libctabix_tabix_file_iterator *__pyx_v_self); /* proto */
@@ -2998,14 +3097,15 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator___init__(CY
 static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_2__iter__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_6next(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_infile, PyObject *__pyx_v_parser); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_6tabix_iterator(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_infile, PyObject *__pyx_v_parser); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_9Tabixfile___reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_9libctabix_Tabixfile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_9libctabix_9Tabixfile_2__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_9libctabix_Tabixfile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_pf_5pysam_9libctabix_6__pyx_unpickle_Parser(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_pf_5pysam_9libctabix_8__pyx_unpickle_asTuple(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_pf_5pysam_9libctabix_10__pyx_unpickle_asGTF(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_pf_5pysam_9libctabix_12__pyx_unpickle_asBed(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_pf_5pysam_9libctabix_14__pyx_unpickle_asVCF(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_8__pyx_unpickle_Parser(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_10__pyx_unpickle_asTuple(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_12__pyx_unpickle_asGFF3(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_14__pyx_unpickle_asGTF(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_16__pyx_unpickle_asBed(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_5pysam_9libctabix_18__pyx_unpickle_asVCF(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_pf_7cpython_5array_5array___getbuffer__(arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info, CYTHON_UNUSED int __pyx_v_flags); /* proto */
 static void __pyx_pf_7cpython_5array_5array_2__releasebuffer__(CYTHON_UNUSED arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static PyObject *__pyx_tp_new_5pysam_9libctabix_tabix_file_iterator(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
@@ -3013,6 +3113,7 @@ static PyObject *__pyx_tp_new_5pysam_9libctabix_TabixFile(PyTypeObject *t, PyObj
 static PyObject *__pyx_tp_new_5pysam_9libctabix_Parser(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_5pysam_9libctabix_asTuple(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_5pysam_9libctabix_asGTF(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_5pysam_9libctabix_asGFF3(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_5pysam_9libctabix_asBed(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_5pysam_9libctabix_asVCF(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_5pysam_9libctabix_TabixIterator(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
@@ -3033,7 +3134,6 @@ static PyObject *__pyx_int_17;
 static PyObject *__pyx_int_18;
 static PyObject *__pyx_int_35;
 static PyObject *__pyx_int_64;
-static PyObject *__pyx_int_65536;
 static PyObject *__pyx_int_139192863;
 static PyObject *__pyx_int_neg_1;
 static PyObject *__pyx_tuple__2;
@@ -3043,7 +3143,7 @@ static PyObject *__pyx_tuple__5;
 static PyObject *__pyx_tuple__6;
 static PyObject *__pyx_tuple__7;
 static PyObject *__pyx_tuple__8;
-static PyObject *__pyx_tuple__9;
+static PyObject *__pyx_tuple__12;
 static PyObject *__pyx_tuple__13;
 static PyObject *__pyx_tuple__14;
 static PyObject *__pyx_tuple__15;
@@ -3052,25 +3152,23 @@ static PyObject *__pyx_tuple__17;
 static PyObject *__pyx_tuple__18;
 static PyObject *__pyx_tuple__19;
 static PyObject *__pyx_tuple__20;
-static PyObject *__pyx_tuple__21;
-static PyObject *__pyx_tuple__23;
+static PyObject *__pyx_tuple__22;
 static PyObject *__pyx_tuple__26;
-static PyObject *__pyx_tuple__27;
 static PyObject *__pyx_tuple__28;
 static PyObject *__pyx_tuple__29;
 static PyObject *__pyx_tuple__30;
 static PyObject *__pyx_tuple__31;
-static PyObject *__pyx_tuple__32;
 static PyObject *__pyx_tuple__33;
-static PyObject *__pyx_tuple__34;
 static PyObject *__pyx_tuple__36;
-static PyObject *__pyx_tuple__37;
-static PyObject *__pyx_tuple__38;
 static PyObject *__pyx_tuple__39;
-static PyObject *__pyx_tuple__41;
-static PyObject *__pyx_tuple__44;
+static PyObject *__pyx_tuple__40;
 static PyObject *__pyx_tuple__47;
 static PyObject *__pyx_tuple__48;
+static PyObject *__pyx_tuple__49;
+static PyObject *__pyx_tuple__50;
+static PyObject *__pyx_tuple__51;
+static PyObject *__pyx_tuple__52;
+static PyObject *__pyx_tuple__53;
 static PyObject *__pyx_tuple__54;
 static PyObject *__pyx_tuple__55;
 static PyObject *__pyx_tuple__56;
@@ -3081,29 +3179,26 @@ static PyObject *__pyx_tuple__60;
 static PyObject *__pyx_tuple__61;
 static PyObject *__pyx_tuple__62;
 static PyObject *__pyx_tuple__63;
-static PyObject *__pyx_tuple__64;
-static PyObject *__pyx_tuple__65;
-static PyObject *__pyx_tuple__66;
-static PyObject *__pyx_tuple__67;
-static PyObject *__pyx_tuple__68;
+static PyObject *__pyx_codeobj__9;
 static PyObject *__pyx_codeobj__10;
 static PyObject *__pyx_codeobj__11;
-static PyObject *__pyx_codeobj__12;
-static PyObject *__pyx_codeobj__22;
+static PyObject *__pyx_codeobj__21;
+static PyObject *__pyx_codeobj__23;
 static PyObject *__pyx_codeobj__25;
-static PyObject *__pyx_codeobj__40;
+static PyObject *__pyx_codeobj__32;
+static PyObject *__pyx_codeobj__34;
+static PyObject *__pyx_codeobj__35;
+static PyObject *__pyx_codeobj__37;
+static PyObject *__pyx_codeobj__38;
+static PyObject *__pyx_codeobj__41;
 static PyObject *__pyx_codeobj__42;
 static PyObject *__pyx_codeobj__43;
+static PyObject *__pyx_codeobj__44;
 static PyObject *__pyx_codeobj__45;
 static PyObject *__pyx_codeobj__46;
-static PyObject *__pyx_codeobj__49;
-static PyObject *__pyx_codeobj__50;
-static PyObject *__pyx_codeobj__51;
-static PyObject *__pyx_codeobj__52;
-static PyObject *__pyx_codeobj__53;
 /* Late includes */
 
-/* "pysam/libctabix.pyx":82
+/* "pysam/libctabix.pyx":86
  * cdef class Parser:
  * 
  *     def __init__(self, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3140,7 +3235,7 @@ static int __pyx_pw_5pysam_9libctabix_6Parser_1__init__(PyObject *__pyx_v_self, 
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 82, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 86, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -3154,7 +3249,7 @@ static int __pyx_pw_5pysam_9libctabix_6Parser_1__init__(PyObject *__pyx_v_self, 
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 82, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 86, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.Parser.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3172,9 +3267,9 @@ static int __pyx_pf_5pysam_9libctabix_6Parser___init__(struct __pyx_obj_5pysam_9
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__", 0);
-  __Pyx_TraceCall("__init__", __pyx_f[0], 82, 0, __PYX_ERR(0, 82, __pyx_L1_error));
+  __Pyx_TraceCall("__init__", __pyx_f[0], 86, 0, __PYX_ERR(0, 86, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":83
+  /* "pysam/libctabix.pyx":87
  * 
  *     def __init__(self, encoding="ascii"):
  *         self.encoding = encoding             # <<<<<<<<<<<<<<
@@ -3187,7 +3282,7 @@ static int __pyx_pf_5pysam_9libctabix_6Parser___init__(struct __pyx_obj_5pysam_9
   __Pyx_DECREF(__pyx_v_self->encoding);
   __pyx_v_self->encoding = __pyx_v_encoding;
 
-  /* "pysam/libctabix.pyx":82
+  /* "pysam/libctabix.pyx":86
  * cdef class Parser:
  * 
  *     def __init__(self, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -3207,7 +3302,7 @@ static int __pyx_pf_5pysam_9libctabix_6Parser___init__(struct __pyx_obj_5pysam_9
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":85
+/* "pysam/libctabix.pyx":89
  *         self.encoding = encoding
  * 
  *     def set_encoding(self, encoding):             # <<<<<<<<<<<<<<
@@ -3234,9 +3329,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_6Parser_2set_encoding(struct __pyx_o
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("set_encoding", 0);
-  __Pyx_TraceCall("set_encoding", __pyx_f[0], 85, 0, __PYX_ERR(0, 85, __pyx_L1_error));
+  __Pyx_TraceCall("set_encoding", __pyx_f[0], 89, 0, __PYX_ERR(0, 89, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":86
+  /* "pysam/libctabix.pyx":90
  * 
  *     def set_encoding(self, encoding):
  *         self.encoding = encoding             # <<<<<<<<<<<<<<
@@ -3249,7 +3344,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_6Parser_2set_encoding(struct __pyx_o
   __Pyx_DECREF(__pyx_v_self->encoding);
   __pyx_v_self->encoding = __pyx_v_encoding;
 
-  /* "pysam/libctabix.pyx":85
+  /* "pysam/libctabix.pyx":89
  *         self.encoding = encoding
  * 
  *     def set_encoding(self, encoding):             # <<<<<<<<<<<<<<
@@ -3270,7 +3365,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_6Parser_2set_encoding(struct __pyx_o
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":88
+/* "pysam/libctabix.pyx":92
  *         self.encoding = encoding
  * 
  *     def get_encoding(self):             # <<<<<<<<<<<<<<
@@ -3297,9 +3392,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_6Parser_4get_encoding(struct __pyx_o
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("get_encoding", 0);
-  __Pyx_TraceCall("get_encoding", __pyx_f[0], 88, 0, __PYX_ERR(0, 88, __pyx_L1_error));
+  __Pyx_TraceCall("get_encoding", __pyx_f[0], 92, 0, __PYX_ERR(0, 92, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":89
+  /* "pysam/libctabix.pyx":93
  * 
  *     def get_encoding(self):
  *         return self.encoding             # <<<<<<<<<<<<<<
@@ -3311,7 +3406,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_6Parser_4get_encoding(struct __pyx_o
   __pyx_r = __pyx_v_self->encoding;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":88
+  /* "pysam/libctabix.pyx":92
  *         self.encoding = encoding
  * 
  *     def get_encoding(self):             # <<<<<<<<<<<<<<
@@ -3330,7 +3425,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_6Parser_4get_encoding(struct __pyx_o
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":91
+/* "pysam/libctabix.pyx":95
  *         return self.encoding
  * 
  *     cdef parse(self, char * buffer, int length):             # <<<<<<<<<<<<<<
@@ -3345,36 +3440,36 @@ static PyObject *__pyx_f_5pysam_9libctabix_6Parser_parse(struct __pyx_obj_5pysam
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("parse", 0);
-  __Pyx_TraceCall("parse", __pyx_f[0], 91, 0, __PYX_ERR(0, 91, __pyx_L1_error));
+  __Pyx_TraceCall("parse", __pyx_f[0], 95, 0, __PYX_ERR(0, 95, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":93
+  /* "pysam/libctabix.pyx":97
  *     cdef parse(self, char * buffer, int length):
  *         raise NotImplementedError(
  *             'parse method of %s not implemented' % str(self))             # <<<<<<<<<<<<<<
  * 
  *     def __call__(self, char * buffer, int length):
  */
-  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_parse_method_of_s_not_implemente, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 93, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_parse_method_of_s_not_implemente, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":92
+  /* "pysam/libctabix.pyx":96
  * 
  *     cdef parse(self, char * buffer, int length):
  *         raise NotImplementedError(             # <<<<<<<<<<<<<<
  *             'parse method of %s not implemented' % str(self))
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_NotImplementedError, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 92, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_NotImplementedError, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __PYX_ERR(0, 92, __pyx_L1_error)
+  __PYX_ERR(0, 96, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":91
+  /* "pysam/libctabix.pyx":95
  *         return self.encoding
  * 
  *     cdef parse(self, char * buffer, int length):             # <<<<<<<<<<<<<<
@@ -3394,7 +3489,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_6Parser_parse(struct __pyx_obj_5pysam
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":95
+/* "pysam/libctabix.pyx":99
  *             'parse method of %s not implemented' % str(self))
  * 
  *     def __call__(self, char * buffer, int length):             # <<<<<<<<<<<<<<
@@ -3433,11 +3528,11 @@ static PyObject *__pyx_pw_5pysam_9libctabix_6Parser_7__call__(PyObject *__pyx_v_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_length)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__call__", 1, 2, 2, 1); __PYX_ERR(0, 95, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__call__", 1, 2, 2, 1); __PYX_ERR(0, 99, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__call__") < 0)) __PYX_ERR(0, 95, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__call__") < 0)) __PYX_ERR(0, 99, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3445,12 +3540,12 @@ static PyObject *__pyx_pw_5pysam_9libctabix_6Parser_7__call__(PyObject *__pyx_v_
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_buffer = __Pyx_PyObject_AsWritableString(values[0]); if (unlikely((!__pyx_v_buffer) && PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L3_error)
-    __pyx_v_length = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L3_error)
+    __pyx_v_buffer = __Pyx_PyObject_AsWritableString(values[0]); if (unlikely((!__pyx_v_buffer) && PyErr_Occurred())) __PYX_ERR(0, 99, __pyx_L3_error)
+    __pyx_v_length = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 99, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__call__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 95, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__call__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 99, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.Parser.__call__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3469,9 +3564,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_6Parser_6__call__(struct __pyx_obj_5
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__call__", 0);
-  __Pyx_TraceCall("__call__", __pyx_f[0], 95, 0, __PYX_ERR(0, 95, __pyx_L1_error));
+  __Pyx_TraceCall("__call__", __pyx_f[0], 99, 0, __PYX_ERR(0, 99, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":96
+  /* "pysam/libctabix.pyx":100
  * 
  *     def __call__(self, char * buffer, int length):
  *         return self.parse(buffer, length)             # <<<<<<<<<<<<<<
@@ -3479,13 +3574,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_6Parser_6__call__(struct __pyx_obj_5
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libctabix_Parser *)__pyx_v_self->__pyx_vtab)->parse(__pyx_v_self, __pyx_v_buffer, __pyx_v_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libctabix_Parser *)__pyx_v_self->__pyx_vtab)->parse(__pyx_v_self, __pyx_v_buffer, __pyx_v_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 100, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":95
+  /* "pysam/libctabix.pyx":99
  *             'parse method of %s not implemented' % str(self))
  * 
  *     def __call__(self, char * buffer, int length):             # <<<<<<<<<<<<<<
@@ -3800,7 +3895,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_6Parser_10__setstate_cython__(struct
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":104
+/* "pysam/libctabix.pyx":108
  *     A field in a row is accessed by numeric index.
  *     '''
  *     cdef parse(self, char * buffer, int len):             # <<<<<<<<<<<<<<
@@ -3815,32 +3910,32 @@ static PyObject *__pyx_f_5pysam_9libctabix_7asTuple_parse(struct __pyx_obj_5pysa
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("parse", 0);
-  __Pyx_TraceCall("parse", __pyx_f[0], 104, 0, __PYX_ERR(0, 104, __pyx_L1_error));
+  __Pyx_TraceCall("parse", __pyx_f[0], 108, 0, __PYX_ERR(0, 108, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":106
+  /* "pysam/libctabix.pyx":110
  *     cdef parse(self, char * buffer, int len):
  *         cdef ctabixproxies.TupleProxy r
  *         r = ctabixproxies.TupleProxy(self.encoding)             # <<<<<<<<<<<<<<
  *         # need to copy - there were some
  *         # persistence issues with "present"
  */
-  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_16libctabixproxies_TupleProxy), __pyx_v_self->__pyx_base.encoding); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 106, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_16libctabixproxies_TupleProxy), __pyx_v_self->__pyx_base.encoding); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_r = ((struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":109
+  /* "pysam/libctabix.pyx":113
  *         # need to copy - there were some
  *         # persistence issues with "present"
  *         r.copy(buffer, len)             # <<<<<<<<<<<<<<
  *         return r
  * 
  */
-  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_16libctabixproxies_TupleProxy *)__pyx_v_r->__pyx_vtab)->copy(__pyx_v_r, __pyx_v_buffer, __pyx_v_len, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_16libctabixproxies_TupleProxy *)__pyx_v_r->__pyx_vtab)->copy(__pyx_v_r, __pyx_v_buffer, __pyx_v_len, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 113, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":110
+  /* "pysam/libctabix.pyx":114
  *         # persistence issues with "present"
  *         r.copy(buffer, len)
  *         return r             # <<<<<<<<<<<<<<
@@ -3852,7 +3947,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_7asTuple_parse(struct __pyx_obj_5pysa
   __pyx_r = ((PyObject *)__pyx_v_r);
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":104
+  /* "pysam/libctabix.pyx":108
  *     A field in a row is accessed by numeric index.
  *     '''
  *     cdef parse(self, char * buffer, int len):             # <<<<<<<<<<<<<<
@@ -4168,7 +4263,375 @@ static PyObject *__pyx_pf_5pysam_9libctabix_7asTuple_2__setstate_cython__(struct
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":153
+/* "pysam/libctabix.pyx":146
+ * 
+ *     '''
+ *     cdef parse(self, char * buffer, int len):             # <<<<<<<<<<<<<<
+ *         cdef ctabixproxies.GFF3Proxy r
+ *         r = ctabixproxies.GFF3Proxy(self.encoding)
+ */
+
+static PyObject *__pyx_f_5pysam_9libctabix_6asGFF3_parse(struct __pyx_obj_5pysam_9libctabix_asGFF3 *__pyx_v_self, char *__pyx_v_buffer, int __pyx_v_len) {
+  struct __pyx_obj_5pysam_16libctabixproxies_GFF3Proxy *__pyx_v_r = 0;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("parse", 0);
+  __Pyx_TraceCall("parse", __pyx_f[0], 146, 0, __PYX_ERR(0, 146, __pyx_L1_error));
+
+  /* "pysam/libctabix.pyx":148
+ *     cdef parse(self, char * buffer, int len):
+ *         cdef ctabixproxies.GFF3Proxy r
+ *         r = ctabixproxies.GFF3Proxy(self.encoding)             # <<<<<<<<<<<<<<
+ *         r.copy(buffer, len)
+ *         return r
+ */
+  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_16libctabixproxies_GFF3Proxy), __pyx_v_self->__pyx_base.encoding); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_r = ((struct __pyx_obj_5pysam_16libctabixproxies_GFF3Proxy *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "pysam/libctabix.pyx":149
+ *         cdef ctabixproxies.GFF3Proxy r
+ *         r = ctabixproxies.GFF3Proxy(self.encoding)
+ *         r.copy(buffer, len)             # <<<<<<<<<<<<<<
+ *         return r
+ * 
+ */
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_16libctabixproxies_GFF3Proxy *)__pyx_v_r->__pyx_base.__pyx_base.__pyx_base.__pyx_vtab)->__pyx_base.__pyx_base.__pyx_base.copy(((struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy *)__pyx_v_r), __pyx_v_buffer, __pyx_v_len, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "pysam/libctabix.pyx":150
+ *         r = ctabixproxies.GFF3Proxy(self.encoding)
+ *         r.copy(buffer, len)
+ *         return r             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(((PyObject *)__pyx_v_r));
+  __pyx_r = ((PyObject *)__pyx_v_r);
+  goto __pyx_L0;
+
+  /* "pysam/libctabix.pyx":146
+ * 
+ *     '''
+ *     cdef parse(self, char * buffer, int len):             # <<<<<<<<<<<<<<
+ *         cdef ctabixproxies.GFF3Proxy r
+ *         r = ctabixproxies.GFF3Proxy(self.encoding)
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libctabix.asGFF3.parse", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF((PyObject *)__pyx_v_r);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     cdef bint use_setstate
+ *     state = (self.encoding,)
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_9libctabix_6asGFF3_1__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_9libctabix_6asGFF3___reduce_cython__[] = "asGFF3.__reduce_cython__(self)";
+static PyObject *__pyx_pw_5pysam_9libctabix_6asGFF3_1__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_6asGFF3___reduce_cython__(((struct __pyx_obj_5pysam_9libctabix_asGFF3 *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_9libctabix_6asGFF3___reduce_cython__(struct __pyx_obj_5pysam_9libctabix_asGFF3 *__pyx_v_self) {
+  int __pyx_v_use_setstate;
+  PyObject *__pyx_v_state = NULL;
+  PyObject *__pyx_v__dict = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  __Pyx_RefNannySetupContext("__reduce_cython__", 0);
+  __Pyx_TraceCall("__reduce_cython__", __pyx_f[1], 1, 0, __PYX_ERR(1, 1, __pyx_L1_error));
+
+  /* "(tree fragment)":3
+ * def __reduce_cython__(self):
+ *     cdef bint use_setstate
+ *     state = (self.encoding,)             # <<<<<<<<<<<<<<
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None:
+ */
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_v_self->__pyx_base.encoding);
+  __Pyx_GIVEREF(__pyx_v_self->__pyx_base.encoding);
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_self->__pyx_base.encoding);
+  __pyx_v_state = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "(tree fragment)":4
+ *     cdef bint use_setstate
+ *     state = (self.encoding,)
+ *     _dict = getattr(self, '__dict__', None)             # <<<<<<<<<<<<<<
+ *     if _dict is not None:
+ *         state += (_dict,)
+ */
+  __pyx_t_1 = __Pyx_GetAttr3(((PyObject *)__pyx_v_self), __pyx_n_s_dict, Py_None); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v__dict = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "(tree fragment)":5
+ *     state = (self.encoding,)
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None:             # <<<<<<<<<<<<<<
+ *         state += (_dict,)
+ *         use_setstate = True
+ */
+  __pyx_t_2 = (__pyx_v__dict != Py_None);
+  __pyx_t_3 = (__pyx_t_2 != 0);
+  if (__pyx_t_3) {
+
+    /* "(tree fragment)":6
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None:
+ *         state += (_dict,)             # <<<<<<<<<<<<<<
+ *         use_setstate = True
+ *     else:
+ */
+    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 6, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_INCREF(__pyx_v__dict);
+    __Pyx_GIVEREF(__pyx_v__dict);
+    PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v__dict);
+    __pyx_t_4 = PyNumber_InPlaceAdd(__pyx_v_state, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 6, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF_SET(__pyx_v_state, ((PyObject*)__pyx_t_4));
+    __pyx_t_4 = 0;
+
+    /* "(tree fragment)":7
+ *     if _dict is not None:
+ *         state += (_dict,)
+ *         use_setstate = True             # <<<<<<<<<<<<<<
+ *     else:
+ *         use_setstate = self.encoding is not None
+ */
+    __pyx_v_use_setstate = 1;
+
+    /* "(tree fragment)":5
+ *     state = (self.encoding,)
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None:             # <<<<<<<<<<<<<<
+ *         state += (_dict,)
+ *         use_setstate = True
+ */
+    goto __pyx_L3;
+  }
+
+  /* "(tree fragment)":9
+ *         use_setstate = True
+ *     else:
+ *         use_setstate = self.encoding is not None             # <<<<<<<<<<<<<<
+ *     if use_setstate:
+ *         return __pyx_unpickle_asGFF3, (type(self), 0x84bea1f, None), state
+ */
+  /*else*/ {
+    __pyx_t_3 = (__pyx_v_self->__pyx_base.encoding != Py_None);
+    __pyx_v_use_setstate = __pyx_t_3;
+  }
+  __pyx_L3:;
+
+  /* "(tree fragment)":10
+ *     else:
+ *         use_setstate = self.encoding is not None
+ *     if use_setstate:             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_asGFF3, (type(self), 0x84bea1f, None), state
+ *     else:
+ */
+  __pyx_t_3 = (__pyx_v_use_setstate != 0);
+  if (__pyx_t_3) {
+
+    /* "(tree fragment)":11
+ *         use_setstate = self.encoding is not None
+ *     if use_setstate:
+ *         return __pyx_unpickle_asGFF3, (type(self), 0x84bea1f, None), state             # <<<<<<<<<<<<<<
+ *     else:
+ *         return __pyx_unpickle_asGFF3, (type(self), 0x84bea1f, state)
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_pyx_unpickle_asGFF3); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 11, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 11, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_INCREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_GIVEREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    PyTuple_SET_ITEM(__pyx_t_1, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_INCREF(__pyx_int_139192863);
+    __Pyx_GIVEREF(__pyx_int_139192863);
+    PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_int_139192863);
+    __Pyx_INCREF(Py_None);
+    __Pyx_GIVEREF(Py_None);
+    PyTuple_SET_ITEM(__pyx_t_1, 2, Py_None);
+    __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 11, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_GIVEREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
+    __Pyx_GIVEREF(__pyx_t_1);
+    PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_1);
+    __Pyx_INCREF(__pyx_v_state);
+    __Pyx_GIVEREF(__pyx_v_state);
+    PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_v_state);
+    __pyx_t_4 = 0;
+    __pyx_t_1 = 0;
+    __pyx_r = __pyx_t_5;
+    __pyx_t_5 = 0;
+    goto __pyx_L0;
+
+    /* "(tree fragment)":10
+ *     else:
+ *         use_setstate = self.encoding is not None
+ *     if use_setstate:             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_asGFF3, (type(self), 0x84bea1f, None), state
+ *     else:
+ */
+  }
+
+  /* "(tree fragment)":13
+ *         return __pyx_unpickle_asGFF3, (type(self), 0x84bea1f, None), state
+ *     else:
+ *         return __pyx_unpickle_asGFF3, (type(self), 0x84bea1f, state)             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     __pyx_unpickle_asGFF3__set_state(self, __pyx_state)
+ */
+  /*else*/ {
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_pyx_unpickle_asGFF3); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_INCREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_GIVEREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    PyTuple_SET_ITEM(__pyx_t_1, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_INCREF(__pyx_int_139192863);
+    __Pyx_GIVEREF(__pyx_int_139192863);
+    PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_int_139192863);
+    __Pyx_INCREF(__pyx_v_state);
+    __Pyx_GIVEREF(__pyx_v_state);
+    PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_v_state);
+    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_GIVEREF(__pyx_t_5);
+    PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5);
+    __Pyx_GIVEREF(__pyx_t_1);
+    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_1);
+    __pyx_t_5 = 0;
+    __pyx_t_1 = 0;
+    __pyx_r = __pyx_t_4;
+    __pyx_t_4 = 0;
+    goto __pyx_L0;
+  }
+
+  /* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     cdef bint use_setstate
+ *     state = (self.encoding,)
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_AddTraceback("pysam.libctabix.asGFF3.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_state);
+  __Pyx_XDECREF(__pyx_v__dict);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":14
+ *     else:
+ *         return __pyx_unpickle_asGFF3, (type(self), 0x84bea1f, state)
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_unpickle_asGFF3__set_state(self, __pyx_state)
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_9libctabix_6asGFF3_3__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static char __pyx_doc_5pysam_9libctabix_6asGFF3_2__setstate_cython__[] = "asGFF3.__setstate_cython__(self, __pyx_state)";
+static PyObject *__pyx_pw_5pysam_9libctabix_6asGFF3_3__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_6asGFF3_2__setstate_cython__(((struct __pyx_obj_5pysam_9libctabix_asGFF3 *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_9libctabix_6asGFF3_2__setstate_cython__(struct __pyx_obj_5pysam_9libctabix_asGFF3 *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__setstate_cython__", 0);
+  __Pyx_TraceCall("__setstate_cython__", __pyx_f[1], 14, 0, __PYX_ERR(1, 14, __pyx_L1_error));
+
+  /* "(tree fragment)":15
+ *         return __pyx_unpickle_asGFF3, (type(self), 0x84bea1f, state)
+ * def __setstate_cython__(self, __pyx_state):
+ *     __pyx_unpickle_asGFF3__set_state(self, __pyx_state)             # <<<<<<<<<<<<<<
+ */
+  if (!(likely(PyTuple_CheckExact(__pyx_v___pyx_state))||((__pyx_v___pyx_state) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "tuple", Py_TYPE(__pyx_v___pyx_state)->tp_name), 0))) __PYX_ERR(1, 15, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5pysam_9libctabix___pyx_unpickle_asGFF3__set_state(__pyx_v_self, ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 15, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "(tree fragment)":14
+ *     else:
+ *         return __pyx_unpickle_asGFF3, (type(self), 0x84bea1f, state)
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_unpickle_asGFF3__set_state(self, __pyx_state)
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libctabix.asGFF3.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libctabix.pyx":193
  * 
  *     '''
  *     cdef parse(self, char * buffer, int len):             # <<<<<<<<<<<<<<
@@ -4183,32 +4646,32 @@ static PyObject *__pyx_f_5pysam_9libctabix_5asGTF_parse(struct __pyx_obj_5pysam_
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("parse", 0);
-  __Pyx_TraceCall("parse", __pyx_f[0], 153, 0, __PYX_ERR(0, 153, __pyx_L1_error));
+  __Pyx_TraceCall("parse", __pyx_f[0], 193, 0, __PYX_ERR(0, 193, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":155
+  /* "pysam/libctabix.pyx":195
  *     cdef parse(self, char * buffer, int len):
  *         cdef ctabixproxies.GTFProxy r
  *         r = ctabixproxies.GTFProxy(self.encoding)             # <<<<<<<<<<<<<<
  *         r.copy(buffer, len)
  *         return r
  */
-  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_16libctabixproxies_GTFProxy), __pyx_v_self->__pyx_base.encoding); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_16libctabixproxies_GTFProxy), __pyx_v_self->__pyx_base.encoding); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_r = ((struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":156
+  /* "pysam/libctabix.pyx":196
  *         cdef ctabixproxies.GTFProxy r
  *         r = ctabixproxies.GTFProxy(self.encoding)
  *         r.copy(buffer, len)             # <<<<<<<<<<<<<<
  *         return r
  * 
  */
-  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy *)__pyx_v_r->__pyx_base.__pyx_vtab)->__pyx_base.copy(((struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy *)__pyx_v_r), __pyx_v_buffer, __pyx_v_len, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy *)__pyx_v_r->__pyx_base.__pyx_base.__pyx_vtab)->__pyx_base.__pyx_base.copy(((struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy *)__pyx_v_r), __pyx_v_buffer, __pyx_v_len, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 196, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":157
+  /* "pysam/libctabix.pyx":197
  *         r = ctabixproxies.GTFProxy(self.encoding)
  *         r.copy(buffer, len)
  *         return r             # <<<<<<<<<<<<<<
@@ -4220,7 +4683,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_5asGTF_parse(struct __pyx_obj_5pysam_
   __pyx_r = ((PyObject *)__pyx_v_r);
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":153
+  /* "pysam/libctabix.pyx":193
  * 
  *     '''
  *     cdef parse(self, char * buffer, int len):             # <<<<<<<<<<<<<<
@@ -4536,7 +4999,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_5asGTF_2__setstate_cython__(struct _
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":201
+/* "pysam/libctabix.pyx":241
  * 
  *     '''
  *     cdef parse(self, char * buffer, int len):             # <<<<<<<<<<<<<<
@@ -4551,32 +5014,32 @@ static PyObject *__pyx_f_5pysam_9libctabix_5asBed_parse(struct __pyx_obj_5pysam_
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("parse", 0);
-  __Pyx_TraceCall("parse", __pyx_f[0], 201, 0, __PYX_ERR(0, 201, __pyx_L1_error));
+  __Pyx_TraceCall("parse", __pyx_f[0], 241, 0, __PYX_ERR(0, 241, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":203
+  /* "pysam/libctabix.pyx":243
  *     cdef parse(self, char * buffer, int len):
  *         cdef ctabixproxies.BedProxy r
  *         r = ctabixproxies.BedProxy(self.encoding)             # <<<<<<<<<<<<<<
  *         r.copy(buffer, len)
  *         return r
  */
-  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_16libctabixproxies_BedProxy), __pyx_v_self->__pyx_base.encoding); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 203, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_16libctabixproxies_BedProxy), __pyx_v_self->__pyx_base.encoding); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_r = ((struct __pyx_obj_5pysam_16libctabixproxies_BedProxy *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":204
+  /* "pysam/libctabix.pyx":244
  *         cdef ctabixproxies.BedProxy r
  *         r = ctabixproxies.BedProxy(self.encoding)
  *         r.copy(buffer, len)             # <<<<<<<<<<<<<<
  *         return r
  * 
  */
-  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_16libctabixproxies_BedProxy *)__pyx_v_r->__pyx_base.__pyx_base.__pyx_vtab)->__pyx_base.__pyx_base.copy(((struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy *)__pyx_v_r), __pyx_v_buffer, __pyx_v_len, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 204, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_16libctabixproxies_BedProxy *)__pyx_v_r->__pyx_base.__pyx_base.__pyx_vtab)->__pyx_base.__pyx_base.copy(((struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy *)__pyx_v_r), __pyx_v_buffer, __pyx_v_len, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":205
+  /* "pysam/libctabix.pyx":245
  *         r = ctabixproxies.BedProxy(self.encoding)
  *         r.copy(buffer, len)
  *         return r             # <<<<<<<<<<<<<<
@@ -4588,7 +5051,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_5asBed_parse(struct __pyx_obj_5pysam_
   __pyx_r = ((PyObject *)__pyx_v_r);
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":201
+  /* "pysam/libctabix.pyx":241
  * 
  *     '''
  *     cdef parse(self, char * buffer, int len):             # <<<<<<<<<<<<<<
@@ -4904,7 +5367,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_5asBed_2__setstate_cython__(struct _
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":242
+/* "pysam/libctabix.pyx":282
  * 
  *     '''
  *     cdef parse(self, char * buffer, int len):             # <<<<<<<<<<<<<<
@@ -4919,32 +5382,32 @@ static PyObject *__pyx_f_5pysam_9libctabix_5asVCF_parse(struct __pyx_obj_5pysam_
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("parse", 0);
-  __Pyx_TraceCall("parse", __pyx_f[0], 242, 0, __PYX_ERR(0, 242, __pyx_L1_error));
+  __Pyx_TraceCall("parse", __pyx_f[0], 282, 0, __PYX_ERR(0, 282, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":244
+  /* "pysam/libctabix.pyx":284
  *     cdef parse(self, char * buffer, int len):
  *         cdef ctabixproxies.VCFProxy r
  *         r = ctabixproxies.VCFProxy(self.encoding)             # <<<<<<<<<<<<<<
  *         r.copy(buffer, len)
  *         return r
  */
-  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_16libctabixproxies_VCFProxy), __pyx_v_self->__pyx_base.encoding); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_16libctabixproxies_VCFProxy), __pyx_v_self->__pyx_base.encoding); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 284, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_r = ((struct __pyx_obj_5pysam_16libctabixproxies_VCFProxy *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":245
+  /* "pysam/libctabix.pyx":285
  *         cdef ctabixproxies.VCFProxy r
  *         r = ctabixproxies.VCFProxy(self.encoding)
  *         r.copy(buffer, len)             # <<<<<<<<<<<<<<
  *         return r
  * 
  */
-  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_16libctabixproxies_VCFProxy *)__pyx_v_r->__pyx_base.__pyx_base.__pyx_vtab)->__pyx_base.__pyx_base.copy(((struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy *)__pyx_v_r), __pyx_v_buffer, __pyx_v_len, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 245, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_16libctabixproxies_VCFProxy *)__pyx_v_r->__pyx_base.__pyx_base.__pyx_vtab)->__pyx_base.__pyx_base.copy(((struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy *)__pyx_v_r), __pyx_v_buffer, __pyx_v_len, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 285, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":246
+  /* "pysam/libctabix.pyx":286
  *         r = ctabixproxies.VCFProxy(self.encoding)
  *         r.copy(buffer, len)
  *         return r             # <<<<<<<<<<<<<<
@@ -4956,7 +5419,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_5asVCF_parse(struct __pyx_obj_5pysam_
   __pyx_r = ((PyObject *)__pyx_v_r);
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":242
+  /* "pysam/libctabix.pyx":282
  * 
  *     '''
  *     cdef parse(self, char * buffer, int len):             # <<<<<<<<<<<<<<
@@ -5272,7 +5735,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_5asVCF_2__setstate_cython__(struct _
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":291
+/* "pysam/libctabix.pyx":336
  *         if file could not be opened
  *     """
  *     def __cinit__(self,             # <<<<<<<<<<<<<<
@@ -5288,6 +5751,7 @@ static int __pyx_pw_5pysam_9libctabix_9TabixFile_1__cinit__(PyObject *__pyx_v_se
   PyObject *__pyx_v_parser = 0;
   PyObject *__pyx_v_index = 0;
   PyObject *__pyx_v_encoding = 0;
+  PyObject *__pyx_v_threads = 0;
   PyObject *__pyx_v_args = 0;
   PyObject *__pyx_v_kwargs = 0;
   int __pyx_r;
@@ -5295,8 +5759,8 @@ static int __pyx_pw_5pysam_9libctabix_9TabixFile_1__cinit__(PyObject *__pyx_v_se
   __Pyx_RefNannySetupContext("__cinit__ (wrapper)", 0);
   __pyx_v_kwargs = PyDict_New(); if (unlikely(!__pyx_v_kwargs)) return -1;
   __Pyx_GOTREF(__pyx_v_kwargs);
-  if (PyTuple_GET_SIZE(__pyx_args) > 5) {
-    __pyx_v_args = PyTuple_GetSlice(__pyx_args, 5, PyTuple_GET_SIZE(__pyx_args));
+  if (PyTuple_GET_SIZE(__pyx_args) > 6) {
+    __pyx_v_args = PyTuple_GetSlice(__pyx_args, 6, PyTuple_GET_SIZE(__pyx_args));
     if (unlikely(!__pyx_v_args)) {
       __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
       __Pyx_RefNannyFinishContext();
@@ -5307,11 +5771,11 @@ static int __pyx_pw_5pysam_9libctabix_9TabixFile_1__cinit__(PyObject *__pyx_v_se
     __pyx_v_args = __pyx_empty_tuple; __Pyx_INCREF(__pyx_empty_tuple);
   }
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_filename,&__pyx_n_s_mode,&__pyx_n_s_parser,&__pyx_n_s_index,&__pyx_n_s_encoding,0};
-    PyObject* values[5] = {0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_filename,&__pyx_n_s_mode,&__pyx_n_s_parser,&__pyx_n_s_index,&__pyx_n_s_encoding,&__pyx_n_s_threads,0};
+    PyObject* values[6] = {0,0,0,0,0,0};
     values[1] = ((PyObject *)__pyx_n_s_r);
 
-    /* "pysam/libctabix.pyx":294
+    /* "pysam/libctabix.pyx":339
  *                   filename,
  *                   mode='r',
  *                   parser=None,             # <<<<<<<<<<<<<<
@@ -5320,20 +5784,23 @@ static int __pyx_pw_5pysam_9libctabix_9TabixFile_1__cinit__(PyObject *__pyx_v_se
  */
     values[2] = ((PyObject *)Py_None);
 
-    /* "pysam/libctabix.pyx":295
+    /* "pysam/libctabix.pyx":340
  *                   mode='r',
  *                   parser=None,
  *                   index=None,             # <<<<<<<<<<<<<<
  *                   encoding="ascii",
- *                   *args,
+ *                   threads=1,
  */
     values[3] = ((PyObject *)Py_None);
     values[4] = ((PyObject *)__pyx_n_s_ascii);
+    values[5] = ((PyObject *)__pyx_int_1);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
         default:
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
         case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
         CYTHON_FALLTHROUGH;
         case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
@@ -5375,14 +5842,22 @@ static int __pyx_pw_5pysam_9libctabix_9TabixFile_1__cinit__(PyObject *__pyx_v_se
           PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_encoding);
           if (value) { values[4] = value; kw_args--; }
         }
+        CYTHON_FALLTHROUGH;
+        case  5:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_threads);
+          if (value) { values[5] = value; kw_args--; }
+        }
       }
       if (unlikely(kw_args > 0)) {
-        const Py_ssize_t used_pos_args = (pos_args < 5) ? pos_args : 5;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, used_pos_args, "__cinit__") < 0)) __PYX_ERR(0, 291, __pyx_L3_error)
+        const Py_ssize_t used_pos_args = (pos_args < 6) ? pos_args : 6;
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, used_pos_args, "__cinit__") < 0)) __PYX_ERR(0, 336, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
         default:
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
         case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
         CYTHON_FALLTHROUGH;
         case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
@@ -5402,10 +5877,11 @@ static int __pyx_pw_5pysam_9libctabix_9TabixFile_1__cinit__(PyObject *__pyx_v_se
     __pyx_v_parser = values[2];
     __pyx_v_index = values[3];
     __pyx_v_encoding = values[4];
+    __pyx_v_threads = values[5];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__cinit__", 0, 1, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 291, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__cinit__", 0, 1, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 336, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_args); __pyx_v_args = 0;
   __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
@@ -5413,9 +5889,9 @@ static int __pyx_pw_5pysam_9libctabix_9TabixFile_1__cinit__(PyObject *__pyx_v_se
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(((struct __pyx_obj_5pysam_9libctabix_TabixFile *)__pyx_v_self), __pyx_v_filename, __pyx_v_mode, __pyx_v_parser, __pyx_v_index, __pyx_v_encoding, __pyx_v_args, __pyx_v_kwargs);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(((struct __pyx_obj_5pysam_9libctabix_TabixFile *)__pyx_v_self), __pyx_v_filename, __pyx_v_mode, __pyx_v_parser, __pyx_v_index, __pyx_v_encoding, __pyx_v_threads, __pyx_v_args, __pyx_v_kwargs);
 
-  /* "pysam/libctabix.pyx":291
+  /* "pysam/libctabix.pyx":336
  *         if file could not be opened
  *     """
  *     def __cinit__(self,             # <<<<<<<<<<<<<<
@@ -5430,7 +5906,7 @@ static int __pyx_pw_5pysam_9libctabix_9TabixFile_1__cinit__(PyObject *__pyx_v_se
   return __pyx_r;
 }
 
-static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_mode, PyObject *__pyx_v_parser, PyObject *__pyx_v_index, PyObject *__pyx_v_encoding, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs) {
+static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_mode, PyObject *__pyx_v_parser, PyObject *__pyx_v_index, PyObject *__pyx_v_encoding, PyObject *__pyx_v_threads, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs) {
   int __pyx_r;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -5438,9 +5914,9 @@ static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pys
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__cinit__", 0);
-  __Pyx_TraceCall("__cinit__", __pyx_f[0], 291, 0, __PYX_ERR(0, 291, __pyx_L1_error));
+  __Pyx_TraceCall("__cinit__", __pyx_f[0], 336, 0, __PYX_ERR(0, 336, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":300
+  /* "pysam/libctabix.pyx":346
  *                   **kwargs ):
  * 
  *         self.htsfile = NULL             # <<<<<<<<<<<<<<
@@ -5449,7 +5925,7 @@ static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pys
  */
   __pyx_v_self->__pyx_base.htsfile = NULL;
 
-  /* "pysam/libctabix.pyx":301
+  /* "pysam/libctabix.pyx":347
  * 
  *         self.htsfile = NULL
  *         self.is_remote = False             # <<<<<<<<<<<<<<
@@ -5458,23 +5934,23 @@ static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pys
  */
   __pyx_v_self->__pyx_base.is_remote = 0;
 
-  /* "pysam/libctabix.pyx":302
+  /* "pysam/libctabix.pyx":348
  *         self.htsfile = NULL
  *         self.is_remote = False
  *         self.is_stream = False             # <<<<<<<<<<<<<<
  *         self.parser = parser
- *         self._open(filename, mode, index, *args, **kwargs)
+ *         self.threads = threads
  */
   __pyx_v_self->__pyx_base.is_stream = 0;
 
-  /* "pysam/libctabix.pyx":303
+  /* "pysam/libctabix.pyx":349
  *         self.is_remote = False
  *         self.is_stream = False
  *         self.parser = parser             # <<<<<<<<<<<<<<
+ *         self.threads = threads
  *         self._open(filename, mode, index, *args, **kwargs)
- *         self.encoding = encoding
  */
-  if (!(likely(((__pyx_v_parser) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_parser, __pyx_ptype_5pysam_9libctabix_Parser))))) __PYX_ERR(0, 303, __pyx_L1_error)
+  if (!(likely(((__pyx_v_parser) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_parser, __pyx_ptype_5pysam_9libctabix_Parser))))) __PYX_ERR(0, 349, __pyx_L1_error)
   __pyx_t_1 = __pyx_v_parser;
   __Pyx_INCREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
@@ -5483,16 +5959,29 @@ static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pys
   __pyx_v_self->parser = ((struct __pyx_obj_5pysam_9libctabix_Parser *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":304
+  /* "pysam/libctabix.pyx":350
  *         self.is_stream = False
  *         self.parser = parser
+ *         self.threads = threads             # <<<<<<<<<<<<<<
+ *         self._open(filename, mode, index, *args, **kwargs)
+ *         self.encoding = encoding
+ */
+  __Pyx_INCREF(__pyx_v_threads);
+  __Pyx_GIVEREF(__pyx_v_threads);
+  __Pyx_GOTREF(__pyx_v_self->__pyx_base.threads);
+  __Pyx_DECREF(__pyx_v_self->__pyx_base.threads);
+  __pyx_v_self->__pyx_base.threads = __pyx_v_threads;
+
+  /* "pysam/libctabix.pyx":351
+ *         self.parser = parser
+ *         self.threads = threads
  *         self._open(filename, mode, index, *args, **kwargs)             # <<<<<<<<<<<<<<
  *         self.encoding = encoding
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_open); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_open); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 351, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 351, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_filename);
   __Pyx_GIVEREF(__pyx_v_filename);
@@ -5503,17 +5992,17 @@ static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pys
   __Pyx_INCREF(__pyx_v_index);
   __Pyx_GIVEREF(__pyx_v_index);
   PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_v_index);
-  __pyx_t_3 = PyNumber_Add(__pyx_t_2, __pyx_v_args); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Add(__pyx_t_2, __pyx_v_args); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 351, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_v_kwargs); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_v_kwargs); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 351, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libctabix.pyx":305
- *         self.parser = parser
+  /* "pysam/libctabix.pyx":352
+ *         self.threads = threads
  *         self._open(filename, mode, index, *args, **kwargs)
  *         self.encoding = encoding             # <<<<<<<<<<<<<<
  * 
@@ -5525,7 +6014,7 @@ static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pys
   __Pyx_DECREF(__pyx_v_self->encoding);
   __pyx_v_self->encoding = __pyx_v_encoding;
 
-  /* "pysam/libctabix.pyx":291
+  /* "pysam/libctabix.pyx":336
  *         if file could not be opened
  *     """
  *     def __cinit__(self,             # <<<<<<<<<<<<<<
@@ -5548,7 +6037,7 @@ static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pys
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":307
+/* "pysam/libctabix.pyx":354
  *         self.encoding = encoding
  * 
  *     def _open( self,             # <<<<<<<<<<<<<<
@@ -5558,31 +6047,35 @@ static int __pyx_pf_5pysam_9libctabix_9TabixFile___cinit__(struct __pyx_obj_5pys
 
 /* Python wrapper */
 static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_3_open(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libctabix_9TabixFile_2_open[] = "TabixFile._open(self, filename, mode='r', index=None)\nopen a :term:`tabix file` for reading.";
+static char __pyx_doc_5pysam_9libctabix_9TabixFile_2_open[] = "TabixFile._open(self, filename, mode='r', index=None, threads=1)\nopen a :term:`tabix file` for reading.";
 static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_3_open(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_filename = 0;
   PyObject *__pyx_v_mode = 0;
   PyObject *__pyx_v_index = 0;
+  PyObject *__pyx_v_threads = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_open (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_filename,&__pyx_n_s_mode,&__pyx_n_s_index,0};
-    PyObject* values[3] = {0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_filename,&__pyx_n_s_mode,&__pyx_n_s_index,&__pyx_n_s_threads,0};
+    PyObject* values[4] = {0,0,0,0};
     values[1] = ((PyObject *)__pyx_n_s_r);
 
-    /* "pysam/libctabix.pyx":310
+    /* "pysam/libctabix.pyx":357
  *                filename,
  *                mode='r',
  *                index=None,             # <<<<<<<<<<<<<<
+ *                threads=1,
  *               ):
- *         '''open a :term:`tabix file` for reading.'''
  */
     values[2] = ((PyObject *)Py_None);
+    values[3] = ((PyObject *)__pyx_int_1);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
         case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
         CYTHON_FALLTHROUGH;
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
@@ -5609,12 +6102,20 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_3_open(PyObject *__pyx_v_
           PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_index);
           if (value) { values[2] = value; kw_args--; }
         }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_threads);
+          if (value) { values[3] = value; kw_args--; }
+        }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_open") < 0)) __PYX_ERR(0, 307, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_open") < 0)) __PYX_ERR(0, 354, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
         case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
         CYTHON_FALLTHROUGH;
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
@@ -5627,18 +6128,19 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_3_open(PyObject *__pyx_v_
     __pyx_v_filename = values[0];
     __pyx_v_mode = values[1];
     __pyx_v_index = values[2];
+    __pyx_v_threads = values[3];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_open", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 307, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_open", 0, 1, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 354, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.TabixFile._open", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libctabix_9TabixFile_2_open(((struct __pyx_obj_5pysam_9libctabix_TabixFile *)__pyx_v_self), __pyx_v_filename, __pyx_v_mode, __pyx_v_index);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_9TabixFile_2_open(((struct __pyx_obj_5pysam_9libctabix_TabixFile *)__pyx_v_self), __pyx_v_filename, __pyx_v_mode, __pyx_v_index, __pyx_v_threads);
 
-  /* "pysam/libctabix.pyx":307
+  /* "pysam/libctabix.pyx":354
  *         self.encoding = encoding
  * 
  *     def _open( self,             # <<<<<<<<<<<<<<
@@ -5651,9 +6153,10 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_3_open(PyObject *__pyx_v_
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_mode, PyObject *__pyx_v_index) {
+static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_mode, PyObject *__pyx_v_index, PyObject *__pyx_v_threads) {
   PyObject *__pyx_v_filename_index = NULL;
   char *__pyx_v_cfilename;
+  char *__pyx_v_cfilename_index;
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -5667,35 +6170,35 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
   char *__pyx_t_8;
   int64_t __pyx_t_9;
   __Pyx_RefNannySetupContext("_open", 0);
-  __Pyx_TraceCall("_open", __pyx_f[0], 307, 0, __PYX_ERR(0, 307, __pyx_L1_error));
+  __Pyx_TraceCall("_open", __pyx_f[0], 354, 0, __PYX_ERR(0, 354, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":314
+  /* "pysam/libctabix.pyx":362
  *         '''open a :term:`tabix file` for reading.'''
  * 
  *         if mode != 'r':             # <<<<<<<<<<<<<<
  *             raise ValueError("invalid file opening mode `%s`" % mode)
  * 
  */
-  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_mode, __pyx_n_s_r, Py_NE)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 314, __pyx_L1_error)
+  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_mode, __pyx_n_s_r, Py_NE)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 362, __pyx_L1_error)
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":315
+    /* "pysam/libctabix.pyx":363
  * 
  *         if mode != 'r':
  *             raise ValueError("invalid file opening mode `%s`" % mode)             # <<<<<<<<<<<<<<
  * 
  *         if self.htsfile != NULL:
  */
-    __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_invalid_file_opening_mode_s, __pyx_v_mode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 315, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_invalid_file_opening_mode_s, __pyx_v_mode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 363, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 315, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 363, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 315, __pyx_L1_error)
+    __PYX_ERR(0, 363, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":314
+    /* "pysam/libctabix.pyx":362
  *         '''open a :term:`tabix file` for reading.'''
  * 
  *         if mode != 'r':             # <<<<<<<<<<<<<<
@@ -5704,7 +6207,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":317
+  /* "pysam/libctabix.pyx":365
  *             raise ValueError("invalid file opening mode `%s`" % mode)
  * 
  *         if self.htsfile != NULL:             # <<<<<<<<<<<<<<
@@ -5714,14 +6217,14 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
   __pyx_t_1 = ((__pyx_v_self->__pyx_base.htsfile != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":318
+    /* "pysam/libctabix.pyx":366
  * 
  *         if self.htsfile != NULL:
  *             self.close()             # <<<<<<<<<<<<<<
  *         self.htsfile = NULL
- * 
+ *         self.threads=threads
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 318, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 366, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_4 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -5734,16 +6237,16 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
       }
     }
     if (__pyx_t_4) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 318, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 366, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     } else {
-      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 318, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 366, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "pysam/libctabix.pyx":317
+    /* "pysam/libctabix.pyx":365
  *             raise ValueError("invalid file opening mode `%s`" % mode)
  * 
  *         if self.htsfile != NULL:             # <<<<<<<<<<<<<<
@@ -5752,30 +6255,43 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":319
+  /* "pysam/libctabix.pyx":367
  *         if self.htsfile != NULL:
  *             self.close()
  *         self.htsfile = NULL             # <<<<<<<<<<<<<<
+ *         self.threads=threads
  * 
- *         filename_index = index or (filename + ".tbi")
  */
   __pyx_v_self->__pyx_base.htsfile = NULL;
 
-  /* "pysam/libctabix.pyx":321
+  /* "pysam/libctabix.pyx":368
+ *             self.close()
  *         self.htsfile = NULL
+ *         self.threads=threads             # <<<<<<<<<<<<<<
+ * 
+ *         filename_index = index or (filename + ".tbi")
+ */
+  __Pyx_INCREF(__pyx_v_threads);
+  __Pyx_GIVEREF(__pyx_v_threads);
+  __Pyx_GOTREF(__pyx_v_self->__pyx_base.threads);
+  __Pyx_DECREF(__pyx_v_self->__pyx_base.threads);
+  __pyx_v_self->__pyx_base.threads = __pyx_v_threads;
+
+  /* "pysam/libctabix.pyx":370
+ *         self.threads=threads
  * 
  *         filename_index = index or (filename + ".tbi")             # <<<<<<<<<<<<<<
  *         # encode all the strings to pass to tabix
  *         self.filename = encode_filename(filename)
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_index); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 321, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_index); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 370, __pyx_L1_error)
   if (!__pyx_t_1) {
   } else {
     __Pyx_INCREF(__pyx_v_index);
     __pyx_t_3 = __pyx_v_index;
     goto __pyx_L5_bool_binop_done;
   }
-  __pyx_t_2 = PyNumber_Add(__pyx_v_filename, __pyx_kp_s_tbi); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 321, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_v_filename, __pyx_kp_s_tbi); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 370, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_t_2);
   __pyx_t_3 = __pyx_t_2;
@@ -5784,14 +6300,14 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
   __pyx_v_filename_index = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "pysam/libctabix.pyx":323
+  /* "pysam/libctabix.pyx":372
  *         filename_index = index or (filename + ".tbi")
  *         # encode all the strings to pass to tabix
  *         self.filename = encode_filename(filename)             # <<<<<<<<<<<<<<
  *         self.filename_index = encode_filename(filename_index)
  * 
  */
-  __pyx_t_3 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 323, __pyx_L1_error)
+  __pyx_t_3 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 372, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_3);
   __Pyx_GOTREF(__pyx_v_self->__pyx_base.filename);
@@ -5799,14 +6315,14 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
   __pyx_v_self->__pyx_base.filename = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "pysam/libctabix.pyx":324
+  /* "pysam/libctabix.pyx":373
  *         # encode all the strings to pass to tabix
  *         self.filename = encode_filename(filename)
  *         self.filename_index = encode_filename(filename_index)             # <<<<<<<<<<<<<<
  * 
  *         self.is_stream = self.filename == b'-'
  */
-  __pyx_t_3 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename_index); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 324, __pyx_L1_error)
+  __pyx_t_3 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename_index); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 373, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_3);
   __Pyx_GOTREF(__pyx_v_self->filename_index);
@@ -5814,29 +6330,29 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
   __pyx_v_self->filename_index = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "pysam/libctabix.pyx":326
+  /* "pysam/libctabix.pyx":375
  *         self.filename_index = encode_filename(filename_index)
  * 
  *         self.is_stream = self.filename == b'-'             # <<<<<<<<<<<<<<
  *         self.is_remote = hisremote(self.filename)
  * 
  */
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_self->__pyx_base.filename, __pyx_kp_b_, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 326, __pyx_L1_error)
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 326, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_self->__pyx_base.filename, __pyx_kp_b_, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 375, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 375, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_self->__pyx_base.is_stream = __pyx_t_1;
 
-  /* "pysam/libctabix.pyx":327
+  /* "pysam/libctabix.pyx":376
  * 
  *         self.is_stream = self.filename == b'-'
  *         self.is_remote = hisremote(self.filename)             # <<<<<<<<<<<<<<
  * 
  *         if not self.is_remote:
  */
-  __pyx_t_5 = __Pyx_PyObject_AsString(__pyx_v_self->__pyx_base.filename); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 327, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_AsString(__pyx_v_self->__pyx_base.filename); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 376, __pyx_L1_error)
   __pyx_v_self->__pyx_base.is_remote = hisremote(__pyx_t_5);
 
-  /* "pysam/libctabix.pyx":329
+  /* "pysam/libctabix.pyx":378
  *         self.is_remote = hisremote(self.filename)
  * 
  *         if not self.is_remote:             # <<<<<<<<<<<<<<
@@ -5846,19 +6362,19 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
   __pyx_t_1 = ((!(__pyx_v_self->__pyx_base.is_remote != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":330
+    /* "pysam/libctabix.pyx":379
  * 
  *         if not self.is_remote:
  *             if not os.path.exists(filename):             # <<<<<<<<<<<<<<
  *                 raise IOError("file `%s` not found" % filename)
  * 
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 330, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 379, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_path); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 330, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_path); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 379, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_exists); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 330, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_exists); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 379, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __pyx_t_4 = NULL;
@@ -5872,13 +6388,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
       }
     }
     if (!__pyx_t_4) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 330, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 379, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filename};
-        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 330, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 379, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
@@ -5886,46 +6402,46 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filename};
-        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 330, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 379, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else
       #endif
       {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 330, __pyx_L1_error)
+        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 379, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
         __Pyx_INCREF(__pyx_v_filename);
         __Pyx_GIVEREF(__pyx_v_filename);
         PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_filename);
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 330, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 379, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 330, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 379, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_7 = ((!__pyx_t_1) != 0);
     if (unlikely(__pyx_t_7)) {
 
-      /* "pysam/libctabix.pyx":331
+      /* "pysam/libctabix.pyx":380
  *         if not self.is_remote:
  *             if not os.path.exists(filename):
  *                 raise IOError("file `%s` not found" % filename)             # <<<<<<<<<<<<<<
  * 
  *             if not os.path.exists(filename_index):
  */
-      __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_file_s_not_found, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 331, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_file_s_not_found, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 380, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 331, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 380, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_Raise(__pyx_t_2, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __PYX_ERR(0, 331, __pyx_L1_error)
+      __PYX_ERR(0, 380, __pyx_L1_error)
 
-      /* "pysam/libctabix.pyx":330
+      /* "pysam/libctabix.pyx":379
  * 
  *         if not self.is_remote:
  *             if not os.path.exists(filename):             # <<<<<<<<<<<<<<
@@ -5934,19 +6450,19 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
  */
     }
 
-    /* "pysam/libctabix.pyx":333
+    /* "pysam/libctabix.pyx":382
  *                 raise IOError("file `%s` not found" % filename)
  * 
  *             if not os.path.exists(filename_index):             # <<<<<<<<<<<<<<
  *                 raise IOError("index `%s` not found" % filename_index)
  * 
  */
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 333, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 382, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 333, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 382, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_exists); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 333, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_exists); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 382, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __pyx_t_6 = NULL;
@@ -5960,13 +6476,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
       }
     }
     if (!__pyx_t_6) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_filename_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 333, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_filename_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 382, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_filename_index};
-        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 333, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 382, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_2);
       } else
@@ -5974,46 +6490,46 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_filename_index};
-        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 333, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 382, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_2);
       } else
       #endif
       {
-        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 333, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 382, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_6); __pyx_t_6 = NULL;
         __Pyx_INCREF(__pyx_v_filename_index);
         __Pyx_GIVEREF(__pyx_v_filename_index);
         PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_filename_index);
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 333, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 382, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 333, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 382, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_1 = ((!__pyx_t_7) != 0);
     if (unlikely(__pyx_t_1)) {
 
-      /* "pysam/libctabix.pyx":334
+      /* "pysam/libctabix.pyx":383
  * 
  *             if not os.path.exists(filename_index):
  *                 raise IOError("index `%s` not found" % filename_index)             # <<<<<<<<<<<<<<
  * 
  *         # open file
  */
-      __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_index_s_not_found, __pyx_v_filename_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 334, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_index_s_not_found, __pyx_v_filename_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 383, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 334, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 383, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_Raise(__pyx_t_3, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __PYX_ERR(0, 334, __pyx_L1_error)
+      __PYX_ERR(0, 383, __pyx_L1_error)
 
-      /* "pysam/libctabix.pyx":333
+      /* "pysam/libctabix.pyx":382
  *                 raise IOError("file `%s` not found" % filename)
  * 
  *             if not os.path.exists(filename_index):             # <<<<<<<<<<<<<<
@@ -6022,7 +6538,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
  */
     }
 
-    /* "pysam/libctabix.pyx":329
+    /* "pysam/libctabix.pyx":378
  *         self.is_remote = hisremote(self.filename)
  * 
  *         if not self.is_remote:             # <<<<<<<<<<<<<<
@@ -6031,19 +6547,29 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":337
+  /* "pysam/libctabix.pyx":386
  * 
  *         # open file
  *         cdef char *cfilename = self.filename             # <<<<<<<<<<<<<<
+ *         cdef char *cfilename_index = self.filename_index
+ *         with nogil:
+ */
+  __pyx_t_8 = __Pyx_PyObject_AsWritableString(__pyx_v_self->__pyx_base.filename); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) __PYX_ERR(0, 386, __pyx_L1_error)
+  __pyx_v_cfilename = __pyx_t_8;
+
+  /* "pysam/libctabix.pyx":387
+ *         # open file
+ *         cdef char *cfilename = self.filename
+ *         cdef char *cfilename_index = self.filename_index             # <<<<<<<<<<<<<<
  *         with nogil:
  *             self.htsfile = hts_open(cfilename, 'r')
  */
-  __pyx_t_8 = __Pyx_PyObject_AsWritableString(__pyx_v_self->__pyx_base.filename); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) __PYX_ERR(0, 337, __pyx_L1_error)
-  __pyx_v_cfilename = __pyx_t_8;
+  __pyx_t_8 = __Pyx_PyObject_AsWritableString(__pyx_v_self->filename_index); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) __PYX_ERR(0, 387, __pyx_L1_error)
+  __pyx_v_cfilename_index = __pyx_t_8;
 
-  /* "pysam/libctabix.pyx":338
- *         # open file
+  /* "pysam/libctabix.pyx":388
  *         cdef char *cfilename = self.filename
+ *         cdef char *cfilename_index = self.filename_index
  *         with nogil:             # <<<<<<<<<<<<<<
  *             self.htsfile = hts_open(cfilename, 'r')
  * 
@@ -6056,8 +6582,8 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
       #endif
       /*try:*/ {
 
-        /* "pysam/libctabix.pyx":339
- *         cdef char *cfilename = self.filename
+        /* "pysam/libctabix.pyx":389
+ *         cdef char *cfilename_index = self.filename_index
  *         with nogil:
  *             self.htsfile = hts_open(cfilename, 'r')             # <<<<<<<<<<<<<<
  * 
@@ -6066,9 +6592,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
         __pyx_v_self->__pyx_base.htsfile = hts_open(__pyx_v_cfilename, ((char const *)"r"));
       }
 
-      /* "pysam/libctabix.pyx":338
- *         # open file
+      /* "pysam/libctabix.pyx":388
  *         cdef char *cfilename = self.filename
+ *         cdef char *cfilename_index = self.filename_index
  *         with nogil:             # <<<<<<<<<<<<<<
  *             self.htsfile = hts_open(cfilename, 'r')
  * 
@@ -6085,7 +6611,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
       }
   }
 
-  /* "pysam/libctabix.pyx":341
+  /* "pysam/libctabix.pyx":391
  *             self.htsfile = hts_open(cfilename, 'r')
  * 
  *         if self.htsfile == NULL:             # <<<<<<<<<<<<<<
@@ -6095,23 +6621,23 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
   __pyx_t_1 = ((__pyx_v_self->__pyx_base.htsfile == NULL) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":342
+    /* "pysam/libctabix.pyx":392
  * 
  *         if self.htsfile == NULL:
  *             raise IOError("could not open file `%s`" % filename)             # <<<<<<<<<<<<<<
  * 
  *         #if self.htsfile.format.category != region_list:
  */
-    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_could_not_open_file_s, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_could_not_open_file_s, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 392, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 392, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 342, __pyx_L1_error)
+    __PYX_ERR(0, 392, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":341
+    /* "pysam/libctabix.pyx":391
  *             self.htsfile = hts_open(cfilename, 'r')
  * 
  *         if self.htsfile == NULL:             # <<<<<<<<<<<<<<
@@ -6120,21 +6646,11 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":347
+  /* "pysam/libctabix.pyx":397
  *         #    raise ValueError("file does not contain region data")
  * 
- *         cfilename = self.filename_index             # <<<<<<<<<<<<<<
- *         with nogil:
- *             self.index = tbx_index_load(cfilename)
- */
-  __pyx_t_8 = __Pyx_PyObject_AsWritableString(__pyx_v_self->filename_index); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) __PYX_ERR(0, 347, __pyx_L1_error)
-  __pyx_v_cfilename = __pyx_t_8;
-
-  /* "pysam/libctabix.pyx":348
- * 
- *         cfilename = self.filename_index
  *         with nogil:             # <<<<<<<<<<<<<<
- *             self.index = tbx_index_load(cfilename)
+ *             self.index = tbx_index_load2(cfilename, cfilename_index)
  * 
  */
   {
@@ -6145,21 +6661,21 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
       #endif
       /*try:*/ {
 
-        /* "pysam/libctabix.pyx":349
- *         cfilename = self.filename_index
+        /* "pysam/libctabix.pyx":398
+ * 
  *         with nogil:
- *             self.index = tbx_index_load(cfilename)             # <<<<<<<<<<<<<<
+ *             self.index = tbx_index_load2(cfilename, cfilename_index)             # <<<<<<<<<<<<<<
  * 
  *         if self.index == NULL:
  */
-        __pyx_v_self->index = tbx_index_load(__pyx_v_cfilename);
+        __pyx_v_self->index = tbx_index_load2(__pyx_v_cfilename, __pyx_v_cfilename_index);
       }
 
-      /* "pysam/libctabix.pyx":348
+      /* "pysam/libctabix.pyx":397
+ *         #    raise ValueError("file does not contain region data")
  * 
- *         cfilename = self.filename_index
  *         with nogil:             # <<<<<<<<<<<<<<
- *             self.index = tbx_index_load(cfilename)
+ *             self.index = tbx_index_load2(cfilename, cfilename_index)
  * 
  */
       /*finally:*/ {
@@ -6174,8 +6690,8 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
       }
   }
 
-  /* "pysam/libctabix.pyx":351
- *             self.index = tbx_index_load(cfilename)
+  /* "pysam/libctabix.pyx":400
+ *             self.index = tbx_index_load2(cfilename, cfilename_index)
  * 
  *         if self.index == NULL:             # <<<<<<<<<<<<<<
  *             raise IOError("could not open index for `%s`" % filename)
@@ -6184,24 +6700,24 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
   __pyx_t_1 = ((__pyx_v_self->index == NULL) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":352
+    /* "pysam/libctabix.pyx":401
  * 
  *         if self.index == NULL:
  *             raise IOError("could not open index for `%s`" % filename)             # <<<<<<<<<<<<<<
  * 
  *         if not self.is_stream:
  */
-    __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_could_not_open_index_for_s, __pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 352, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_could_not_open_index_for_s, __pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 401, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 352, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 401, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 352, __pyx_L1_error)
+    __PYX_ERR(0, 401, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":351
- *             self.index = tbx_index_load(cfilename)
+    /* "pysam/libctabix.pyx":400
+ *             self.index = tbx_index_load2(cfilename, cfilename_index)
  * 
  *         if self.index == NULL:             # <<<<<<<<<<<<<<
  *             raise IOError("could not open index for `%s`" % filename)
@@ -6209,7 +6725,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":354
+  /* "pysam/libctabix.pyx":403
  *             raise IOError("could not open index for `%s`" % filename)
  * 
  *         if not self.is_stream:             # <<<<<<<<<<<<<<
@@ -6219,14 +6735,14 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
   __pyx_t_1 = ((!(__pyx_v_self->__pyx_base.is_stream != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":355
+    /* "pysam/libctabix.pyx":404
  * 
  *         if not self.is_stream:
  *             self.start_offset = self.tell()             # <<<<<<<<<<<<<<
  * 
  *     def _dup(self):
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_tell); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 355, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_tell); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 404, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_4 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -6239,18 +6755,18 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
       }
     }
     if (__pyx_t_4) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 355, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 404, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     } else {
-      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 355, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 404, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_9 = __Pyx_PyInt_As_int64_t(__pyx_t_3); if (unlikely((__pyx_t_9 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 355, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_As_int64_t(__pyx_t_3); if (unlikely((__pyx_t_9 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 404, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_v_self->__pyx_base.start_offset = __pyx_t_9;
 
-    /* "pysam/libctabix.pyx":354
+    /* "pysam/libctabix.pyx":403
  *             raise IOError("could not open index for `%s`" % filename)
  * 
  *         if not self.is_stream:             # <<<<<<<<<<<<<<
@@ -6259,7 +6775,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":307
+  /* "pysam/libctabix.pyx":354
  *         self.encoding = encoding
  * 
  *     def _open( self,             # <<<<<<<<<<<<<<
@@ -6285,7 +6801,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_2_open(struct __pyx_obj_5
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":357
+/* "pysam/libctabix.pyx":406
  *             self.start_offset = self.tell()
  * 
  *     def _dup(self):             # <<<<<<<<<<<<<<
@@ -6315,68 +6831,77 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_4_dup(struct __pyx_obj_5p
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("_dup", 0);
-  __Pyx_TraceCall("_dup", __pyx_f[0], 357, 0, __PYX_ERR(0, 357, __pyx_L1_error));
+  __Pyx_TraceCall("_dup", __pyx_f[0], 406, 0, __PYX_ERR(0, 406, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":362
+  /* "pysam/libctabix.pyx":411
  *         The file is being re-opened.
  *         '''
  *         return TabixFile(self.filename,             # <<<<<<<<<<<<<<
  *                          mode="r",
- *                          parser=self.parser,
+ *                          threads=self.threads,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_self->__pyx_base.filename);
   __Pyx_GIVEREF(__pyx_v_self->__pyx_base.filename);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_self->__pyx_base.filename);
 
-  /* "pysam/libctabix.pyx":363
+  /* "pysam/libctabix.pyx":412
  *         '''
  *         return TabixFile(self.filename,
  *                          mode="r",             # <<<<<<<<<<<<<<
+ *                          threads=self.threads,
+ *                          parser=self.parser,
+ */
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 412, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_mode, __pyx_n_s_r) < 0) __PYX_ERR(0, 412, __pyx_L1_error)
+
+  /* "pysam/libctabix.pyx":413
+ *         return TabixFile(self.filename,
+ *                          mode="r",
+ *                          threads=self.threads,             # <<<<<<<<<<<<<<
  *                          parser=self.parser,
  *                          index=self.filename_index,
  */
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 363, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_mode, __pyx_n_s_r) < 0) __PYX_ERR(0, 363, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_threads, __pyx_v_self->__pyx_base.threads) < 0) __PYX_ERR(0, 412, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":364
- *         return TabixFile(self.filename,
+  /* "pysam/libctabix.pyx":414
  *                          mode="r",
+ *                          threads=self.threads,
  *                          parser=self.parser,             # <<<<<<<<<<<<<<
  *                          index=self.filename_index,
  *                          encoding=self.encoding)
  */
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_parser, ((PyObject *)__pyx_v_self->parser)) < 0) __PYX_ERR(0, 363, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_parser, ((PyObject *)__pyx_v_self->parser)) < 0) __PYX_ERR(0, 412, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":365
- *                          mode="r",
+  /* "pysam/libctabix.pyx":415
+ *                          threads=self.threads,
  *                          parser=self.parser,
  *                          index=self.filename_index,             # <<<<<<<<<<<<<<
  *                          encoding=self.encoding)
  * 
  */
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_index, __pyx_v_self->filename_index) < 0) __PYX_ERR(0, 363, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_index, __pyx_v_self->filename_index) < 0) __PYX_ERR(0, 412, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":366
+  /* "pysam/libctabix.pyx":416
  *                          parser=self.parser,
  *                          index=self.filename_index,
  *                          encoding=self.encoding)             # <<<<<<<<<<<<<<
  * 
  *     def fetch(self,
  */
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_encoding, __pyx_v_self->encoding) < 0) __PYX_ERR(0, 363, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_encoding, __pyx_v_self->encoding) < 0) __PYX_ERR(0, 412, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":362
+  /* "pysam/libctabix.pyx":411
  *         The file is being re-opened.
  *         '''
  *         return TabixFile(self.filename,             # <<<<<<<<<<<<<<
  *                          mode="r",
- *                          parser=self.parser,
+ *                          threads=self.threads,
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5pysam_9libctabix_TabixFile), __pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5pysam_9libctabix_TabixFile), __pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -6384,7 +6909,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_4_dup(struct __pyx_obj_5p
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":357
+  /* "pysam/libctabix.pyx":406
  *             self.start_offset = self.tell()
  * 
  *     def _dup(self):             # <<<<<<<<<<<<<<
@@ -6406,7 +6931,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_4_dup(struct __pyx_obj_5p
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":368
+/* "pysam/libctabix.pyx":418
  *                          encoding=self.encoding)
  * 
  *     def fetch(self,             # <<<<<<<<<<<<<<
@@ -6431,7 +6956,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_7fetch(PyObject *__pyx_v_
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_reference,&__pyx_n_s_start,&__pyx_n_s_end,&__pyx_n_s_region,&__pyx_n_s_parser,&__pyx_n_s_multiple_iterators,0};
     PyObject* values[6] = {0,0,0,0,0,0};
 
-    /* "pysam/libctabix.pyx":369
+    /* "pysam/libctabix.pyx":419
  * 
  *     def fetch(self,
  *               reference=None,             # <<<<<<<<<<<<<<
@@ -6440,7 +6965,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_7fetch(PyObject *__pyx_v_
  */
     values[0] = ((PyObject *)Py_None);
 
-    /* "pysam/libctabix.pyx":370
+    /* "pysam/libctabix.pyx":420
  *     def fetch(self,
  *               reference=None,
  *               start=None,             # <<<<<<<<<<<<<<
@@ -6449,7 +6974,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_7fetch(PyObject *__pyx_v_
  */
     values[1] = ((PyObject *)Py_None);
 
-    /* "pysam/libctabix.pyx":371
+    /* "pysam/libctabix.pyx":421
  *               reference=None,
  *               start=None,
  *               end=None,             # <<<<<<<<<<<<<<
@@ -6458,7 +6983,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_7fetch(PyObject *__pyx_v_
  */
     values[2] = ((PyObject *)Py_None);
 
-    /* "pysam/libctabix.pyx":372
+    /* "pysam/libctabix.pyx":422
  *               start=None,
  *               end=None,
  *               region=None,             # <<<<<<<<<<<<<<
@@ -6467,7 +6992,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_7fetch(PyObject *__pyx_v_
  */
     values[3] = ((PyObject *)Py_None);
 
-    /* "pysam/libctabix.pyx":373
+    /* "pysam/libctabix.pyx":423
  *               end=None,
  *               region=None,
  *               parser=None,             # <<<<<<<<<<<<<<
@@ -6476,7 +7001,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_7fetch(PyObject *__pyx_v_
  */
     values[4] = ((PyObject *)Py_None);
 
-    /* "pysam/libctabix.pyx":374
+    /* "pysam/libctabix.pyx":424
  *               region=None,
  *               parser=None,
  *               multiple_iterators=False):             # <<<<<<<<<<<<<<
@@ -6542,7 +7067,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_7fetch(PyObject *__pyx_v_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fetch") < 0)) __PYX_ERR(0, 368, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fetch") < 0)) __PYX_ERR(0, 418, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -6571,7 +7096,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_7fetch(PyObject *__pyx_v_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fetch", 0, 0, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 368, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fetch", 0, 0, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 418, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.TabixFile.fetch", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -6579,7 +7104,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_7fetch(PyObject *__pyx_v_
   __pyx_L4_argument_unpacking_done:;
   __pyx_r = __pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(((struct __pyx_obj_5pysam_9libctabix_TabixFile *)__pyx_v_self), __pyx_v_reference, __pyx_v_start, __pyx_v_end, __pyx_v_region, __pyx_v_parser, __pyx_v_multiple_iterators);
 
-  /* "pysam/libctabix.pyx":368
+  /* "pysam/libctabix.pyx":418
  *                          encoding=self.encoding)
  * 
  *     def fetch(self,             # <<<<<<<<<<<<<<
@@ -6611,19 +7136,19 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
   Py_ssize_t __pyx_t_8;
   PyObject *__pyx_t_9 = NULL;
   __Pyx_RefNannySetupContext("fetch", 0);
-  __Pyx_TraceCall("fetch", __pyx_f[0], 368, 0, __PYX_ERR(0, 368, __pyx_L1_error));
+  __Pyx_TraceCall("fetch", __pyx_f[0], 418, 0, __PYX_ERR(0, 418, __pyx_L1_error));
   __Pyx_INCREF(__pyx_v_start);
   __Pyx_INCREF(__pyx_v_region);
   __Pyx_INCREF(__pyx_v_parser);
 
-  /* "pysam/libctabix.pyx":395
+  /* "pysam/libctabix.pyx":445
  * 
  *         '''
  *         if not self.is_open():             # <<<<<<<<<<<<<<
  *             raise ValueError("I/O operation on closed file")
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 395, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 445, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -6636,32 +7161,32 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 395, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 445, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 395, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 445, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 395, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 445, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_5 = ((!__pyx_t_4) != 0);
   if (unlikely(__pyx_t_5)) {
 
-    /* "pysam/libctabix.pyx":396
+    /* "pysam/libctabix.pyx":446
  *         '''
  *         if not self.is_open():
  *             raise ValueError("I/O operation on closed file")             # <<<<<<<<<<<<<<
  * 
  *         # convert coordinates to region string, which is one-based
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 396, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 446, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 396, __pyx_L1_error)
+    __PYX_ERR(0, 446, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":395
+    /* "pysam/libctabix.pyx":445
  * 
  *         '''
  *         if not self.is_open():             # <<<<<<<<<<<<<<
@@ -6670,17 +7195,17 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":399
+  /* "pysam/libctabix.pyx":449
  * 
  *         # convert coordinates to region string, which is one-based
  *         if reference:             # <<<<<<<<<<<<<<
  *             if end is not None:
  *                 if end < 0:
  */
-  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_reference); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 399, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_reference); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 449, __pyx_L1_error)
   if (__pyx_t_5) {
 
-    /* "pysam/libctabix.pyx":400
+    /* "pysam/libctabix.pyx":450
  *         # convert coordinates to region string, which is one-based
  *         if reference:
  *             if end is not None:             # <<<<<<<<<<<<<<
@@ -6691,35 +7216,35 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
     __pyx_t_4 = (__pyx_t_5 != 0);
     if (__pyx_t_4) {
 
-      /* "pysam/libctabix.pyx":401
+      /* "pysam/libctabix.pyx":451
  *         if reference:
  *             if end is not None:
  *                 if end < 0:             # <<<<<<<<<<<<<<
  *                     raise ValueError("end out of range (%i)" % end)
  *                 if start is None:
  */
-      __pyx_t_1 = PyObject_RichCompare(__pyx_v_end, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 401, __pyx_L1_error)
-      __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 401, __pyx_L1_error)
+      __pyx_t_1 = PyObject_RichCompare(__pyx_v_end, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 451, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 451, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       if (unlikely(__pyx_t_4)) {
 
-        /* "pysam/libctabix.pyx":402
+        /* "pysam/libctabix.pyx":452
  *             if end is not None:
  *                 if end < 0:
  *                     raise ValueError("end out of range (%i)" % end)             # <<<<<<<<<<<<<<
  *                 if start is None:
  *                     start = 0
  */
-        __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_end_out_of_range_i, __pyx_v_end); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 402, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_end_out_of_range_i, __pyx_v_end); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 452, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 402, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 452, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_Raise(__pyx_t_2, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __PYX_ERR(0, 402, __pyx_L1_error)
+        __PYX_ERR(0, 452, __pyx_L1_error)
 
-        /* "pysam/libctabix.pyx":401
+        /* "pysam/libctabix.pyx":451
  *         if reference:
  *             if end is not None:
  *                 if end < 0:             # <<<<<<<<<<<<<<
@@ -6728,7 +7253,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
       }
 
-      /* "pysam/libctabix.pyx":403
+      /* "pysam/libctabix.pyx":453
  *                 if end < 0:
  *                     raise ValueError("end out of range (%i)" % end)
  *                 if start is None:             # <<<<<<<<<<<<<<
@@ -6739,7 +7264,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
       __pyx_t_5 = (__pyx_t_4 != 0);
       if (__pyx_t_5) {
 
-        /* "pysam/libctabix.pyx":404
+        /* "pysam/libctabix.pyx":454
  *                     raise ValueError("end out of range (%i)" % end)
  *                 if start is None:
  *                     start = 0             # <<<<<<<<<<<<<<
@@ -6749,7 +7274,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
         __Pyx_INCREF(__pyx_int_0);
         __Pyx_DECREF_SET(__pyx_v_start, __pyx_int_0);
 
-        /* "pysam/libctabix.pyx":403
+        /* "pysam/libctabix.pyx":453
  *                 if end < 0:
  *                     raise ValueError("end out of range (%i)" % end)
  *                 if start is None:             # <<<<<<<<<<<<<<
@@ -6758,35 +7283,35 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
       }
 
-      /* "pysam/libctabix.pyx":406
+      /* "pysam/libctabix.pyx":456
  *                     start = 0
  * 
  *                 if start < 0:             # <<<<<<<<<<<<<<
  *                     raise ValueError("start out of range (%i)" % end)
  *                 elif start > end:
  */
-      __pyx_t_2 = PyObject_RichCompare(__pyx_v_start, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 406, __pyx_L1_error)
-      __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 406, __pyx_L1_error)
+      __pyx_t_2 = PyObject_RichCompare(__pyx_v_start, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 456, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 456, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       if (unlikely(__pyx_t_5)) {
 
-        /* "pysam/libctabix.pyx":407
+        /* "pysam/libctabix.pyx":457
  * 
  *                 if start < 0:
  *                     raise ValueError("start out of range (%i)" % end)             # <<<<<<<<<<<<<<
  *                 elif start > end:
  *                     raise ValueError(
  */
-        __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_start_out_of_range_i, __pyx_v_end); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 407, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_start_out_of_range_i, __pyx_v_end); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 457, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 407, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 457, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_Raise(__pyx_t_1, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __PYX_ERR(0, 407, __pyx_L1_error)
+        __PYX_ERR(0, 457, __pyx_L1_error)
 
-        /* "pysam/libctabix.pyx":406
+        /* "pysam/libctabix.pyx":456
  *                     start = 0
  * 
  *                 if start < 0:             # <<<<<<<<<<<<<<
@@ -6795,26 +7320,26 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
       }
 
-      /* "pysam/libctabix.pyx":408
+      /* "pysam/libctabix.pyx":458
  *                 if start < 0:
  *                     raise ValueError("start out of range (%i)" % end)
  *                 elif start > end:             # <<<<<<<<<<<<<<
  *                     raise ValueError(
  *                         'start (%i) >= end (%i)' % (start, end))
  */
-      __pyx_t_1 = PyObject_RichCompare(__pyx_v_start, __pyx_v_end, Py_GT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 408, __pyx_L1_error)
-      __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 408, __pyx_L1_error)
+      __pyx_t_1 = PyObject_RichCompare(__pyx_v_start, __pyx_v_end, Py_GT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 458, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 458, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       if (unlikely(__pyx_t_5)) {
 
-        /* "pysam/libctabix.pyx":410
+        /* "pysam/libctabix.pyx":460
  *                 elif start > end:
  *                     raise ValueError(
  *                         'start (%i) >= end (%i)' % (start, end))             # <<<<<<<<<<<<<<
  *                 elif start == end:
  *                     return EmptyIterator()
  */
-        __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 410, __pyx_L1_error)
+        __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 460, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_INCREF(__pyx_v_start);
         __Pyx_GIVEREF(__pyx_v_start);
@@ -6822,25 +7347,25 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
         __Pyx_INCREF(__pyx_v_end);
         __Pyx_GIVEREF(__pyx_v_end);
         PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v_end);
-        __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_start_i_end_i, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 410, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_start_i_end_i, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 460, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "pysam/libctabix.pyx":409
+        /* "pysam/libctabix.pyx":459
  *                     raise ValueError("start out of range (%i)" % end)
  *                 elif start > end:
  *                     raise ValueError(             # <<<<<<<<<<<<<<
  *                         'start (%i) >= end (%i)' % (start, end))
  *                 elif start == end:
  */
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 409, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 459, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_Raise(__pyx_t_1, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __PYX_ERR(0, 409, __pyx_L1_error)
+        __PYX_ERR(0, 459, __pyx_L1_error)
 
-        /* "pysam/libctabix.pyx":408
+        /* "pysam/libctabix.pyx":458
  *                 if start < 0:
  *                     raise ValueError("start out of range (%i)" % end)
  *                 elif start > end:             # <<<<<<<<<<<<<<
@@ -6849,19 +7374,19 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
       }
 
-      /* "pysam/libctabix.pyx":411
+      /* "pysam/libctabix.pyx":461
  *                     raise ValueError(
  *                         'start (%i) >= end (%i)' % (start, end))
  *                 elif start == end:             # <<<<<<<<<<<<<<
  *                     return EmptyIterator()
  *                 else:
  */
-      __pyx_t_1 = PyObject_RichCompare(__pyx_v_start, __pyx_v_end, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 411, __pyx_L1_error)
-      __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 411, __pyx_L1_error)
+      __pyx_t_1 = PyObject_RichCompare(__pyx_v_start, __pyx_v_end, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 461, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 461, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       if (__pyx_t_5) {
 
-        /* "pysam/libctabix.pyx":412
+        /* "pysam/libctabix.pyx":462
  *                         'start (%i) >= end (%i)' % (start, end))
  *                 elif start == end:
  *                     return EmptyIterator()             # <<<<<<<<<<<<<<
@@ -6869,7 +7394,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  *                     region = '%s:%i-%i' % (reference, start + 1, end)
  */
         __Pyx_XDECREF(__pyx_r);
-        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_EmptyIterator); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 412, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_EmptyIterator); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 462, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __pyx_t_3 = NULL;
         if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -6882,10 +7407,10 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
           }
         }
         if (__pyx_t_3) {
-          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 412, __pyx_L1_error)
+          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 462, __pyx_L1_error)
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         } else {
-          __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 412, __pyx_L1_error)
+          __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 462, __pyx_L1_error)
         }
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -6893,7 +7418,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
         __pyx_t_1 = 0;
         goto __pyx_L0;
 
-        /* "pysam/libctabix.pyx":411
+        /* "pysam/libctabix.pyx":461
  *                     raise ValueError(
  *                         'start (%i) >= end (%i)' % (start, end))
  *                 elif start == end:             # <<<<<<<<<<<<<<
@@ -6902,7 +7427,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
       }
 
-      /* "pysam/libctabix.pyx":414
+      /* "pysam/libctabix.pyx":464
  *                     return EmptyIterator()
  *                 else:
  *                     region = '%s:%i-%i' % (reference, start + 1, end)             # <<<<<<<<<<<<<<
@@ -6910,9 +7435,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  *                 if start < 0:
  */
       /*else*/ {
-        __pyx_t_1 = __Pyx_PyInt_AddObjC(__pyx_v_start, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 414, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyInt_AddObjC(__pyx_v_start, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 464, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 414, __pyx_L1_error)
+        __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 464, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_INCREF(__pyx_v_reference);
         __Pyx_GIVEREF(__pyx_v_reference);
@@ -6923,14 +7448,14 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
         __Pyx_GIVEREF(__pyx_v_end);
         PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_v_end);
         __pyx_t_1 = 0;
-        __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_s_i_i, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 414, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_s_i_i, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 464, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_DECREF_SET(__pyx_v_region, __pyx_t_1);
         __pyx_t_1 = 0;
       }
 
-      /* "pysam/libctabix.pyx":400
+      /* "pysam/libctabix.pyx":450
  *         # convert coordinates to region string, which is one-based
  *         if reference:
  *             if end is not None:             # <<<<<<<<<<<<<<
@@ -6940,7 +7465,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
       goto __pyx_L5;
     }
 
-    /* "pysam/libctabix.pyx":415
+    /* "pysam/libctabix.pyx":465
  *                 else:
  *                     region = '%s:%i-%i' % (reference, start + 1, end)
  *             elif start is not None:             # <<<<<<<<<<<<<<
@@ -6951,35 +7476,35 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
     __pyx_t_4 = (__pyx_t_5 != 0);
     if (__pyx_t_4) {
 
-      /* "pysam/libctabix.pyx":416
+      /* "pysam/libctabix.pyx":466
  *                     region = '%s:%i-%i' % (reference, start + 1, end)
  *             elif start is not None:
  *                 if start < 0:             # <<<<<<<<<<<<<<
  *                     raise ValueError("start out of range (%i)" % end)
  *                 region = '%s:%i' % (reference, start + 1)
  */
-      __pyx_t_1 = PyObject_RichCompare(__pyx_v_start, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 416, __pyx_L1_error)
-      __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 416, __pyx_L1_error)
+      __pyx_t_1 = PyObject_RichCompare(__pyx_v_start, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 466, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 466, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       if (unlikely(__pyx_t_4)) {
 
-        /* "pysam/libctabix.pyx":417
+        /* "pysam/libctabix.pyx":467
  *             elif start is not None:
  *                 if start < 0:
  *                     raise ValueError("start out of range (%i)" % end)             # <<<<<<<<<<<<<<
  *                 region = '%s:%i' % (reference, start + 1)
  *             else:
  */
-        __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_start_out_of_range_i, __pyx_v_end); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 417, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_start_out_of_range_i, __pyx_v_end); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 467, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 417, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 467, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_Raise(__pyx_t_2, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __PYX_ERR(0, 417, __pyx_L1_error)
+        __PYX_ERR(0, 467, __pyx_L1_error)
 
-        /* "pysam/libctabix.pyx":416
+        /* "pysam/libctabix.pyx":466
  *                     region = '%s:%i-%i' % (reference, start + 1, end)
  *             elif start is not None:
  *                 if start < 0:             # <<<<<<<<<<<<<<
@@ -6988,16 +7513,16 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
       }
 
-      /* "pysam/libctabix.pyx":418
+      /* "pysam/libctabix.pyx":468
  *                 if start < 0:
  *                     raise ValueError("start out of range (%i)" % end)
  *                 region = '%s:%i' % (reference, start + 1)             # <<<<<<<<<<<<<<
  *             else:
  *                 region = reference
  */
-      __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_v_start, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 418, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_v_start, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 468, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 418, __pyx_L1_error)
+      __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 468, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_INCREF(__pyx_v_reference);
       __Pyx_GIVEREF(__pyx_v_reference);
@@ -7005,13 +7530,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
       __Pyx_GIVEREF(__pyx_t_2);
       PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_2);
       __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_s_i, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 418, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_s_i, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 468, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_DECREF_SET(__pyx_v_region, __pyx_t_2);
       __pyx_t_2 = 0;
 
-      /* "pysam/libctabix.pyx":415
+      /* "pysam/libctabix.pyx":465
  *                 else:
  *                     region = '%s:%i-%i' % (reference, start + 1, end)
  *             elif start is not None:             # <<<<<<<<<<<<<<
@@ -7021,7 +7546,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
       goto __pyx_L5;
     }
 
-    /* "pysam/libctabix.pyx":420
+    /* "pysam/libctabix.pyx":470
  *                 region = '%s:%i' % (reference, start + 1)
  *             else:
  *                 region = reference             # <<<<<<<<<<<<<<
@@ -7034,7 +7559,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
     }
     __pyx_L5:;
 
-    /* "pysam/libctabix.pyx":399
+    /* "pysam/libctabix.pyx":449
  * 
  *         # convert coordinates to region string, which is one-based
  *         if reference:             # <<<<<<<<<<<<<<
@@ -7043,24 +7568,24 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":428
+  /* "pysam/libctabix.pyx":478
  * 
  *         # reopen the same file if necessary
  *         if multiple_iterators:             # <<<<<<<<<<<<<<
  *             fileobj = self._dup()
  *         else:
  */
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_multiple_iterators); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 428, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_multiple_iterators); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 478, __pyx_L1_error)
   if (__pyx_t_4) {
 
-    /* "pysam/libctabix.pyx":429
+    /* "pysam/libctabix.pyx":479
  *         # reopen the same file if necessary
  *         if multiple_iterators:
  *             fileobj = self._dup()             # <<<<<<<<<<<<<<
  *         else:
  *             fileobj = self
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_dup); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 429, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_dup); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 479, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_3 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
@@ -7073,18 +7598,18 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
       }
     }
     if (__pyx_t_3) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 429, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 479, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     } else {
-      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 429, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 479, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5pysam_9libctabix_TabixFile))))) __PYX_ERR(0, 429, __pyx_L1_error)
+    if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5pysam_9libctabix_TabixFile))))) __PYX_ERR(0, 479, __pyx_L1_error)
     __pyx_v_fileobj = ((struct __pyx_obj_5pysam_9libctabix_TabixFile *)__pyx_t_2);
     __pyx_t_2 = 0;
 
-    /* "pysam/libctabix.pyx":428
+    /* "pysam/libctabix.pyx":478
  * 
  *         # reopen the same file if necessary
  *         if multiple_iterators:             # <<<<<<<<<<<<<<
@@ -7094,7 +7619,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
     goto __pyx_L10;
   }
 
-  /* "pysam/libctabix.pyx":431
+  /* "pysam/libctabix.pyx":481
  *             fileobj = self._dup()
  *         else:
  *             fileobj = self             # <<<<<<<<<<<<<<
@@ -7107,7 +7632,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
   }
   __pyx_L10:;
 
-  /* "pysam/libctabix.pyx":433
+  /* "pysam/libctabix.pyx":483
  *             fileobj = self
  * 
  *         if region is None:             # <<<<<<<<<<<<<<
@@ -7118,12 +7643,12 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
   __pyx_t_5 = (__pyx_t_4 != 0);
   if (__pyx_t_5) {
 
-    /* "pysam/libctabix.pyx":435
+    /* "pysam/libctabix.pyx":485
  *         if region is None:
  *             # without region or reference - iterate from start
  *             with nogil:             # <<<<<<<<<<<<<<
  *                 itr = tbx_itr_queryi(fileobj.index,
- *                                       HTS_IDX_START,
+ *                                      HTS_IDX_START,
  */
     {
         #ifdef WITH_THREAD
@@ -7133,22 +7658,22 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
         #endif
         /*try:*/ {
 
-          /* "pysam/libctabix.pyx":436
+          /* "pysam/libctabix.pyx":486
  *             # without region or reference - iterate from start
  *             with nogil:
  *                 itr = tbx_itr_queryi(fileobj.index,             # <<<<<<<<<<<<<<
- *                                       HTS_IDX_START,
- *                                       0,
+ *                                      HTS_IDX_START,
+ *                                      0,
  */
           __pyx_v_itr = tbx_itr_queryi(__pyx_v_fileobj->index, HTS_IDX_START, 0, 0);
         }
 
-        /* "pysam/libctabix.pyx":435
+        /* "pysam/libctabix.pyx":485
  *         if region is None:
  *             # without region or reference - iterate from start
  *             with nogil:             # <<<<<<<<<<<<<<
  *                 itr = tbx_itr_queryi(fileobj.index,
- *                                       HTS_IDX_START,
+ *                                      HTS_IDX_START,
  */
         /*finally:*/ {
           /*normal exit:*/{
@@ -7162,7 +7687,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
         }
     }
 
-    /* "pysam/libctabix.pyx":433
+    /* "pysam/libctabix.pyx":483
  *             fileobj = self
  * 
  *         if region is None:             # <<<<<<<<<<<<<<
@@ -7172,8 +7697,8 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
     goto __pyx_L11;
   }
 
-  /* "pysam/libctabix.pyx":441
- *                                       0)
+  /* "pysam/libctabix.pyx":491
+ *                                      0)
  *         else:
  *             s = force_bytes(region, encoding=fileobj.encoding)             # <<<<<<<<<<<<<<
  *             cstr = s
@@ -7184,13 +7709,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
     __Pyx_INCREF(__pyx_t_2);
     __pyx_t_6.__pyx_n = 1;
     __pyx_t_6.encoding = __pyx_t_2;
-    __pyx_t_1 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_region, &__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 441, __pyx_L1_error)
+    __pyx_t_1 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_region, &__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 491, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_s = ((PyObject*)__pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "pysam/libctabix.pyx":442
+    /* "pysam/libctabix.pyx":492
  *         else:
  *             s = force_bytes(region, encoding=fileobj.encoding)
  *             cstr = s             # <<<<<<<<<<<<<<
@@ -7199,12 +7724,12 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
     if (unlikely(__pyx_v_s == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-      __PYX_ERR(0, 442, __pyx_L1_error)
+      __PYX_ERR(0, 492, __pyx_L1_error)
     }
-    __pyx_t_7 = __Pyx_PyBytes_AsWritableString(__pyx_v_s); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 442, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyBytes_AsWritableString(__pyx_v_s); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 492, __pyx_L1_error)
     __pyx_v_cstr = __pyx_t_7;
 
-    /* "pysam/libctabix.pyx":443
+    /* "pysam/libctabix.pyx":493
  *             s = force_bytes(region, encoding=fileobj.encoding)
  *             cstr = s
  *             with nogil:             # <<<<<<<<<<<<<<
@@ -7219,7 +7744,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
         #endif
         /*try:*/ {
 
-          /* "pysam/libctabix.pyx":444
+          /* "pysam/libctabix.pyx":494
  *             cstr = s
  *             with nogil:
  *                 itr = tbx_itr_querys(fileobj.index, cstr)             # <<<<<<<<<<<<<<
@@ -7229,7 +7754,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
           __pyx_v_itr = tbx_itr_querys(__pyx_v_fileobj->index, __pyx_v_cstr);
         }
 
-        /* "pysam/libctabix.pyx":443
+        /* "pysam/libctabix.pyx":493
  *             s = force_bytes(region, encoding=fileobj.encoding)
  *             cstr = s
  *             with nogil:             # <<<<<<<<<<<<<<
@@ -7250,7 +7775,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
   }
   __pyx_L11:;
 
-  /* "pysam/libctabix.pyx":446
+  /* "pysam/libctabix.pyx":496
  *                 itr = tbx_itr_querys(fileobj.index, cstr)
  * 
  *         if itr == NULL:             # <<<<<<<<<<<<<<
@@ -7260,7 +7785,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
   __pyx_t_5 = ((__pyx_v_itr == NULL) != 0);
   if (__pyx_t_5) {
 
-    /* "pysam/libctabix.pyx":447
+    /* "pysam/libctabix.pyx":497
  * 
  *         if itr == NULL:
  *             if region is None:             # <<<<<<<<<<<<<<
@@ -7271,34 +7796,34 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
     __pyx_t_4 = (__pyx_t_5 != 0);
     if (likely(__pyx_t_4)) {
 
-      /* "pysam/libctabix.pyx":448
+      /* "pysam/libctabix.pyx":498
  *         if itr == NULL:
  *             if region is None:
  *                 if len(self.contigs) > 0:             # <<<<<<<<<<<<<<
  *                     # when accessing a tabix file created prior tabix 1.0
  *                     # the full-file iterator is empty.
  */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_contigs); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 448, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_contigs); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 498, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_8 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_8 == ((Py_ssize_t)-1))) __PYX_ERR(0, 448, __pyx_L1_error)
+      __pyx_t_8 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_8 == ((Py_ssize_t)-1))) __PYX_ERR(0, 498, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_t_4 = ((__pyx_t_8 > 0) != 0);
       if (unlikely(__pyx_t_4)) {
 
-        /* "pysam/libctabix.pyx":451
+        /* "pysam/libctabix.pyx":501
  *                     # when accessing a tabix file created prior tabix 1.0
  *                     # the full-file iterator is empty.
  *                     raise ValueError(             # <<<<<<<<<<<<<<
  *                         "could not create iterator, possible "
  *                         "tabix version mismatch")
  */
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 451, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 501, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_Raise(__pyx_t_1, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __PYX_ERR(0, 451, __pyx_L1_error)
+        __PYX_ERR(0, 501, __pyx_L1_error)
 
-        /* "pysam/libctabix.pyx":448
+        /* "pysam/libctabix.pyx":498
  *         if itr == NULL:
  *             if region is None:
  *                 if len(self.contigs) > 0:             # <<<<<<<<<<<<<<
@@ -7307,7 +7832,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
       }
 
-      /* "pysam/libctabix.pyx":457
+      /* "pysam/libctabix.pyx":507
  *                     # possible reason is that the file is empty -
  *                     # return an empty iterator
  *                     return EmptyIterator()             # <<<<<<<<<<<<<<
@@ -7316,7 +7841,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
       /*else*/ {
         __Pyx_XDECREF(__pyx_r);
-        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_EmptyIterator); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 457, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_EmptyIterator); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 507, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __pyx_t_3 = NULL;
         if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -7329,10 +7854,10 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
           }
         }
         if (__pyx_t_3) {
-          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 457, __pyx_L1_error)
+          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 507, __pyx_L1_error)
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         } else {
-          __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 457, __pyx_L1_error)
+          __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 507, __pyx_L1_error)
         }
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -7341,7 +7866,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
         goto __pyx_L0;
       }
 
-      /* "pysam/libctabix.pyx":447
+      /* "pysam/libctabix.pyx":497
  * 
  *         if itr == NULL:
  *             if region is None:             # <<<<<<<<<<<<<<
@@ -7350,7 +7875,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
     }
 
-    /* "pysam/libctabix.pyx":459
+    /* "pysam/libctabix.pyx":509
  *                     return EmptyIterator()
  *             else:
  *                 raise ValueError(             # <<<<<<<<<<<<<<
@@ -7359,32 +7884,32 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
     /*else*/ {
 
-      /* "pysam/libctabix.pyx":460
+      /* "pysam/libctabix.pyx":510
  *             else:
  *                 raise ValueError(
  *                     "could not create iterator for region '%s'" %             # <<<<<<<<<<<<<<
  *                     region)
  * 
  */
-      __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_could_not_create_iterator_for_re, __pyx_v_region); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 460, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_could_not_create_iterator_for_re, __pyx_v_region); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 510, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
 
-      /* "pysam/libctabix.pyx":459
+      /* "pysam/libctabix.pyx":509
  *                     return EmptyIterator()
  *             else:
  *                 raise ValueError(             # <<<<<<<<<<<<<<
  *                     "could not create iterator for region '%s'" %
  *                     region)
  */
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 459, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 509, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_Raise(__pyx_t_2, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __PYX_ERR(0, 459, __pyx_L1_error)
+      __PYX_ERR(0, 509, __pyx_L1_error)
     }
 
-    /* "pysam/libctabix.pyx":446
+    /* "pysam/libctabix.pyx":496
  *                 itr = tbx_itr_querys(fileobj.index, cstr)
  * 
  *         if itr == NULL:             # <<<<<<<<<<<<<<
@@ -7393,7 +7918,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":464
+  /* "pysam/libctabix.pyx":514
  * 
  *         # use default parser if no parser is specified
  *         if parser is None:             # <<<<<<<<<<<<<<
@@ -7404,7 +7929,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
   __pyx_t_5 = (__pyx_t_4 != 0);
   if (__pyx_t_5) {
 
-    /* "pysam/libctabix.pyx":465
+    /* "pysam/libctabix.pyx":515
  *         # use default parser if no parser is specified
  *         if parser is None:
  *             parser = fileobj.parser             # <<<<<<<<<<<<<<
@@ -7416,7 +7941,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
     __Pyx_DECREF_SET(__pyx_v_parser, __pyx_t_2);
     __pyx_t_2 = 0;
 
-    /* "pysam/libctabix.pyx":464
+    /* "pysam/libctabix.pyx":514
  * 
  *         # use default parser if no parser is specified
  *         if parser is None:             # <<<<<<<<<<<<<<
@@ -7425,7 +7950,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":468
+  /* "pysam/libctabix.pyx":518
  * 
  *         cdef TabixIterator a
  *         if parser is None:             # <<<<<<<<<<<<<<
@@ -7436,23 +7961,23 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
   __pyx_t_4 = (__pyx_t_5 != 0);
   if (__pyx_t_4) {
 
-    /* "pysam/libctabix.pyx":469
+    /* "pysam/libctabix.pyx":519
  *         cdef TabixIterator a
  *         if parser is None:
  *             a = TabixIterator(encoding=fileobj.encoding)             # <<<<<<<<<<<<<<
  *         else:
  *             parser.set_encoding(fileobj.encoding)
  */
-    __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 469, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 519, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_encoding, __pyx_v_fileobj->encoding) < 0) __PYX_ERR(0, 469, __pyx_L1_error)
-    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5pysam_9libctabix_TabixIterator), __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 469, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_encoding, __pyx_v_fileobj->encoding) < 0) __PYX_ERR(0, 519, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5pysam_9libctabix_TabixIterator), __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 519, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_a = ((struct __pyx_obj_5pysam_9libctabix_TabixIterator *)__pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "pysam/libctabix.pyx":468
+    /* "pysam/libctabix.pyx":518
  * 
  *         cdef TabixIterator a
  *         if parser is None:             # <<<<<<<<<<<<<<
@@ -7462,7 +7987,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
     goto __pyx_L22;
   }
 
-  /* "pysam/libctabix.pyx":471
+  /* "pysam/libctabix.pyx":521
  *             a = TabixIterator(encoding=fileobj.encoding)
  *         else:
  *             parser.set_encoding(fileobj.encoding)             # <<<<<<<<<<<<<<
@@ -7470,7 +7995,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  * 
  */
   /*else*/ {
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_parser, __pyx_n_s_set_encoding); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 471, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_parser, __pyx_n_s_set_encoding); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 521, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_3 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -7483,13 +8008,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
       }
     }
     if (!__pyx_t_3) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_fileobj->encoding); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 471, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_fileobj->encoding); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 521, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_fileobj->encoding};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 471, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 521, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else
@@ -7497,19 +8022,19 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_fileobj->encoding};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 471, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 521, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else
       #endif
       {
-        __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 471, __pyx_L1_error)
+        __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 521, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_9);
         __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_3); __pyx_t_3 = NULL;
         __Pyx_INCREF(__pyx_v_fileobj->encoding);
         __Pyx_GIVEREF(__pyx_v_fileobj->encoding);
         PyTuple_SET_ITEM(__pyx_t_9, 0+1, __pyx_v_fileobj->encoding);
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_9, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 471, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_9, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 521, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       }
@@ -7517,21 +8042,21 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "pysam/libctabix.pyx":472
+    /* "pysam/libctabix.pyx":522
  *         else:
  *             parser.set_encoding(fileobj.encoding)
  *             a = TabixIteratorParsed(parser)             # <<<<<<<<<<<<<<
  * 
  *         a.tabixfile = fileobj
  */
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_9libctabix_TabixIteratorParsed), __pyx_v_parser); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 472, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_9libctabix_TabixIteratorParsed), __pyx_v_parser); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 522, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_v_a = ((struct __pyx_obj_5pysam_9libctabix_TabixIterator *)__pyx_t_1);
     __pyx_t_1 = 0;
   }
   __pyx_L22:;
 
-  /* "pysam/libctabix.pyx":474
+  /* "pysam/libctabix.pyx":524
  *             a = TabixIteratorParsed(parser)
  * 
  *         a.tabixfile = fileobj             # <<<<<<<<<<<<<<
@@ -7544,7 +8069,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
   __Pyx_DECREF(((PyObject *)__pyx_v_a->tabixfile));
   __pyx_v_a->tabixfile = __pyx_v_fileobj;
 
-  /* "pysam/libctabix.pyx":475
+  /* "pysam/libctabix.pyx":525
  * 
  *         a.tabixfile = fileobj
  *         a.iterator = itr             # <<<<<<<<<<<<<<
@@ -7553,7 +8078,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
  */
   __pyx_v_a->iterator = __pyx_v_itr;
 
-  /* "pysam/libctabix.pyx":477
+  /* "pysam/libctabix.pyx":527
  *         a.iterator = itr
  * 
  *         return a             # <<<<<<<<<<<<<<
@@ -7565,7 +8090,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
   __pyx_r = ((PyObject *)__pyx_v_a);
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":368
+  /* "pysam/libctabix.pyx":418
  *                          encoding=self.encoding)
  * 
  *     def fetch(self,             # <<<<<<<<<<<<<<
@@ -7594,12 +8119,12 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6fetch(struct __pyx_obj_5
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":500
+/* "pysam/libctabix.pyx":545
  *         '''
  * 
  *         def __get__(self):             # <<<<<<<<<<<<<<
- *             if self.is_remote:
- *                 raise AttributeError(
+ * 
+ *             cdef char *cfilename = self.filename
  */
 
 /* Python wrapper */
@@ -7616,81 +8141,509 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9TabixFile_6header_1__get__(PyObject
 }
 
 static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_6header___get__(struct __pyx_obj_5pysam_9libctabix_TabixFile *__pyx_v_self) {
+  char *__pyx_v_cfilename;
+  char *__pyx_v_cfilename_index;
+  kstring_t __pyx_v_buffer;
+  htsFile *__pyx_v_fp;
+  int __pyx_v_KS_SEP_LINE;
+  tbx_t *__pyx_v_tbx;
+  PyObject *__pyx_v_lines = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
-  int __pyx_t_1;
+  char *__pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
+  int __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  int __pyx_t_7;
+  struct __pyx_opt_args_5pysam_9libcutils_force_str __pyx_t_8;
+  int __pyx_t_9;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 500, 0, __PYX_ERR(0, 500, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 545, 0, __PYX_ERR(0, 545, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":501
+  /* "pysam/libctabix.pyx":547
+ *         def __get__(self):
  * 
- *         def __get__(self):
- *             if self.is_remote:             # <<<<<<<<<<<<<<
- *                 raise AttributeError(
- *                     "the header is not available for remote files")
+ *             cdef char *cfilename = self.filename             # <<<<<<<<<<<<<<
+ *             cdef char *cfilename_index = self.filename_index
+ * 
  */
-  __pyx_t_1 = (__pyx_v_self->__pyx_base.is_remote != 0);
-  if (unlikely(__pyx_t_1)) {
+  __pyx_t_1 = __Pyx_PyObject_AsWritableString(__pyx_v_self->__pyx_base.filename); if (unlikely((!__pyx_t_1) && PyErr_Occurred())) __PYX_ERR(0, 547, __pyx_L1_error)
+  __pyx_v_cfilename = __pyx_t_1;
 
-    /* "pysam/libctabix.pyx":502
- *         def __get__(self):
- *             if self.is_remote:
- *                 raise AttributeError(             # <<<<<<<<<<<<<<
- *                     "the header is not available for remote files")
- *             return GZIteratorHead(self.filename)
+  /* "pysam/libctabix.pyx":548
+ * 
+ *             cdef char *cfilename = self.filename
+ *             cdef char *cfilename_index = self.filename_index             # <<<<<<<<<<<<<<
+ * 
+ *             cdef kstring_t buffer
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_AttributeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 502, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+  __pyx_t_1 = __Pyx_PyObject_AsWritableString(__pyx_v_self->filename_index); if (unlikely((!__pyx_t_1) && PyErr_Occurred())) __PYX_ERR(0, 548, __pyx_L1_error)
+  __pyx_v_cfilename_index = __pyx_t_1;
+
+  /* "pysam/libctabix.pyx":551
+ * 
+ *             cdef kstring_t buffer
+ *             buffer.l = buffer.m = 0             # <<<<<<<<<<<<<<
+ *             buffer.s = NULL
+ * 
+ */
+  __pyx_v_buffer.l = 0;
+  __pyx_v_buffer.m = 0;
+
+  /* "pysam/libctabix.pyx":552
+ *             cdef kstring_t buffer
+ *             buffer.l = buffer.m = 0
+ *             buffer.s = NULL             # <<<<<<<<<<<<<<
+ * 
+ *             cdef htsFile * fp = NULL
+ */
+  __pyx_v_buffer.s = NULL;
+
+  /* "pysam/libctabix.pyx":554
+ *             buffer.s = NULL
+ * 
+ *             cdef htsFile * fp = NULL             # <<<<<<<<<<<<<<
+ *             cdef int KS_SEP_LINE = 2
+ *             cdef tbx_t * tbx = NULL
+ */
+  __pyx_v_fp = NULL;
+
+  /* "pysam/libctabix.pyx":555
+ * 
+ *             cdef htsFile * fp = NULL
+ *             cdef int KS_SEP_LINE = 2             # <<<<<<<<<<<<<<
+ *             cdef tbx_t * tbx = NULL
+ *             lines = []
+ */
+  __pyx_v_KS_SEP_LINE = 2;
+
+  /* "pysam/libctabix.pyx":556
+ *             cdef htsFile * fp = NULL
+ *             cdef int KS_SEP_LINE = 2
+ *             cdef tbx_t * tbx = NULL             # <<<<<<<<<<<<<<
+ *             lines = []
+ *             with nogil:
+ */
+  __pyx_v_tbx = NULL;
+
+  /* "pysam/libctabix.pyx":557
+ *             cdef int KS_SEP_LINE = 2
+ *             cdef tbx_t * tbx = NULL
+ *             lines = []             # <<<<<<<<<<<<<<
+ *             with nogil:
+ *                 fp = hts_open(cfilename, 'r')
+ */
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 557, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_v_lines = ((PyObject*)__pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "pysam/libctabix.pyx":558
+ *             cdef tbx_t * tbx = NULL
+ *             lines = []
+ *             with nogil:             # <<<<<<<<<<<<<<
+ *                 fp = hts_open(cfilename, 'r')
+ * 
+ */
+  {
+      #ifdef WITH_THREAD
+      PyThreadState *_save;
+      Py_UNBLOCK_THREADS
+      __Pyx_FastGIL_Remember();
+      #endif
+      /*try:*/ {
+
+        /* "pysam/libctabix.pyx":559
+ *             lines = []
+ *             with nogil:
+ *                 fp = hts_open(cfilename, 'r')             # <<<<<<<<<<<<<<
+ * 
+ *             if fp == NULL:
+ */
+        __pyx_v_fp = hts_open(__pyx_v_cfilename, ((char const *)"r"));
+      }
+
+      /* "pysam/libctabix.pyx":558
+ *             cdef tbx_t * tbx = NULL
+ *             lines = []
+ *             with nogil:             # <<<<<<<<<<<<<<
+ *                 fp = hts_open(cfilename, 'r')
+ * 
+ */
+      /*finally:*/ {
+        /*normal exit:*/{
+          #ifdef WITH_THREAD
+          __Pyx_FastGIL_Forget();
+          Py_BLOCK_THREADS
+          #endif
+          goto __pyx_L5;
+        }
+        __pyx_L5:;
+      }
+  }
+
+  /* "pysam/libctabix.pyx":561
+ *                 fp = hts_open(cfilename, 'r')
+ * 
+ *             if fp == NULL:             # <<<<<<<<<<<<<<
+ *                 raise OSError("could not open {} for reading header".format(self.filename))
+ * 
+ */
+  __pyx_t_3 = ((__pyx_v_fp == NULL) != 0);
+  if (unlikely(__pyx_t_3)) {
+
+    /* "pysam/libctabix.pyx":562
+ * 
+ *             if fp == NULL:
+ *                 raise OSError("could not open {} for reading header".format(self.filename))             # <<<<<<<<<<<<<<
+ * 
+ *             with nogil:
+ */
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_could_not_open_for_reading_heade, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 562, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_5 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
+      __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
+      if (likely(__pyx_t_5)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+        __Pyx_INCREF(__pyx_t_5);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_4, function);
+      }
+    }
+    if (!__pyx_t_5) {
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_self->__pyx_base.filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 562, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_4)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_self->__pyx_base.filename};
+        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 562, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __Pyx_GOTREF(__pyx_t_2);
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_self->__pyx_base.filename};
+        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 562, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __Pyx_GOTREF(__pyx_t_2);
+      } else
+      #endif
+      {
+        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 562, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_6);
+        __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
+        __Pyx_INCREF(__pyx_v_self->__pyx_base.filename);
+        __Pyx_GIVEREF(__pyx_v_self->__pyx_base.filename);
+        PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_self->__pyx_base.filename);
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 562, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_OSError, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 562, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 502, __pyx_L1_error)
+    __Pyx_Raise(__pyx_t_4, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __PYX_ERR(0, 562, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":501
+    /* "pysam/libctabix.pyx":561
+ *                 fp = hts_open(cfilename, 'r')
  * 
- *         def __get__(self):
- *             if self.is_remote:             # <<<<<<<<<<<<<<
- *                 raise AttributeError(
- *                     "the header is not available for remote files")
+ *             if fp == NULL:             # <<<<<<<<<<<<<<
+ *                 raise OSError("could not open {} for reading header".format(self.filename))
+ * 
  */
   }
 
-  /* "pysam/libctabix.pyx":504
- *                 raise AttributeError(
- *                     "the header is not available for remote files")
- *             return GZIteratorHead(self.filename)             # <<<<<<<<<<<<<<
+  /* "pysam/libctabix.pyx":564
+ *                 raise OSError("could not open {} for reading header".format(self.filename))
+ * 
+ *             with nogil:             # <<<<<<<<<<<<<<
+ *                 tbx = tbx_index_load2(cfilename, cfilename_index)
+ * 
+ */
+  {
+      #ifdef WITH_THREAD
+      PyThreadState *_save;
+      Py_UNBLOCK_THREADS
+      __Pyx_FastGIL_Remember();
+      #endif
+      /*try:*/ {
+
+        /* "pysam/libctabix.pyx":565
+ * 
+ *             with nogil:
+ *                 tbx = tbx_index_load2(cfilename, cfilename_index)             # <<<<<<<<<<<<<<
+ * 
+ *             if tbx == NULL:
+ */
+        __pyx_v_tbx = tbx_index_load2(__pyx_v_cfilename, __pyx_v_cfilename_index);
+      }
+
+      /* "pysam/libctabix.pyx":564
+ *                 raise OSError("could not open {} for reading header".format(self.filename))
+ * 
+ *             with nogil:             # <<<<<<<<<<<<<<
+ *                 tbx = tbx_index_load2(cfilename, cfilename_index)
+ * 
+ */
+      /*finally:*/ {
+        /*normal exit:*/{
+          #ifdef WITH_THREAD
+          __Pyx_FastGIL_Forget();
+          Py_BLOCK_THREADS
+          #endif
+          goto __pyx_L9;
+        }
+        __pyx_L9:;
+      }
+  }
+
+  /* "pysam/libctabix.pyx":567
+ *                 tbx = tbx_index_load2(cfilename, cfilename_index)
+ * 
+ *             if tbx == NULL:             # <<<<<<<<<<<<<<
+ *                 raise OSError("could not load .tbi/.csi index of {}".format(self.filename))
+ * 
+ */
+  __pyx_t_3 = ((__pyx_v_tbx == NULL) != 0);
+  if (unlikely(__pyx_t_3)) {
+
+    /* "pysam/libctabix.pyx":568
+ * 
+ *             if tbx == NULL:
+ *                 raise OSError("could not load .tbi/.csi index of {}".format(self.filename))             # <<<<<<<<<<<<<<
+ * 
+ *             while hts_getline(fp, KS_SEP_LINE, &buffer) >= 0:
+ */
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_could_not_load_tbi_csi_index_of, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 568, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
+      }
+    }
+    if (!__pyx_t_6) {
+      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_self->__pyx_base.filename); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 568, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_2)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_self->__pyx_base.filename};
+        __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 568, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_4);
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_self->__pyx_base.filename};
+        __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 568, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_4);
+      } else
+      #endif
+      {
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 568, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6); __pyx_t_6 = NULL;
+        __Pyx_INCREF(__pyx_v_self->__pyx_base.filename);
+        __Pyx_GIVEREF(__pyx_v_self->__pyx_base.filename);
+        PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_self->__pyx_base.filename);
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 568, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_OSError, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 568, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 568, __pyx_L1_error)
+
+    /* "pysam/libctabix.pyx":567
+ *                 tbx = tbx_index_load2(cfilename, cfilename_index)
+ * 
+ *             if tbx == NULL:             # <<<<<<<<<<<<<<
+ *                 raise OSError("could not load .tbi/.csi index of {}".format(self.filename))
+ * 
+ */
+  }
+
+  /* "pysam/libctabix.pyx":570
+ *                 raise OSError("could not load .tbi/.csi index of {}".format(self.filename))
+ * 
+ *             while hts_getline(fp, KS_SEP_LINE, &buffer) >= 0:             # <<<<<<<<<<<<<<
+ *                 if not buffer.l or buffer.s[0] != tbx.conf.meta_char:
+ *                     break
+ */
+  while (1) {
+    __pyx_t_3 = ((hts_getline(__pyx_v_fp, __pyx_v_KS_SEP_LINE, (&__pyx_v_buffer)) >= 0) != 0);
+    if (!__pyx_t_3) break;
+
+    /* "pysam/libctabix.pyx":571
+ * 
+ *             while hts_getline(fp, KS_SEP_LINE, &buffer) >= 0:
+ *                 if not buffer.l or buffer.s[0] != tbx.conf.meta_char:             # <<<<<<<<<<<<<<
+ *                     break
+ *                 lines.append(force_str(buffer.s, self.encoding))
+ */
+    __pyx_t_7 = ((!(__pyx_v_buffer.l != 0)) != 0);
+    if (!__pyx_t_7) {
+    } else {
+      __pyx_t_3 = __pyx_t_7;
+      goto __pyx_L14_bool_binop_done;
+    }
+    __pyx_t_7 = (((__pyx_v_buffer.s[0]) != __pyx_v_tbx->conf.meta_char) != 0);
+    __pyx_t_3 = __pyx_t_7;
+    __pyx_L14_bool_binop_done:;
+    if (__pyx_t_3) {
+
+      /* "pysam/libctabix.pyx":572
+ *             while hts_getline(fp, KS_SEP_LINE, &buffer) >= 0:
+ *                 if not buffer.l or buffer.s[0] != tbx.conf.meta_char:
+ *                     break             # <<<<<<<<<<<<<<
+ *                 lines.append(force_str(buffer.s, self.encoding))
+ * 
+ */
+      goto __pyx_L12_break;
+
+      /* "pysam/libctabix.pyx":571
+ * 
+ *             while hts_getline(fp, KS_SEP_LINE, &buffer) >= 0:
+ *                 if not buffer.l or buffer.s[0] != tbx.conf.meta_char:             # <<<<<<<<<<<<<<
+ *                     break
+ *                 lines.append(force_str(buffer.s, self.encoding))
+ */
+    }
+
+    /* "pysam/libctabix.pyx":573
+ *                 if not buffer.l or buffer.s[0] != tbx.conf.meta_char:
+ *                     break
+ *                 lines.append(force_str(buffer.s, self.encoding))             # <<<<<<<<<<<<<<
+ * 
+ *             with nogil:
+ */
+    __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_buffer.s); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 573, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_4 = __pyx_v_self->encoding;
+    __Pyx_INCREF(__pyx_t_4);
+    __pyx_t_8.__pyx_n = 1;
+    __pyx_t_8.encoding = __pyx_t_4;
+    __pyx_t_5 = __pyx_f_5pysam_9libcutils_force_str(__pyx_t_2, &__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 573, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_lines, __pyx_t_5); if (unlikely(__pyx_t_9 == ((int)-1))) __PYX_ERR(0, 573, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  }
+  __pyx_L12_break:;
+
+  /* "pysam/libctabix.pyx":575
+ *                 lines.append(force_str(buffer.s, self.encoding))
+ * 
+ *             with nogil:             # <<<<<<<<<<<<<<
+ *                 hts_close(fp)
+ *                 free(buffer.s)
+ */
+  {
+      #ifdef WITH_THREAD
+      PyThreadState *_save;
+      Py_UNBLOCK_THREADS
+      __Pyx_FastGIL_Remember();
+      #endif
+      /*try:*/ {
+
+        /* "pysam/libctabix.pyx":576
+ * 
+ *             with nogil:
+ *                 hts_close(fp)             # <<<<<<<<<<<<<<
+ *                 free(buffer.s)
+ * 
+ */
+        (void)(hts_close(__pyx_v_fp));
+
+        /* "pysam/libctabix.pyx":577
+ *             with nogil:
+ *                 hts_close(fp)
+ *                 free(buffer.s)             # <<<<<<<<<<<<<<
+ * 
+ *             return lines
+ */
+        free(__pyx_v_buffer.s);
+      }
+
+      /* "pysam/libctabix.pyx":575
+ *                 lines.append(force_str(buffer.s, self.encoding))
+ * 
+ *             with nogil:             # <<<<<<<<<<<<<<
+ *                 hts_close(fp)
+ *                 free(buffer.s)
+ */
+      /*finally:*/ {
+        /*normal exit:*/{
+          #ifdef WITH_THREAD
+          __Pyx_FastGIL_Forget();
+          Py_BLOCK_THREADS
+          #endif
+          goto __pyx_L18;
+        }
+        __pyx_L18:;
+      }
+  }
+
+  /* "pysam/libctabix.pyx":579
+ *                 free(buffer.s)
+ * 
+ *             return lines             # <<<<<<<<<<<<<<
  * 
  *     property contigs:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_5pysam_9libctabix_GZIteratorHead), __pyx_v_self->__pyx_base.filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 504, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_r = __pyx_t_2;
-  __pyx_t_2 = 0;
+  __Pyx_INCREF(__pyx_v_lines);
+  __pyx_r = __pyx_v_lines;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":500
+  /* "pysam/libctabix.pyx":545
  *         '''
  * 
  *         def __get__(self):             # <<<<<<<<<<<<<<
- *             if self.is_remote:
- *                 raise AttributeError(
+ * 
+ *             cdef char *cfilename = self.filename
  */
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
   __Pyx_AddTraceback("pysam.libctabix.TabixFile.header.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_lines);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_TraceReturn(__pyx_r, 0);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":508
+/* "pysam/libctabix.pyx":583
  *     property contigs:
  *         '''list of chromosome names'''
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -7724,9 +8677,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_7contigs___get__(struct _
   PyObject *__pyx_t_3 = NULL;
   int __pyx_t_4;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 508, 0, __PYX_ERR(0, 508, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 583, 0, __PYX_ERR(0, 583, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":512
+  /* "pysam/libctabix.pyx":587
  *             cdef int nsequences
  * 
  *             with nogil:             # <<<<<<<<<<<<<<
@@ -7741,7 +8694,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_7contigs___get__(struct _
       #endif
       /*try:*/ {
 
-        /* "pysam/libctabix.pyx":513
+        /* "pysam/libctabix.pyx":588
  * 
  *             with nogil:
  *                 sequences = tbx_seqnames(self.index, &nsequences)             # <<<<<<<<<<<<<<
@@ -7751,7 +8704,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_7contigs___get__(struct _
         __pyx_v_sequences = tbx_seqnames(__pyx_v_self->index, (&__pyx_v_nsequences));
       }
 
-      /* "pysam/libctabix.pyx":512
+      /* "pysam/libctabix.pyx":587
  *             cdef int nsequences
  * 
  *             with nogil:             # <<<<<<<<<<<<<<
@@ -7770,19 +8723,19 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_7contigs___get__(struct _
       }
   }
 
-  /* "pysam/libctabix.pyx":515
+  /* "pysam/libctabix.pyx":590
  *                 sequences = tbx_seqnames(self.index, &nsequences)
  *             cdef int x
  *             result = []             # <<<<<<<<<<<<<<
  *             for x from 0 <= x < nsequences:
  *                 result.append(force_str(sequences[x]))
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 515, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 590, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":516
+  /* "pysam/libctabix.pyx":591
  *             cdef int x
  *             result = []
  *             for x from 0 <= x < nsequences:             # <<<<<<<<<<<<<<
@@ -7792,23 +8745,23 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_7contigs___get__(struct _
   __pyx_t_2 = __pyx_v_nsequences;
   for (__pyx_v_x = 0; __pyx_v_x < __pyx_t_2; __pyx_v_x++) {
 
-    /* "pysam/libctabix.pyx":517
+    /* "pysam/libctabix.pyx":592
  *             result = []
  *             for x from 0 <= x < nsequences:
  *                 result.append(force_str(sequences[x]))             # <<<<<<<<<<<<<<
  * 
  *             # htslib instructions:
  */
-    __pyx_t_1 = __Pyx_PyBytes_FromString((__pyx_v_sequences[__pyx_v_x])); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 517, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyBytes_FromString((__pyx_v_sequences[__pyx_v_x])); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 592, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_str(__pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 517, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_str(__pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 592, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_4 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(0, 517, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(0, 592, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
 
-  /* "pysam/libctabix.pyx":521
+  /* "pysam/libctabix.pyx":596
  *             # htslib instructions:
  *             # only free container, not the sequences themselves
  *             free(sequences)             # <<<<<<<<<<<<<<
@@ -7817,7 +8770,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_7contigs___get__(struct _
  */
   free(__pyx_v_sequences);
 
-  /* "pysam/libctabix.pyx":523
+  /* "pysam/libctabix.pyx":598
  *             free(sequences)
  * 
  *             return result             # <<<<<<<<<<<<<<
@@ -7829,7 +8782,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_7contigs___get__(struct _
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":508
+  /* "pysam/libctabix.pyx":583
  *     property contigs:
  *         '''list of chromosome names'''
  *         def __get__(self):             # <<<<<<<<<<<<<<
@@ -7851,7 +8804,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_7contigs___get__(struct _
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":525
+/* "pysam/libctabix.pyx":600
  *             return result
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
@@ -7879,9 +8832,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_8close(struct __pyx_obj_5
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("close", 0);
-  __Pyx_TraceCall("close", __pyx_f[0], 525, 0, __PYX_ERR(0, 525, __pyx_L1_error));
+  __Pyx_TraceCall("close", __pyx_f[0], 600, 0, __PYX_ERR(0, 600, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":528
+  /* "pysam/libctabix.pyx":603
  *         '''
  *         closes the :class:`pysam.TabixFile`.'''
  *         if self.htsfile != NULL:             # <<<<<<<<<<<<<<
@@ -7891,7 +8844,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_8close(struct __pyx_obj_5
   __pyx_t_1 = ((__pyx_v_self->__pyx_base.htsfile != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":529
+    /* "pysam/libctabix.pyx":604
  *         closes the :class:`pysam.TabixFile`.'''
  *         if self.htsfile != NULL:
  *             hts_close(self.htsfile)             # <<<<<<<<<<<<<<
@@ -7900,7 +8853,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_8close(struct __pyx_obj_5
  */
     (void)(hts_close(__pyx_v_self->__pyx_base.htsfile));
 
-    /* "pysam/libctabix.pyx":530
+    /* "pysam/libctabix.pyx":605
  *         if self.htsfile != NULL:
  *             hts_close(self.htsfile)
  *             self.htsfile = NULL             # <<<<<<<<<<<<<<
@@ -7909,7 +8862,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_8close(struct __pyx_obj_5
  */
     __pyx_v_self->__pyx_base.htsfile = NULL;
 
-    /* "pysam/libctabix.pyx":528
+    /* "pysam/libctabix.pyx":603
  *         '''
  *         closes the :class:`pysam.TabixFile`.'''
  *         if self.htsfile != NULL:             # <<<<<<<<<<<<<<
@@ -7918,7 +8871,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_8close(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":531
+  /* "pysam/libctabix.pyx":606
  *             hts_close(self.htsfile)
  *             self.htsfile = NULL
  *         if self.index != NULL:             # <<<<<<<<<<<<<<
@@ -7928,7 +8881,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_8close(struct __pyx_obj_5
   __pyx_t_1 = ((__pyx_v_self->index != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":532
+    /* "pysam/libctabix.pyx":607
  *             self.htsfile = NULL
  *         if self.index != NULL:
  *             tbx_destroy(self.index)             # <<<<<<<<<<<<<<
@@ -7937,7 +8890,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_8close(struct __pyx_obj_5
  */
     tbx_destroy(__pyx_v_self->index);
 
-    /* "pysam/libctabix.pyx":533
+    /* "pysam/libctabix.pyx":608
  *         if self.index != NULL:
  *             tbx_destroy(self.index)
  *             self.index = NULL             # <<<<<<<<<<<<<<
@@ -7946,7 +8899,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_8close(struct __pyx_obj_5
  */
     __pyx_v_self->index = NULL;
 
-    /* "pysam/libctabix.pyx":531
+    /* "pysam/libctabix.pyx":606
  *             hts_close(self.htsfile)
  *             self.htsfile = NULL
  *         if self.index != NULL:             # <<<<<<<<<<<<<<
@@ -7955,7 +8908,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_8close(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libctabix.pyx":525
+  /* "pysam/libctabix.pyx":600
  *             return result
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
@@ -7976,7 +8929,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_8close(struct __pyx_obj_5
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":535
+/* "pysam/libctabix.pyx":610
  *             self.index = NULL
  * 
  *     def __dealloc__( self ):             # <<<<<<<<<<<<<<
@@ -8000,9 +8953,9 @@ static void __pyx_pf_5pysam_9libctabix_9TabixFile_10__dealloc__(struct __pyx_obj
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
-  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 535, 0, __PYX_ERR(0, 535, __pyx_L1_error));
+  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 610, 0, __PYX_ERR(0, 610, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":539
+  /* "pysam/libctabix.pyx":614
  *         # note: no doc string
  *         # note: __del__ is not called.
  *         if self.htsfile != NULL:             # <<<<<<<<<<<<<<
@@ -8012,7 +8965,7 @@ static void __pyx_pf_5pysam_9libctabix_9TabixFile_10__dealloc__(struct __pyx_obj
   __pyx_t_1 = ((__pyx_v_self->__pyx_base.htsfile != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":540
+    /* "pysam/libctabix.pyx":615
  *         # note: __del__ is not called.
  *         if self.htsfile != NULL:
  *             hts_close(self.htsfile)             # <<<<<<<<<<<<<<
@@ -8021,7 +8974,7 @@ static void __pyx_pf_5pysam_9libctabix_9TabixFile_10__dealloc__(struct __pyx_obj
  */
     (void)(hts_close(__pyx_v_self->__pyx_base.htsfile));
 
-    /* "pysam/libctabix.pyx":541
+    /* "pysam/libctabix.pyx":616
  *         if self.htsfile != NULL:
  *             hts_close(self.htsfile)
  *             self.htsfile = NULL             # <<<<<<<<<<<<<<
@@ -8030,7 +8983,7 @@ static void __pyx_pf_5pysam_9libctabix_9TabixFile_10__dealloc__(struct __pyx_obj
  */
     __pyx_v_self->__pyx_base.htsfile = NULL;
 
-    /* "pysam/libctabix.pyx":539
+    /* "pysam/libctabix.pyx":614
  *         # note: no doc string
  *         # note: __del__ is not called.
  *         if self.htsfile != NULL:             # <<<<<<<<<<<<<<
@@ -8039,7 +8992,7 @@ static void __pyx_pf_5pysam_9libctabix_9TabixFile_10__dealloc__(struct __pyx_obj
  */
   }
 
-  /* "pysam/libctabix.pyx":542
+  /* "pysam/libctabix.pyx":617
  *             hts_close(self.htsfile)
  *             self.htsfile = NULL
  *         if self.index != NULL:             # <<<<<<<<<<<<<<
@@ -8049,7 +9002,7 @@ static void __pyx_pf_5pysam_9libctabix_9TabixFile_10__dealloc__(struct __pyx_obj
   __pyx_t_1 = ((__pyx_v_self->index != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":543
+    /* "pysam/libctabix.pyx":618
  *             self.htsfile = NULL
  *         if self.index != NULL:
  *             tbx_destroy(self.index)             # <<<<<<<<<<<<<<
@@ -8058,7 +9011,7 @@ static void __pyx_pf_5pysam_9libctabix_9TabixFile_10__dealloc__(struct __pyx_obj
  */
     tbx_destroy(__pyx_v_self->index);
 
-    /* "pysam/libctabix.pyx":542
+    /* "pysam/libctabix.pyx":617
  *             hts_close(self.htsfile)
  *             self.htsfile = NULL
  *         if self.index != NULL:             # <<<<<<<<<<<<<<
@@ -8067,7 +9020,7 @@ static void __pyx_pf_5pysam_9libctabix_9TabixFile_10__dealloc__(struct __pyx_obj
  */
   }
 
-  /* "pysam/libctabix.pyx":535
+  /* "pysam/libctabix.pyx":610
  *             self.index = NULL
  * 
  *     def __dealloc__( self ):             # <<<<<<<<<<<<<<
@@ -8161,7 +9114,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_12__reduce_cython__(CYTHO
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -8218,7 +9171,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_14__setstate_cython__(CYT
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -8242,7 +9195,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9TabixFile_14__setstate_cython__(CYT
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":551
+/* "pysam/libctabix.pyx":626
  *     """
  * 
  *     def __init__(self, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -8279,7 +9232,7 @@ static int __pyx_pw_5pysam_9libctabix_13TabixIterator_1__init__(PyObject *__pyx_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 551, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 626, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -8293,7 +9246,7 @@ static int __pyx_pw_5pysam_9libctabix_13TabixIterator_1__init__(PyObject *__pyx_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 551, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 626, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.TabixIterator.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8311,9 +9264,9 @@ static int __pyx_pf_5pysam_9libctabix_13TabixIterator___init__(struct __pyx_obj_
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__", 0);
-  __Pyx_TraceCall("__init__", __pyx_f[0], 551, 0, __PYX_ERR(0, 551, __pyx_L1_error));
+  __Pyx_TraceCall("__init__", __pyx_f[0], 626, 0, __PYX_ERR(0, 626, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":552
+  /* "pysam/libctabix.pyx":627
  * 
  *     def __init__(self, encoding="ascii"):
  *         self.encoding = encoding             # <<<<<<<<<<<<<<
@@ -8326,7 +9279,7 @@ static int __pyx_pf_5pysam_9libctabix_13TabixIterator___init__(struct __pyx_obj_
   __Pyx_DECREF(__pyx_v_self->encoding);
   __pyx_v_self->encoding = __pyx_v_encoding;
 
-  /* "pysam/libctabix.pyx":551
+  /* "pysam/libctabix.pyx":626
  *     """
  * 
  *     def __init__(self, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -8346,7 +9299,7 @@ static int __pyx_pf_5pysam_9libctabix_13TabixIterator___init__(struct __pyx_obj_
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":554
+/* "pysam/libctabix.pyx":629
  *         self.encoding = encoding
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -8372,9 +9325,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_2__iter__(struct __p
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__iter__", 0);
-  __Pyx_TraceCall("__iter__", __pyx_f[0], 554, 0, __PYX_ERR(0, 554, __pyx_L1_error));
+  __Pyx_TraceCall("__iter__", __pyx_f[0], 629, 0, __PYX_ERR(0, 629, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":555
+  /* "pysam/libctabix.pyx":630
  * 
  *     def __iter__(self):
  *         self.buffer.s = NULL             # <<<<<<<<<<<<<<
@@ -8383,7 +9336,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_2__iter__(struct __p
  */
   __pyx_v_self->buffer.s = NULL;
 
-  /* "pysam/libctabix.pyx":556
+  /* "pysam/libctabix.pyx":631
  *     def __iter__(self):
  *         self.buffer.s = NULL
  *         self.buffer.l = 0             # <<<<<<<<<<<<<<
@@ -8392,7 +9345,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_2__iter__(struct __p
  */
   __pyx_v_self->buffer.l = 0;
 
-  /* "pysam/libctabix.pyx":557
+  /* "pysam/libctabix.pyx":632
  *         self.buffer.s = NULL
  *         self.buffer.l = 0
  *         self.buffer.m = 0             # <<<<<<<<<<<<<<
@@ -8401,7 +9354,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_2__iter__(struct __p
  */
   __pyx_v_self->buffer.m = 0;
 
-  /* "pysam/libctabix.pyx":559
+  /* "pysam/libctabix.pyx":634
  *         self.buffer.m = 0
  * 
  *         return self             # <<<<<<<<<<<<<<
@@ -8413,7 +9366,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_2__iter__(struct __p
   __pyx_r = ((PyObject *)__pyx_v_self);
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":554
+  /* "pysam/libctabix.pyx":629
  *         self.encoding = encoding
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -8432,7 +9385,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_2__iter__(struct __p
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":561
+/* "pysam/libctabix.pyx":636
  *         return self
  * 
  *     cdef int __cnext__(self):             # <<<<<<<<<<<<<<
@@ -8447,9 +9400,9 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__cnext__", 0);
-  __Pyx_TraceCall("__cnext__", __pyx_f[0], 561, 0, __PYX_ERR(0, 561, __pyx_L1_error));
+  __Pyx_TraceCall("__cnext__", __pyx_f[0], 636, 0, __PYX_ERR(0, 636, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":567
+  /* "pysam/libctabix.pyx":642
  *         was called.
  *         '''
  *         if self.tabixfile.htsfile == NULL:             # <<<<<<<<<<<<<<
@@ -8459,7 +9412,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
   __pyx_t_1 = ((__pyx_v_self->tabixfile->__pyx_base.htsfile == NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":568
+    /* "pysam/libctabix.pyx":643
  *         '''
  *         if self.tabixfile.htsfile == NULL:
  *             return -5             # <<<<<<<<<<<<<<
@@ -8469,7 +9422,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
     __pyx_r = -5;
     goto __pyx_L0;
 
-    /* "pysam/libctabix.pyx":567
+    /* "pysam/libctabix.pyx":642
  *         was called.
  *         '''
  *         if self.tabixfile.htsfile == NULL:             # <<<<<<<<<<<<<<
@@ -8478,7 +9431,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libctabix.pyx":572
+  /* "pysam/libctabix.pyx":647
  *         cdef int retval
  * 
  *         while 1:             # <<<<<<<<<<<<<<
@@ -8487,7 +9440,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
  */
   while (1) {
 
-    /* "pysam/libctabix.pyx":573
+    /* "pysam/libctabix.pyx":648
  * 
  *         while 1:
  *             with nogil:             # <<<<<<<<<<<<<<
@@ -8502,7 +9455,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
         #endif
         /*try:*/ {
 
-          /* "pysam/libctabix.pyx":574
+          /* "pysam/libctabix.pyx":649
  *         while 1:
  *             with nogil:
  *                 retval = tbx_itr_next(             # <<<<<<<<<<<<<<
@@ -8512,7 +9465,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
           __pyx_v_retval = tbx_itr_next(__pyx_v_self->tabixfile->__pyx_base.htsfile, __pyx_v_self->tabixfile->index, __pyx_v_self->iterator, (&__pyx_v_self->buffer));
         }
 
-        /* "pysam/libctabix.pyx":573
+        /* "pysam/libctabix.pyx":648
  * 
  *         while 1:
  *             with nogil:             # <<<<<<<<<<<<<<
@@ -8531,7 +9484,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
         }
     }
 
-    /* "pysam/libctabix.pyx":580
+    /* "pysam/libctabix.pyx":655
  *                     &self.buffer)
  * 
  *             if retval < 0:             # <<<<<<<<<<<<<<
@@ -8541,7 +9494,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
     __pyx_t_1 = ((__pyx_v_retval < 0) != 0);
     if (__pyx_t_1) {
 
-      /* "pysam/libctabix.pyx":581
+      /* "pysam/libctabix.pyx":656
  * 
  *             if retval < 0:
  *                 break             # <<<<<<<<<<<<<<
@@ -8550,7 +9503,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
  */
       goto __pyx_L5_break;
 
-      /* "pysam/libctabix.pyx":580
+      /* "pysam/libctabix.pyx":655
  *                     &self.buffer)
  * 
  *             if retval < 0:             # <<<<<<<<<<<<<<
@@ -8559,7 +9512,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
  */
     }
 
-    /* "pysam/libctabix.pyx":583
+    /* "pysam/libctabix.pyx":658
  *                 break
  * 
  *             if self.buffer.s[0] != '#':             # <<<<<<<<<<<<<<
@@ -8569,7 +9522,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
     __pyx_t_1 = (((__pyx_v_self->buffer.s[0]) != '#') != 0);
     if (__pyx_t_1) {
 
-      /* "pysam/libctabix.pyx":584
+      /* "pysam/libctabix.pyx":659
  * 
  *             if self.buffer.s[0] != '#':
  *                 break             # <<<<<<<<<<<<<<
@@ -8578,7 +9531,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
  */
       goto __pyx_L5_break;
 
-      /* "pysam/libctabix.pyx":583
+      /* "pysam/libctabix.pyx":658
  *                 break
  * 
  *             if self.buffer.s[0] != '#':             # <<<<<<<<<<<<<<
@@ -8589,7 +9542,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
   }
   __pyx_L5_break:;
 
-  /* "pysam/libctabix.pyx":586
+  /* "pysam/libctabix.pyx":661
  *                 break
  * 
  *         return retval             # <<<<<<<<<<<<<<
@@ -8599,7 +9552,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
   __pyx_r = __pyx_v_retval;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":561
+  /* "pysam/libctabix.pyx":636
  *         return self
  * 
  *     cdef int __cnext__(self):             # <<<<<<<<<<<<<<
@@ -8617,7 +9570,7 @@ static int __pyx_f_5pysam_9libctabix_13TabixIterator___cnext__(struct __pyx_obj_
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":588
+/* "pysam/libctabix.pyx":663
  *         return retval
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -8652,9 +9605,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_4__next__(struct __p
   PyObject *__pyx_t_3 = NULL;
   struct __pyx_opt_args_5pysam_9libcutils_charptr_to_str __pyx_t_4;
   __Pyx_RefNannySetupContext("__next__", 0);
-  __Pyx_TraceCall("__next__", __pyx_f[0], 588, 0, __PYX_ERR(0, 588, __pyx_L1_error));
+  __Pyx_TraceCall("__next__", __pyx_f[0], 663, 0, __PYX_ERR(0, 663, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":594
+  /* "pysam/libctabix.pyx":669
  *         """
  * 
  *         cdef int retval = self.__cnext__()             # <<<<<<<<<<<<<<
@@ -8663,7 +9616,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_4__next__(struct __p
  */
   __pyx_v_retval = ((struct __pyx_vtabstruct_5pysam_9libctabix_TabixIterator *)__pyx_v_self->__pyx_vtab)->__pyx___cnext__(__pyx_v_self);
 
-  /* "pysam/libctabix.pyx":595
+  /* "pysam/libctabix.pyx":670
  * 
  *         cdef int retval = self.__cnext__()
  *         if retval == -5:             # <<<<<<<<<<<<<<
@@ -8673,20 +9626,20 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_4__next__(struct __p
   __pyx_t_1 = ((__pyx_v_retval == -5L) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":596
+    /* "pysam/libctabix.pyx":671
  *         cdef int retval = self.__cnext__()
  *         if retval == -5:
  *             raise IOError("iteration on closed file")             # <<<<<<<<<<<<<<
  *         elif retval < 0:
  *             raise StopIteration
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 596, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 671, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 596, __pyx_L1_error)
+    __PYX_ERR(0, 671, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":595
+    /* "pysam/libctabix.pyx":670
  * 
  *         cdef int retval = self.__cnext__()
  *         if retval == -5:             # <<<<<<<<<<<<<<
@@ -8695,7 +9648,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_4__next__(struct __p
  */
   }
 
-  /* "pysam/libctabix.pyx":597
+  /* "pysam/libctabix.pyx":672
  *         if retval == -5:
  *             raise IOError("iteration on closed file")
  *         elif retval < 0:             # <<<<<<<<<<<<<<
@@ -8705,7 +9658,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_4__next__(struct __p
   __pyx_t_1 = ((__pyx_v_retval < 0) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":598
+    /* "pysam/libctabix.pyx":673
  *             raise IOError("iteration on closed file")
  *         elif retval < 0:
  *             raise StopIteration             # <<<<<<<<<<<<<<
@@ -8713,9 +9666,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_4__next__(struct __p
  *         return charptr_to_str(self.buffer.s, self.encoding)
  */
     __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
-    __PYX_ERR(0, 598, __pyx_L1_error)
+    __PYX_ERR(0, 673, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":597
+    /* "pysam/libctabix.pyx":672
  *         if retval == -5:
  *             raise IOError("iteration on closed file")
  *         elif retval < 0:             # <<<<<<<<<<<<<<
@@ -8724,7 +9677,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_4__next__(struct __p
  */
   }
 
-  /* "pysam/libctabix.pyx":600
+  /* "pysam/libctabix.pyx":675
  *             raise StopIteration
  * 
  *         return charptr_to_str(self.buffer.s, self.encoding)             # <<<<<<<<<<<<<<
@@ -8736,14 +9689,14 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_4__next__(struct __p
   __Pyx_INCREF(__pyx_t_2);
   __pyx_t_4.__pyx_n = 1;
   __pyx_t_4.encoding = __pyx_t_2;
-  __pyx_t_3 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_self->buffer.s, &__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 600, __pyx_L1_error)
+  __pyx_t_3 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_self->buffer.s, &__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 675, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":588
+  /* "pysam/libctabix.pyx":663
  *         return retval
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -8764,7 +9717,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_4__next__(struct __p
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":602
+/* "pysam/libctabix.pyx":677
  *         return charptr_to_str(self.buffer.s, self.encoding)
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
@@ -8794,9 +9747,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_6next(struct __pyx_o
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("next", 0);
-  __Pyx_TraceCall("next", __pyx_f[0], 602, 0, __PYX_ERR(0, 602, __pyx_L1_error));
+  __Pyx_TraceCall("next", __pyx_f[0], 677, 0, __PYX_ERR(0, 677, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":603
+  /* "pysam/libctabix.pyx":678
  * 
  *     def next(self):
  *         return self.__next__()             # <<<<<<<<<<<<<<
@@ -8804,7 +9757,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_6next(struct __pyx_o
  *     def __dealloc__(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_next); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 603, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_next); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 678, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -8817,10 +9770,10 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_6next(struct __pyx_o
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 603, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 678, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 603, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 678, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -8828,7 +9781,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_6next(struct __pyx_o
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":602
+  /* "pysam/libctabix.pyx":677
  *         return charptr_to_str(self.buffer.s, self.encoding)
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
@@ -8850,7 +9803,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_6next(struct __pyx_o
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":605
+/* "pysam/libctabix.pyx":680
  *         return self.__next__()
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -8874,9 +9827,9 @@ static void __pyx_pf_5pysam_9libctabix_13TabixIterator_8__dealloc__(struct __pyx
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
-  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 605, 0, __PYX_ERR(0, 605, __pyx_L1_error));
+  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 680, 0, __PYX_ERR(0, 680, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":606
+  /* "pysam/libctabix.pyx":681
  * 
  *     def __dealloc__(self):
  *         if <void*>self.iterator != NULL:             # <<<<<<<<<<<<<<
@@ -8886,7 +9839,7 @@ static void __pyx_pf_5pysam_9libctabix_13TabixIterator_8__dealloc__(struct __pyx
   __pyx_t_1 = ((((void *)__pyx_v_self->iterator) != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":607
+    /* "pysam/libctabix.pyx":682
  *     def __dealloc__(self):
  *         if <void*>self.iterator != NULL:
  *             tbx_itr_destroy(self.iterator)             # <<<<<<<<<<<<<<
@@ -8895,7 +9848,7 @@ static void __pyx_pf_5pysam_9libctabix_13TabixIterator_8__dealloc__(struct __pyx
  */
     tbx_itr_destroy(__pyx_v_self->iterator);
 
-    /* "pysam/libctabix.pyx":606
+    /* "pysam/libctabix.pyx":681
  * 
  *     def __dealloc__(self):
  *         if <void*>self.iterator != NULL:             # <<<<<<<<<<<<<<
@@ -8904,7 +9857,7 @@ static void __pyx_pf_5pysam_9libctabix_13TabixIterator_8__dealloc__(struct __pyx
  */
   }
 
-  /* "pysam/libctabix.pyx":608
+  /* "pysam/libctabix.pyx":683
  *         if <void*>self.iterator != NULL:
  *             tbx_itr_destroy(self.iterator)
  *         if self.buffer.s != NULL:             # <<<<<<<<<<<<<<
@@ -8914,7 +9867,7 @@ static void __pyx_pf_5pysam_9libctabix_13TabixIterator_8__dealloc__(struct __pyx
   __pyx_t_1 = ((__pyx_v_self->buffer.s != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":609
+    /* "pysam/libctabix.pyx":684
  *             tbx_itr_destroy(self.iterator)
  *         if self.buffer.s != NULL:
  *             free(self.buffer.s)             # <<<<<<<<<<<<<<
@@ -8923,7 +9876,7 @@ static void __pyx_pf_5pysam_9libctabix_13TabixIterator_8__dealloc__(struct __pyx
  */
     free(__pyx_v_self->buffer.s);
 
-    /* "pysam/libctabix.pyx":608
+    /* "pysam/libctabix.pyx":683
  *         if <void*>self.iterator != NULL:
  *             tbx_itr_destroy(self.iterator)
  *         if self.buffer.s != NULL:             # <<<<<<<<<<<<<<
@@ -8932,7 +9885,7 @@ static void __pyx_pf_5pysam_9libctabix_13TabixIterator_8__dealloc__(struct __pyx
  */
   }
 
-  /* "pysam/libctabix.pyx":605
+  /* "pysam/libctabix.pyx":680
  *         return self.__next__()
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -8983,7 +9936,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_10__reduce_cython__(
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -9040,7 +9993,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_12__setstate_cython_
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -9064,7 +10017,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13TabixIterator_12__setstate_cython_
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":615
+/* "pysam/libctabix.pyx":690
  *     '''empty iterator'''
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -9091,11 +10044,11 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13EmptyIterator___iter__(CYTHON_UNUS
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
-  __Pyx_TraceFrameInit(__pyx_codeobj__10)
+  __Pyx_TraceFrameInit(__pyx_codeobj__9)
   __Pyx_RefNannySetupContext("__iter__", 0);
-  __Pyx_TraceCall("__iter__", __pyx_f[0], 615, 0, __PYX_ERR(0, 615, __pyx_L1_error));
+  __Pyx_TraceCall("__iter__", __pyx_f[0], 690, 0, __PYX_ERR(0, 690, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":616
+  /* "pysam/libctabix.pyx":691
  * 
  *     def __iter__(self):
  *         return self             # <<<<<<<<<<<<<<
@@ -9107,7 +10060,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13EmptyIterator___iter__(CYTHON_UNUS
   __pyx_r = __pyx_v_self;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":615
+  /* "pysam/libctabix.pyx":690
  *     '''empty iterator'''
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -9126,7 +10079,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13EmptyIterator___iter__(CYTHON_UNUS
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":618
+/* "pysam/libctabix.pyx":693
  *         return self
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
@@ -9154,24 +10107,24 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13EmptyIterator_2next(CYTHON_UNUSED 
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  __Pyx_TraceFrameInit(__pyx_codeobj__11)
+  __Pyx_TraceFrameInit(__pyx_codeobj__10)
   __Pyx_RefNannySetupContext("next", 0);
-  __Pyx_TraceCall("next", __pyx_f[0], 618, 0, __PYX_ERR(0, 618, __pyx_L1_error));
+  __Pyx_TraceCall("next", __pyx_f[0], 693, 0, __PYX_ERR(0, 693, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":619
+  /* "pysam/libctabix.pyx":694
  * 
  *     def next(self):
  *         raise StopIteration()             # <<<<<<<<<<<<<<
  * 
  *     def __next__(self):
  */
-  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_builtin_StopIteration); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 619, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_builtin_StopIteration); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 694, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __PYX_ERR(0, 619, __pyx_L1_error)
+  __PYX_ERR(0, 694, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":618
+  /* "pysam/libctabix.pyx":693
  *         return self
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
@@ -9190,7 +10143,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13EmptyIterator_2next(CYTHON_UNUSED 
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":621
+/* "pysam/libctabix.pyx":696
  *         raise StopIteration()
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -9218,24 +10171,24 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13EmptyIterator_4__next__(CYTHON_UNU
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  __Pyx_TraceFrameInit(__pyx_codeobj__12)
+  __Pyx_TraceFrameInit(__pyx_codeobj__11)
   __Pyx_RefNannySetupContext("__next__", 0);
-  __Pyx_TraceCall("__next__", __pyx_f[0], 621, 0, __PYX_ERR(0, 621, __pyx_L1_error));
+  __Pyx_TraceCall("__next__", __pyx_f[0], 696, 0, __PYX_ERR(0, 696, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":622
+  /* "pysam/libctabix.pyx":697
  * 
  *     def __next__(self):
  *         raise StopIteration()             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_builtin_StopIteration); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 622, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_builtin_StopIteration); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 697, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __PYX_ERR(0, 622, __pyx_L1_error)
+  __PYX_ERR(0, 697, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":621
+  /* "pysam/libctabix.pyx":696
  *         raise StopIteration()
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -9254,7 +10207,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_13EmptyIterator_4__next__(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":633
+/* "pysam/libctabix.pyx":708
  *     """
  * 
  *     def __init__(self,             # <<<<<<<<<<<<<<
@@ -9288,7 +10241,7 @@ static int __pyx_pw_5pysam_9libctabix_19TabixIteratorParsed_1__init__(PyObject *
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 633, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 708, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -9299,13 +10252,13 @@ static int __pyx_pw_5pysam_9libctabix_19TabixIteratorParsed_1__init__(PyObject *
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 633, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 708, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.TabixIteratorParsed.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_parser), __pyx_ptype_5pysam_9libctabix_Parser, 1, "parser", 0))) __PYX_ERR(0, 634, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_parser), __pyx_ptype_5pysam_9libctabix_Parser, 1, "parser", 0))) __PYX_ERR(0, 709, __pyx_L1_error)
   __pyx_r = __pyx_pf_5pysam_9libctabix_19TabixIteratorParsed___init__(((struct __pyx_obj_5pysam_9libctabix_TabixIteratorParsed *)__pyx_v_self), __pyx_v_parser);
 
   /* function exit code */
@@ -9326,16 +10279,16 @@ static int __pyx_pf_5pysam_9libctabix_19TabixIteratorParsed___init__(struct __py
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
-  __Pyx_TraceCall("__init__", __pyx_f[0], 633, 0, __PYX_ERR(0, 633, __pyx_L1_error));
+  __Pyx_TraceCall("__init__", __pyx_f[0], 708, 0, __PYX_ERR(0, 708, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":636
+  /* "pysam/libctabix.pyx":711
  *                  Parser parser):
  * 
  *         TabixIterator.__init__(self)             # <<<<<<<<<<<<<<
  *         self.parser = parser
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_ptype_5pysam_9libctabix_TabixIterator), __pyx_n_s_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 636, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_ptype_5pysam_9libctabix_TabixIterator), __pyx_n_s_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 711, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -9348,13 +10301,13 @@ static int __pyx_pf_5pysam_9libctabix_19TabixIteratorParsed___init__(struct __py
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 636, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, ((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 711, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
   } else {
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[2] = {__pyx_t_3, ((PyObject *)__pyx_v_self)};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 636, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 711, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
@@ -9362,19 +10315,19 @@ static int __pyx_pf_5pysam_9libctabix_19TabixIteratorParsed___init__(struct __py
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[2] = {__pyx_t_3, ((PyObject *)__pyx_v_self)};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 636, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 711, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
     #endif
     {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 636, __pyx_L1_error)
+      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 711, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
       __Pyx_INCREF(((PyObject *)__pyx_v_self));
       __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
       PyTuple_SET_ITEM(__pyx_t_4, 0+1, ((PyObject *)__pyx_v_self));
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 636, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 711, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
@@ -9382,7 +10335,7 @@ static int __pyx_pf_5pysam_9libctabix_19TabixIteratorParsed___init__(struct __py
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":637
+  /* "pysam/libctabix.pyx":712
  * 
  *         TabixIterator.__init__(self)
  *         self.parser = parser             # <<<<<<<<<<<<<<
@@ -9395,7 +10348,7 @@ static int __pyx_pf_5pysam_9libctabix_19TabixIteratorParsed___init__(struct __py
   __Pyx_DECREF(((PyObject *)__pyx_v_self->parser));
   __pyx_v_self->parser = __pyx_v_parser;
 
-  /* "pysam/libctabix.pyx":633
+  /* "pysam/libctabix.pyx":708
  *     """
  * 
  *     def __init__(self,             # <<<<<<<<<<<<<<
@@ -9419,7 +10372,7 @@ static int __pyx_pf_5pysam_9libctabix_19TabixIteratorParsed___init__(struct __py
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":639
+/* "pysam/libctabix.pyx":714
  *         self.parser = parser
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -9452,9 +10405,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19TabixIteratorParsed_2__next__(stru
   int __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__next__", 0);
-  __Pyx_TraceCall("__next__", __pyx_f[0], 639, 0, __PYX_ERR(0, 639, __pyx_L1_error));
+  __Pyx_TraceCall("__next__", __pyx_f[0], 714, 0, __PYX_ERR(0, 714, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":645
+  /* "pysam/libctabix.pyx":720
  *         """
  * 
  *         cdef int retval = self.__cnext__()             # <<<<<<<<<<<<<<
@@ -9463,7 +10416,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19TabixIteratorParsed_2__next__(stru
  */
   __pyx_v_retval = ((struct __pyx_vtabstruct_5pysam_9libctabix_TabixIteratorParsed *)__pyx_v_self->__pyx_base.__pyx_vtab)->__pyx_base.__pyx___cnext__(((struct __pyx_obj_5pysam_9libctabix_TabixIterator *)__pyx_v_self));
 
-  /* "pysam/libctabix.pyx":646
+  /* "pysam/libctabix.pyx":721
  * 
  *         cdef int retval = self.__cnext__()
  *         if retval == -5:             # <<<<<<<<<<<<<<
@@ -9473,20 +10426,20 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19TabixIteratorParsed_2__next__(stru
   __pyx_t_1 = ((__pyx_v_retval == -5L) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":647
+    /* "pysam/libctabix.pyx":722
  *         cdef int retval = self.__cnext__()
  *         if retval == -5:
  *             raise IOError("iteration on closed file")             # <<<<<<<<<<<<<<
  *         elif retval < 0:
  *             raise StopIteration
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 647, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 722, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 647, __pyx_L1_error)
+    __PYX_ERR(0, 722, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":646
+    /* "pysam/libctabix.pyx":721
  * 
  *         cdef int retval = self.__cnext__()
  *         if retval == -5:             # <<<<<<<<<<<<<<
@@ -9495,7 +10448,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19TabixIteratorParsed_2__next__(stru
  */
   }
 
-  /* "pysam/libctabix.pyx":648
+  /* "pysam/libctabix.pyx":723
  *         if retval == -5:
  *             raise IOError("iteration on closed file")
  *         elif retval < 0:             # <<<<<<<<<<<<<<
@@ -9505,7 +10458,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19TabixIteratorParsed_2__next__(stru
   __pyx_t_1 = ((__pyx_v_retval < 0) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":649
+    /* "pysam/libctabix.pyx":724
  *             raise IOError("iteration on closed file")
  *         elif retval < 0:
  *             raise StopIteration             # <<<<<<<<<<<<<<
@@ -9513,9 +10466,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19TabixIteratorParsed_2__next__(stru
  *         return self.parser.parse(self.buffer.s,
  */
     __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
-    __PYX_ERR(0, 649, __pyx_L1_error)
+    __PYX_ERR(0, 724, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":648
+    /* "pysam/libctabix.pyx":723
  *         if retval == -5:
  *             raise IOError("iteration on closed file")
  *         elif retval < 0:             # <<<<<<<<<<<<<<
@@ -9524,7 +10477,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19TabixIteratorParsed_2__next__(stru
  */
   }
 
-  /* "pysam/libctabix.pyx":651
+  /* "pysam/libctabix.pyx":726
  *             raise StopIteration
  * 
  *         return self.parser.parse(self.buffer.s,             # <<<<<<<<<<<<<<
@@ -9533,20 +10486,20 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19TabixIteratorParsed_2__next__(stru
  */
   __Pyx_XDECREF(__pyx_r);
 
-  /* "pysam/libctabix.pyx":652
+  /* "pysam/libctabix.pyx":727
  * 
  *         return self.parser.parse(self.buffer.s,
  *                                  self.buffer.l)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_2 = ((struct __pyx_vtabstruct_5pysam_9libctabix_Parser *)__pyx_v_self->parser->__pyx_vtab)->parse(__pyx_v_self->parser, __pyx_v_self->__pyx_base.buffer.s, __pyx_v_self->__pyx_base.buffer.l); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 651, __pyx_L1_error)
+  __pyx_t_2 = ((struct __pyx_vtabstruct_5pysam_9libctabix_Parser *)__pyx_v_self->parser->__pyx_vtab)->parse(__pyx_v_self->parser, __pyx_v_self->__pyx_base.buffer.s, __pyx_v_self->__pyx_base.buffer.l); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 726, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":639
+  /* "pysam/libctabix.pyx":714
  *         self.parser = parser
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -9600,7 +10553,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19TabixIteratorParsed_4__reduce_cyth
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -9657,7 +10610,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19TabixIteratorParsed_6__setstate_cy
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -9681,7 +10634,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19TabixIteratorParsed_6__setstate_cy
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":656
+/* "pysam/libctabix.pyx":731
  * 
  * cdef class GZIterator:
  *     def __init__(self, filename, int buffer_size=65536, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -9738,7 +10691,7 @@ static int __pyx_pw_5pysam_9libctabix_10GZIterator_1__init__(PyObject *__pyx_v_s
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 656, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 731, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -9753,7 +10706,7 @@ static int __pyx_pw_5pysam_9libctabix_10GZIterator_1__init__(PyObject *__pyx_v_s
     }
     __pyx_v_filename = values[0];
     if (values[1]) {
-      __pyx_v_buffer_size = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_buffer_size == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 656, __pyx_L3_error)
+      __pyx_v_buffer_size = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_buffer_size == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 731, __pyx_L3_error)
     } else {
       __pyx_v_buffer_size = ((int)0x10000);
     }
@@ -9761,7 +10714,7 @@ static int __pyx_pw_5pysam_9libctabix_10GZIterator_1__init__(PyObject *__pyx_v_s
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 656, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 731, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.GZIterator.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9787,22 +10740,22 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
   int __pyx_t_6;
   char *__pyx_t_7;
   __Pyx_RefNannySetupContext("__init__", 0);
-  __Pyx_TraceCall("__init__", __pyx_f[0], 656, 0, __PYX_ERR(0, 656, __pyx_L1_error));
+  __Pyx_TraceCall("__init__", __pyx_f[0], 731, 0, __PYX_ERR(0, 731, __pyx_L1_error));
   __Pyx_INCREF(__pyx_v_filename);
 
-  /* "pysam/libctabix.pyx":660
+  /* "pysam/libctabix.pyx":735
  *         compressed file.
  *         '''
  *         if not os.path.exists(filename):             # <<<<<<<<<<<<<<
  *             raise IOError("No such file or directory: %s" % filename)
  * 
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 660, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 735, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_path); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 660, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_path); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 735, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_exists); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 660, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_exists); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 735, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -9816,13 +10769,13 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filename); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 660, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filename); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 735, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
   } else {
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_filename};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 660, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 735, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
@@ -9830,46 +10783,46 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_filename};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 660, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 735, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
     #endif
     {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 660, __pyx_L1_error)
+      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 735, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
       __Pyx_INCREF(__pyx_v_filename);
       __Pyx_GIVEREF(__pyx_v_filename);
       PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_filename);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 660, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 735, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 660, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 735, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_6 = ((!__pyx_t_5) != 0);
   if (unlikely(__pyx_t_6)) {
 
-    /* "pysam/libctabix.pyx":661
+    /* "pysam/libctabix.pyx":736
  *         '''
  *         if not os.path.exists(filename):
  *             raise IOError("No such file or directory: %s" % filename)             # <<<<<<<<<<<<<<
  * 
  *         filename = encode_filename(filename)
  */
-    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_No_such_file_or_directory_s, __pyx_v_filename); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 661, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_No_such_file_or_directory_s, __pyx_v_filename); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 736, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 661, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 736, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 661, __pyx_L1_error)
+    __PYX_ERR(0, 736, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":660
+    /* "pysam/libctabix.pyx":735
  *         compressed file.
  *         '''
  *         if not os.path.exists(filename):             # <<<<<<<<<<<<<<
@@ -9878,29 +10831,29 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
  */
   }
 
-  /* "pysam/libctabix.pyx":663
+  /* "pysam/libctabix.pyx":738
  *             raise IOError("No such file or directory: %s" % filename)
  * 
  *         filename = encode_filename(filename)             # <<<<<<<<<<<<<<
  *         cdef char *cfilename = filename
  *         with nogil:
  */
-  __pyx_t_2 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 663, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 738, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF_SET(__pyx_v_filename, __pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "pysam/libctabix.pyx":664
+  /* "pysam/libctabix.pyx":739
  * 
  *         filename = encode_filename(filename)
  *         cdef char *cfilename = filename             # <<<<<<<<<<<<<<
  *         with nogil:
  *             self.gzipfile = bgzf_open(cfilename, "r")
  */
-  __pyx_t_7 = __Pyx_PyObject_AsWritableString(__pyx_v_filename); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 664, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_AsWritableString(__pyx_v_filename); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 739, __pyx_L1_error)
   __pyx_v_cfilename = __pyx_t_7;
 
-  /* "pysam/libctabix.pyx":665
+  /* "pysam/libctabix.pyx":740
  *         filename = encode_filename(filename)
  *         cdef char *cfilename = filename
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -9915,7 +10868,7 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
       #endif
       /*try:*/ {
 
-        /* "pysam/libctabix.pyx":666
+        /* "pysam/libctabix.pyx":741
  *         cdef char *cfilename = filename
  *         with nogil:
  *             self.gzipfile = bgzf_open(cfilename, "r")             # <<<<<<<<<<<<<<
@@ -9925,7 +10878,7 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
         __pyx_v_self->gzipfile = bgzf_open(__pyx_v_cfilename, ((char const *)"r"));
       }
 
-      /* "pysam/libctabix.pyx":665
+      /* "pysam/libctabix.pyx":740
  *         filename = encode_filename(filename)
  *         cdef char *cfilename = filename
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -9944,7 +10897,7 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
       }
   }
 
-  /* "pysam/libctabix.pyx":667
+  /* "pysam/libctabix.pyx":742
  *         with nogil:
  *             self.gzipfile = bgzf_open(cfilename, "r")
  *         self._filename = filename             # <<<<<<<<<<<<<<
@@ -9957,7 +10910,7 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
   __Pyx_DECREF(__pyx_v_self->_filename);
   __pyx_v_self->_filename = __pyx_v_filename;
 
-  /* "pysam/libctabix.pyx":668
+  /* "pysam/libctabix.pyx":743
  *             self.gzipfile = bgzf_open(cfilename, "r")
  *         self._filename = filename
  *         self.kstream = ks_init(self.gzipfile)             # <<<<<<<<<<<<<<
@@ -9966,7 +10919,7 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
  */
   __pyx_v_self->kstream = ks_init(__pyx_v_self->gzipfile);
 
-  /* "pysam/libctabix.pyx":669
+  /* "pysam/libctabix.pyx":744
  *         self._filename = filename
  *         self.kstream = ks_init(self.gzipfile)
  *         self.encoding = encoding             # <<<<<<<<<<<<<<
@@ -9979,7 +10932,7 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
   __Pyx_DECREF(__pyx_v_self->encoding);
   __pyx_v_self->encoding = __pyx_v_encoding;
 
-  /* "pysam/libctabix.pyx":671
+  /* "pysam/libctabix.pyx":746
  *         self.encoding = encoding
  * 
  *         self.buffer.l = 0             # <<<<<<<<<<<<<<
@@ -9988,7 +10941,7 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
  */
   __pyx_v_self->buffer.l = 0;
 
-  /* "pysam/libctabix.pyx":672
+  /* "pysam/libctabix.pyx":747
  * 
  *         self.buffer.l = 0
  *         self.buffer.m = 0             # <<<<<<<<<<<<<<
@@ -9997,7 +10950,7 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
  */
   __pyx_v_self->buffer.m = 0;
 
-  /* "pysam/libctabix.pyx":673
+  /* "pysam/libctabix.pyx":748
  *         self.buffer.l = 0
  *         self.buffer.m = 0
  *         self.buffer.s = <char*>malloc(buffer_size)             # <<<<<<<<<<<<<<
@@ -10006,7 +10959,7 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
  */
   __pyx_v_self->buffer.s = ((char *)malloc(__pyx_v_buffer_size));
 
-  /* "pysam/libctabix.pyx":656
+  /* "pysam/libctabix.pyx":731
  * 
  * cdef class GZIterator:
  *     def __init__(self, filename, int buffer_size=65536, encoding="ascii"):             # <<<<<<<<<<<<<<
@@ -10031,7 +10984,7 @@ static int __pyx_pf_5pysam_9libctabix_10GZIterator___init__(struct __pyx_obj_5py
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":675
+/* "pysam/libctabix.pyx":750
  *         self.buffer.s = <char*>malloc(buffer_size)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -10055,9 +11008,9 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
-  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 675, 0, __PYX_ERR(0, 675, __pyx_L1_error));
+  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 750, 0, __PYX_ERR(0, 750, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":677
+  /* "pysam/libctabix.pyx":752
  *     def __dealloc__(self):
  *         '''close file.'''
  *         if self.gzipfile != NULL:             # <<<<<<<<<<<<<<
@@ -10067,7 +11020,7 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
   __pyx_t_1 = ((__pyx_v_self->gzipfile != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":678
+    /* "pysam/libctabix.pyx":753
  *         '''close file.'''
  *         if self.gzipfile != NULL:
  *             bgzf_close(self.gzipfile)             # <<<<<<<<<<<<<<
@@ -10076,7 +11029,7 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
  */
     (void)(bgzf_close(__pyx_v_self->gzipfile));
 
-    /* "pysam/libctabix.pyx":679
+    /* "pysam/libctabix.pyx":754
  *         if self.gzipfile != NULL:
  *             bgzf_close(self.gzipfile)
  *             self.gzipfile = NULL             # <<<<<<<<<<<<<<
@@ -10085,7 +11038,7 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
  */
     __pyx_v_self->gzipfile = NULL;
 
-    /* "pysam/libctabix.pyx":677
+    /* "pysam/libctabix.pyx":752
  *     def __dealloc__(self):
  *         '''close file.'''
  *         if self.gzipfile != NULL:             # <<<<<<<<<<<<<<
@@ -10094,7 +11047,7 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
  */
   }
 
-  /* "pysam/libctabix.pyx":680
+  /* "pysam/libctabix.pyx":755
  *             bgzf_close(self.gzipfile)
  *             self.gzipfile = NULL
  *         if self.buffer.s != NULL:             # <<<<<<<<<<<<<<
@@ -10104,7 +11057,7 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
   __pyx_t_1 = ((__pyx_v_self->buffer.s != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":681
+    /* "pysam/libctabix.pyx":756
  *             self.gzipfile = NULL
  *         if self.buffer.s != NULL:
  *             free(self.buffer.s)             # <<<<<<<<<<<<<<
@@ -10113,7 +11066,7 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
  */
     free(__pyx_v_self->buffer.s);
 
-    /* "pysam/libctabix.pyx":680
+    /* "pysam/libctabix.pyx":755
  *             bgzf_close(self.gzipfile)
  *             self.gzipfile = NULL
  *         if self.buffer.s != NULL:             # <<<<<<<<<<<<<<
@@ -10122,7 +11075,7 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
  */
   }
 
-  /* "pysam/libctabix.pyx":682
+  /* "pysam/libctabix.pyx":757
  *         if self.buffer.s != NULL:
  *             free(self.buffer.s)
  *         if self.kstream != NULL:             # <<<<<<<<<<<<<<
@@ -10132,7 +11085,7 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
   __pyx_t_1 = ((__pyx_v_self->kstream != NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":683
+    /* "pysam/libctabix.pyx":758
  *             free(self.buffer.s)
  *         if self.kstream != NULL:
  *             ks_destroy(self.kstream)             # <<<<<<<<<<<<<<
@@ -10141,7 +11094,7 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
  */
     ks_destroy(__pyx_v_self->kstream);
 
-    /* "pysam/libctabix.pyx":682
+    /* "pysam/libctabix.pyx":757
  *         if self.buffer.s != NULL:
  *             free(self.buffer.s)
  *         if self.kstream != NULL:             # <<<<<<<<<<<<<<
@@ -10150,7 +11103,7 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
  */
   }
 
-  /* "pysam/libctabix.pyx":675
+  /* "pysam/libctabix.pyx":750
  *         self.buffer.s = <char*>malloc(buffer_size)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -10167,7 +11120,7 @@ static void __pyx_pf_5pysam_9libctabix_10GZIterator_2__dealloc__(struct __pyx_ob
   __Pyx_RefNannyFinishContext();
 }
 
-/* "pysam/libctabix.pyx":685
+/* "pysam/libctabix.pyx":760
  *             ks_destroy(self.kstream)
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -10193,9 +11146,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_4__iter__(struct __pyx_
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__iter__", 0);
-  __Pyx_TraceCall("__iter__", __pyx_f[0], 685, 0, __PYX_ERR(0, 685, __pyx_L1_error));
+  __Pyx_TraceCall("__iter__", __pyx_f[0], 760, 0, __PYX_ERR(0, 760, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":686
+  /* "pysam/libctabix.pyx":761
  * 
  *     def __iter__(self):
  *         return self             # <<<<<<<<<<<<<<
@@ -10207,7 +11160,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_4__iter__(struct __pyx_
   __pyx_r = ((PyObject *)__pyx_v_self);
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":685
+  /* "pysam/libctabix.pyx":760
  *             ks_destroy(self.kstream)
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -10226,7 +11179,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_4__iter__(struct __pyx_
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":688
+/* "pysam/libctabix.pyx":763
  *         return self
  * 
  *     cdef int __cnext__(self):             # <<<<<<<<<<<<<<
@@ -10242,9 +11195,9 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__cnext__", 0);
-  __Pyx_TraceCall("__cnext__", __pyx_f[0], 688, 0, __PYX_ERR(0, 688, __pyx_L1_error));
+  __Pyx_TraceCall("__cnext__", __pyx_f[0], 763, 0, __PYX_ERR(0, 763, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":689
+  /* "pysam/libctabix.pyx":764
  * 
  *     cdef int __cnext__(self):
  *         cdef int dret = 0             # <<<<<<<<<<<<<<
@@ -10253,7 +11206,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
  */
   __pyx_v_dret = 0;
 
-  /* "pysam/libctabix.pyx":690
+  /* "pysam/libctabix.pyx":765
  *     cdef int __cnext__(self):
  *         cdef int dret = 0
  *         cdef int retval = 0             # <<<<<<<<<<<<<<
@@ -10262,7 +11215,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
  */
   __pyx_v_retval = 0;
 
-  /* "pysam/libctabix.pyx":691
+  /* "pysam/libctabix.pyx":766
  *         cdef int dret = 0
  *         cdef int retval = 0
  *         while 1:             # <<<<<<<<<<<<<<
@@ -10271,7 +11224,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
  */
   while (1) {
 
-    /* "pysam/libctabix.pyx":692
+    /* "pysam/libctabix.pyx":767
  *         cdef int retval = 0
  *         while 1:
  *             with nogil:             # <<<<<<<<<<<<<<
@@ -10286,7 +11239,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
         #endif
         /*try:*/ {
 
-          /* "pysam/libctabix.pyx":693
+          /* "pysam/libctabix.pyx":768
  *         while 1:
  *             with nogil:
  *                 retval = ks_getuntil(self.kstream, '\n', &self.buffer, &dret)             # <<<<<<<<<<<<<<
@@ -10296,7 +11249,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
           __pyx_v_retval = ks_getuntil(__pyx_v_self->kstream, '\n', (&__pyx_v_self->buffer), (&__pyx_v_dret));
         }
 
-        /* "pysam/libctabix.pyx":692
+        /* "pysam/libctabix.pyx":767
  *         cdef int retval = 0
  *         while 1:
  *             with nogil:             # <<<<<<<<<<<<<<
@@ -10315,7 +11268,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
         }
     }
 
-    /* "pysam/libctabix.pyx":695
+    /* "pysam/libctabix.pyx":770
  *                 retval = ks_getuntil(self.kstream, '\n', &self.buffer, &dret)
  * 
  *             if retval < 0:             # <<<<<<<<<<<<<<
@@ -10325,7 +11278,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
     __pyx_t_1 = ((__pyx_v_retval < 0) != 0);
     if (__pyx_t_1) {
 
-      /* "pysam/libctabix.pyx":696
+      /* "pysam/libctabix.pyx":771
  * 
  *             if retval < 0:
  *                 break             # <<<<<<<<<<<<<<
@@ -10334,7 +11287,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
  */
       goto __pyx_L4_break;
 
-      /* "pysam/libctabix.pyx":695
+      /* "pysam/libctabix.pyx":770
  *                 retval = ks_getuntil(self.kstream, '\n', &self.buffer, &dret)
  * 
  *             if retval < 0:             # <<<<<<<<<<<<<<
@@ -10343,7 +11296,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
  */
     }
 
-    /* "pysam/libctabix.pyx":698
+    /* "pysam/libctabix.pyx":773
  *                 break
  * 
  *             return dret             # <<<<<<<<<<<<<<
@@ -10355,7 +11308,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
   }
   __pyx_L4_break:;
 
-  /* "pysam/libctabix.pyx":699
+  /* "pysam/libctabix.pyx":774
  * 
  *             return dret
  *         return -1             # <<<<<<<<<<<<<<
@@ -10365,7 +11318,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
   __pyx_r = -1;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":688
+  /* "pysam/libctabix.pyx":763
  *         return self
  * 
  *     cdef int __cnext__(self):             # <<<<<<<<<<<<<<
@@ -10383,7 +11336,7 @@ static int __pyx_f_5pysam_9libctabix_10GZIterator___cnext__(struct __pyx_obj_5py
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":701
+/* "pysam/libctabix.pyx":776
  *         return -1
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -10419,9 +11372,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_6__next__(struct __pyx_
   PyObject *__pyx_t_4 = NULL;
   struct __pyx_opt_args_5pysam_9libcutils_force_str __pyx_t_5;
   __Pyx_RefNannySetupContext("__next__", 0);
-  __Pyx_TraceCall("__next__", __pyx_f[0], 701, 0, __PYX_ERR(0, 701, __pyx_L1_error));
+  __Pyx_TraceCall("__next__", __pyx_f[0], 776, 0, __PYX_ERR(0, 776, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":704
+  /* "pysam/libctabix.pyx":779
  *         """python version of next().
  *         """
  *         cdef int retval = self.__cnext__()             # <<<<<<<<<<<<<<
@@ -10430,7 +11383,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_6__next__(struct __pyx_
  */
   __pyx_v_retval = ((struct __pyx_vtabstruct_5pysam_9libctabix_GZIterator *)__pyx_v_self->__pyx_vtab)->__pyx___cnext__(__pyx_v_self);
 
-  /* "pysam/libctabix.pyx":705
+  /* "pysam/libctabix.pyx":780
  *         """
  *         cdef int retval = self.__cnext__()
  *         if retval < 0:             # <<<<<<<<<<<<<<
@@ -10440,7 +11393,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_6__next__(struct __pyx_
   __pyx_t_1 = ((__pyx_v_retval < 0) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":706
+    /* "pysam/libctabix.pyx":781
  *         cdef int retval = self.__cnext__()
  *         if retval < 0:
  *             raise StopIteration             # <<<<<<<<<<<<<<
@@ -10448,9 +11401,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_6__next__(struct __pyx_
  * 
  */
     __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
-    __PYX_ERR(0, 706, __pyx_L1_error)
+    __PYX_ERR(0, 781, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":705
+    /* "pysam/libctabix.pyx":780
  *         """
  *         cdef int retval = self.__cnext__()
  *         if retval < 0:             # <<<<<<<<<<<<<<
@@ -10459,7 +11412,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_6__next__(struct __pyx_
  */
   }
 
-  /* "pysam/libctabix.pyx":707
+  /* "pysam/libctabix.pyx":782
  *         if retval < 0:
  *             raise StopIteration
  *         return force_str(self.buffer.s, self.encoding)             # <<<<<<<<<<<<<<
@@ -10467,13 +11420,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_6__next__(struct __pyx_
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_self->buffer.s); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 707, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_self->buffer.s); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 782, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = __pyx_v_self->encoding;
   __Pyx_INCREF(__pyx_t_3);
   __pyx_t_5.__pyx_n = 1;
   __pyx_t_5.encoding = __pyx_t_3;
-  __pyx_t_4 = __pyx_f_5pysam_9libcutils_force_str(__pyx_t_2, &__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 707, __pyx_L1_error)
+  __pyx_t_4 = __pyx_f_5pysam_9libcutils_force_str(__pyx_t_2, &__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 782, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -10481,7 +11434,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_6__next__(struct __pyx_
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":701
+  /* "pysam/libctabix.pyx":776
  *         return -1
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -10537,7 +11490,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_8__reduce_cython__(CYTH
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -10594,7 +11547,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_10__setstate_cython__(C
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -10618,7 +11571,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10GZIterator_10__setstate_cython__(C
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":715
+/* "pysam/libctabix.pyx":790
  *     '''
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -10651,9 +11604,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead___next__(struct __p
   int __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__next__", 0);
-  __Pyx_TraceCall("__next__", __pyx_f[0], 715, 0, __PYX_ERR(0, 715, __pyx_L1_error));
+  __Pyx_TraceCall("__next__", __pyx_f[0], 790, 0, __PYX_ERR(0, 790, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":718
+  /* "pysam/libctabix.pyx":793
  *         """python version of next().
  *         """
  *         cdef int retval = self.__cnext__()             # <<<<<<<<<<<<<<
@@ -10662,7 +11615,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead___next__(struct __p
  */
   __pyx_v_retval = ((struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorHead *)__pyx_v_self->__pyx_base.__pyx_vtab)->__pyx_base.__pyx___cnext__(((struct __pyx_obj_5pysam_9libctabix_GZIterator *)__pyx_v_self));
 
-  /* "pysam/libctabix.pyx":719
+  /* "pysam/libctabix.pyx":794
  *         """
  *         cdef int retval = self.__cnext__()
  *         if retval < 0:             # <<<<<<<<<<<<<<
@@ -10672,7 +11625,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead___next__(struct __p
   __pyx_t_1 = ((__pyx_v_retval < 0) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":720
+    /* "pysam/libctabix.pyx":795
  *         cdef int retval = self.__cnext__()
  *         if retval < 0:
  *             raise StopIteration             # <<<<<<<<<<<<<<
@@ -10680,9 +11633,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead___next__(struct __p
  *             return self.buffer.s
  */
     __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
-    __PYX_ERR(0, 720, __pyx_L1_error)
+    __PYX_ERR(0, 795, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":719
+    /* "pysam/libctabix.pyx":794
  *         """
  *         cdef int retval = self.__cnext__()
  *         if retval < 0:             # <<<<<<<<<<<<<<
@@ -10691,7 +11644,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead___next__(struct __p
  */
   }
 
-  /* "pysam/libctabix.pyx":721
+  /* "pysam/libctabix.pyx":796
  *         if retval < 0:
  *             raise StopIteration
  *         if self.buffer.s[0] == '#':             # <<<<<<<<<<<<<<
@@ -10701,7 +11654,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead___next__(struct __p
   __pyx_t_1 = (((__pyx_v_self->__pyx_base.buffer.s[0]) == '#') != 0);
   if (likely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":722
+    /* "pysam/libctabix.pyx":797
  *             raise StopIteration
  *         if self.buffer.s[0] == '#':
  *             return self.buffer.s             # <<<<<<<<<<<<<<
@@ -10709,13 +11662,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead___next__(struct __p
  *             raise StopIteration
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_self->__pyx_base.buffer.s); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 722, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_self->__pyx_base.buffer.s); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 797, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_r = __pyx_t_2;
     __pyx_t_2 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libctabix.pyx":721
+    /* "pysam/libctabix.pyx":796
  *         if retval < 0:
  *             raise StopIteration
  *         if self.buffer.s[0] == '#':             # <<<<<<<<<<<<<<
@@ -10724,7 +11677,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead___next__(struct __p
  */
   }
 
-  /* "pysam/libctabix.pyx":724
+  /* "pysam/libctabix.pyx":799
  *             return self.buffer.s
  *         else:
  *             raise StopIteration             # <<<<<<<<<<<<<<
@@ -10733,10 +11686,10 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead___next__(struct __p
  */
   /*else*/ {
     __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
-    __PYX_ERR(0, 724, __pyx_L1_error)
+    __PYX_ERR(0, 799, __pyx_L1_error)
   }
 
-  /* "pysam/libctabix.pyx":715
+  /* "pysam/libctabix.pyx":790
  *     '''
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -10790,7 +11743,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead_2__reduce_cython__(
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -10847,7 +11800,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead_4__setstate_cython_
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -10871,7 +11824,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14GZIteratorHead_4__setstate_cython_
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":732
+/* "pysam/libctabix.pyx":807
  *     '''
  * 
  *     def __init__(self, parser):             # <<<<<<<<<<<<<<
@@ -10905,7 +11858,7 @@ static int __pyx_pw_5pysam_9libctabix_16GZIteratorParsed_1__init__(PyObject *__p
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 732, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 807, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -10916,7 +11869,7 @@ static int __pyx_pw_5pysam_9libctabix_16GZIteratorParsed_1__init__(PyObject *__p
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 732, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 807, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.GZIteratorParsed.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -10935,16 +11888,16 @@ static int __pyx_pf_5pysam_9libctabix_16GZIteratorParsed___init__(struct __pyx_o
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
-  __Pyx_TraceCall("__init__", __pyx_f[0], 732, 0, __PYX_ERR(0, 732, __pyx_L1_error));
+  __Pyx_TraceCall("__init__", __pyx_f[0], 807, 0, __PYX_ERR(0, 807, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":733
+  /* "pysam/libctabix.pyx":808
  * 
  *     def __init__(self, parser):
  *         self.parser = parser             # <<<<<<<<<<<<<<
  * 
  *     def __next__(self):
  */
-  if (!(likely(((__pyx_v_parser) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_parser, __pyx_ptype_5pysam_9libctabix_Parser))))) __PYX_ERR(0, 733, __pyx_L1_error)
+  if (!(likely(((__pyx_v_parser) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_parser, __pyx_ptype_5pysam_9libctabix_Parser))))) __PYX_ERR(0, 808, __pyx_L1_error)
   __pyx_t_1 = __pyx_v_parser;
   __Pyx_INCREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
@@ -10953,7 +11906,7 @@ static int __pyx_pf_5pysam_9libctabix_16GZIteratorParsed___init__(struct __pyx_o
   __pyx_v_self->parser = ((struct __pyx_obj_5pysam_9libctabix_Parser *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":732
+  /* "pysam/libctabix.pyx":807
  *     '''
  * 
  *     def __init__(self, parser):             # <<<<<<<<<<<<<<
@@ -10974,7 +11927,7 @@ static int __pyx_pf_5pysam_9libctabix_16GZIteratorParsed___init__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":735
+/* "pysam/libctabix.pyx":810
  *         self.parser = parser
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -11007,9 +11960,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_2__next__(struct 
   int __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__next__", 0);
-  __Pyx_TraceCall("__next__", __pyx_f[0], 735, 0, __PYX_ERR(0, 735, __pyx_L1_error));
+  __Pyx_TraceCall("__next__", __pyx_f[0], 810, 0, __PYX_ERR(0, 810, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":738
+  /* "pysam/libctabix.pyx":813
  *         """python version of next().
  *         """
  *         cdef int retval = self.__cnext__()             # <<<<<<<<<<<<<<
@@ -11018,7 +11971,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_2__next__(struct 
  */
   __pyx_v_retval = ((struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorParsed *)__pyx_v_self->__pyx_base.__pyx_vtab)->__pyx_base.__pyx___cnext__(((struct __pyx_obj_5pysam_9libctabix_GZIterator *)__pyx_v_self));
 
-  /* "pysam/libctabix.pyx":739
+  /* "pysam/libctabix.pyx":814
  *         """
  *         cdef int retval = self.__cnext__()
  *         if retval < 0:             # <<<<<<<<<<<<<<
@@ -11028,7 +11981,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_2__next__(struct 
   __pyx_t_1 = ((__pyx_v_retval < 0) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":740
+    /* "pysam/libctabix.pyx":815
  *         cdef int retval = self.__cnext__()
  *         if retval < 0:
  *             raise StopIteration             # <<<<<<<<<<<<<<
@@ -11036,9 +11989,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_2__next__(struct 
  *         return self.parser.parse(self.buffer.s,
  */
     __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
-    __PYX_ERR(0, 740, __pyx_L1_error)
+    __PYX_ERR(0, 815, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":739
+    /* "pysam/libctabix.pyx":814
  *         """
  *         cdef int retval = self.__cnext__()
  *         if retval < 0:             # <<<<<<<<<<<<<<
@@ -11047,7 +12000,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_2__next__(struct 
  */
   }
 
-  /* "pysam/libctabix.pyx":742
+  /* "pysam/libctabix.pyx":817
  *             raise StopIteration
  * 
  *         return self.parser.parse(self.buffer.s,             # <<<<<<<<<<<<<<
@@ -11056,20 +12009,20 @@ static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_2__next__(struct 
  */
   __Pyx_XDECREF(__pyx_r);
 
-  /* "pysam/libctabix.pyx":743
+  /* "pysam/libctabix.pyx":818
  * 
  *         return self.parser.parse(self.buffer.s,
  *                                  self.buffer.l)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_2 = ((struct __pyx_vtabstruct_5pysam_9libctabix_Parser *)__pyx_v_self->parser->__pyx_vtab)->parse(__pyx_v_self->parser, __pyx_v_self->__pyx_base.buffer.s, __pyx_v_self->__pyx_base.buffer.l); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 742, __pyx_L1_error)
+  __pyx_t_2 = ((struct __pyx_vtabstruct_5pysam_9libctabix_Parser *)__pyx_v_self->parser->__pyx_vtab)->parse(__pyx_v_self->parser, __pyx_v_self->__pyx_base.buffer.s, __pyx_v_self->__pyx_base.buffer.l); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 817, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":735
+  /* "pysam/libctabix.pyx":810
  *         self.parser = parser
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -11123,7 +12076,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_4__reduce_cython_
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__20, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -11180,7 +12133,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_6__setstate_cytho
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__21, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__20, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -11204,7 +12157,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_16GZIteratorParsed_6__setstate_cytho
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":746
+/* "pysam/libctabix.pyx":821
  * 
  * 
  * def tabix_compress(filename_in,             # <<<<<<<<<<<<<<
@@ -11227,7 +12180,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_1tabix_compress(PyObject *__pyx_self
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_filename_in,&__pyx_n_s_filename_out,&__pyx_n_s_force,0};
     PyObject* values[3] = {0,0,0};
 
-    /* "pysam/libctabix.pyx":748
+    /* "pysam/libctabix.pyx":823
  * def tabix_compress(filename_in,
  *                    filename_out,
  *                    force=False):             # <<<<<<<<<<<<<<
@@ -11257,7 +12210,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_1tabix_compress(PyObject *__pyx_self
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_filename_out)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("tabix_compress", 0, 2, 3, 1); __PYX_ERR(0, 746, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("tabix_compress", 0, 2, 3, 1); __PYX_ERR(0, 821, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -11267,7 +12220,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_1tabix_compress(PyObject *__pyx_self
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tabix_compress") < 0)) __PYX_ERR(0, 746, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tabix_compress") < 0)) __PYX_ERR(0, 821, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -11285,7 +12238,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_1tabix_compress(PyObject *__pyx_self
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("tabix_compress", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 746, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("tabix_compress", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 821, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.tabix_compress", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -11293,7 +12246,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_1tabix_compress(PyObject *__pyx_self
   __pyx_L4_argument_unpacking_done:;
   __pyx_r = __pyx_pf_5pysam_9libctabix_tabix_compress(__pyx_self, __pyx_v_filename_in, __pyx_v_filename_out, __pyx_v_force);
 
-  /* "pysam/libctabix.pyx":746
+  /* "pysam/libctabix.pyx":821
  * 
  * 
  * def tabix_compress(filename_in,             # <<<<<<<<<<<<<<
@@ -11329,30 +12282,30 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
   PyObject *__pyx_t_7 = NULL;
   int __pyx_t_8;
   char *__pyx_t_9;
-  __Pyx_TraceFrameInit(__pyx_codeobj__22)
+  __Pyx_TraceFrameInit(__pyx_codeobj__21)
   __Pyx_RefNannySetupContext("tabix_compress", 0);
-  __Pyx_TraceCall("tabix_compress", __pyx_f[0], 746, 0, __PYX_ERR(0, 746, __pyx_L1_error));
+  __Pyx_TraceCall("tabix_compress", __pyx_f[0], 821, 0, __PYX_ERR(0, 821, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":755
+  /* "pysam/libctabix.pyx":830
  *     '''
  * 
  *     if not force and os.path.exists(filename_out):             # <<<<<<<<<<<<<<
  *         raise IOError(
  *             "Filename '%s' already exists, use *force* to "
  */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_force); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 755, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_force); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 830, __pyx_L1_error)
   __pyx_t_3 = ((!__pyx_t_2) != 0);
   if (__pyx_t_3) {
   } else {
     __pyx_t_1 = __pyx_t_3;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 755, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 830, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_path); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 755, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_path); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 830, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_exists); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 755, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_exists); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 830, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_t_6 = NULL;
@@ -11366,13 +12319,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
     }
   }
   if (!__pyx_t_6) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_filename_out); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 755, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_filename_out); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 830, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
   } else {
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_5)) {
       PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_filename_out};
-      __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 755, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 830, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_GOTREF(__pyx_t_4);
     } else
@@ -11380,55 +12333,55 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
       PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_filename_out};
-      __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 755, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 830, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_GOTREF(__pyx_t_4);
     } else
     #endif
     {
-      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 755, __pyx_L1_error)
+      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 830, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
       __Pyx_INCREF(__pyx_v_filename_out);
       __Pyx_GIVEREF(__pyx_v_filename_out);
       PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_filename_out);
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 755, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 830, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     }
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 755, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 830, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_1 = __pyx_t_3;
   __pyx_L4_bool_binop_done:;
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":758
+    /* "pysam/libctabix.pyx":833
  *         raise IOError(
  *             "Filename '%s' already exists, use *force* to "
  *             "overwrite" % filename_out)             # <<<<<<<<<<<<<<
  * 
  *     cdef int WINDOW_SIZE
  */
-    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_Filename_s_already_exists_use_fo, __pyx_v_filename_out); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 758, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_Filename_s_already_exists_use_fo, __pyx_v_filename_out); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 833, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
 
-    /* "pysam/libctabix.pyx":756
+    /* "pysam/libctabix.pyx":831
  * 
  *     if not force and os.path.exists(filename_out):
  *         raise IOError(             # <<<<<<<<<<<<<<
  *             "Filename '%s' already exists, use *force* to "
  *             "overwrite" % filename_out)
  */
-    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 756, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 831, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_Raise(__pyx_t_5, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __PYX_ERR(0, 756, __pyx_L1_error)
+    __PYX_ERR(0, 831, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":755
+    /* "pysam/libctabix.pyx":830
  *     '''
  * 
  *     if not force and os.path.exists(filename_out):             # <<<<<<<<<<<<<<
@@ -11437,7 +12390,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
   }
 
-  /* "pysam/libctabix.pyx":765
+  /* "pysam/libctabix.pyx":840
  *     cdef BGZF * fp
  *     cdef int fd_src
  *     cdef bint is_empty = True             # <<<<<<<<<<<<<<
@@ -11446,23 +12399,23 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
   __pyx_v_is_empty = 1;
 
-  /* "pysam/libctabix.pyx":767
+  /* "pysam/libctabix.pyx":842
  *     cdef bint is_empty = True
  *     cdef int O_RDONLY
  *     O_RDONLY = os.O_RDONLY             # <<<<<<<<<<<<<<
  * 
  *     WINDOW_SIZE = 64 * 1024
  */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 767, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 842, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_O_RDONLY); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 767, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_O_RDONLY); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 842, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_8 = __Pyx_PyInt_As_int(__pyx_t_4); if (unlikely((__pyx_t_8 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 767, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyInt_As_int(__pyx_t_4); if (unlikely((__pyx_t_8 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 842, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_O_RDONLY = __pyx_t_8;
 
-  /* "pysam/libctabix.pyx":769
+  /* "pysam/libctabix.pyx":844
  *     O_RDONLY = os.O_RDONLY
  * 
  *     WINDOW_SIZE = 64 * 1024             # <<<<<<<<<<<<<<
@@ -11471,19 +12424,19 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
   __pyx_v_WINDOW_SIZE = 0x10000;
 
-  /* "pysam/libctabix.pyx":771
+  /* "pysam/libctabix.pyx":846
  *     WINDOW_SIZE = 64 * 1024
  * 
  *     fn = encode_filename(filename_out)             # <<<<<<<<<<<<<<
  *     cdef char *cfn = fn
  *     with nogil:
  */
-  __pyx_t_4 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename_out); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 771, __pyx_L1_error)
+  __pyx_t_4 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename_out); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 846, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_v_fn = ((PyObject*)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "pysam/libctabix.pyx":772
+  /* "pysam/libctabix.pyx":847
  * 
  *     fn = encode_filename(filename_out)
  *     cdef char *cfn = fn             # <<<<<<<<<<<<<<
@@ -11492,12 +12445,12 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
   if (unlikely(__pyx_v_fn == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-    __PYX_ERR(0, 772, __pyx_L1_error)
+    __PYX_ERR(0, 847, __pyx_L1_error)
   }
-  __pyx_t_9 = __Pyx_PyBytes_AsWritableString(__pyx_v_fn); if (unlikely((!__pyx_t_9) && PyErr_Occurred())) __PYX_ERR(0, 772, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyBytes_AsWritableString(__pyx_v_fn); if (unlikely((!__pyx_t_9) && PyErr_Occurred())) __PYX_ERR(0, 847, __pyx_L1_error)
   __pyx_v_cfn = __pyx_t_9;
 
-  /* "pysam/libctabix.pyx":773
+  /* "pysam/libctabix.pyx":848
  *     fn = encode_filename(filename_out)
  *     cdef char *cfn = fn
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -11512,7 +12465,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
       #endif
       /*try:*/ {
 
-        /* "pysam/libctabix.pyx":774
+        /* "pysam/libctabix.pyx":849
  *     cdef char *cfn = fn
  *     with nogil:
  *         fp = bgzf_open(cfn, "w")             # <<<<<<<<<<<<<<
@@ -11522,7 +12475,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
         __pyx_v_fp = bgzf_open(__pyx_v_cfn, ((char const *)"w"));
       }
 
-      /* "pysam/libctabix.pyx":773
+      /* "pysam/libctabix.pyx":848
  *     fn = encode_filename(filename_out)
  *     cdef char *cfn = fn
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -11541,7 +12494,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
       }
   }
 
-  /* "pysam/libctabix.pyx":775
+  /* "pysam/libctabix.pyx":850
  *     with nogil:
  *         fp = bgzf_open(cfn, "w")
  *     if fp == NULL:             # <<<<<<<<<<<<<<
@@ -11551,23 +12504,23 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
   __pyx_t_1 = ((__pyx_v_fp == NULL) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":776
+    /* "pysam/libctabix.pyx":851
  *         fp = bgzf_open(cfn, "w")
  *     if fp == NULL:
  *         raise IOError("could not open '%s' for writing" % filename_out)             # <<<<<<<<<<<<<<
  * 
  *     fn = encode_filename(filename_in)
  */
-    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_could_not_open_s_for_writing, __pyx_v_filename_out); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 776, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_could_not_open_s_for_writing, __pyx_v_filename_out); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 851, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 776, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 851, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_Raise(__pyx_t_5, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __PYX_ERR(0, 776, __pyx_L1_error)
+    __PYX_ERR(0, 851, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":775
+    /* "pysam/libctabix.pyx":850
  *     with nogil:
  *         fp = bgzf_open(cfn, "w")
  *     if fp == NULL:             # <<<<<<<<<<<<<<
@@ -11576,19 +12529,19 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
   }
 
-  /* "pysam/libctabix.pyx":778
+  /* "pysam/libctabix.pyx":853
  *         raise IOError("could not open '%s' for writing" % filename_out)
  * 
  *     fn = encode_filename(filename_in)             # <<<<<<<<<<<<<<
  *     fd_src = open(fn, O_RDONLY)
  *     if fd_src == 0:
  */
-  __pyx_t_5 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename_in); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 778, __pyx_L1_error)
+  __pyx_t_5 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename_in); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 853, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF_SET(__pyx_v_fn, ((PyObject*)__pyx_t_5));
   __pyx_t_5 = 0;
 
-  /* "pysam/libctabix.pyx":779
+  /* "pysam/libctabix.pyx":854
  * 
  *     fn = encode_filename(filename_in)
  *     fd_src = open(fn, O_RDONLY)             # <<<<<<<<<<<<<<
@@ -11597,12 +12550,12 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
   if (unlikely(__pyx_v_fn == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-    __PYX_ERR(0, 779, __pyx_L1_error)
+    __PYX_ERR(0, 854, __pyx_L1_error)
   }
-  __pyx_t_9 = __Pyx_PyBytes_AsWritableString(__pyx_v_fn); if (unlikely((!__pyx_t_9) && PyErr_Occurred())) __PYX_ERR(0, 779, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyBytes_AsWritableString(__pyx_v_fn); if (unlikely((!__pyx_t_9) && PyErr_Occurred())) __PYX_ERR(0, 854, __pyx_L1_error)
   __pyx_v_fd_src = open(__pyx_t_9, __pyx_v_O_RDONLY);
 
-  /* "pysam/libctabix.pyx":780
+  /* "pysam/libctabix.pyx":855
  *     fn = encode_filename(filename_in)
  *     fd_src = open(fn, O_RDONLY)
  *     if fd_src == 0:             # <<<<<<<<<<<<<<
@@ -11612,23 +12565,23 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
   __pyx_t_1 = ((__pyx_v_fd_src == 0) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":781
+    /* "pysam/libctabix.pyx":856
  *     fd_src = open(fn, O_RDONLY)
  *     if fd_src == 0:
  *         raise IOError("could not open '%s' for reading" % filename_in)             # <<<<<<<<<<<<<<
  * 
  *     buffer = malloc(WINDOW_SIZE)
  */
-    __pyx_t_5 = __Pyx_PyString_Format(__pyx_kp_s_could_not_open_s_for_reading, __pyx_v_filename_in); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 781, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyString_Format(__pyx_kp_s_could_not_open_s_for_reading, __pyx_v_filename_in); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 856, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 781, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 856, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __PYX_ERR(0, 781, __pyx_L1_error)
+    __PYX_ERR(0, 856, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":780
+    /* "pysam/libctabix.pyx":855
  *     fn = encode_filename(filename_in)
  *     fd_src = open(fn, O_RDONLY)
  *     if fd_src == 0:             # <<<<<<<<<<<<<<
@@ -11637,7 +12590,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
   }
 
-  /* "pysam/libctabix.pyx":783
+  /* "pysam/libctabix.pyx":858
  *         raise IOError("could not open '%s' for reading" % filename_in)
  * 
  *     buffer = malloc(WINDOW_SIZE)             # <<<<<<<<<<<<<<
@@ -11646,7 +12599,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
   __pyx_v_buffer = malloc(__pyx_v_WINDOW_SIZE);
 
-  /* "pysam/libctabix.pyx":784
+  /* "pysam/libctabix.pyx":859
  * 
  *     buffer = malloc(WINDOW_SIZE)
  *     c = 1             # <<<<<<<<<<<<<<
@@ -11655,7 +12608,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
   __pyx_v_c = 1;
 
-  /* "pysam/libctabix.pyx":786
+  /* "pysam/libctabix.pyx":861
  *     c = 1
  * 
  *     while c > 0:             # <<<<<<<<<<<<<<
@@ -11666,7 +12619,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
     __pyx_t_1 = ((__pyx_v_c > 0) != 0);
     if (!__pyx_t_1) break;
 
-    /* "pysam/libctabix.pyx":787
+    /* "pysam/libctabix.pyx":862
  * 
  *     while c > 0:
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -11681,7 +12634,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
         #endif
         /*try:*/ {
 
-          /* "pysam/libctabix.pyx":788
+          /* "pysam/libctabix.pyx":863
  *     while c > 0:
  *         with nogil:
  *             c = read(fd_src, buffer, WINDOW_SIZE)             # <<<<<<<<<<<<<<
@@ -11690,7 +12643,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
           __pyx_v_c = read(__pyx_v_fd_src, __pyx_v_buffer, __pyx_v_WINDOW_SIZE);
 
-          /* "pysam/libctabix.pyx":789
+          /* "pysam/libctabix.pyx":864
  *         with nogil:
  *             c = read(fd_src, buffer, WINDOW_SIZE)
  *             if c > 0:             # <<<<<<<<<<<<<<
@@ -11700,7 +12653,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
           __pyx_t_1 = ((__pyx_v_c > 0) != 0);
           if (__pyx_t_1) {
 
-            /* "pysam/libctabix.pyx":790
+            /* "pysam/libctabix.pyx":865
  *             c = read(fd_src, buffer, WINDOW_SIZE)
  *             if c > 0:
  *                 is_empty = False             # <<<<<<<<<<<<<<
@@ -11709,7 +12662,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
             __pyx_v_is_empty = 0;
 
-            /* "pysam/libctabix.pyx":789
+            /* "pysam/libctabix.pyx":864
  *         with nogil:
  *             c = read(fd_src, buffer, WINDOW_SIZE)
  *             if c > 0:             # <<<<<<<<<<<<<<
@@ -11718,7 +12671,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
           }
 
-          /* "pysam/libctabix.pyx":791
+          /* "pysam/libctabix.pyx":866
  *             if c > 0:
  *                 is_empty = False
  *             r = bgzf_write(fp, buffer, c)             # <<<<<<<<<<<<<<
@@ -11728,7 +12681,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
           __pyx_v_r = bgzf_write(__pyx_v_fp, __pyx_v_buffer, __pyx_v_c);
         }
 
-        /* "pysam/libctabix.pyx":787
+        /* "pysam/libctabix.pyx":862
  * 
  *     while c > 0:
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -11747,50 +12700,50 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
         }
     }
 
-    /* "pysam/libctabix.pyx":792
+    /* "pysam/libctabix.pyx":867
  *                 is_empty = False
  *             r = bgzf_write(fp, buffer, c)
  *         if r < 0:             # <<<<<<<<<<<<<<
  *             free(buffer)
- *             raise OSError("writing failed")
+ *             raise IOError("writing failed")
  */
     __pyx_t_1 = ((__pyx_v_r < 0) != 0);
     if (unlikely(__pyx_t_1)) {
 
-      /* "pysam/libctabix.pyx":793
+      /* "pysam/libctabix.pyx":868
  *             r = bgzf_write(fp, buffer, c)
  *         if r < 0:
  *             free(buffer)             # <<<<<<<<<<<<<<
- *             raise OSError("writing failed")
+ *             raise IOError("writing failed")
  * 
  */
       free(__pyx_v_buffer);
 
-      /* "pysam/libctabix.pyx":794
+      /* "pysam/libctabix.pyx":869
  *         if r < 0:
  *             free(buffer)
- *             raise OSError("writing failed")             # <<<<<<<<<<<<<<
+ *             raise IOError("writing failed")             # <<<<<<<<<<<<<<
  * 
  *     free(buffer)
  */
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_OSError, __pyx_tuple__23, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 794, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__22, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 869, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_Raise(__pyx_t_4, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __PYX_ERR(0, 794, __pyx_L1_error)
+      __PYX_ERR(0, 869, __pyx_L1_error)
 
-      /* "pysam/libctabix.pyx":792
+      /* "pysam/libctabix.pyx":867
  *                 is_empty = False
  *             r = bgzf_write(fp, buffer, c)
  *         if r < 0:             # <<<<<<<<<<<<<<
  *             free(buffer)
- *             raise OSError("writing failed")
+ *             raise IOError("writing failed")
  */
     }
   }
 
-  /* "pysam/libctabix.pyx":796
- *             raise OSError("writing failed")
+  /* "pysam/libctabix.pyx":871
+ *             raise IOError("writing failed")
  * 
  *     free(buffer)             # <<<<<<<<<<<<<<
  *     r = bgzf_close(fp)
@@ -11798,35 +12751,35 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
   free(__pyx_v_buffer);
 
-  /* "pysam/libctabix.pyx":797
+  /* "pysam/libctabix.pyx":872
  * 
  *     free(buffer)
  *     r = bgzf_close(fp)             # <<<<<<<<<<<<<<
  *     if r < 0:
- *         raise OSError("error %i when writing to file %s" % (r, filename_out))
+ *         raise IOError("error %i when writing to file %s" % (r, filename_out))
  */
   __pyx_v_r = bgzf_close(__pyx_v_fp);
 
-  /* "pysam/libctabix.pyx":798
+  /* "pysam/libctabix.pyx":873
  *     free(buffer)
  *     r = bgzf_close(fp)
  *     if r < 0:             # <<<<<<<<<<<<<<
- *         raise OSError("error %i when writing to file %s" % (r, filename_out))
+ *         raise IOError("error %i when writing to file %s" % (r, filename_out))
  * 
  */
   __pyx_t_1 = ((__pyx_v_r < 0) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libctabix.pyx":799
+    /* "pysam/libctabix.pyx":874
  *     r = bgzf_close(fp)
  *     if r < 0:
- *         raise OSError("error %i when writing to file %s" % (r, filename_out))             # <<<<<<<<<<<<<<
+ *         raise IOError("error %i when writing to file %s" % (r, filename_out))             # <<<<<<<<<<<<<<
  * 
  *     r = close(fd_src)
  */
-    __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_r); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 799, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_r); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 874, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 799, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 874, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
@@ -11834,27 +12787,27 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
     __Pyx_GIVEREF(__pyx_v_filename_out);
     PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_v_filename_out);
     __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_error_i_when_writing_to_file_s, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 799, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_error_i_when_writing_to_file_s, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 874, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_builtin_OSError, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 799, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 874, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_Raise(__pyx_t_5, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __PYX_ERR(0, 799, __pyx_L1_error)
+    __PYX_ERR(0, 874, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":798
+    /* "pysam/libctabix.pyx":873
  *     free(buffer)
  *     r = bgzf_close(fp)
  *     if r < 0:             # <<<<<<<<<<<<<<
- *         raise OSError("error %i when writing to file %s" % (r, filename_out))
+ *         raise IOError("error %i when writing to file %s" % (r, filename_out))
  * 
  */
   }
 
-  /* "pysam/libctabix.pyx":801
- *         raise OSError("error %i when writing to file %s" % (r, filename_out))
+  /* "pysam/libctabix.pyx":876
+ *         raise IOError("error %i when writing to file %s" % (r, filename_out))
  * 
  *     r = close(fd_src)             # <<<<<<<<<<<<<<
  *     # an empty file will return with -1, thus ignore this.
@@ -11862,21 +12815,21 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
  */
   __pyx_v_r = close(__pyx_v_fd_src);
 
-  /* "pysam/libctabix.pyx":803
+  /* "pysam/libctabix.pyx":878
  *     r = close(fd_src)
  *     # an empty file will return with -1, thus ignore this.
  *     if r < 0:             # <<<<<<<<<<<<<<
  *         if not (r == -1 and is_empty):
- *             raise OSError("error %i when closing file %s" % (r, filename_in))
+ *             raise IOError("error %i when closing file %s" % (r, filename_in))
  */
   __pyx_t_1 = ((__pyx_v_r < 0) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":804
+    /* "pysam/libctabix.pyx":879
  *     # an empty file will return with -1, thus ignore this.
  *     if r < 0:
  *         if not (r == -1 and is_empty):             # <<<<<<<<<<<<<<
- *             raise OSError("error %i when closing file %s" % (r, filename_in))
+ *             raise IOError("error %i when closing file %s" % (r, filename_in))
  * 
  */
     __pyx_t_3 = ((__pyx_v_r == -1L) != 0);
@@ -11891,16 +12844,16 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
     __pyx_t_3 = ((!__pyx_t_1) != 0);
     if (unlikely(__pyx_t_3)) {
 
-      /* "pysam/libctabix.pyx":805
+      /* "pysam/libctabix.pyx":880
  *     if r < 0:
  *         if not (r == -1 and is_empty):
- *             raise OSError("error %i when closing file %s" % (r, filename_in))             # <<<<<<<<<<<<<<
+ *             raise IOError("error %i when closing file %s" % (r, filename_in))             # <<<<<<<<<<<<<<
  * 
  * 
  */
-      __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_r); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 805, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_r); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 880, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 805, __pyx_L1_error)
+      __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 880, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_5);
       PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5);
@@ -11908,35 +12861,35 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
       __Pyx_GIVEREF(__pyx_v_filename_in);
       PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_v_filename_in);
       __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyString_Format(__pyx_kp_s_error_i_when_closing_file_s, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 805, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyString_Format(__pyx_kp_s_error_i_when_closing_file_s, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 880, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_OSError, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 805, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 880, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_Raise(__pyx_t_4, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __PYX_ERR(0, 805, __pyx_L1_error)
+      __PYX_ERR(0, 880, __pyx_L1_error)
 
-      /* "pysam/libctabix.pyx":804
+      /* "pysam/libctabix.pyx":879
  *     # an empty file will return with -1, thus ignore this.
  *     if r < 0:
  *         if not (r == -1 and is_empty):             # <<<<<<<<<<<<<<
- *             raise OSError("error %i when closing file %s" % (r, filename_in))
+ *             raise IOError("error %i when closing file %s" % (r, filename_in))
  * 
  */
     }
 
-    /* "pysam/libctabix.pyx":803
+    /* "pysam/libctabix.pyx":878
  *     r = close(fd_src)
  *     # an empty file will return with -1, thus ignore this.
  *     if r < 0:             # <<<<<<<<<<<<<<
  *         if not (r == -1 and is_empty):
- *             raise OSError("error %i when closing file %s" % (r, filename_in))
+ *             raise IOError("error %i when closing file %s" % (r, filename_in))
  */
   }
 
-  /* "pysam/libctabix.pyx":746
+  /* "pysam/libctabix.pyx":821
  * 
  * 
  * def tabix_compress(filename_in,             # <<<<<<<<<<<<<<
@@ -11962,19 +12915,285 @@ static PyObject *__pyx_pf_5pysam_9libctabix_tabix_compress(CYTHON_UNUSED PyObjec
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":808
+/* "pysam/libctabix.pyx":883
  * 
  * 
- * def tabix_index( filename,             # <<<<<<<<<<<<<<
- *                  force = False,
- *                  seq_col = None,
+ * def is_gzip_file(filename):             # <<<<<<<<<<<<<<
+ *     gzip_magic_hex = b'1f8b'
+ *     fd = os.open(filename, os.O_RDONLY)
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libctabix_3tabix_index(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libctabix_2tabix_index[] = "tabix_index(filename, force=False, seq_col=None, start_col=None, end_col=None, preset=None, meta_char='#', zerobased=False, int min_shift=-1)\nindex tab-separated *filename* using tabix.\n\n    An existing index will not be overwritten unless\n    *force* is set.\n\n    The index will be built from coordinates\n    in columns *seq_col*, *start_col* and *end_col*.\n\n    The contents of *filename* have to be sorted by \n    contig and position - the method does not check\n    if the file is sorted.\n\n    Column indices are 0-based. Coordinates in the file\n    are assumed to be 1-based.\n\n    If *preset* is provided, the column coordinates\n    are taken from a preset. Valid values for preset\n    are \"gff\", \"bed\", \"sam\", \"vcf\", psltbl\", \"pileup\".\n    \n    Lines beginning with *meta_char* and the first\n    *line_skip* lines will be skipped.\n    \n    If *filename* does not end in \".gz\", it will be automatically\n    compressed. The original file will be removed and only the \n    compressed file will be retained. \n\n    If *filename* ends in *gz*, the file is assumed to be already\n    compressed with bgzf.\n\n    *min-shift* sets the minimal interval size to 1<<INT; 0 for the\n    old tabix index. The default of -1 is changed inside htslib to \n    the old tabix default of 0.\n\n    returns the filename of the compressed data\n\n    ";
-static PyMethodDef __pyx_mdef_5pysam_9libctabix_3tabix_index = {"tabix_index", (PyCFunction)__pyx_pw_5pysam_9libctabix_3tabix_index, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_2tabix_index};
-static PyObject *__pyx_pw_5pysam_9libctabix_3tabix_index(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_9libctabix_3is_gzip_file(PyObject *__pyx_self, PyObject *__pyx_v_filename); /*proto*/
+static char __pyx_doc_5pysam_9libctabix_2is_gzip_file[] = "is_gzip_file(filename)";
+static PyMethodDef __pyx_mdef_5pysam_9libctabix_3is_gzip_file = {"is_gzip_file", (PyCFunction)__pyx_pw_5pysam_9libctabix_3is_gzip_file, METH_O, __pyx_doc_5pysam_9libctabix_2is_gzip_file};
+static PyObject *__pyx_pw_5pysam_9libctabix_3is_gzip_file(PyObject *__pyx_self, PyObject *__pyx_v_filename) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("is_gzip_file (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_2is_gzip_file(__pyx_self, ((PyObject *)__pyx_v_filename));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_9libctabix_2is_gzip_file(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_filename) {
+  PyObject *__pyx_v_gzip_magic_hex = NULL;
+  PyObject *__pyx_v_fd = NULL;
+  PyObject *__pyx_v_header = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  int __pyx_t_5;
+  PyObject *__pyx_t_6 = NULL;
+  __Pyx_TraceFrameInit(__pyx_codeobj__23)
+  __Pyx_RefNannySetupContext("is_gzip_file", 0);
+  __Pyx_TraceCall("is_gzip_file", __pyx_f[0], 883, 0, __PYX_ERR(0, 883, __pyx_L1_error));
+
+  /* "pysam/libctabix.pyx":884
+ * 
+ * def is_gzip_file(filename):
+ *     gzip_magic_hex = b'1f8b'             # <<<<<<<<<<<<<<
+ *     fd = os.open(filename, os.O_RDONLY)
+ *     header = os.read(fd, 2)
+ */
+  __Pyx_INCREF(__pyx_kp_b_1f8b);
+  __pyx_v_gzip_magic_hex = __pyx_kp_b_1f8b;
+
+  /* "pysam/libctabix.pyx":885
+ * def is_gzip_file(filename):
+ *     gzip_magic_hex = b'1f8b'
+ *     fd = os.open(filename, os.O_RDONLY)             # <<<<<<<<<<<<<<
+ *     header = os.read(fd, 2)
+ *     return header == binascii.a2b_hex(gzip_magic_hex)
+ */
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 885, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_open_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 885, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 885, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_O_RDONLY); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 885, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = NULL;
+  __pyx_t_5 = 0;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+      __Pyx_INCREF(__pyx_t_2);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_3, function);
+      __pyx_t_5 = 1;
+    }
+  }
+  #if CYTHON_FAST_PYCALL
+  if (PyFunction_Check(__pyx_t_3)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_2, __pyx_v_filename, __pyx_t_4};
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 885, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  } else
+  #endif
+  #if CYTHON_FAST_PYCCALL
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_2, __pyx_v_filename, __pyx_t_4};
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 885, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  } else
+  #endif
+  {
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 885, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    if (__pyx_t_2) {
+      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_2); __pyx_t_2 = NULL;
+    }
+    __Pyx_INCREF(__pyx_v_filename);
+    __Pyx_GIVEREF(__pyx_v_filename);
+    PyTuple_SET_ITEM(__pyx_t_6, 0+__pyx_t_5, __pyx_v_filename);
+    __Pyx_GIVEREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_t_4);
+    __pyx_t_4 = 0;
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 885, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_v_fd = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "pysam/libctabix.pyx":886
+ *     gzip_magic_hex = b'1f8b'
+ *     fd = os.open(filename, os.O_RDONLY)
+ *     header = os.read(fd, 2)             # <<<<<<<<<<<<<<
+ *     return header == binascii.a2b_hex(gzip_magic_hex)
+ * 
+ */
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 886, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_read); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 886, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = NULL;
+  __pyx_t_5 = 0;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_6))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_6);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_6, function);
+      __pyx_t_5 = 1;
+    }
+  }
+  #if CYTHON_FAST_PYCALL
+  if (PyFunction_Check(__pyx_t_6)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_v_fd, __pyx_int_2};
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 886, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
+  } else
+  #endif
+  #if CYTHON_FAST_PYCCALL
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_6)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_v_fd, __pyx_int_2};
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 886, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
+  } else
+  #endif
+  {
+    __pyx_t_4 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 886, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    if (__pyx_t_3) {
+      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
+    }
+    __Pyx_INCREF(__pyx_v_fd);
+    __Pyx_GIVEREF(__pyx_v_fd);
+    PyTuple_SET_ITEM(__pyx_t_4, 0+__pyx_t_5, __pyx_v_fd);
+    __Pyx_INCREF(__pyx_int_2);
+    __Pyx_GIVEREF(__pyx_int_2);
+    PyTuple_SET_ITEM(__pyx_t_4, 1+__pyx_t_5, __pyx_int_2);
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 886, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_v_header = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "pysam/libctabix.pyx":887
+ *     fd = os.open(filename, os.O_RDONLY)
+ *     header = os.read(fd, 2)
+ *     return header == binascii.a2b_hex(gzip_magic_hex)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_binascii); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 887, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_a2b_hex); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 887, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_t_6 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
+    __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_4);
+    if (likely(__pyx_t_6)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+      __Pyx_INCREF(__pyx_t_6);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_4, function);
+    }
+  }
+  if (!__pyx_t_6) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_gzip_magic_hex); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 887, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+  } else {
+    #if CYTHON_FAST_PYCALL
+    if (PyFunction_Check(__pyx_t_4)) {
+      PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_gzip_magic_hex};
+      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 887, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __Pyx_GOTREF(__pyx_t_1);
+    } else
+    #endif
+    #if CYTHON_FAST_PYCCALL
+    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
+      PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_gzip_magic_hex};
+      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 887, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __Pyx_GOTREF(__pyx_t_1);
+    } else
+    #endif
+    {
+      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 887, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_6); __pyx_t_6 = NULL;
+      __Pyx_INCREF(__pyx_v_gzip_magic_hex);
+      __Pyx_GIVEREF(__pyx_v_gzip_magic_hex);
+      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_v_gzip_magic_hex);
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 887, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    }
+  }
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = PyObject_RichCompare(__pyx_v_header, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 887, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_r = __pyx_t_4;
+  __pyx_t_4 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libctabix.pyx":883
+ * 
+ * 
+ * def is_gzip_file(filename):             # <<<<<<<<<<<<<<
+ *     gzip_magic_hex = b'1f8b'
+ *     fd = os.open(filename, os.O_RDONLY)
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_AddTraceback("pysam.libctabix.is_gzip_file", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_gzip_magic_hex);
+  __Pyx_XDECREF(__pyx_v_fd);
+  __Pyx_XDECREF(__pyx_v_header);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libctabix.pyx":890
+ * 
+ * 
+ * def tabix_index(filename,             # <<<<<<<<<<<<<<
+ *                 force=False,
+ *                 seq_col=None,
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_9libctabix_5tabix_index(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_9libctabix_4tabix_index[] = "tabix_index(filename, force=False, seq_col=None, start_col=None, end_col=None, preset=None, meta_char='#', int line_skip=0, zerobased=False, int min_shift=-1, index=None, keep_original=False, csi=False)\nindex tab-separated *filename* using tabix.\n\n    An existing index will not be overwritten unless *force* is set.\n\n    The index will be built from coordinates in columns *seq_col*,\n    *start_col* and *end_col*.\n\n    The contents of *filename* have to be sorted by contig and\n    position - the method does not check if the file is sorted.\n\n    Column indices are 0-based. Note that this is different from the\n    tabix command line utility where column indices start at 1.\n    \n    Coordinates in the file are assumed to be 1-based unless\n    *zerobased* is set.\n\n    If *preset* is provided, the column coordinates are taken from a\n    preset. Valid values for preset are \"gff\", \"bed\", \"sam\", \"vcf\",\n    psltbl\", \"pileup\".\n    \n    Lines beginning with *meta_char* and the first *line_skip* lines\n    will be skipped.\n\n    If *filename* is not detected as a gzip file it will be automatically\n    compressed. The original file will be removed and only the compressed\n    file will be retained.\n\n    *min-shift* sets the minimal interval size to 1<<INT; 0 for the\n    old tabix index. The default of -1 is changed inside htslib to \n    the old tabix default of 0.\n\n    *index* controls the filename which should be used for creating the index.\n    If not set, the default is to append ``.tbi`` to *filename*.\n\n    If *csi* is set, create a CSI index, the default is to create a\n    TBI index.\n\n    When automatically compressing files, if *keep_original* is set the\n    uncompressed file will not be deleted.\n\n    returns the filename of the compressed data\n\n    ";
+static PyMethodDef __pyx_mdef_5pysam_9libctabix_5tabix_index = {"tabix_index", (PyCFunction)__pyx_pw_5pysam_9libctabix_5tabix_index, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_4tabix_index};
+static PyObject *__pyx_pw_5pysam_9libctabix_5tabix_index(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_filename = 0;
   PyObject *__pyx_v_force = 0;
   PyObject *__pyx_v_seq_col = 0;
@@ -11982,73 +13201,112 @@ static PyObject *__pyx_pw_5pysam_9libctabix_3tabix_index(PyObject *__pyx_self, P
   PyObject *__pyx_v_end_col = 0;
   PyObject *__pyx_v_preset = 0;
   PyObject *__pyx_v_meta_char = 0;
+  int __pyx_v_line_skip;
   PyObject *__pyx_v_zerobased = 0;
   int __pyx_v_min_shift;
+  PyObject *__pyx_v_index = 0;
+  PyObject *__pyx_v_keep_original = 0;
+  PyObject *__pyx_v_csi = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("tabix_index (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_filename,&__pyx_n_s_force,&__pyx_n_s_seq_col,&__pyx_n_s_start_col,&__pyx_n_s_end_col,&__pyx_n_s_preset,&__pyx_n_s_meta_char,&__pyx_n_s_zerobased,&__pyx_n_s_min_shift,0};
-    PyObject* values[9] = {0,0,0,0,0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_filename,&__pyx_n_s_force,&__pyx_n_s_seq_col,&__pyx_n_s_start_col,&__pyx_n_s_end_col,&__pyx_n_s_preset,&__pyx_n_s_meta_char,&__pyx_n_s_line_skip,&__pyx_n_s_zerobased,&__pyx_n_s_min_shift,&__pyx_n_s_index,&__pyx_n_s_keep_original,&__pyx_n_s_csi,0};
+    PyObject* values[13] = {0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-    /* "pysam/libctabix.pyx":809
+    /* "pysam/libctabix.pyx":891
  * 
- * def tabix_index( filename,
- *                  force = False,             # <<<<<<<<<<<<<<
- *                  seq_col = None,
- *                  start_col = None,
+ * def tabix_index(filename,
+ *                 force=False,             # <<<<<<<<<<<<<<
+ *                 seq_col=None,
+ *                 start_col=None,
  */
     values[1] = ((PyObject *)Py_False);
 
-    /* "pysam/libctabix.pyx":810
- * def tabix_index( filename,
- *                  force = False,
- *                  seq_col = None,             # <<<<<<<<<<<<<<
- *                  start_col = None,
- *                  end_col = None,
+    /* "pysam/libctabix.pyx":892
+ * def tabix_index(filename,
+ *                 force=False,
+ *                 seq_col=None,             # <<<<<<<<<<<<<<
+ *                 start_col=None,
+ *                 end_col=None,
  */
     values[2] = ((PyObject *)Py_None);
 
-    /* "pysam/libctabix.pyx":811
- *                  force = False,
- *                  seq_col = None,
- *                  start_col = None,             # <<<<<<<<<<<<<<
- *                  end_col = None,
- *                  preset = None,
+    /* "pysam/libctabix.pyx":893
+ *                 force=False,
+ *                 seq_col=None,
+ *                 start_col=None,             # <<<<<<<<<<<<<<
+ *                 end_col=None,
+ *                 preset=None,
  */
     values[3] = ((PyObject *)Py_None);
 
-    /* "pysam/libctabix.pyx":812
- *                  seq_col = None,
- *                  start_col = None,
- *                  end_col = None,             # <<<<<<<<<<<<<<
- *                  preset = None,
- *                  meta_char = "#",
+    /* "pysam/libctabix.pyx":894
+ *                 seq_col=None,
+ *                 start_col=None,
+ *                 end_col=None,             # <<<<<<<<<<<<<<
+ *                 preset=None,
+ *                 meta_char="#",
  */
     values[4] = ((PyObject *)Py_None);
 
-    /* "pysam/libctabix.pyx":813
- *                  start_col = None,
- *                  end_col = None,
- *                  preset = None,             # <<<<<<<<<<<<<<
- *                  meta_char = "#",
- *                  zerobased = False,
+    /* "pysam/libctabix.pyx":895
+ *                 start_col=None,
+ *                 end_col=None,
+ *                 preset=None,             # <<<<<<<<<<<<<<
+ *                 meta_char="#",
+ *                 int line_skip=0,
  */
     values[5] = ((PyObject *)Py_None);
     values[6] = ((PyObject *)__pyx_kp_s__24);
 
-    /* "pysam/libctabix.pyx":815
- *                  preset = None,
- *                  meta_char = "#",
- *                  zerobased = False,             # <<<<<<<<<<<<<<
- *                  int min_shift = -1,
+    /* "pysam/libctabix.pyx":898
+ *                 meta_char="#",
+ *                 int line_skip=0,
+ *                 zerobased=False,             # <<<<<<<<<<<<<<
+ *                 int min_shift=-1,
+ *                 index=None,
+ */
+    values[8] = ((PyObject *)Py_False);
+
+    /* "pysam/libctabix.pyx":900
+ *                 zerobased=False,
+ *                 int min_shift=-1,
+ *                 index=None,             # <<<<<<<<<<<<<<
+ *                 keep_original=False,
+ *                 csi=False,
+ */
+    values[10] = ((PyObject *)Py_None);
+
+    /* "pysam/libctabix.pyx":901
+ *                 int min_shift=-1,
+ *                 index=None,
+ *                 keep_original=False,             # <<<<<<<<<<<<<<
+ *                 csi=False,
  *                 ):
  */
-    values[7] = ((PyObject *)Py_False);
+    values[11] = ((PyObject *)Py_False);
+
+    /* "pysam/libctabix.pyx":902
+ *                 index=None,
+ *                 keep_original=False,
+ *                 csi=False,             # <<<<<<<<<<<<<<
+ *                 ):
+ *     '''index tab-separated *filename* using tabix.
+ */
+    values[12] = ((PyObject *)Py_False);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case 13: values[12] = PyTuple_GET_ITEM(__pyx_args, 12);
+        CYTHON_FALLTHROUGH;
+        case 12: values[11] = PyTuple_GET_ITEM(__pyx_args, 11);
+        CYTHON_FALLTHROUGH;
+        case 11: values[10] = PyTuple_GET_ITEM(__pyx_args, 10);
+        CYTHON_FALLTHROUGH;
+        case 10: values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
+        CYTHON_FALLTHROUGH;
         case  9: values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
         CYTHON_FALLTHROUGH;
         case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
@@ -12114,21 +13372,53 @@ static PyObject *__pyx_pw_5pysam_9libctabix_3tabix_index(PyObject *__pyx_self, P
         CYTHON_FALLTHROUGH;
         case  7:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_zerobased);
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_line_skip);
           if (value) { values[7] = value; kw_args--; }
         }
         CYTHON_FALLTHROUGH;
         case  8:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_min_shift);
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_zerobased);
           if (value) { values[8] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  9:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_min_shift);
+          if (value) { values[9] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case 10:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_index);
+          if (value) { values[10] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case 11:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_keep_original);
+          if (value) { values[11] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case 12:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_csi);
+          if (value) { values[12] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tabix_index") < 0)) __PYX_ERR(0, 808, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tabix_index") < 0)) __PYX_ERR(0, 890, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case 13: values[12] = PyTuple_GET_ITEM(__pyx_args, 12);
+        CYTHON_FALLTHROUGH;
+        case 12: values[11] = PyTuple_GET_ITEM(__pyx_args, 11);
+        CYTHON_FALLTHROUGH;
+        case 11: values[10] = PyTuple_GET_ITEM(__pyx_args, 10);
+        CYTHON_FALLTHROUGH;
+        case 10: values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
+        CYTHON_FALLTHROUGH;
         case  9: values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
         CYTHON_FALLTHROUGH;
         case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
@@ -12157,29 +13447,37 @@ static PyObject *__pyx_pw_5pysam_9libctabix_3tabix_index(PyObject *__pyx_self, P
     __pyx_v_end_col = values[4];
     __pyx_v_preset = values[5];
     __pyx_v_meta_char = values[6];
-    __pyx_v_zerobased = values[7];
-    if (values[8]) {
-      __pyx_v_min_shift = __Pyx_PyInt_As_int(values[8]); if (unlikely((__pyx_v_min_shift == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 816, __pyx_L3_error)
+    if (values[7]) {
+      __pyx_v_line_skip = __Pyx_PyInt_As_int(values[7]); if (unlikely((__pyx_v_line_skip == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 897, __pyx_L3_error)
+    } else {
+      __pyx_v_line_skip = ((int)0);
+    }
+    __pyx_v_zerobased = values[8];
+    if (values[9]) {
+      __pyx_v_min_shift = __Pyx_PyInt_As_int(values[9]); if (unlikely((__pyx_v_min_shift == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 899, __pyx_L3_error)
     } else {
       __pyx_v_min_shift = ((int)-1);
     }
+    __pyx_v_index = values[10];
+    __pyx_v_keep_original = values[11];
+    __pyx_v_csi = values[12];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("tabix_index", 0, 1, 9, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 808, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("tabix_index", 0, 1, 13, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 890, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.tabix_index", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libctabix_2tabix_index(__pyx_self, __pyx_v_filename, __pyx_v_force, __pyx_v_seq_col, __pyx_v_start_col, __pyx_v_end_col, __pyx_v_preset, __pyx_v_meta_char, __pyx_v_zerobased, __pyx_v_min_shift);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_4tabix_index(__pyx_self, __pyx_v_filename, __pyx_v_force, __pyx_v_seq_col, __pyx_v_start_col, __pyx_v_end_col, __pyx_v_preset, __pyx_v_meta_char, __pyx_v_line_skip, __pyx_v_zerobased, __pyx_v_min_shift, __pyx_v_index, __pyx_v_keep_original, __pyx_v_csi);
 
-  /* "pysam/libctabix.pyx":808
+  /* "pysam/libctabix.pyx":890
  * 
  * 
- * def tabix_index( filename,             # <<<<<<<<<<<<<<
- *                  force = False,
- *                  seq_col = None,
+ * def tabix_index(filename,             # <<<<<<<<<<<<<<
+ *                 force=False,
+ *                 seq_col=None,
  */
 
   /* function exit code */
@@ -12187,12 +13485,18 @@ static PyObject *__pyx_pw_5pysam_9libctabix_3tabix_index(PyObject *__pyx_self, P
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_force, PyObject *__pyx_v_seq_col, PyObject *__pyx_v_start_col, PyObject *__pyx_v_end_col, PyObject *__pyx_v_preset, PyObject *__pyx_v_meta_char, PyObject *__pyx_v_zerobased, int __pyx_v_min_shift) {
+static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_index(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_filename, PyObject *__pyx_v_force, PyObject *__pyx_v_seq_col, PyObject *__pyx_v_start_col, PyObject *__pyx_v_end_col, PyObject *__pyx_v_preset, PyObject *__pyx_v_meta_char, int __pyx_v_line_skip, PyObject *__pyx_v_zerobased, int __pyx_v_min_shift, PyObject *__pyx_v_index, PyObject *__pyx_v_keep_original, PyObject *__pyx_v_csi) {
+  PyObject *__pyx_v_fn = NULL;
+  char *__pyx_v_cfn;
+  htsFile *__pyx_v_fp;
+  enum htsExactFormat __pyx_v_fmt;
   PyObject *__pyx_v_preset2conf = NULL;
   PyObject *__pyx_v_conf_data = NULL;
   tbx_conf_t __pyx_v_conf;
-  PyObject *__pyx_v_fn = NULL;
-  char *__pyx_v_cfn;
+  PyObject *__pyx_v_suffix = NULL;
+  PyObject *__pyx_v_fn_index = NULL;
+  char *__pyx_v_fnidx;
+  int __pyx_v_retval;
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -12203,42 +13507,45 @@ static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject 
   int __pyx_t_5;
   int __pyx_t_6;
   int __pyx_t_7;
-  PyObject *__pyx_t_8 = NULL;
-  PyObject *__pyx_t_9 = NULL;
+  char *__pyx_t_8;
+  enum htsExactFormat __pyx_t_9;
   PyObject *__pyx_t_10 = NULL;
   PyObject *__pyx_t_11 = NULL;
-  int __pyx_t_12;
-  long __pyx_t_13;
+  PyObject *__pyx_t_12 = NULL;
+  int __pyx_t_13;
   PyObject *__pyx_t_14 = NULL;
-  PyObject *__pyx_t_15 = NULL;
-  PyObject *(*__pyx_t_16)(PyObject *);
-  int32_t __pyx_t_17;
-  int32_t __pyx_t_18;
+  long __pyx_t_15;
+  PyObject *__pyx_t_16 = NULL;
+  PyObject *__pyx_t_17 = NULL;
+  PyObject *(*__pyx_t_18)(PyObject *);
   int32_t __pyx_t_19;
   int32_t __pyx_t_20;
   int32_t __pyx_t_21;
   int32_t __pyx_t_22;
-  char *__pyx_t_23;
+  int32_t __pyx_t_23;
+  int32_t __pyx_t_24;
   __Pyx_TraceFrameInit(__pyx_codeobj__25)
   __Pyx_RefNannySetupContext("tabix_index", 0);
-  __Pyx_TraceCall("tabix_index", __pyx_f[0], 808, 0, __PYX_ERR(0, 808, __pyx_L1_error));
+  __Pyx_TraceCall("tabix_index", __pyx_f[0], 890, 0, __PYX_ERR(0, 890, __pyx_L1_error));
   __Pyx_INCREF(__pyx_v_filename);
   __Pyx_INCREF(__pyx_v_end_col);
   __Pyx_INCREF(__pyx_v_preset);
+  __Pyx_INCREF(__pyx_v_index);
+  __Pyx_INCREF(__pyx_v_csi);
 
-  /* "pysam/libctabix.pyx":855
+  /* "pysam/libctabix.pyx":948
  *     '''
  * 
  *     if not os.path.exists(filename):             # <<<<<<<<<<<<<<
  *         raise IOError("No such file '%s'" % filename)
  * 
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 855, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 948, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_path); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 855, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_path); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 948, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_exists); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 855, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_exists); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 948, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -12252,13 +13559,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject 
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filename); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 855, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filename); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 948, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
   } else {
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_filename};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 855, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 948, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
@@ -12266,46 +13573,46 @@ static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject 
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_filename};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 855, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 948, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
     #endif
     {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 855, __pyx_L1_error)
+      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 948, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
       __Pyx_INCREF(__pyx_v_filename);
       __Pyx_GIVEREF(__pyx_v_filename);
       PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_filename);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 855, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 948, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 855, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 948, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_6 = ((!__pyx_t_5) != 0);
   if (unlikely(__pyx_t_6)) {
 
-    /* "pysam/libctabix.pyx":856
+    /* "pysam/libctabix.pyx":949
  * 
  *     if not os.path.exists(filename):
  *         raise IOError("No such file '%s'" % filename)             # <<<<<<<<<<<<<<
  * 
  *     if preset is None and \
  */
-    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_No_such_file_s, __pyx_v_filename); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 856, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_No_such_file_s, __pyx_v_filename); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 949, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 856, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 949, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 856, __pyx_L1_error)
+    __PYX_ERR(0, 949, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":855
+    /* "pysam/libctabix.pyx":948
  *     '''
  * 
  *     if not os.path.exists(filename):             # <<<<<<<<<<<<<<
@@ -12314,7 +13621,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject 
  */
   }
 
-  /* "pysam/libctabix.pyx":858
+  /* "pysam/libctabix.pyx":951
  *         raise IOError("No such file '%s'" % filename)
  * 
  *     if preset is None and \             # <<<<<<<<<<<<<<
@@ -12329,7 +13636,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject 
     goto __pyx_L5_bool_binop_done;
   }
 
-  /* "pysam/libctabix.pyx":859
+  /* "pysam/libctabix.pyx":952
  * 
  *     if preset is None and \
  *        (seq_col is None or start_col is None or end_col is None):             # <<<<<<<<<<<<<<
@@ -12355,7 +13662,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject 
   __pyx_t_6 = __pyx_t_5;
   __pyx_L5_bool_binop_done:;
 
-  /* "pysam/libctabix.pyx":858
+  /* "pysam/libctabix.pyx":951
  *         raise IOError("No such file '%s'" % filename)
  * 
  *     if preset is None and \             # <<<<<<<<<<<<<<
@@ -12364,20 +13671,20 @@ static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject 
  */
   if (unlikely(__pyx_t_6)) {
 
-    /* "pysam/libctabix.pyx":860
+    /* "pysam/libctabix.pyx":953
  *     if preset is None and \
  *        (seq_col is None or start_col is None or end_col is None):
  *         raise ValueError(             # <<<<<<<<<<<<<<
  *             "neither preset nor seq_col,start_col and end_col given")
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__26, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 860, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__26, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 953, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 860, __pyx_L1_error)
+    __PYX_ERR(0, 953, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":858
+    /* "pysam/libctabix.pyx":951
  *         raise IOError("No such file '%s'" % filename)
  * 
  *     if preset is None and \             # <<<<<<<<<<<<<<
@@ -12386,299 +13693,497 @@ static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject 
  */
   }
 
-  /* "pysam/libctabix.pyx":863
+  /* "pysam/libctabix.pyx":956
  *             "neither preset nor seq_col,start_col and end_col given")
  * 
- *     if not filename.endswith(".gz"):             # <<<<<<<<<<<<<<
+ *     if not is_gzip_file(filename):             # <<<<<<<<<<<<<<
  *         tabix_compress(filename, filename + ".gz", force=force)
- *         os.unlink( filename )
+ *         if not keep_original:
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_filename, __pyx_n_s_endswith); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 863, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__27, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 863, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_is_gzip_file); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 956, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 863, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_5 = ((!__pyx_t_6) != 0);
-  if (__pyx_t_5) {
-
-    /* "pysam/libctabix.pyx":864
- * 
- *     if not filename.endswith(".gz"):
- *         tabix_compress(filename, filename + ".gz", force=force)             # <<<<<<<<<<<<<<
- *         os.unlink( filename )
- *         filename += ".gz"
- */
-    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_tabix_compress); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 864, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = PyNumber_Add(__pyx_v_filename, __pyx_kp_s_gz); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 864, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 864, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_INCREF(__pyx_v_filename);
-    __Pyx_GIVEREF(__pyx_v_filename);
-    PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_v_filename);
-    __Pyx_GIVEREF(__pyx_t_2);
-    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_2);
-    __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 864, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_force, __pyx_v_force) < 0) __PYX_ERR(0, 864, __pyx_L1_error)
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 864, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-    /* "pysam/libctabix.pyx":865
- *     if not filename.endswith(".gz"):
- *         tabix_compress(filename, filename + ".gz", force=force)
- *         os.unlink( filename )             # <<<<<<<<<<<<<<
- *         filename += ".gz"
- * 
- */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 865, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_unlink); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 865, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = NULL;
-    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-      __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_4);
-      if (likely(__pyx_t_2)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-        __Pyx_INCREF(__pyx_t_2);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_4, function);
-      }
-    }
-    if (!__pyx_t_2) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 865, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-    } else {
-      #if CYTHON_FAST_PYCALL
-      if (PyFunction_Check(__pyx_t_4)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_v_filename};
-        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 865, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __Pyx_GOTREF(__pyx_t_3);
-      } else
-      #endif
-      #if CYTHON_FAST_PYCCALL
-      if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_v_filename};
-        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 865, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __Pyx_GOTREF(__pyx_t_3);
-      } else
-      #endif
-      {
-        __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 865, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2); __pyx_t_2 = NULL;
-        __Pyx_INCREF(__pyx_v_filename);
-        __Pyx_GIVEREF(__pyx_v_filename);
-        PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_v_filename);
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 865, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      }
-    }
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-    /* "pysam/libctabix.pyx":866
- *         tabix_compress(filename, filename + ".gz", force=force)
- *         os.unlink( filename )
- *         filename += ".gz"             # <<<<<<<<<<<<<<
- * 
- *     if not force and os.path.exists(filename + ".tbi"):
- */
-    __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_filename, __pyx_kp_s_gz); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 866, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF_SET(__pyx_v_filename, __pyx_t_3);
-    __pyx_t_3 = 0;
-
-    /* "pysam/libctabix.pyx":863
- *             "neither preset nor seq_col,start_col and end_col given")
- * 
- *     if not filename.endswith(".gz"):             # <<<<<<<<<<<<<<
- *         tabix_compress(filename, filename + ".gz", force=force)
- *         os.unlink( filename )
- */
-  }
-
-  /* "pysam/libctabix.pyx":868
- *         filename += ".gz"
- * 
- *     if not force and os.path.exists(filename + ".tbi"):             # <<<<<<<<<<<<<<
- *         raise IOError(
- *             "Filename '%s.tbi' already exists, use *force* to overwrite")
- */
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_force); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 868, __pyx_L1_error)
-  __pyx_t_7 = ((!__pyx_t_6) != 0);
-  if (__pyx_t_7) {
-  } else {
-    __pyx_t_5 = __pyx_t_7;
-    goto __pyx_L11_bool_binop_done;
-  }
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 868, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_path); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 868, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_exists); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 868, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyNumber_Add(__pyx_v_filename, __pyx_kp_s_tbi); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 868, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_2);
+  __pyx_t_4 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_4)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_4);
       __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
+      __Pyx_DECREF_SET(__pyx_t_1, function);
     }
   }
-  if (!__pyx_t_2) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 868, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_GOTREF(__pyx_t_3);
+  if (!__pyx_t_4) {
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 956, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
   } else {
     #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_1};
-      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 868, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    if (PyFunction_Check(__pyx_t_1)) {
+      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filename};
+      __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 956, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_GOTREF(__pyx_t_2);
     } else
     #endif
     #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_1};
-      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 868, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
+      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_filename};
+      __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 956, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_GOTREF(__pyx_t_2);
     } else
     #endif
     {
-      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 868, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_1);
-      PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_t_1);
-      __pyx_t_1 = 0;
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 868, __pyx_L1_error)
+      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 956, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4); __pyx_t_4 = NULL;
+      __Pyx_INCREF(__pyx_v_filename);
+      __Pyx_GIVEREF(__pyx_v_filename);
+      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_v_filename);
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 956, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     }
   }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 868, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __pyx_t_7;
-  __pyx_L11_bool_binop_done:;
-  if (unlikely(__pyx_t_5)) {
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 956, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_5 = ((!__pyx_t_6) != 0);
+  if (__pyx_t_5) {
 
-    /* "pysam/libctabix.pyx":869
+    /* "pysam/libctabix.pyx":957
  * 
- *     if not force and os.path.exists(filename + ".tbi"):
- *         raise IOError(             # <<<<<<<<<<<<<<
- *             "Filename '%s.tbi' already exists, use *force* to overwrite")
- * 
+ *     if not is_gzip_file(filename):
+ *         tabix_compress(filename, filename + ".gz", force=force)             # <<<<<<<<<<<<<<
+ *         if not keep_original:
+ *             os.unlink(filename)
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__28, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 869, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_tabix_compress); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 957, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_1 = PyNumber_Add(__pyx_v_filename, __pyx_kp_s_gz); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 957, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 957, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+    __Pyx_INCREF(__pyx_v_filename);
+    __Pyx_GIVEREF(__pyx_v_filename);
+    PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_v_filename);
+    __Pyx_GIVEREF(__pyx_t_1);
+    PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_1);
+    __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 957, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_force, __pyx_v_force) < 0) __PYX_ERR(0, 957, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 957, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 869, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "pysam/libctabix.pyx":868
+    /* "pysam/libctabix.pyx":958
+ *     if not is_gzip_file(filename):
+ *         tabix_compress(filename, filename + ".gz", force=force)
+ *         if not keep_original:             # <<<<<<<<<<<<<<
+ *             os.unlink(filename)
+ *         filename += ".gz"
+ */
+    __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_keep_original); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 958, __pyx_L1_error)
+    __pyx_t_6 = ((!__pyx_t_5) != 0);
+    if (__pyx_t_6) {
+
+      /* "pysam/libctabix.pyx":959
+ *         tabix_compress(filename, filename + ".gz", force=force)
+ *         if not keep_original:
+ *             os.unlink(filename)             # <<<<<<<<<<<<<<
  *         filename += ".gz"
  * 
- *     if not force and os.path.exists(filename + ".tbi"):             # <<<<<<<<<<<<<<
- *         raise IOError(
- *             "Filename '%s.tbi' already exists, use *force* to overwrite")
+ */
+      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 959, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_unlink); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 959, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __pyx_t_1 = NULL;
+      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_3);
+        if (likely(__pyx_t_1)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_1);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
+        }
+      }
+      if (!__pyx_t_1) {
+        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_filename); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 959, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+      } else {
+        #if CYTHON_FAST_PYCALL
+        if (PyFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_1, __pyx_v_filename};
+          __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 959, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_GOTREF(__pyx_t_4);
+        } else
+        #endif
+        #if CYTHON_FAST_PYCCALL
+        if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_1, __pyx_v_filename};
+          __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 959, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_GOTREF(__pyx_t_4);
+        } else
+        #endif
+        {
+          __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 959, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1); __pyx_t_1 = NULL;
+          __Pyx_INCREF(__pyx_v_filename);
+          __Pyx_GIVEREF(__pyx_v_filename);
+          PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_v_filename);
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 959, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        }
+      }
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+      /* "pysam/libctabix.pyx":958
+ *     if not is_gzip_file(filename):
+ *         tabix_compress(filename, filename + ".gz", force=force)
+ *         if not keep_original:             # <<<<<<<<<<<<<<
+ *             os.unlink(filename)
+ *         filename += ".gz"
+ */
+    }
+
+    /* "pysam/libctabix.pyx":960
+ *         if not keep_original:
+ *             os.unlink(filename)
+ *         filename += ".gz"             # <<<<<<<<<<<<<<
+ * 
+ *     fn = encode_filename(filename)
+ */
+    __pyx_t_4 = PyNumber_InPlaceAdd(__pyx_v_filename, __pyx_kp_s_gz); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 960, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF_SET(__pyx_v_filename, __pyx_t_4);
+    __pyx_t_4 = 0;
+
+    /* "pysam/libctabix.pyx":956
+ *             "neither preset nor seq_col,start_col and end_col given")
+ * 
+ *     if not is_gzip_file(filename):             # <<<<<<<<<<<<<<
+ *         tabix_compress(filename, filename + ".gz", force=force)
+ *         if not keep_original:
  */
   }
 
-  /* "pysam/libctabix.pyx":877
+  /* "pysam/libctabix.pyx":962
+ *         filename += ".gz"
+ * 
+ *     fn = encode_filename(filename)             # <<<<<<<<<<<<<<
+ *     cdef char *cfn = fn
+ * 
+ */
+  __pyx_t_4 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 962, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_v_fn = ((PyObject*)__pyx_t_4);
+  __pyx_t_4 = 0;
+
+  /* "pysam/libctabix.pyx":963
+ * 
+ *     fn = encode_filename(filename)
+ *     cdef char *cfn = fn             # <<<<<<<<<<<<<<
+ * 
+ *     cdef htsFile *fp = hts_open(cfn, "r")
+ */
+  if (unlikely(__pyx_v_fn == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
+    __PYX_ERR(0, 963, __pyx_L1_error)
+  }
+  __pyx_t_8 = __Pyx_PyBytes_AsWritableString(__pyx_v_fn); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) __PYX_ERR(0, 963, __pyx_L1_error)
+  __pyx_v_cfn = __pyx_t_8;
+
+  /* "pysam/libctabix.pyx":965
+ *     cdef char *cfn = fn
+ * 
+ *     cdef htsFile *fp = hts_open(cfn, "r")             # <<<<<<<<<<<<<<
+ *     cdef htsExactFormat fmt = fp.format.format
+ *     hts_close(fp)
+ */
+  __pyx_v_fp = hts_open(__pyx_v_cfn, ((char const *)"r"));
+
+  /* "pysam/libctabix.pyx":966
+ * 
+ *     cdef htsFile *fp = hts_open(cfn, "r")
+ *     cdef htsExactFormat fmt = fp.format.format             # <<<<<<<<<<<<<<
+ *     hts_close(fp)
+ * 
+ */
+  __pyx_t_9 = __pyx_v_fp->format.format;
+  __pyx_v_fmt = __pyx_t_9;
+
+  /* "pysam/libctabix.pyx":967
+ *     cdef htsFile *fp = hts_open(cfn, "r")
+ *     cdef htsExactFormat fmt = fp.format.format
+ *     hts_close(fp)             # <<<<<<<<<<<<<<
+ * 
+ *     # columns (1-based):
+ */
+  (void)(hts_close(__pyx_v_fp));
+
+  /* "pysam/libctabix.pyx":974
  *     # 0 is a missing column
  *     preset2conf = {
- *         'gff' : (0, 1, 4, 5, ord('#'), 0),             # <<<<<<<<<<<<<<
- *         'bed' : (0x10000, 1, 2, 3, ord('#'), 0),
- *         'psltbl' : (0x10000, 15, 17, 18, ord('#'), 0),
+ *         'gff' : (TBX_GENERIC, 1, 4, 5, ord('#'), 0),             # <<<<<<<<<<<<<<
+ *         'bed' : (TBX_UCSC, 1, 2, 3, ord('#'), 0),
+ *         'psltbl' : (TBX_UCSC, 15, 17, 18, ord('#'), 0),
  */
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 877, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 974, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_3 = __Pyx_PyInt_From_int8_t(TBX_GENERIC); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 974, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_gff, __pyx_tuple__29) < 0) __PYX_ERR(0, 877, __pyx_L1_error)
-
-  /* "pysam/libctabix.pyx":878
- *     preset2conf = {
- *         'gff' : (0, 1, 4, 5, ord('#'), 0),
- *         'bed' : (0x10000, 1, 2, 3, ord('#'), 0),             # <<<<<<<<<<<<<<
- *         'psltbl' : (0x10000, 15, 17, 18, ord('#'), 0),
- *         'sam' : (1, 3, 4, 0, ord('@'), 0),
- */
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_bed, __pyx_tuple__30) < 0) __PYX_ERR(0, 877, __pyx_L1_error)
-
-  /* "pysam/libctabix.pyx":879
- *         'gff' : (0, 1, 4, 5, ord('#'), 0),
- *         'bed' : (0x10000, 1, 2, 3, ord('#'), 0),
- *         'psltbl' : (0x10000, 15, 17, 18, ord('#'), 0),             # <<<<<<<<<<<<<<
- *         'sam' : (1, 3, 4, 0, ord('@'), 0),
- *         'vcf' : (2, 1, 2, 0, ord('#'), 0),
- */
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_psltbl, __pyx_tuple__31) < 0) __PYX_ERR(0, 877, __pyx_L1_error)
-
-  /* "pysam/libctabix.pyx":880
- *         'bed' : (0x10000, 1, 2, 3, ord('#'), 0),
- *         'psltbl' : (0x10000, 15, 17, 18, ord('#'), 0),
- *         'sam' : (1, 3, 4, 0, ord('@'), 0),             # <<<<<<<<<<<<<<
- *         'vcf' : (2, 1, 2, 0, ord('#'), 0),
- *         'pileup': (3, 1, 2, 0, ord('#'), 0),
- */
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_sam, __pyx_tuple__32) < 0) __PYX_ERR(0, 877, __pyx_L1_error)
-
-  /* "pysam/libctabix.pyx":881
- *         'psltbl' : (0x10000, 15, 17, 18, ord('#'), 0),
- *         'sam' : (1, 3, 4, 0, ord('@'), 0),
- *         'vcf' : (2, 1, 2, 0, ord('#'), 0),             # <<<<<<<<<<<<<<
- *         'pileup': (3, 1, 2, 0, ord('#'), 0),
- *         }
- */
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_vcf, __pyx_tuple__33) < 0) __PYX_ERR(0, 877, __pyx_L1_error)
-
-  /* "pysam/libctabix.pyx":882
- *         'sam' : (1, 3, 4, 0, ord('@'), 0),
- *         'vcf' : (2, 1, 2, 0, ord('#'), 0),
- *         'pileup': (3, 1, 2, 0, ord('#'), 0),             # <<<<<<<<<<<<<<
- *         }
- * 
- */
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_pileup, __pyx_tuple__34) < 0) __PYX_ERR(0, 877, __pyx_L1_error)
-  __pyx_v_preset2conf = ((PyObject*)__pyx_t_3);
+  __pyx_t_2 = PyTuple_New(6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 974, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
+  __Pyx_INCREF(__pyx_int_1);
+  __Pyx_GIVEREF(__pyx_int_1);
+  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_int_1);
+  __Pyx_INCREF(__pyx_int_4);
+  __Pyx_GIVEREF(__pyx_int_4);
+  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_int_4);
+  __Pyx_INCREF(__pyx_int_5);
+  __Pyx_GIVEREF(__pyx_int_5);
+  PyTuple_SET_ITEM(__pyx_t_2, 3, __pyx_int_5);
+  __Pyx_INCREF(__pyx_int_35);
+  __Pyx_GIVEREF(__pyx_int_35);
+  PyTuple_SET_ITEM(__pyx_t_2, 4, __pyx_int_35);
+  __Pyx_INCREF(__pyx_int_0);
+  __Pyx_GIVEREF(__pyx_int_0);
+  PyTuple_SET_ITEM(__pyx_t_2, 5, __pyx_int_0);
   __pyx_t_3 = 0;
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_gff, __pyx_t_2) < 0) __PYX_ERR(0, 974, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libctabix.pyx":885
+  /* "pysam/libctabix.pyx":975
+ *     preset2conf = {
+ *         'gff' : (TBX_GENERIC, 1, 4, 5, ord('#'), 0),
+ *         'bed' : (TBX_UCSC, 1, 2, 3, ord('#'), 0),             # <<<<<<<<<<<<<<
+ *         'psltbl' : (TBX_UCSC, 15, 17, 18, ord('#'), 0),
+ *         'sam' : (TBX_SAM, 3, 4, 0, ord('@'), 0),
+ */
+  __pyx_t_2 = __Pyx_PyInt_From_int8_t(TBX_UCSC); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 975, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = PyTuple_New(6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 975, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
+  __Pyx_INCREF(__pyx_int_1);
+  __Pyx_GIVEREF(__pyx_int_1);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_int_1);
+  __Pyx_INCREF(__pyx_int_2);
+  __Pyx_GIVEREF(__pyx_int_2);
+  PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_int_2);
+  __Pyx_INCREF(__pyx_int_3);
+  __Pyx_GIVEREF(__pyx_int_3);
+  PyTuple_SET_ITEM(__pyx_t_3, 3, __pyx_int_3);
+  __Pyx_INCREF(__pyx_int_35);
+  __Pyx_GIVEREF(__pyx_int_35);
+  PyTuple_SET_ITEM(__pyx_t_3, 4, __pyx_int_35);
+  __Pyx_INCREF(__pyx_int_0);
+  __Pyx_GIVEREF(__pyx_int_0);
+  PyTuple_SET_ITEM(__pyx_t_3, 5, __pyx_int_0);
+  __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_bed, __pyx_t_3) < 0) __PYX_ERR(0, 974, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "pysam/libctabix.pyx":976
+ *         'gff' : (TBX_GENERIC, 1, 4, 5, ord('#'), 0),
+ *         'bed' : (TBX_UCSC, 1, 2, 3, ord('#'), 0),
+ *         'psltbl' : (TBX_UCSC, 15, 17, 18, ord('#'), 0),             # <<<<<<<<<<<<<<
+ *         'sam' : (TBX_SAM, 3, 4, 0, ord('@'), 0),
+ *         'vcf' : (TBX_VCF, 1, 2, 0, ord('#'), 0),
+ */
+  __pyx_t_3 = __Pyx_PyInt_From_int8_t(TBX_UCSC); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 976, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_2 = PyTuple_New(6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 976, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
+  __Pyx_INCREF(__pyx_int_15);
+  __Pyx_GIVEREF(__pyx_int_15);
+  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_int_15);
+  __Pyx_INCREF(__pyx_int_17);
+  __Pyx_GIVEREF(__pyx_int_17);
+  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_int_17);
+  __Pyx_INCREF(__pyx_int_18);
+  __Pyx_GIVEREF(__pyx_int_18);
+  PyTuple_SET_ITEM(__pyx_t_2, 3, __pyx_int_18);
+  __Pyx_INCREF(__pyx_int_35);
+  __Pyx_GIVEREF(__pyx_int_35);
+  PyTuple_SET_ITEM(__pyx_t_2, 4, __pyx_int_35);
+  __Pyx_INCREF(__pyx_int_0);
+  __Pyx_GIVEREF(__pyx_int_0);
+  PyTuple_SET_ITEM(__pyx_t_2, 5, __pyx_int_0);
+  __pyx_t_3 = 0;
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_psltbl, __pyx_t_2) < 0) __PYX_ERR(0, 974, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "pysam/libctabix.pyx":977
+ *         'bed' : (TBX_UCSC, 1, 2, 3, ord('#'), 0),
+ *         'psltbl' : (TBX_UCSC, 15, 17, 18, ord('#'), 0),
+ *         'sam' : (TBX_SAM, 3, 4, 0, ord('@'), 0),             # <<<<<<<<<<<<<<
+ *         'vcf' : (TBX_VCF, 1, 2, 0, ord('#'), 0),
+ *         }
+ */
+  __pyx_t_2 = __Pyx_PyInt_From_int8_t(TBX_SAM); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 977, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = PyTuple_New(6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 977, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
+  __Pyx_INCREF(__pyx_int_3);
+  __Pyx_GIVEREF(__pyx_int_3);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_int_3);
+  __Pyx_INCREF(__pyx_int_4);
+  __Pyx_GIVEREF(__pyx_int_4);
+  PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_int_4);
+  __Pyx_INCREF(__pyx_int_0);
+  __Pyx_GIVEREF(__pyx_int_0);
+  PyTuple_SET_ITEM(__pyx_t_3, 3, __pyx_int_0);
+  __Pyx_INCREF(__pyx_int_64);
+  __Pyx_GIVEREF(__pyx_int_64);
+  PyTuple_SET_ITEM(__pyx_t_3, 4, __pyx_int_64);
+  __Pyx_INCREF(__pyx_int_0);
+  __Pyx_GIVEREF(__pyx_int_0);
+  PyTuple_SET_ITEM(__pyx_t_3, 5, __pyx_int_0);
+  __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_sam, __pyx_t_3) < 0) __PYX_ERR(0, 974, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "pysam/libctabix.pyx":978
+ *         'psltbl' : (TBX_UCSC, 15, 17, 18, ord('#'), 0),
+ *         'sam' : (TBX_SAM, 3, 4, 0, ord('@'), 0),
+ *         'vcf' : (TBX_VCF, 1, 2, 0, ord('#'), 0),             # <<<<<<<<<<<<<<
  *         }
  * 
- *     if preset:             # <<<<<<<<<<<<<<
+ */
+  __pyx_t_3 = __Pyx_PyInt_From_int8_t(TBX_VCF); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 978, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_2 = PyTuple_New(6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 978, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
+  __Pyx_INCREF(__pyx_int_1);
+  __Pyx_GIVEREF(__pyx_int_1);
+  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_int_1);
+  __Pyx_INCREF(__pyx_int_2);
+  __Pyx_GIVEREF(__pyx_int_2);
+  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_int_2);
+  __Pyx_INCREF(__pyx_int_0);
+  __Pyx_GIVEREF(__pyx_int_0);
+  PyTuple_SET_ITEM(__pyx_t_2, 3, __pyx_int_0);
+  __Pyx_INCREF(__pyx_int_35);
+  __Pyx_GIVEREF(__pyx_int_35);
+  PyTuple_SET_ITEM(__pyx_t_2, 4, __pyx_int_35);
+  __Pyx_INCREF(__pyx_int_0);
+  __Pyx_GIVEREF(__pyx_int_0);
+  PyTuple_SET_ITEM(__pyx_t_2, 5, __pyx_int_0);
+  __pyx_t_3 = 0;
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_vcf, __pyx_t_2) < 0) __PYX_ERR(0, 974, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v_preset2conf = ((PyObject*)__pyx_t_4);
+  __pyx_t_4 = 0;
+
+  /* "pysam/libctabix.pyx":981
+ *         }
+ * 
+ *     conf_data = None             # <<<<<<<<<<<<<<
+ *     if preset == "bcf" or fmt == bcf:
+ *         csi = True
+ */
+  __Pyx_INCREF(Py_None);
+  __pyx_v_conf_data = Py_None;
+
+  /* "pysam/libctabix.pyx":982
+ * 
+ *     conf_data = None
+ *     if preset == "bcf" or fmt == bcf:             # <<<<<<<<<<<<<<
+ *         csi = True
+ *         if min_shift == -1:
+ */
+  __pyx_t_5 = (__Pyx_PyString_Equals(__pyx_v_preset, __pyx_n_s_bcf, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 982, __pyx_L1_error)
+  if (!__pyx_t_5) {
+  } else {
+    __pyx_t_6 = __pyx_t_5;
+    goto __pyx_L12_bool_binop_done;
+  }
+  __pyx_t_5 = ((__pyx_v_fmt == bcf) != 0);
+  __pyx_t_6 = __pyx_t_5;
+  __pyx_L12_bool_binop_done:;
+  if (__pyx_t_6) {
+
+    /* "pysam/libctabix.pyx":983
+ *     conf_data = None
+ *     if preset == "bcf" or fmt == bcf:
+ *         csi = True             # <<<<<<<<<<<<<<
+ *         if min_shift == -1:
+ *             min_shift = 14
+ */
+    __Pyx_INCREF(Py_True);
+    __Pyx_DECREF_SET(__pyx_v_csi, Py_True);
+
+    /* "pysam/libctabix.pyx":984
+ *     if preset == "bcf" or fmt == bcf:
+ *         csi = True
+ *         if min_shift == -1:             # <<<<<<<<<<<<<<
+ *             min_shift = 14
+ *     elif preset:
+ */
+    __pyx_t_6 = ((__pyx_v_min_shift == -1L) != 0);
+    if (__pyx_t_6) {
+
+      /* "pysam/libctabix.pyx":985
+ *         csi = True
+ *         if min_shift == -1:
+ *             min_shift = 14             # <<<<<<<<<<<<<<
+ *     elif preset:
+ *         try:
+ */
+      __pyx_v_min_shift = 14;
+
+      /* "pysam/libctabix.pyx":984
+ *     if preset == "bcf" or fmt == bcf:
+ *         csi = True
+ *         if min_shift == -1:             # <<<<<<<<<<<<<<
+ *             min_shift = 14
+ *     elif preset:
+ */
+    }
+
+    /* "pysam/libctabix.pyx":982
+ * 
+ *     conf_data = None
+ *     if preset == "bcf" or fmt == bcf:             # <<<<<<<<<<<<<<
+ *         csi = True
+ *         if min_shift == -1:
+ */
+    goto __pyx_L11;
+  }
+
+  /* "pysam/libctabix.pyx":986
+ *         if min_shift == -1:
+ *             min_shift = 14
+ *     elif preset:             # <<<<<<<<<<<<<<
  *         try:
  *             conf_data = preset2conf[preset]
  */
-  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_preset); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 885, __pyx_L1_error)
-  if (__pyx_t_5) {
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_preset); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 986, __pyx_L1_error)
+  if (__pyx_t_6) {
 
-    /* "pysam/libctabix.pyx":886
- * 
- *     if preset:
+    /* "pysam/libctabix.pyx":987
+ *             min_shift = 14
+ *     elif preset:
  *         try:             # <<<<<<<<<<<<<<
  *             conf_data = preset2conf[preset]
  *         except KeyError:
@@ -12686,407 +14191,761 @@ static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject 
     {
       __Pyx_PyThreadState_declare
       __Pyx_PyThreadState_assign
-      __Pyx_ExceptionSave(&__pyx_t_9, &__pyx_t_10, &__pyx_t_11);
-      __Pyx_XGOTREF(__pyx_t_9);
+      __Pyx_ExceptionSave(&__pyx_t_10, &__pyx_t_11, &__pyx_t_12);
       __Pyx_XGOTREF(__pyx_t_10);
       __Pyx_XGOTREF(__pyx_t_11);
+      __Pyx_XGOTREF(__pyx_t_12);
       /*try:*/ {
 
-        /* "pysam/libctabix.pyx":887
- *     if preset:
+        /* "pysam/libctabix.pyx":988
+ *     elif preset:
  *         try:
  *             conf_data = preset2conf[preset]             # <<<<<<<<<<<<<<
  *         except KeyError:
  *             raise KeyError(
  */
-        __pyx_t_3 = __Pyx_PyDict_GetItem(__pyx_v_preset2conf, __pyx_v_preset); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 887, __pyx_L14_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_v_conf_data = __pyx_t_3;
-        __pyx_t_3 = 0;
+        __pyx_t_4 = __Pyx_PyDict_GetItem(__pyx_v_preset2conf, __pyx_v_preset); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 988, __pyx_L15_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_DECREF_SET(__pyx_v_conf_data, __pyx_t_4);
+        __pyx_t_4 = 0;
 
-        /* "pysam/libctabix.pyx":886
- * 
- *     if preset:
+        /* "pysam/libctabix.pyx":987
+ *             min_shift = 14
+ *     elif preset:
  *         try:             # <<<<<<<<<<<<<<
  *             conf_data = preset2conf[preset]
  *         except KeyError:
  */
       }
-      __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-      goto __pyx_L19_try_end;
-      __pyx_L14_error:;
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
+      goto __pyx_L20_try_end;
+      __pyx_L15_error:;
       __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "pysam/libctabix.pyx":888
+      /* "pysam/libctabix.pyx":989
  *         try:
  *             conf_data = preset2conf[preset]
  *         except KeyError:             # <<<<<<<<<<<<<<
  *             raise KeyError(
  *                 "unknown preset '%s', valid presets are '%s'" %
  */
-      __pyx_t_12 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
-      if (__pyx_t_12) {
+      __pyx_t_13 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
+      if (__pyx_t_13) {
         __Pyx_AddTraceback("pysam.libctabix.tabix_index", __pyx_clineno, __pyx_lineno, __pyx_filename);
-        if (__Pyx_GetException(&__pyx_t_3, &__pyx_t_4, &__pyx_t_8) < 0) __PYX_ERR(0, 888, __pyx_L16_except_error)
-        __Pyx_GOTREF(__pyx_t_3);
+        if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_2, &__pyx_t_3) < 0) __PYX_ERR(0, 989, __pyx_L17_except_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_GOTREF(__pyx_t_8);
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_GOTREF(__pyx_t_3);
 
-        /* "pysam/libctabix.pyx":891
+        /* "pysam/libctabix.pyx":992
  *             raise KeyError(
  *                 "unknown preset '%s', valid presets are '%s'" %
  *                 (preset, ",".join(preset2conf.keys())))             # <<<<<<<<<<<<<<
  *     else:
- *         if end_col == None:
+ *         if end_col is None:
  */
-        __pyx_t_1 = __Pyx_PyDict_Keys(__pyx_v_preset2conf); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 891, __pyx_L16_except_error)
+        __pyx_t_1 = __Pyx_PyDict_Keys(__pyx_v_preset2conf); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 992, __pyx_L17_except_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_2 = __Pyx_PyString_Join(__pyx_kp_s__35, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 891, __pyx_L16_except_error)
-        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_14 = __Pyx_PyString_Join(__pyx_kp_s__27, __pyx_t_1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 992, __pyx_L17_except_error)
+        __Pyx_GOTREF(__pyx_t_14);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 891, __pyx_L16_except_error)
+        __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 992, __pyx_L17_except_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_INCREF(__pyx_v_preset);
         __Pyx_GIVEREF(__pyx_v_preset);
         PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_preset);
-        __Pyx_GIVEREF(__pyx_t_2);
-        PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_2);
-        __pyx_t_2 = 0;
+        __Pyx_GIVEREF(__pyx_t_14);
+        PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_14);
+        __pyx_t_14 = 0;
 
-        /* "pysam/libctabix.pyx":890
+        /* "pysam/libctabix.pyx":991
  *         except KeyError:
  *             raise KeyError(
  *                 "unknown preset '%s', valid presets are '%s'" %             # <<<<<<<<<<<<<<
  *                 (preset, ",".join(preset2conf.keys())))
  *     else:
  */
-        __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_unknown_preset_s_valid_presets_a, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 890, __pyx_L16_except_error)
-        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_14 = __Pyx_PyString_Format(__pyx_kp_s_unknown_preset_s_valid_presets_a, __pyx_t_1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 991, __pyx_L17_except_error)
+        __Pyx_GOTREF(__pyx_t_14);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "pysam/libctabix.pyx":889
+        /* "pysam/libctabix.pyx":990
  *             conf_data = preset2conf[preset]
  *         except KeyError:
  *             raise KeyError(             # <<<<<<<<<<<<<<
  *                 "unknown preset '%s', valid presets are '%s'" %
  *                 (preset, ",".join(preset2conf.keys())))
  */
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_KeyError, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 889, __pyx_L16_except_error)
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_KeyError, __pyx_t_14); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 990, __pyx_L17_except_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
         __Pyx_Raise(__pyx_t_1, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __PYX_ERR(0, 889, __pyx_L16_except_error)
+        __PYX_ERR(0, 990, __pyx_L17_except_error)
       }
-      goto __pyx_L16_except_error;
-      __pyx_L16_except_error:;
+      goto __pyx_L17_except_error;
+      __pyx_L17_except_error:;
 
-      /* "pysam/libctabix.pyx":886
- * 
- *     if preset:
+      /* "pysam/libctabix.pyx":987
+ *             min_shift = 14
+ *     elif preset:
  *         try:             # <<<<<<<<<<<<<<
  *             conf_data = preset2conf[preset]
  *         except KeyError:
  */
-      __Pyx_XGIVEREF(__pyx_t_9);
       __Pyx_XGIVEREF(__pyx_t_10);
       __Pyx_XGIVEREF(__pyx_t_11);
-      __Pyx_ExceptionReset(__pyx_t_9, __pyx_t_10, __pyx_t_11);
+      __Pyx_XGIVEREF(__pyx_t_12);
+      __Pyx_ExceptionReset(__pyx_t_10, __pyx_t_11, __pyx_t_12);
       goto __pyx_L1_error;
-      __pyx_L19_try_end:;
+      __pyx_L20_try_end:;
     }
 
-    /* "pysam/libctabix.pyx":885
- *         }
- * 
- *     if preset:             # <<<<<<<<<<<<<<
+    /* "pysam/libctabix.pyx":986
+ *         if min_shift == -1:
+ *             min_shift = 14
+ *     elif preset:             # <<<<<<<<<<<<<<
  *         try:
  *             conf_data = preset2conf[preset]
  */
-    goto __pyx_L13;
+    goto __pyx_L11;
   }
 
-  /* "pysam/libctabix.pyx":893
+  /* "pysam/libctabix.pyx":994
  *                 (preset, ",".join(preset2conf.keys())))
  *     else:
- *         if end_col == None:             # <<<<<<<<<<<<<<
+ *         if end_col is None:             # <<<<<<<<<<<<<<
  *             end_col = -1
- *         preset = 0
+ * 
  */
   /*else*/ {
-    __pyx_t_8 = PyObject_RichCompare(__pyx_v_end_col, Py_None, Py_EQ); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 893, __pyx_L1_error)
-    __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 893, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __pyx_t_6 = (__pyx_v_end_col == Py_None);
+    __pyx_t_5 = (__pyx_t_6 != 0);
     if (__pyx_t_5) {
 
-      /* "pysam/libctabix.pyx":894
+      /* "pysam/libctabix.pyx":995
  *     else:
- *         if end_col == None:
+ *         if end_col is None:
  *             end_col = -1             # <<<<<<<<<<<<<<
- *         preset = 0
  * 
+ *         preset = 0
  */
       __Pyx_INCREF(__pyx_int_neg_1);
       __Pyx_DECREF_SET(__pyx_v_end_col, __pyx_int_neg_1);
 
-      /* "pysam/libctabix.pyx":893
+      /* "pysam/libctabix.pyx":994
  *                 (preset, ",".join(preset2conf.keys())))
  *     else:
- *         if end_col == None:             # <<<<<<<<<<<<<<
+ *         if end_col is None:             # <<<<<<<<<<<<<<
  *             end_col = -1
- *         preset = 0
+ * 
  */
     }
 
-    /* "pysam/libctabix.pyx":895
- *         if end_col == None:
+    /* "pysam/libctabix.pyx":997
  *             end_col = -1
- *         preset = 0             # <<<<<<<<<<<<<<
  * 
- *         # note that tabix internally works with 0-based coordinates
+ *         preset = 0             # <<<<<<<<<<<<<<
+ *         # tabix internally works with 0-based coordinates and
+ *         # open/closed intervals.  When using a preset, conversion is
  */
     __Pyx_INCREF(__pyx_int_0);
     __Pyx_DECREF_SET(__pyx_v_preset, __pyx_int_0);
 
-    /* "pysam/libctabix.pyx":903
- *         # subtracted from the start coordinate. To avoid doing this,
- *         # set the TI_FLAG_UCSC=0x10000 flag:
+    /* "pysam/libctabix.pyx":1004
+ *         # from the start coordinate. To avoid doing this, set the
+ *         # TI_FLAG_UCSC=0x10000 flag:
  *         if zerobased:             # <<<<<<<<<<<<<<
- *             preset = preset | 0x10000
+ *             preset = preset | TBX_UCSC
  * 
  */
-    __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_zerobased); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 903, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_zerobased); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 1004, __pyx_L1_error)
     if (__pyx_t_5) {
 
-      /* "pysam/libctabix.pyx":904
- *         # set the TI_FLAG_UCSC=0x10000 flag:
+      /* "pysam/libctabix.pyx":1005
+ *         # TI_FLAG_UCSC=0x10000 flag:
  *         if zerobased:
- *             preset = preset | 0x10000             # <<<<<<<<<<<<<<
+ *             preset = preset | TBX_UCSC             # <<<<<<<<<<<<<<
  * 
- *         conf_data = (preset, seq_col+1, start_col+1, end_col+1, ord(meta_char), 0)
+ *         conf_data = (preset, seq_col + 1, start_col + 1, end_col + 1, ord(meta_char), line_skip)
  */
-      __pyx_t_8 = __Pyx_PyInt_OrObjC(__pyx_v_preset, __pyx_int_65536, 0x10000, 0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 904, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF_SET(__pyx_v_preset, __pyx_t_8);
-      __pyx_t_8 = 0;
+      __pyx_t_3 = __Pyx_PyInt_From_int8_t(TBX_UCSC); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1005, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_2 = PyNumber_Or(__pyx_v_preset, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1005, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_DECREF_SET(__pyx_v_preset, __pyx_t_2);
+      __pyx_t_2 = 0;
 
-      /* "pysam/libctabix.pyx":903
- *         # subtracted from the start coordinate. To avoid doing this,
- *         # set the TI_FLAG_UCSC=0x10000 flag:
+      /* "pysam/libctabix.pyx":1004
+ *         # from the start coordinate. To avoid doing this, set the
+ *         # TI_FLAG_UCSC=0x10000 flag:
  *         if zerobased:             # <<<<<<<<<<<<<<
- *             preset = preset | 0x10000
+ *             preset = preset | TBX_UCSC
  * 
  */
     }
 
-    /* "pysam/libctabix.pyx":906
- *             preset = preset | 0x10000
+    /* "pysam/libctabix.pyx":1007
+ *             preset = preset | TBX_UCSC
  * 
- *         conf_data = (preset, seq_col+1, start_col+1, end_col+1, ord(meta_char), 0)             # <<<<<<<<<<<<<<
+ *         conf_data = (preset, seq_col + 1, start_col + 1, end_col + 1, ord(meta_char), line_skip)             # <<<<<<<<<<<<<<
  * 
  *     cdef tbx_conf_t conf
  */
-    __pyx_t_8 = __Pyx_PyInt_AddObjC(__pyx_v_seq_col, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 906, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_4 = __Pyx_PyInt_AddObjC(__pyx_v_start_col, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 906, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_3 = __Pyx_PyInt_AddObjC(__pyx_v_end_col, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 906, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_13 = __Pyx_PyObject_Ord(__pyx_v_meta_char); if (unlikely(__pyx_t_13 == ((long)(long)(Py_UCS4)-1))) __PYX_ERR(0, 906, __pyx_L1_error)
-    __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_t_13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 906, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = PyTuple_New(6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 906, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_v_seq_col, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1007, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_3 = __Pyx_PyInt_AddObjC(__pyx_v_start_col, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1007, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_4 = __Pyx_PyInt_AddObjC(__pyx_v_end_col, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1007, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_15 = __Pyx_PyObject_Ord(__pyx_v_meta_char); if (unlikely(__pyx_t_15 == ((long)(long)(Py_UCS4)-1))) __PYX_ERR(0, 1007, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_t_15); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1007, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_14 = __Pyx_PyInt_From_int(__pyx_v_line_skip); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 1007, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __pyx_t_16 = PyTuple_New(6); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 1007, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_16);
     __Pyx_INCREF(__pyx_v_preset);
     __Pyx_GIVEREF(__pyx_v_preset);
-    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_preset);
-    __Pyx_GIVEREF(__pyx_t_8);
-    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_8);
-    __Pyx_GIVEREF(__pyx_t_4);
-    PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_16, 0, __pyx_v_preset);
+    __Pyx_GIVEREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_16, 1, __pyx_t_2);
     __Pyx_GIVEREF(__pyx_t_3);
-    PyTuple_SET_ITEM(__pyx_t_2, 3, __pyx_t_3);
+    PyTuple_SET_ITEM(__pyx_t_16, 2, __pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_16, 3, __pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_1);
-    PyTuple_SET_ITEM(__pyx_t_2, 4, __pyx_t_1);
-    __Pyx_INCREF(__pyx_int_0);
-    __Pyx_GIVEREF(__pyx_int_0);
-    PyTuple_SET_ITEM(__pyx_t_2, 5, __pyx_int_0);
-    __pyx_t_8 = 0;
-    __pyx_t_4 = 0;
-    __pyx_t_3 = 0;
-    __pyx_t_1 = 0;
-    __pyx_v_conf_data = __pyx_t_2;
+    PyTuple_SET_ITEM(__pyx_t_16, 4, __pyx_t_1);
+    __Pyx_GIVEREF(__pyx_t_14);
+    PyTuple_SET_ITEM(__pyx_t_16, 5, __pyx_t_14);
     __pyx_t_2 = 0;
+    __pyx_t_3 = 0;
+    __pyx_t_4 = 0;
+    __pyx_t_1 = 0;
+    __pyx_t_14 = 0;
+    __Pyx_DECREF_SET(__pyx_v_conf_data, __pyx_t_16);
+    __pyx_t_16 = 0;
   }
-  __pyx_L13:;
+  __pyx_L11:;
 
-  /* "pysam/libctabix.pyx":909
+  /* "pysam/libctabix.pyx":1010
  * 
  *     cdef tbx_conf_t conf
- *     conf.preset, conf.sc, conf.bc, conf.ec, conf.meta_char, conf.line_skip = conf_data             # <<<<<<<<<<<<<<
- * 
+ *     if conf_data:             # <<<<<<<<<<<<<<
+ *         conf.preset, conf.sc, conf.bc, conf.ec, conf.meta_char, conf.line_skip = conf_data
  * 
  */
-  if ((likely(PyTuple_CheckExact(__pyx_v_conf_data))) || (PyList_CheckExact(__pyx_v_conf_data))) {
-    PyObject* sequence = __pyx_v_conf_data;
-    Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
-    if (unlikely(size != 6)) {
-      if (size > 6) __Pyx_RaiseTooManyValuesError(6);
-      else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 909, __pyx_L1_error)
-    }
-    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    if (likely(PyTuple_CheckExact(sequence))) {
-      __pyx_t_2 = PyTuple_GET_ITEM(sequence, 0); 
-      __pyx_t_1 = PyTuple_GET_ITEM(sequence, 1); 
-      __pyx_t_3 = PyTuple_GET_ITEM(sequence, 2); 
-      __pyx_t_4 = PyTuple_GET_ITEM(sequence, 3); 
-      __pyx_t_8 = PyTuple_GET_ITEM(sequence, 4); 
-      __pyx_t_14 = PyTuple_GET_ITEM(sequence, 5); 
-    } else {
-      __pyx_t_2 = PyList_GET_ITEM(sequence, 0); 
-      __pyx_t_1 = PyList_GET_ITEM(sequence, 1); 
-      __pyx_t_3 = PyList_GET_ITEM(sequence, 2); 
-      __pyx_t_4 = PyList_GET_ITEM(sequence, 3); 
-      __pyx_t_8 = PyList_GET_ITEM(sequence, 4); 
-      __pyx_t_14 = PyList_GET_ITEM(sequence, 5); 
-    }
-    __Pyx_INCREF(__pyx_t_2);
-    __Pyx_INCREF(__pyx_t_1);
-    __Pyx_INCREF(__pyx_t_3);
-    __Pyx_INCREF(__pyx_t_4);
-    __Pyx_INCREF(__pyx_t_8);
-    __Pyx_INCREF(__pyx_t_14);
-    #else
-    {
-      Py_ssize_t i;
-      PyObject** temps[6] = {&__pyx_t_2,&__pyx_t_1,&__pyx_t_3,&__pyx_t_4,&__pyx_t_8,&__pyx_t_14};
-      for (i=0; i < 6; i++) {
-        PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 909, __pyx_L1_error)
-        __Pyx_GOTREF(item);
-        *(temps[i]) = item;
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_conf_data); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 1010, __pyx_L1_error)
+  if (__pyx_t_5) {
+
+    /* "pysam/libctabix.pyx":1011
+ *     cdef tbx_conf_t conf
+ *     if conf_data:
+ *         conf.preset, conf.sc, conf.bc, conf.ec, conf.meta_char, conf.line_skip = conf_data             # <<<<<<<<<<<<<<
+ * 
+ *     if csi:
+ */
+    if ((likely(PyTuple_CheckExact(__pyx_v_conf_data))) || (PyList_CheckExact(__pyx_v_conf_data))) {
+      PyObject* sequence = __pyx_v_conf_data;
+      Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
+      if (unlikely(size != 6)) {
+        if (size > 6) __Pyx_RaiseTooManyValuesError(6);
+        else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
+        __PYX_ERR(0, 1011, __pyx_L1_error)
       }
-    }
-    #endif
-  } else {
-    Py_ssize_t index = -1;
-    PyObject** temps[6] = {&__pyx_t_2,&__pyx_t_1,&__pyx_t_3,&__pyx_t_4,&__pyx_t_8,&__pyx_t_14};
-    __pyx_t_15 = PyObject_GetIter(__pyx_v_conf_data); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 909, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_15);
-    __pyx_t_16 = Py_TYPE(__pyx_t_15)->tp_iternext;
-    for (index=0; index < 6; index++) {
-      PyObject* item = __pyx_t_16(__pyx_t_15); if (unlikely(!item)) goto __pyx_L24_unpacking_failed;
-      __Pyx_GOTREF(item);
-      *(temps[index]) = item;
-    }
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_16(__pyx_t_15), 6) < 0) __PYX_ERR(0, 909, __pyx_L1_error)
-    __pyx_t_16 = NULL;
-    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
-    goto __pyx_L25_unpacking_done;
-    __pyx_L24_unpacking_failed:;
-    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
-    __pyx_t_16 = NULL;
-    if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 909, __pyx_L1_error)
-    __pyx_L25_unpacking_done:;
-  }
-  __pyx_t_17 = __Pyx_PyInt_As_int32_t(__pyx_t_2); if (unlikely((__pyx_t_17 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 909, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_18 = __Pyx_PyInt_As_int32_t(__pyx_t_1); if (unlikely((__pyx_t_18 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 909, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_19 = __Pyx_PyInt_As_int32_t(__pyx_t_3); if (unlikely((__pyx_t_19 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 909, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_20 = __Pyx_PyInt_As_int32_t(__pyx_t_4); if (unlikely((__pyx_t_20 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 909, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_21 = __Pyx_PyInt_As_int32_t(__pyx_t_8); if (unlikely((__pyx_t_21 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 909, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_22 = __Pyx_PyInt_As_int32_t(__pyx_t_14); if (unlikely((__pyx_t_22 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 909, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
-  __pyx_v_conf.preset = __pyx_t_17;
-  __pyx_v_conf.sc = __pyx_t_18;
-  __pyx_v_conf.bc = __pyx_t_19;
-  __pyx_v_conf.ec = __pyx_t_20;
-  __pyx_v_conf.meta_char = __pyx_t_21;
-  __pyx_v_conf.line_skip = __pyx_t_22;
-
-  /* "pysam/libctabix.pyx":912
- * 
- * 
- *     fn = encode_filename(filename)             # <<<<<<<<<<<<<<
- *     cdef char *cfn = fn
- *     with nogil:
- */
-  __pyx_t_14 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 912, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_14);
-  __pyx_v_fn = ((PyObject*)__pyx_t_14);
-  __pyx_t_14 = 0;
-
-  /* "pysam/libctabix.pyx":913
- * 
- *     fn = encode_filename(filename)
- *     cdef char *cfn = fn             # <<<<<<<<<<<<<<
- *     with nogil:
- *         tbx_index_build(cfn, min_shift, &conf)
- */
-  if (unlikely(__pyx_v_fn == Py_None)) {
-    PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-    __PYX_ERR(0, 913, __pyx_L1_error)
-  }
-  __pyx_t_23 = __Pyx_PyBytes_AsWritableString(__pyx_v_fn); if (unlikely((!__pyx_t_23) && PyErr_Occurred())) __PYX_ERR(0, 913, __pyx_L1_error)
-  __pyx_v_cfn = __pyx_t_23;
-
-  /* "pysam/libctabix.pyx":914
- *     fn = encode_filename(filename)
- *     cdef char *cfn = fn
- *     with nogil:             # <<<<<<<<<<<<<<
- *         tbx_index_build(cfn, min_shift, &conf)
- * 
- */
-  {
-      #ifdef WITH_THREAD
-      PyThreadState *_save;
-      Py_UNBLOCK_THREADS
-      __Pyx_FastGIL_Remember();
+      #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+      if (likely(PyTuple_CheckExact(sequence))) {
+        __pyx_t_16 = PyTuple_GET_ITEM(sequence, 0); 
+        __pyx_t_14 = PyTuple_GET_ITEM(sequence, 1); 
+        __pyx_t_1 = PyTuple_GET_ITEM(sequence, 2); 
+        __pyx_t_4 = PyTuple_GET_ITEM(sequence, 3); 
+        __pyx_t_3 = PyTuple_GET_ITEM(sequence, 4); 
+        __pyx_t_2 = PyTuple_GET_ITEM(sequence, 5); 
+      } else {
+        __pyx_t_16 = PyList_GET_ITEM(sequence, 0); 
+        __pyx_t_14 = PyList_GET_ITEM(sequence, 1); 
+        __pyx_t_1 = PyList_GET_ITEM(sequence, 2); 
+        __pyx_t_4 = PyList_GET_ITEM(sequence, 3); 
+        __pyx_t_3 = PyList_GET_ITEM(sequence, 4); 
+        __pyx_t_2 = PyList_GET_ITEM(sequence, 5); 
+      }
+      __Pyx_INCREF(__pyx_t_16);
+      __Pyx_INCREF(__pyx_t_14);
+      __Pyx_INCREF(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_4);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(__pyx_t_2);
+      #else
+      {
+        Py_ssize_t i;
+        PyObject** temps[6] = {&__pyx_t_16,&__pyx_t_14,&__pyx_t_1,&__pyx_t_4,&__pyx_t_3,&__pyx_t_2};
+        for (i=0; i < 6; i++) {
+          PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 1011, __pyx_L1_error)
+          __Pyx_GOTREF(item);
+          *(temps[i]) = item;
+        }
+      }
       #endif
-      /*try:*/ {
+    } else {
+      Py_ssize_t index = -1;
+      PyObject** temps[6] = {&__pyx_t_16,&__pyx_t_14,&__pyx_t_1,&__pyx_t_4,&__pyx_t_3,&__pyx_t_2};
+      __pyx_t_17 = PyObject_GetIter(__pyx_v_conf_data); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 1011, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_17);
+      __pyx_t_18 = Py_TYPE(__pyx_t_17)->tp_iternext;
+      for (index=0; index < 6; index++) {
+        PyObject* item = __pyx_t_18(__pyx_t_17); if (unlikely(!item)) goto __pyx_L26_unpacking_failed;
+        __Pyx_GOTREF(item);
+        *(temps[index]) = item;
+      }
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_18(__pyx_t_17), 6) < 0) __PYX_ERR(0, 1011, __pyx_L1_error)
+      __pyx_t_18 = NULL;
+      __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
+      goto __pyx_L27_unpacking_done;
+      __pyx_L26_unpacking_failed:;
+      __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
+      __pyx_t_18 = NULL;
+      if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
+      __PYX_ERR(0, 1011, __pyx_L1_error)
+      __pyx_L27_unpacking_done:;
+    }
+    __pyx_t_19 = __Pyx_PyInt_As_int32_t(__pyx_t_16); if (unlikely((__pyx_t_19 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 1011, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+    __pyx_t_20 = __Pyx_PyInt_As_int32_t(__pyx_t_14); if (unlikely((__pyx_t_20 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 1011, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __pyx_t_21 = __Pyx_PyInt_As_int32_t(__pyx_t_1); if (unlikely((__pyx_t_21 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 1011, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_22 = __Pyx_PyInt_As_int32_t(__pyx_t_4); if (unlikely((__pyx_t_22 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 1011, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_23 = __Pyx_PyInt_As_int32_t(__pyx_t_3); if (unlikely((__pyx_t_23 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 1011, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_24 = __Pyx_PyInt_As_int32_t(__pyx_t_2); if (unlikely((__pyx_t_24 == ((int32_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 1011, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_v_conf.preset = __pyx_t_19;
+    __pyx_v_conf.sc = __pyx_t_20;
+    __pyx_v_conf.bc = __pyx_t_21;
+    __pyx_v_conf.ec = __pyx_t_22;
+    __pyx_v_conf.meta_char = __pyx_t_23;
+    __pyx_v_conf.line_skip = __pyx_t_24;
 
-        /* "pysam/libctabix.pyx":915
- *     cdef char *cfn = fn
- *     with nogil:
- *         tbx_index_build(cfn, min_shift, &conf)             # <<<<<<<<<<<<<<
+    /* "pysam/libctabix.pyx":1010
+ * 
+ *     cdef tbx_conf_t conf
+ *     if conf_data:             # <<<<<<<<<<<<<<
+ *         conf.preset, conf.sc, conf.bc, conf.ec, conf.meta_char, conf.line_skip = conf_data
+ * 
+ */
+  }
+
+  /* "pysam/libctabix.pyx":1013
+ *         conf.preset, conf.sc, conf.bc, conf.ec, conf.meta_char, conf.line_skip = conf_data
+ * 
+ *     if csi:             # <<<<<<<<<<<<<<
+ *         suffix = ".csi"
+ *     else:
+ */
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_csi); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 1013, __pyx_L1_error)
+  if (__pyx_t_5) {
+
+    /* "pysam/libctabix.pyx":1014
+ * 
+ *     if csi:
+ *         suffix = ".csi"             # <<<<<<<<<<<<<<
+ *     else:
+ *         suffix = ".tbi"
+ */
+    __Pyx_INCREF(__pyx_kp_s_csi_2);
+    __pyx_v_suffix = __pyx_kp_s_csi_2;
+
+    /* "pysam/libctabix.pyx":1013
+ *         conf.preset, conf.sc, conf.bc, conf.ec, conf.meta_char, conf.line_skip = conf_data
+ * 
+ *     if csi:             # <<<<<<<<<<<<<<
+ *         suffix = ".csi"
+ *     else:
+ */
+    goto __pyx_L28;
+  }
+
+  /* "pysam/libctabix.pyx":1016
+ *         suffix = ".csi"
+ *     else:
+ *         suffix = ".tbi"             # <<<<<<<<<<<<<<
+ *     index = index or filename + suffix
+ *     fn_index = encode_filename(index)
+ */
+  /*else*/ {
+    __Pyx_INCREF(__pyx_kp_s_tbi);
+    __pyx_v_suffix = __pyx_kp_s_tbi;
+  }
+  __pyx_L28:;
+
+  /* "pysam/libctabix.pyx":1017
+ *     else:
+ *         suffix = ".tbi"
+ *     index = index or filename + suffix             # <<<<<<<<<<<<<<
+ *     fn_index = encode_filename(index)
+ * 
+ */
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_index); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 1017, __pyx_L1_error)
+  if (!__pyx_t_5) {
+  } else {
+    __Pyx_INCREF(__pyx_v_index);
+    __pyx_t_2 = __pyx_v_index;
+    goto __pyx_L29_bool_binop_done;
+  }
+  __pyx_t_3 = PyNumber_Add(__pyx_v_filename, __pyx_v_suffix); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1017, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_INCREF(__pyx_t_3);
+  __pyx_t_2 = __pyx_t_3;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_L29_bool_binop_done:;
+  __Pyx_DECREF_SET(__pyx_v_index, __pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "pysam/libctabix.pyx":1018
+ *         suffix = ".tbi"
+ *     index = index or filename + suffix
+ *     fn_index = encode_filename(index)             # <<<<<<<<<<<<<<
+ * 
+ *     if not force and os.path.exists(index):
+ */
+  __pyx_t_2 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1018, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_v_fn_index = ((PyObject*)__pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "pysam/libctabix.pyx":1020
+ *     fn_index = encode_filename(index)
+ * 
+ *     if not force and os.path.exists(index):             # <<<<<<<<<<<<<<
+ *         raise IOError(
+ *             "filename '%s' already exists, use *force* to overwrite" % index)
+ */
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_force); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 1020, __pyx_L1_error)
+  __pyx_t_7 = ((!__pyx_t_6) != 0);
+  if (__pyx_t_7) {
+  } else {
+    __pyx_t_5 = __pyx_t_7;
+    goto __pyx_L32_bool_binop_done;
+  }
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1020, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1020, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_exists); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1020, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
+    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
+    if (likely(__pyx_t_4)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+      __Pyx_INCREF(__pyx_t_4);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_3, function);
+    }
+  }
+  if (!__pyx_t_4) {
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1020, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+  } else {
+    #if CYTHON_FAST_PYCALL
+    if (PyFunction_Check(__pyx_t_3)) {
+      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_index};
+      __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1020, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_GOTREF(__pyx_t_2);
+    } else
+    #endif
+    #if CYTHON_FAST_PYCCALL
+    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_index};
+      __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1020, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_GOTREF(__pyx_t_2);
+    } else
+    #endif
+    {
+      __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1020, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_4); __pyx_t_4 = NULL;
+      __Pyx_INCREF(__pyx_v_index);
+      __Pyx_GIVEREF(__pyx_v_index);
+      PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_v_index);
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1020, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    }
+  }
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 1020, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_5 = __pyx_t_7;
+  __pyx_L32_bool_binop_done:;
+  if (unlikely(__pyx_t_5)) {
+
+    /* "pysam/libctabix.pyx":1022
+ *     if not force and os.path.exists(index):
+ *         raise IOError(
+ *             "filename '%s' already exists, use *force* to overwrite" % index)             # <<<<<<<<<<<<<<
+ * 
+ *     cdef char *fnidx = fn_index
+ */
+    __pyx_t_2 = __Pyx_PyString_Format(__pyx_kp_s_filename_s_already_exists_use_fo, __pyx_v_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1022, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+
+    /* "pysam/libctabix.pyx":1021
+ * 
+ *     if not force and os.path.exists(index):
+ *         raise IOError(             # <<<<<<<<<<<<<<
+ *             "filename '%s' already exists, use *force* to overwrite" % index)
+ * 
+ */
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1021, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __PYX_ERR(0, 1021, __pyx_L1_error)
+
+    /* "pysam/libctabix.pyx":1020
+ *     fn_index = encode_filename(index)
+ * 
+ *     if not force and os.path.exists(index):             # <<<<<<<<<<<<<<
+ *         raise IOError(
+ *             "filename '%s' already exists, use *force* to overwrite" % index)
+ */
+  }
+
+  /* "pysam/libctabix.pyx":1024
+ *             "filename '%s' already exists, use *force* to overwrite" % index)
+ * 
+ *     cdef char *fnidx = fn_index             # <<<<<<<<<<<<<<
+ *     cdef int retval = 0
+ * 
+ */
+  if (unlikely(__pyx_v_fn_index == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
+    __PYX_ERR(0, 1024, __pyx_L1_error)
+  }
+  __pyx_t_8 = __Pyx_PyBytes_AsWritableString(__pyx_v_fn_index); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) __PYX_ERR(0, 1024, __pyx_L1_error)
+  __pyx_v_fnidx = __pyx_t_8;
+
+  /* "pysam/libctabix.pyx":1025
+ * 
+ *     cdef char *fnidx = fn_index
+ *     cdef int retval = 0             # <<<<<<<<<<<<<<
+ * 
+ *     if csi and fmt == bcf:
+ */
+  __pyx_v_retval = 0;
+
+  /* "pysam/libctabix.pyx":1027
+ *     cdef int retval = 0
+ * 
+ *     if csi and fmt == bcf:             # <<<<<<<<<<<<<<
+ *         with nogil:
+ *             retval = bcf_index_build2(cfn, fnidx, min_shift)
+ */
+  __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_v_csi); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 1027, __pyx_L1_error)
+  if (__pyx_t_7) {
+  } else {
+    __pyx_t_5 = __pyx_t_7;
+    goto __pyx_L35_bool_binop_done;
+  }
+  __pyx_t_7 = ((__pyx_v_fmt == bcf) != 0);
+  __pyx_t_5 = __pyx_t_7;
+  __pyx_L35_bool_binop_done:;
+  if (__pyx_t_5) {
+
+    /* "pysam/libctabix.pyx":1028
+ * 
+ *     if csi and fmt == bcf:
+ *         with nogil:             # <<<<<<<<<<<<<<
+ *             retval = bcf_index_build2(cfn, fnidx, min_shift)
+ *     else:
+ */
+    {
+        #ifdef WITH_THREAD
+        PyThreadState *_save;
+        Py_UNBLOCK_THREADS
+        __Pyx_FastGIL_Remember();
+        #endif
+        /*try:*/ {
+
+          /* "pysam/libctabix.pyx":1029
+ *     if csi and fmt == bcf:
+ *         with nogil:
+ *             retval = bcf_index_build2(cfn, fnidx, min_shift)             # <<<<<<<<<<<<<<
+ *     else:
+ *         with nogil:
+ */
+          __pyx_v_retval = bcf_index_build2(__pyx_v_cfn, __pyx_v_fnidx, __pyx_v_min_shift);
+        }
+
+        /* "pysam/libctabix.pyx":1028
+ * 
+ *     if csi and fmt == bcf:
+ *         with nogil:             # <<<<<<<<<<<<<<
+ *             retval = bcf_index_build2(cfn, fnidx, min_shift)
+ *     else:
+ */
+        /*finally:*/ {
+          /*normal exit:*/{
+            #ifdef WITH_THREAD
+            __Pyx_FastGIL_Forget();
+            Py_BLOCK_THREADS
+            #endif
+            goto __pyx_L39;
+          }
+          __pyx_L39:;
+        }
+    }
+
+    /* "pysam/libctabix.pyx":1027
+ *     cdef int retval = 0
+ * 
+ *     if csi and fmt == bcf:             # <<<<<<<<<<<<<<
+ *         with nogil:
+ *             retval = bcf_index_build2(cfn, fnidx, min_shift)
+ */
+    goto __pyx_L34;
+  }
+
+  /* "pysam/libctabix.pyx":1031
+ *             retval = bcf_index_build2(cfn, fnidx, min_shift)
+ *     else:
+ *         with nogil:             # <<<<<<<<<<<<<<
+ *             retval = tbx_index_build2(cfn, fnidx, min_shift, &conf)
+ * 
+ */
+  /*else*/ {
+    {
+        #ifdef WITH_THREAD
+        PyThreadState *_save;
+        Py_UNBLOCK_THREADS
+        __Pyx_FastGIL_Remember();
+        #endif
+        /*try:*/ {
+
+          /* "pysam/libctabix.pyx":1032
+ *     else:
+ *         with nogil:
+ *             retval = tbx_index_build2(cfn, fnidx, min_shift, &conf)             # <<<<<<<<<<<<<<
+ * 
+ *     if retval != 0:
+ */
+          __pyx_v_retval = tbx_index_build2(__pyx_v_cfn, __pyx_v_fnidx, __pyx_v_min_shift, (&__pyx_v_conf));
+        }
+
+        /* "pysam/libctabix.pyx":1031
+ *             retval = bcf_index_build2(cfn, fnidx, min_shift)
+ *     else:
+ *         with nogil:             # <<<<<<<<<<<<<<
+ *             retval = tbx_index_build2(cfn, fnidx, min_shift, &conf)
+ * 
+ */
+        /*finally:*/ {
+          /*normal exit:*/{
+            #ifdef WITH_THREAD
+            __Pyx_FastGIL_Forget();
+            Py_BLOCK_THREADS
+            #endif
+            goto __pyx_L42;
+          }
+          __pyx_L42:;
+        }
+    }
+  }
+  __pyx_L34:;
+
+  /* "pysam/libctabix.pyx":1034
+ *             retval = tbx_index_build2(cfn, fnidx, min_shift, &conf)
+ * 
+ *     if retval != 0:             # <<<<<<<<<<<<<<
+ *         raise OSError("building of index for {} failed".format(filename))
+ * 
+ */
+  __pyx_t_5 = ((__pyx_v_retval != 0) != 0);
+  if (unlikely(__pyx_t_5)) {
+
+    /* "pysam/libctabix.pyx":1035
+ * 
+ *     if retval != 0:
+ *         raise OSError("building of index for {} failed".format(filename))             # <<<<<<<<<<<<<<
  * 
  *     return filename
  */
-        (void)(tbx_index_build(__pyx_v_cfn, __pyx_v_min_shift, (&__pyx_v_conf)));
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_building_of_index_for_failed, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1035, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_1 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_1)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_1);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
       }
+    }
+    if (!__pyx_t_1) {
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1035, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_2)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_1, __pyx_v_filename};
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1035, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __Pyx_GOTREF(__pyx_t_3);
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_1, __pyx_v_filename};
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1035, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __Pyx_GOTREF(__pyx_t_3);
+      } else
+      #endif
+      {
+        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1035, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1); __pyx_t_1 = NULL;
+        __Pyx_INCREF(__pyx_v_filename);
+        __Pyx_GIVEREF(__pyx_v_filename);
+        PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_filename);
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1035, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_OSError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1035, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 1035, __pyx_L1_error)
 
-      /* "pysam/libctabix.pyx":914
- *     fn = encode_filename(filename)
- *     cdef char *cfn = fn
- *     with nogil:             # <<<<<<<<<<<<<<
- *         tbx_index_build(cfn, min_shift, &conf)
+    /* "pysam/libctabix.pyx":1034
+ *             retval = tbx_index_build2(cfn, fnidx, min_shift, &conf)
+ * 
+ *     if retval != 0:             # <<<<<<<<<<<<<<
+ *         raise OSError("building of index for {} failed".format(filename))
  * 
  */
-      /*finally:*/ {
-        /*normal exit:*/{
-          #ifdef WITH_THREAD
-          __Pyx_FastGIL_Forget();
-          Py_BLOCK_THREADS
-          #endif
-          goto __pyx_L28;
-        }
-        __pyx_L28:;
-      }
   }
 
-  /* "pysam/libctabix.pyx":917
- *         tbx_index_build(cfn, min_shift, &conf)
+  /* "pysam/libctabix.pyx":1037
+ *         raise OSError("building of index for {} failed".format(filename))
  * 
  *     return filename             # <<<<<<<<<<<<<<
  * 
@@ -13097,12 +14956,12 @@ static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject 
   __pyx_r = __pyx_v_filename;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":808
+  /* "pysam/libctabix.pyx":890
  * 
  * 
- * def tabix_index( filename,             # <<<<<<<<<<<<<<
- *                  force = False,
- *                  seq_col = None,
+ * def tabix_index(filename,             # <<<<<<<<<<<<<<
+ *                 force=False,
+ *                 seq_col=None,
  */
 
   /* function exit code */
@@ -13111,25 +14970,29 @@ static PyObject *__pyx_pf_5pysam_9libctabix_2tabix_index(CYTHON_UNUSED PyObject 
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_8);
   __Pyx_XDECREF(__pyx_t_14);
-  __Pyx_XDECREF(__pyx_t_15);
+  __Pyx_XDECREF(__pyx_t_16);
+  __Pyx_XDECREF(__pyx_t_17);
   __Pyx_AddTraceback("pysam.libctabix.tabix_index", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_fn);
   __Pyx_XDECREF(__pyx_v_preset2conf);
   __Pyx_XDECREF(__pyx_v_conf_data);
-  __Pyx_XDECREF(__pyx_v_fn);
+  __Pyx_XDECREF(__pyx_v_suffix);
+  __Pyx_XDECREF(__pyx_v_fn_index);
   __Pyx_XDECREF(__pyx_v_filename);
   __Pyx_XDECREF(__pyx_v_end_col);
   __Pyx_XDECREF(__pyx_v_preset);
+  __Pyx_XDECREF(__pyx_v_index);
+  __Pyx_XDECREF(__pyx_v_csi);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_TraceReturn(__pyx_r, 0);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":999
+/* "pysam/libctabix.pyx":1119
  *     '''
  * 
  *     def __cinit__(self,             # <<<<<<<<<<<<<<
@@ -13171,7 +15034,7 @@ static int __pyx_pw_5pysam_9libctabix_19tabix_file_iterator_1__cinit__(PyObject 
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_parser)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 0, 2, 3, 1); __PYX_ERR(0, 999, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 0, 2, 3, 1); __PYX_ERR(0, 1119, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -13181,7 +15044,7 @@ static int __pyx_pw_5pysam_9libctabix_19tabix_file_iterator_1__cinit__(PyObject 
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) __PYX_ERR(0, 999, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) __PYX_ERR(0, 1119, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -13196,20 +15059,20 @@ static int __pyx_pw_5pysam_9libctabix_19tabix_file_iterator_1__cinit__(PyObject 
     __pyx_v_infile = values[0];
     __pyx_v_parser = ((struct __pyx_obj_5pysam_9libctabix_Parser *)values[1]);
     if (values[2]) {
-      __pyx_v_buffer_size = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_buffer_size == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1002, __pyx_L3_error)
+      __pyx_v_buffer_size = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_buffer_size == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1122, __pyx_L3_error)
     } else {
       __pyx_v_buffer_size = ((int)0x10000);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__cinit__", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 999, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__cinit__", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1119, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.tabix_file_iterator.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_parser), __pyx_ptype_5pysam_9libctabix_Parser, 1, "parser", 0))) __PYX_ERR(0, 1001, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_parser), __pyx_ptype_5pysam_9libctabix_Parser, 1, "parser", 0))) __PYX_ERR(0, 1121, __pyx_L1_error)
   __pyx_r = __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(((struct __pyx_obj_5pysam_9libctabix_tabix_file_iterator *)__pyx_v_self), __pyx_v_infile, __pyx_v_parser, __pyx_v_buffer_size);
 
   /* function exit code */
@@ -13231,35 +15094,35 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
   int __pyx_t_3;
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__cinit__", 0);
-  __Pyx_TraceCall("__cinit__", __pyx_f[0], 999, 0, __PYX_ERR(0, 999, __pyx_L1_error));
+  __Pyx_TraceCall("__cinit__", __pyx_f[0], 1119, 0, __PYX_ERR(0, 1119, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":1004
+  /* "pysam/libctabix.pyx":1124
  *                   int buffer_size=65536):
  * 
  *         if infile.closed:             # <<<<<<<<<<<<<<
  *             raise ValueError("I/O operation on closed file.")
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_infile, __pyx_n_s_closed); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1004, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_infile, __pyx_n_s_closed); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1124, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 1004, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 1124, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (unlikely(__pyx_t_2)) {
 
-    /* "pysam/libctabix.pyx":1005
+    /* "pysam/libctabix.pyx":1125
  * 
  *         if infile.closed:
  *             raise ValueError("I/O operation on closed file.")             # <<<<<<<<<<<<<<
  * 
  *         self.infile = infile
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1005, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__28, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1125, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 1005, __pyx_L1_error)
+    __PYX_ERR(0, 1125, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":1004
+    /* "pysam/libctabix.pyx":1124
  *                   int buffer_size=65536):
  * 
  *         if infile.closed:             # <<<<<<<<<<<<<<
@@ -13268,7 +15131,7 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
  */
   }
 
-  /* "pysam/libctabix.pyx":1007
+  /* "pysam/libctabix.pyx":1127
  *             raise ValueError("I/O operation on closed file.")
  * 
  *         self.infile = infile             # <<<<<<<<<<<<<<
@@ -13281,17 +15144,17 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
   __Pyx_DECREF(__pyx_v_self->infile);
   __pyx_v_self->infile = __pyx_v_infile;
 
-  /* "pysam/libctabix.pyx":1009
+  /* "pysam/libctabix.pyx":1129
  *         self.infile = infile
  * 
  *         cdef int fd = PyObject_AsFileDescriptor(infile)             # <<<<<<<<<<<<<<
  *         if fd == -1:
  *             raise ValueError("I/O operation on closed file.")
  */
-  __pyx_t_3 = PyObject_AsFileDescriptor(__pyx_v_infile); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 1009, __pyx_L1_error)
+  __pyx_t_3 = PyObject_AsFileDescriptor(__pyx_v_infile); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 1129, __pyx_L1_error)
   __pyx_v_fd = __pyx_t_3;
 
-  /* "pysam/libctabix.pyx":1010
+  /* "pysam/libctabix.pyx":1130
  * 
  *         cdef int fd = PyObject_AsFileDescriptor(infile)
  *         if fd == -1:             # <<<<<<<<<<<<<<
@@ -13301,20 +15164,20 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
   __pyx_t_2 = ((__pyx_v_fd == -1L) != 0);
   if (unlikely(__pyx_t_2)) {
 
-    /* "pysam/libctabix.pyx":1011
+    /* "pysam/libctabix.pyx":1131
  *         cdef int fd = PyObject_AsFileDescriptor(infile)
  *         if fd == -1:
  *             raise ValueError("I/O operation on closed file.")             # <<<<<<<<<<<<<<
  * 
  *         self.duplicated_fd = dup(fd)
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__37, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1011, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__29, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1131, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 1011, __pyx_L1_error)
+    __PYX_ERR(0, 1131, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":1010
+    /* "pysam/libctabix.pyx":1130
  * 
  *         cdef int fd = PyObject_AsFileDescriptor(infile)
  *         if fd == -1:             # <<<<<<<<<<<<<<
@@ -13323,7 +15186,7 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
  */
   }
 
-  /* "pysam/libctabix.pyx":1013
+  /* "pysam/libctabix.pyx":1133
  *             raise ValueError("I/O operation on closed file.")
  * 
  *         self.duplicated_fd = dup(fd)             # <<<<<<<<<<<<<<
@@ -13332,7 +15195,7 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
  */
   __pyx_v_self->duplicated_fd = dup(__pyx_v_fd);
 
-  /* "pysam/libctabix.pyx":1020
+  /* "pysam/libctabix.pyx":1140
  *         # When reading, this will be detected automatically by looking
  *         # for the magic two-byte gzip header.
  *         self.fh = bgzf_dopen(self.duplicated_fd, 'r')             # <<<<<<<<<<<<<<
@@ -13341,7 +15204,7 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
  */
   __pyx_v_self->fh = bgzf_dopen(__pyx_v_self->duplicated_fd, ((char const *)"r"));
 
-  /* "pysam/libctabix.pyx":1022
+  /* "pysam/libctabix.pyx":1142
  *         self.fh = bgzf_dopen(self.duplicated_fd, 'r')
  * 
  *         if self.fh == NULL:             # <<<<<<<<<<<<<<
@@ -13351,26 +15214,26 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
   __pyx_t_2 = ((__pyx_v_self->fh == NULL) != 0);
   if (unlikely(__pyx_t_2)) {
 
-    /* "pysam/libctabix.pyx":1023
+    /* "pysam/libctabix.pyx":1143
  * 
  *         if self.fh == NULL:
  *             raise IOError('%s' % strerror(errno))             # <<<<<<<<<<<<<<
  * 
  *         self.kstream = ks_init(self.fh)
  */
-    __pyx_t_1 = __Pyx_PyBytes_FromString(strerror(errno)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1023, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyBytes_FromString(strerror(errno)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_s, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1023, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_s, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1023, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 1023, __pyx_L1_error)
+    __PYX_ERR(0, 1143, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":1022
+    /* "pysam/libctabix.pyx":1142
  *         self.fh = bgzf_dopen(self.duplicated_fd, 'r')
  * 
  *         if self.fh == NULL:             # <<<<<<<<<<<<<<
@@ -13379,7 +15242,7 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
  */
   }
 
-  /* "pysam/libctabix.pyx":1025
+  /* "pysam/libctabix.pyx":1145
  *             raise IOError('%s' % strerror(errno))
  * 
  *         self.kstream = ks_init(self.fh)             # <<<<<<<<<<<<<<
@@ -13388,7 +15251,7 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
  */
   __pyx_v_self->kstream = ks_init(__pyx_v_self->fh);
 
-  /* "pysam/libctabix.pyx":1027
+  /* "pysam/libctabix.pyx":1147
  *         self.kstream = ks_init(self.fh)
  * 
  *         self.buffer.s = <char*>malloc(buffer_size)             # <<<<<<<<<<<<<<
@@ -13397,7 +15260,7 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
  */
   __pyx_v_self->buffer.s = ((char *)malloc(__pyx_v_buffer_size));
 
-  /* "pysam/libctabix.pyx":1031
+  /* "pysam/libctabix.pyx":1151
  *         #    raise MemoryError( "tabix_file_iterator: could not allocate %i bytes" % buffer_size)
  *         #self.size = buffer_size
  *         self.parser = parser             # <<<<<<<<<<<<<<
@@ -13410,7 +15273,7 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
   __Pyx_DECREF(((PyObject *)__pyx_v_self->parser));
   __pyx_v_self->parser = __pyx_v_parser;
 
-  /* "pysam/libctabix.pyx":999
+  /* "pysam/libctabix.pyx":1119
  *     '''
  * 
  *     def __cinit__(self,             # <<<<<<<<<<<<<<
@@ -13432,7 +15295,7 @@ static int __pyx_pf_5pysam_9libctabix_19tabix_file_iterator___cinit__(struct __p
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":1033
+/* "pysam/libctabix.pyx":1153
  *         self.parser = parser
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -13458,9 +15321,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_2__iter__(stru
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__iter__", 0);
-  __Pyx_TraceCall("__iter__", __pyx_f[0], 1033, 0, __PYX_ERR(0, 1033, __pyx_L1_error));
+  __Pyx_TraceCall("__iter__", __pyx_f[0], 1153, 0, __PYX_ERR(0, 1153, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":1034
+  /* "pysam/libctabix.pyx":1154
  * 
  *     def __iter__(self):
  *         return self             # <<<<<<<<<<<<<<
@@ -13472,7 +15335,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_2__iter__(stru
   __pyx_r = ((PyObject *)__pyx_v_self);
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":1033
+  /* "pysam/libctabix.pyx":1153
  *         self.parser = parser
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -13491,7 +15354,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_2__iter__(stru
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":1036
+/* "pysam/libctabix.pyx":1156
  *         return self
  * 
  *     cdef __cnext__(self):             # <<<<<<<<<<<<<<
@@ -13511,9 +15374,9 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
   int __pyx_t_3;
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__cnext__", 0);
-  __Pyx_TraceCall("__cnext__", __pyx_f[0], 1036, 0, __PYX_ERR(0, 1036, __pyx_L1_error));
+  __Pyx_TraceCall("__cnext__", __pyx_f[0], 1156, 0, __PYX_ERR(0, 1156, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":1039
+  /* "pysam/libctabix.pyx":1159
  * 
  *         cdef char * b
  *         cdef int dret = 0             # <<<<<<<<<<<<<<
@@ -13522,7 +15385,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
  */
   __pyx_v_dret = 0;
 
-  /* "pysam/libctabix.pyx":1040
+  /* "pysam/libctabix.pyx":1160
  *         cdef char * b
  *         cdef int dret = 0
  *         cdef int retval = 0             # <<<<<<<<<<<<<<
@@ -13531,7 +15394,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
  */
   __pyx_v_retval = 0;
 
-  /* "pysam/libctabix.pyx":1041
+  /* "pysam/libctabix.pyx":1161
  *         cdef int dret = 0
  *         cdef int retval = 0
  *         while 1:             # <<<<<<<<<<<<<<
@@ -13540,7 +15403,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
  */
   while (1) {
 
-    /* "pysam/libctabix.pyx":1042
+    /* "pysam/libctabix.pyx":1162
  *         cdef int retval = 0
  *         while 1:
  *             with nogil:             # <<<<<<<<<<<<<<
@@ -13555,7 +15418,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
         #endif
         /*try:*/ {
 
-          /* "pysam/libctabix.pyx":1043
+          /* "pysam/libctabix.pyx":1163
  *         while 1:
  *             with nogil:
  *                 retval = ks_getuntil(self.kstream, '\n', &self.buffer, &dret)             # <<<<<<<<<<<<<<
@@ -13565,7 +15428,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
           __pyx_v_retval = ks_getuntil(__pyx_v_self->kstream, '\n', (&__pyx_v_self->buffer), (&__pyx_v_dret));
         }
 
-        /* "pysam/libctabix.pyx":1042
+        /* "pysam/libctabix.pyx":1162
  *         cdef int retval = 0
  *         while 1:
  *             with nogil:             # <<<<<<<<<<<<<<
@@ -13584,7 +15447,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
         }
     }
 
-    /* "pysam/libctabix.pyx":1045
+    /* "pysam/libctabix.pyx":1165
  *                 retval = ks_getuntil(self.kstream, '\n', &self.buffer, &dret)
  * 
  *             if retval < 0:             # <<<<<<<<<<<<<<
@@ -13594,7 +15457,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
     __pyx_t_1 = ((__pyx_v_retval < 0) != 0);
     if (__pyx_t_1) {
 
-      /* "pysam/libctabix.pyx":1046
+      /* "pysam/libctabix.pyx":1166
  * 
  *             if retval < 0:
  *                 break             # <<<<<<<<<<<<<<
@@ -13603,7 +15466,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
  */
       goto __pyx_L4_break;
 
-      /* "pysam/libctabix.pyx":1045
+      /* "pysam/libctabix.pyx":1165
  *                 retval = ks_getuntil(self.kstream, '\n', &self.buffer, &dret)
  * 
  *             if retval < 0:             # <<<<<<<<<<<<<<
@@ -13612,7 +15475,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
  */
     }
 
-    /* "pysam/libctabix.pyx":1049
+    /* "pysam/libctabix.pyx":1169
  *                 #raise IOError('gzip error: %s' % buildGzipError( self.fh ))
  * 
  *             b = self.buffer.s             # <<<<<<<<<<<<<<
@@ -13622,7 +15485,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
     __pyx_t_2 = __pyx_v_self->buffer.s;
     __pyx_v_b = __pyx_t_2;
 
-    /* "pysam/libctabix.pyx":1052
+    /* "pysam/libctabix.pyx":1172
  * 
  *             # skip comments
  *             if (b[0] == '#'):             # <<<<<<<<<<<<<<
@@ -13632,7 +15495,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
     __pyx_t_1 = (((__pyx_v_b[0]) == '#') != 0);
     if (__pyx_t_1) {
 
-      /* "pysam/libctabix.pyx":1053
+      /* "pysam/libctabix.pyx":1173
  *             # skip comments
  *             if (b[0] == '#'):
  *                 continue             # <<<<<<<<<<<<<<
@@ -13641,7 +15504,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
  */
       goto __pyx_L3_continue;
 
-      /* "pysam/libctabix.pyx":1052
+      /* "pysam/libctabix.pyx":1172
  * 
  *             # skip comments
  *             if (b[0] == '#'):             # <<<<<<<<<<<<<<
@@ -13650,7 +15513,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
  */
     }
 
-    /* "pysam/libctabix.pyx":1056
+    /* "pysam/libctabix.pyx":1176
  * 
  *             # skip empty lines
  *             if b[0] == '\0' or b[0] == '\n' or b[0] == '\r':             # <<<<<<<<<<<<<<
@@ -13674,7 +15537,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
     __pyx_L13_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "pysam/libctabix.pyx":1057
+      /* "pysam/libctabix.pyx":1177
  *             # skip empty lines
  *             if b[0] == '\0' or b[0] == '\n' or b[0] == '\r':
  *                 continue             # <<<<<<<<<<<<<<
@@ -13683,7 +15546,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
  */
       goto __pyx_L3_continue;
 
-      /* "pysam/libctabix.pyx":1056
+      /* "pysam/libctabix.pyx":1176
  * 
  *             # skip empty lines
  *             if b[0] == '\0' or b[0] == '\n' or b[0] == '\r':             # <<<<<<<<<<<<<<
@@ -13692,7 +15555,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
  */
     }
 
-    /* "pysam/libctabix.pyx":1062
+    /* "pysam/libctabix.pyx":1182
  * 
  *             # parser creates a copy
  *             return self.parser.parse(b, self.buffer.l)             # <<<<<<<<<<<<<<
@@ -13700,7 +15563,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
  *         raise StopIteration
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_4 = ((struct __pyx_vtabstruct_5pysam_9libctabix_Parser *)__pyx_v_self->parser->__pyx_vtab)->parse(__pyx_v_self->parser, __pyx_v_b, __pyx_v_self->buffer.l); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1062, __pyx_L1_error)
+    __pyx_t_4 = ((struct __pyx_vtabstruct_5pysam_9libctabix_Parser *)__pyx_v_self->parser->__pyx_vtab)->parse(__pyx_v_self->parser, __pyx_v_b, __pyx_v_self->buffer.l); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1182, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_r = __pyx_t_4;
     __pyx_t_4 = 0;
@@ -13709,7 +15572,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
   }
   __pyx_L4_break:;
 
-  /* "pysam/libctabix.pyx":1064
+  /* "pysam/libctabix.pyx":1184
  *             return self.parser.parse(b, self.buffer.l)
  * 
  *         raise StopIteration             # <<<<<<<<<<<<<<
@@ -13717,9 +15580,9 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
  *     def __dealloc__(self):
  */
   __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
-  __PYX_ERR(0, 1064, __pyx_L1_error)
+  __PYX_ERR(0, 1184, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":1036
+  /* "pysam/libctabix.pyx":1156
  *         return self
  * 
  *     cdef __cnext__(self):             # <<<<<<<<<<<<<<
@@ -13739,7 +15602,7 @@ static PyObject *__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__(struc
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":1066
+/* "pysam/libctabix.pyx":1186
  *         raise StopIteration
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -13762,9 +15625,9 @@ static void __pyx_pf_5pysam_9libctabix_19tabix_file_iterator_4__dealloc__(struct
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__dealloc__", 0);
-  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 1066, 0, __PYX_ERR(0, 1066, __pyx_L1_error));
+  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 1186, 0, __PYX_ERR(0, 1186, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":1067
+  /* "pysam/libctabix.pyx":1187
  * 
  *     def __dealloc__(self):
  *         free(self.buffer.s)             # <<<<<<<<<<<<<<
@@ -13773,7 +15636,7 @@ static void __pyx_pf_5pysam_9libctabix_19tabix_file_iterator_4__dealloc__(struct
  */
   free(__pyx_v_self->buffer.s);
 
-  /* "pysam/libctabix.pyx":1068
+  /* "pysam/libctabix.pyx":1188
  *     def __dealloc__(self):
  *         free(self.buffer.s)
  *         ks_destroy(self.kstream)             # <<<<<<<<<<<<<<
@@ -13782,7 +15645,7 @@ static void __pyx_pf_5pysam_9libctabix_19tabix_file_iterator_4__dealloc__(struct
  */
   ks_destroy(__pyx_v_self->kstream);
 
-  /* "pysam/libctabix.pyx":1069
+  /* "pysam/libctabix.pyx":1189
  *         free(self.buffer.s)
  *         ks_destroy(self.kstream)
  *         bgzf_close(self.fh)             # <<<<<<<<<<<<<<
@@ -13791,7 +15654,7 @@ static void __pyx_pf_5pysam_9libctabix_19tabix_file_iterator_4__dealloc__(struct
  */
   (void)(bgzf_close(__pyx_v_self->fh));
 
-  /* "pysam/libctabix.pyx":1066
+  /* "pysam/libctabix.pyx":1186
  *         raise StopIteration
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -13808,7 +15671,7 @@ static void __pyx_pf_5pysam_9libctabix_19tabix_file_iterator_4__dealloc__(struct
   __Pyx_RefNannyFinishContext();
 }
 
-/* "pysam/libctabix.pyx":1071
+/* "pysam/libctabix.pyx":1191
  *         bgzf_close(self.fh)
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -13835,9 +15698,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_6__next__(stru
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__next__", 0);
-  __Pyx_TraceCall("__next__", __pyx_f[0], 1071, 0, __PYX_ERR(0, 1071, __pyx_L1_error));
+  __Pyx_TraceCall("__next__", __pyx_f[0], 1191, 0, __PYX_ERR(0, 1191, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":1072
+  /* "pysam/libctabix.pyx":1192
  * 
  *     def __next__(self):
  *         return self.__cnext__()             # <<<<<<<<<<<<<<
@@ -13845,13 +15708,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_6__next__(stru
  *     def next(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libctabix_tabix_file_iterator *)__pyx_v_self->__pyx_vtab)->__pyx___cnext__(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1072, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libctabix_tabix_file_iterator *)__pyx_v_self->__pyx_vtab)->__pyx___cnext__(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1192, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":1071
+  /* "pysam/libctabix.pyx":1191
  *         bgzf_close(self.fh)
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -13871,7 +15734,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_6__next__(stru
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":1074
+/* "pysam/libctabix.pyx":1194
  *         return self.__cnext__()
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
@@ -13899,9 +15762,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_8next(struct _
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("next", 0);
-  __Pyx_TraceCall("next", __pyx_f[0], 1074, 0, __PYX_ERR(0, 1074, __pyx_L1_error));
+  __Pyx_TraceCall("next", __pyx_f[0], 1194, 0, __PYX_ERR(0, 1194, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":1075
+  /* "pysam/libctabix.pyx":1195
  * 
  *     def next(self):
  *         return self.__cnext__()             # <<<<<<<<<<<<<<
@@ -13909,13 +15772,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_8next(struct _
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libctabix_tabix_file_iterator *)__pyx_v_self->__pyx_vtab)->__pyx___cnext__(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1075, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_9libctabix_tabix_file_iterator *)__pyx_v_self->__pyx_vtab)->__pyx___cnext__(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":1074
+  /* "pysam/libctabix.pyx":1194
  *         return self.__cnext__()
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
@@ -13969,7 +15832,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_10__reduce_cyt
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__38, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__30, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -14026,7 +15889,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_12__setstate_c
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__39, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__31, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -14050,7 +15913,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_19tabix_file_iterator_12__setstate_c
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":1083
+/* "pysam/libctabix.pyx":1203
  *     Permits the use of file-like objects for example from the gzip module.
  *     '''
  *     def __init__(self, infile, parser):             # <<<<<<<<<<<<<<
@@ -14094,17 +15957,17 @@ static PyObject *__pyx_pw_5pysam_9libctabix_22tabix_generic_iterator_1__init__(P
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_infile)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 1); __PYX_ERR(0, 1083, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 1); __PYX_ERR(0, 1203, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_parser)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 2); __PYX_ERR(0, 1083, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 2); __PYX_ERR(0, 1203, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 1083, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 1203, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -14119,7 +15982,7 @@ static PyObject *__pyx_pw_5pysam_9libctabix_22tabix_generic_iterator_1__init__(P
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1083, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1203, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.tabix_generic_iterator.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -14139,49 +16002,49 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator___init__(CY
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   int __pyx_t_3;
-  __Pyx_TraceFrameInit(__pyx_codeobj__40)
+  __Pyx_TraceFrameInit(__pyx_codeobj__32)
   __Pyx_RefNannySetupContext("__init__", 0);
-  __Pyx_TraceCall("__init__", __pyx_f[0], 1083, 0, __PYX_ERR(0, 1083, __pyx_L1_error));
+  __Pyx_TraceCall("__init__", __pyx_f[0], 1203, 0, __PYX_ERR(0, 1203, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":1085
+  /* "pysam/libctabix.pyx":1205
  *     def __init__(self, infile, parser):
  * 
  *         self.infile = infile             # <<<<<<<<<<<<<<
  *         if self.infile.closed:
  *             raise ValueError("I/O operation on closed file.")
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_infile, __pyx_v_infile) < 0) __PYX_ERR(0, 1085, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_infile, __pyx_v_infile) < 0) __PYX_ERR(0, 1205, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":1086
+  /* "pysam/libctabix.pyx":1206
  * 
  *         self.infile = infile
  *         if self.infile.closed:             # <<<<<<<<<<<<<<
  *             raise ValueError("I/O operation on closed file.")
  *         self.parser = parser
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_infile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1086, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_infile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1206, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_closed); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1086, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_closed); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1206, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 1086, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 1206, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (unlikely(__pyx_t_3)) {
 
-    /* "pysam/libctabix.pyx":1087
+    /* "pysam/libctabix.pyx":1207
  *         self.infile = infile
  *         if self.infile.closed:
  *             raise ValueError("I/O operation on closed file.")             # <<<<<<<<<<<<<<
  *         self.parser = parser
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__41, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1087, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__33, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1207, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 1087, __pyx_L1_error)
+    __PYX_ERR(0, 1207, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":1086
+    /* "pysam/libctabix.pyx":1206
  * 
  *         self.infile = infile
  *         if self.infile.closed:             # <<<<<<<<<<<<<<
@@ -14190,16 +16053,16 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator___init__(CY
  */
   }
 
-  /* "pysam/libctabix.pyx":1088
+  /* "pysam/libctabix.pyx":1208
  *         if self.infile.closed:
  *             raise ValueError("I/O operation on closed file.")
  *         self.parser = parser             # <<<<<<<<<<<<<<
  * 
  *     def __iter__(self):
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_parser, __pyx_v_parser) < 0) __PYX_ERR(0, 1088, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_parser, __pyx_v_parser) < 0) __PYX_ERR(0, 1208, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":1083
+  /* "pysam/libctabix.pyx":1203
  *     Permits the use of file-like objects for example from the gzip module.
  *     '''
  *     def __init__(self, infile, parser):             # <<<<<<<<<<<<<<
@@ -14222,7 +16085,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator___init__(CY
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":1090
+/* "pysam/libctabix.pyx":1210
  *         self.parser = parser
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -14249,11 +16112,11 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_2__iter__(C
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
-  __Pyx_TraceFrameInit(__pyx_codeobj__42)
+  __Pyx_TraceFrameInit(__pyx_codeobj__34)
   __Pyx_RefNannySetupContext("__iter__", 0);
-  __Pyx_TraceCall("__iter__", __pyx_f[0], 1090, 0, __PYX_ERR(0, 1090, __pyx_L1_error));
+  __Pyx_TraceCall("__iter__", __pyx_f[0], 1210, 0, __PYX_ERR(0, 1210, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":1091
+  /* "pysam/libctabix.pyx":1211
  * 
  *     def __iter__(self):
  *         return self             # <<<<<<<<<<<<<<
@@ -14265,7 +16128,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_2__iter__(C
   __pyx_r = __pyx_v_self;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":1090
+  /* "pysam/libctabix.pyx":1210
  *         self.parser = parser
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -14284,7 +16147,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_2__iter__(C
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":1094
+/* "pysam/libctabix.pyx":1214
  * 
  *     # cython version - required for python 3
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -14330,20 +16193,20 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
   PyObject *__pyx_t_10 = NULL;
   int __pyx_t_11;
   PyObject *__pyx_t_12 = NULL;
-  __Pyx_TraceFrameInit(__pyx_codeobj__43)
+  __Pyx_TraceFrameInit(__pyx_codeobj__35)
   __Pyx_RefNannySetupContext("__next__", 0);
-  __Pyx_TraceCall("__next__", __pyx_f[0], 1094, 0, __PYX_ERR(0, 1094, __pyx_L1_error));
+  __Pyx_TraceCall("__next__", __pyx_f[0], 1214, 0, __PYX_ERR(0, 1214, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":1100
+  /* "pysam/libctabix.pyx":1220
  *         cdef size_t nbytes
  * 
  *         encoding = self.parser.get_encoding()             # <<<<<<<<<<<<<<
  * 
  *         # note that GzipFile.close() does not close the file
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1100, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1220, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_get_encoding); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1100, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_get_encoding); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1220, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -14357,46 +16220,46 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
     }
   }
   if (__pyx_t_2) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1100, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1220, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1100, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1220, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_encoding = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":1104
+  /* "pysam/libctabix.pyx":1224
  *         # note that GzipFile.close() does not close the file
  *         # reading is still possible.
  *         if self.infile.closed:             # <<<<<<<<<<<<<<
  *             raise ValueError("I/O operation on closed file.")
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_infile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1104, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_infile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1224, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_closed); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1104, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_closed); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1224, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 1104, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 1224, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (unlikely(__pyx_t_4)) {
 
-    /* "pysam/libctabix.pyx":1105
+    /* "pysam/libctabix.pyx":1225
  *         # reading is still possible.
  *         if self.infile.closed:
  *             raise ValueError("I/O operation on closed file.")             # <<<<<<<<<<<<<<
  * 
  *         while 1:
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__44, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1105, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1225, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 1105, __pyx_L1_error)
+    __PYX_ERR(0, 1225, __pyx_L1_error)
 
-    /* "pysam/libctabix.pyx":1104
+    /* "pysam/libctabix.pyx":1224
  *         # note that GzipFile.close() does not close the file
  *         # reading is still possible.
  *         if self.infile.closed:             # <<<<<<<<<<<<<<
@@ -14405,7 +16268,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
   }
 
-  /* "pysam/libctabix.pyx":1107
+  /* "pysam/libctabix.pyx":1227
  *             raise ValueError("I/O operation on closed file.")
  * 
  *         while 1:             # <<<<<<<<<<<<<<
@@ -14414,16 +16277,16 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
   while (1) {
 
-    /* "pysam/libctabix.pyx":1109
+    /* "pysam/libctabix.pyx":1229
  *         while 1:
  * 
  *             line = self.infile.readline()             # <<<<<<<<<<<<<<
  *             if not line:
  *                 break
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_infile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1109, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_infile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1229, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_readline); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1109, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_readline); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1229, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_1 = NULL;
@@ -14437,28 +16300,28 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
       }
     }
     if (__pyx_t_1) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1109, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1229, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     } else {
-      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1109, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1229, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_XDECREF_SET(__pyx_v_line, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "pysam/libctabix.pyx":1110
+    /* "pysam/libctabix.pyx":1230
  * 
  *             line = self.infile.readline()
  *             if not line:             # <<<<<<<<<<<<<<
  *                 break
  * 
  */
-    __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_line); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 1110, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_line); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 1230, __pyx_L1_error)
     __pyx_t_5 = ((!__pyx_t_4) != 0);
     if (__pyx_t_5) {
 
-      /* "pysam/libctabix.pyx":1111
+      /* "pysam/libctabix.pyx":1231
  *             line = self.infile.readline()
  *             if not line:
  *                 break             # <<<<<<<<<<<<<<
@@ -14467,7 +16330,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
       goto __pyx_L5_break;
 
-      /* "pysam/libctabix.pyx":1110
+      /* "pysam/libctabix.pyx":1230
  * 
  *             line = self.infile.readline()
  *             if not line:             # <<<<<<<<<<<<<<
@@ -14476,7 +16339,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
     }
 
-    /* "pysam/libctabix.pyx":1113
+    /* "pysam/libctabix.pyx":1233
  *                 break
  * 
  *             s = force_bytes(line, encoding)             # <<<<<<<<<<<<<<
@@ -14485,12 +16348,12 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
     __pyx_t_6.__pyx_n = 1;
     __pyx_t_6.encoding = __pyx_v_encoding;
-    __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_line, &__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1113, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_line, &__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1233, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_XDECREF_SET(__pyx_v_s, ((PyObject*)__pyx_t_3));
     __pyx_t_3 = 0;
 
-    /* "pysam/libctabix.pyx":1114
+    /* "pysam/libctabix.pyx":1234
  * 
  *             s = force_bytes(line, encoding)
  *             b = s             # <<<<<<<<<<<<<<
@@ -14499,22 +16362,22 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
     if (unlikely(__pyx_v_s == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-      __PYX_ERR(0, 1114, __pyx_L1_error)
+      __PYX_ERR(0, 1234, __pyx_L1_error)
     }
-    __pyx_t_7 = __Pyx_PyBytes_AsWritableString(__pyx_v_s); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 1114, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyBytes_AsWritableString(__pyx_v_s); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 1234, __pyx_L1_error)
     __pyx_v_b = __pyx_t_7;
 
-    /* "pysam/libctabix.pyx":1115
+    /* "pysam/libctabix.pyx":1235
  *             s = force_bytes(line, encoding)
  *             b = s
  *             nbytes = len(line)             # <<<<<<<<<<<<<<
  *             assert b[nbytes] == '\0'
  * 
  */
-    __pyx_t_8 = PyObject_Length(__pyx_v_line); if (unlikely(__pyx_t_8 == ((Py_ssize_t)-1))) __PYX_ERR(0, 1115, __pyx_L1_error)
+    __pyx_t_8 = PyObject_Length(__pyx_v_line); if (unlikely(__pyx_t_8 == ((Py_ssize_t)-1))) __PYX_ERR(0, 1235, __pyx_L1_error)
     __pyx_v_nbytes = __pyx_t_8;
 
-    /* "pysam/libctabix.pyx":1116
+    /* "pysam/libctabix.pyx":1236
  *             b = s
  *             nbytes = len(line)
  *             assert b[nbytes] == '\0'             # <<<<<<<<<<<<<<
@@ -14525,12 +16388,12 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
     if (unlikely(!Py_OptimizeFlag)) {
       if (unlikely(!(((__pyx_v_b[__pyx_v_nbytes]) == '\x00') != 0))) {
         PyErr_SetNone(PyExc_AssertionError);
-        __PYX_ERR(0, 1116, __pyx_L1_error)
+        __PYX_ERR(0, 1236, __pyx_L1_error)
       }
     }
     #endif
 
-    /* "pysam/libctabix.pyx":1119
+    /* "pysam/libctabix.pyx":1239
  * 
  *             # skip comments
  *             if b[0] == '#':             # <<<<<<<<<<<<<<
@@ -14540,7 +16403,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
     __pyx_t_5 = (((__pyx_v_b[0]) == '#') != 0);
     if (__pyx_t_5) {
 
-      /* "pysam/libctabix.pyx":1120
+      /* "pysam/libctabix.pyx":1240
  *             # skip comments
  *             if b[0] == '#':
  *                 continue             # <<<<<<<<<<<<<<
@@ -14549,7 +16412,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
       goto __pyx_L4_continue;
 
-      /* "pysam/libctabix.pyx":1119
+      /* "pysam/libctabix.pyx":1239
  * 
  *             # skip comments
  *             if b[0] == '#':             # <<<<<<<<<<<<<<
@@ -14558,7 +16421,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
     }
 
-    /* "pysam/libctabix.pyx":1123
+    /* "pysam/libctabix.pyx":1243
  * 
  *             # skip empty lines
  *             if b[0] == '\0' or b[0] == '\n' or b[0] == '\r':             # <<<<<<<<<<<<<<
@@ -14582,7 +16445,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
     __pyx_L9_bool_binop_done:;
     if (__pyx_t_5) {
 
-      /* "pysam/libctabix.pyx":1124
+      /* "pysam/libctabix.pyx":1244
  *             # skip empty lines
  *             if b[0] == '\0' or b[0] == '\n' or b[0] == '\r':
  *                 continue             # <<<<<<<<<<<<<<
@@ -14591,7 +16454,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
       goto __pyx_L4_continue;
 
-      /* "pysam/libctabix.pyx":1123
+      /* "pysam/libctabix.pyx":1243
  * 
  *             # skip empty lines
  *             if b[0] == '\0' or b[0] == '\n' or b[0] == '\r':             # <<<<<<<<<<<<<<
@@ -14600,7 +16463,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
     }
 
-    /* "pysam/libctabix.pyx":1127
+    /* "pysam/libctabix.pyx":1247
  * 
  *             # make sure that entry is complete
  *             if b[nbytes-1] != '\n' and b[nbytes-1] != '\r':             # <<<<<<<<<<<<<<
@@ -14618,23 +16481,23 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
     __pyx_L13_bool_binop_done:;
     if (unlikely(__pyx_t_5)) {
 
-      /* "pysam/libctabix.pyx":1128
+      /* "pysam/libctabix.pyx":1248
  *             # make sure that entry is complete
  *             if b[nbytes-1] != '\n' and b[nbytes-1] != '\r':
  *                 raise ValueError("incomplete line at %s" % line)             # <<<<<<<<<<<<<<
  * 
  *             bytes_cpy = <bytes> b
  */
-      __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_incomplete_line_at_s, __pyx_v_line); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1128, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyString_Format(__pyx_kp_s_incomplete_line_at_s, __pyx_v_line); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1248, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1128, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1248, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_Raise(__pyx_t_2, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __PYX_ERR(0, 1128, __pyx_L1_error)
+      __PYX_ERR(0, 1248, __pyx_L1_error)
 
-      /* "pysam/libctabix.pyx":1127
+      /* "pysam/libctabix.pyx":1247
  * 
  *             # make sure that entry is complete
  *             if b[nbytes-1] != '\n' and b[nbytes-1] != '\r':             # <<<<<<<<<<<<<<
@@ -14643,14 +16506,14 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
     }
 
-    /* "pysam/libctabix.pyx":1130
+    /* "pysam/libctabix.pyx":1250
  *                 raise ValueError("incomplete line at %s" % line)
  * 
  *             bytes_cpy = <bytes> b             # <<<<<<<<<<<<<<
  *             cpy = <char *> bytes_cpy
  * 
  */
-    __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_b); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1130, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyBytes_FromString(__pyx_v_b); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1250, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_3 = __pyx_t_2;
     __Pyx_INCREF(__pyx_t_3);
@@ -14658,7 +16521,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
     __pyx_v_bytes_cpy = ((PyObject*)__pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "pysam/libctabix.pyx":1131
+    /* "pysam/libctabix.pyx":1251
  * 
  *             bytes_cpy = <bytes> b
  *             cpy = <char *> bytes_cpy             # <<<<<<<<<<<<<<
@@ -14667,12 +16530,12 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  */
     if (unlikely(__pyx_v_bytes_cpy == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
-      __PYX_ERR(0, 1131, __pyx_L1_error)
+      __PYX_ERR(0, 1251, __pyx_L1_error)
     }
-    __pyx_t_7 = __Pyx_PyBytes_AsWritableString(__pyx_v_bytes_cpy); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 1131, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyBytes_AsWritableString(__pyx_v_bytes_cpy); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 1251, __pyx_L1_error)
     __pyx_v_cpy = ((char *)__pyx_t_7);
 
-    /* "pysam/libctabix.pyx":1133
+    /* "pysam/libctabix.pyx":1253
  *             cpy = <char *> bytes_cpy
  * 
  *             return self.parser(cpy, nbytes)             # <<<<<<<<<<<<<<
@@ -14680,11 +16543,11 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  *         raise StopIteration
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1133, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1253, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_1 = __Pyx_PyBytes_FromString(__pyx_v_cpy); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1133, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyBytes_FromString(__pyx_v_cpy); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1253, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_9 = __Pyx_PyInt_FromSize_t(__pyx_v_nbytes); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 1133, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_FromSize_t(__pyx_v_nbytes); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 1253, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __pyx_t_10 = NULL;
     __pyx_t_11 = 0;
@@ -14701,7 +16564,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[3] = {__pyx_t_10, __pyx_t_1, __pyx_t_9};
-      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_11, 2+__pyx_t_11); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1133, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_11, 2+__pyx_t_11); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1253, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -14711,7 +16574,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[3] = {__pyx_t_10, __pyx_t_1, __pyx_t_9};
-      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_11, 2+__pyx_t_11); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1133, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_11, 2+__pyx_t_11); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1253, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -14719,7 +16582,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
     } else
     #endif
     {
-      __pyx_t_12 = PyTuple_New(2+__pyx_t_11); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 1133, __pyx_L1_error)
+      __pyx_t_12 = PyTuple_New(2+__pyx_t_11); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 1253, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_12);
       if (__pyx_t_10) {
         __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_10); __pyx_t_10 = NULL;
@@ -14730,7 +16593,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
       PyTuple_SET_ITEM(__pyx_t_12, 1+__pyx_t_11, __pyx_t_9);
       __pyx_t_1 = 0;
       __pyx_t_9 = 0;
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_12, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1133, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_12, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1253, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
     }
@@ -14742,7 +16605,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
   }
   __pyx_L5_break:;
 
-  /* "pysam/libctabix.pyx":1135
+  /* "pysam/libctabix.pyx":1255
  *             return self.parser(cpy, nbytes)
  * 
  *         raise StopIteration             # <<<<<<<<<<<<<<
@@ -14750,9 +16613,9 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
  *     # python version - required for python 2.7
  */
   __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
-  __PYX_ERR(0, 1135, __pyx_L1_error)
+  __PYX_ERR(0, 1255, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":1094
+  /* "pysam/libctabix.pyx":1214
  * 
  *     # cython version - required for python 3
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -14781,7 +16644,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_4__next__(C
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":1138
+/* "pysam/libctabix.pyx":1258
  * 
  *     # python version - required for python 2.7
  *     def next(self):             # <<<<<<<<<<<<<<
@@ -14811,19 +16674,19 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_6next(CYTHO
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
-  __Pyx_TraceFrameInit(__pyx_codeobj__45)
+  __Pyx_TraceFrameInit(__pyx_codeobj__37)
   __Pyx_RefNannySetupContext("next", 0);
-  __Pyx_TraceCall("next", __pyx_f[0], 1138, 0, __PYX_ERR(0, 1138, __pyx_L1_error));
+  __Pyx_TraceCall("next", __pyx_f[0], 1258, 0, __PYX_ERR(0, 1258, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":1139
+  /* "pysam/libctabix.pyx":1259
  *     # python version - required for python 2.7
  *     def next(self):
  *         return self.__next__()             # <<<<<<<<<<<<<<
  * 
- * def tabix_iterator(infile, parser):
+ * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_next); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1139, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_next); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1259, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -14836,10 +16699,10 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_6next(CYTHO
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1139, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1259, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1139, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1259, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -14847,7 +16710,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_6next(CYTHO
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libctabix.pyx":1138
+  /* "pysam/libctabix.pyx":1258
  * 
  *     # python version - required for python 2.7
  *     def next(self):             # <<<<<<<<<<<<<<
@@ -14869,8 +16732,8 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_6next(CYTHO
   return __pyx_r;
 }
 
-/* "pysam/libctabix.pyx":1141
- *         return self.__next__()
+/* "pysam/libctabix.pyx":1262
+ * 
  * 
  * def tabix_iterator(infile, parser):             # <<<<<<<<<<<<<<
  *     """return an iterator over all entries in a file.
@@ -14878,10 +16741,10 @@ static PyObject *__pyx_pf_5pysam_9libctabix_22tabix_generic_iterator_6next(CYTHO
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libctabix_5tabix_iterator(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libctabix_4tabix_iterator[] = "tabix_iterator(infile, parser)\nreturn an iterator over all entries in a file.\n    \n    Results are returned parsed as specified by the *parser*. If\n    *parser* is None, the results are returned as an unparsed string.\n    Otherwise, *parser* is assumed to be a functor that will return\n    parsed data (see for example :class:`~pysam.asTuple` and\n    :class:`~pysam.asGTF`).\n\n    ";
-static PyMethodDef __pyx_mdef_5pysam_9libctabix_5tabix_iterator = {"tabix_iterator", (PyCFunction)__pyx_pw_5pysam_9libctabix_5tabix_iterator, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_4tabix_iterator};
-static PyObject *__pyx_pw_5pysam_9libctabix_5tabix_iterator(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_9libctabix_7tabix_iterator(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_9libctabix_6tabix_iterator[] = "tabix_iterator(infile, parser)\nreturn an iterator over all entries in a file.\n    \n    Results are returned parsed as specified by the *parser*. If\n    *parser* is None, the results are returned as an unparsed string.\n    Otherwise, *parser* is assumed to be a functor that will return\n    parsed data (see for example :class:`~pysam.asTuple` and\n    :class:`~pysam.asGTF`).\n\n    ";
+static PyMethodDef __pyx_mdef_5pysam_9libctabix_7tabix_iterator = {"tabix_iterator", (PyCFunction)__pyx_pw_5pysam_9libctabix_7tabix_iterator, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_6tabix_iterator};
+static PyObject *__pyx_pw_5pysam_9libctabix_7tabix_iterator(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_infile = 0;
   PyObject *__pyx_v_parser = 0;
   PyObject *__pyx_r = 0;
@@ -14910,11 +16773,11 @@ static PyObject *__pyx_pw_5pysam_9libctabix_5tabix_iterator(PyObject *__pyx_self
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_parser)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("tabix_iterator", 1, 2, 2, 1); __PYX_ERR(0, 1141, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("tabix_iterator", 1, 2, 2, 1); __PYX_ERR(0, 1262, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tabix_iterator") < 0)) __PYX_ERR(0, 1141, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tabix_iterator") < 0)) __PYX_ERR(0, 1262, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -14927,20 +16790,20 @@ static PyObject *__pyx_pw_5pysam_9libctabix_5tabix_iterator(PyObject *__pyx_self
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("tabix_iterator", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1141, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("tabix_iterator", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1262, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libctabix.tabix_iterator", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libctabix_4tabix_iterator(__pyx_self, __pyx_v_infile, __pyx_v_parser);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_6tabix_iterator(__pyx_self, __pyx_v_infile, __pyx_v_parser);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_infile, PyObject *__pyx_v_parser) {
+static PyObject *__pyx_pf_5pysam_9libctabix_6tabix_iterator(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_infile, PyObject *__pyx_v_parser) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -14950,11 +16813,11 @@ static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObje
   PyObject *__pyx_t_4 = NULL;
   int __pyx_t_5;
   PyObject *__pyx_t_6 = NULL;
-  __Pyx_TraceFrameInit(__pyx_codeobj__46)
+  __Pyx_TraceFrameInit(__pyx_codeobj__38)
   __Pyx_RefNannySetupContext("tabix_iterator", 0);
-  __Pyx_TraceCall("tabix_iterator", __pyx_f[0], 1141, 0, __PYX_ERR(0, 1141, __pyx_L1_error));
+  __Pyx_TraceCall("tabix_iterator", __pyx_f[0], 1262, 0, __PYX_ERR(0, 1262, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":1151
+  /* "pysam/libctabix.pyx":1272
  * 
  *     """
  *     if PY_MAJOR_VERSION >= 3:             # <<<<<<<<<<<<<<
@@ -14964,7 +16827,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObje
   __pyx_t_1 = ((PY_MAJOR_VERSION >= 3) != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libctabix.pyx":1152
+    /* "pysam/libctabix.pyx":1273
  *     """
  *     if PY_MAJOR_VERSION >= 3:
  *         return tabix_generic_iterator(infile, parser)             # <<<<<<<<<<<<<<
@@ -14972,7 +16835,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObje
  *         return tabix_file_iterator(infile, parser)
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_tabix_generic_iterator); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1152, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_tabix_generic_iterator); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1273, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_4 = NULL;
     __pyx_t_5 = 0;
@@ -14989,7 +16852,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObje
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_3)) {
       PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_v_infile, __pyx_v_parser};
-      __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1152, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1273, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_2);
     } else
@@ -14997,13 +16860,13 @@ static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObje
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
       PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_v_infile, __pyx_v_parser};
-      __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1152, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1273, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_2);
     } else
     #endif
     {
-      __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1152, __pyx_L1_error)
+      __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1273, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       if (__pyx_t_4) {
         __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -15014,7 +16877,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObje
       __Pyx_INCREF(__pyx_v_parser);
       __Pyx_GIVEREF(__pyx_v_parser);
       PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_parser);
-      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1152, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1273, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     }
@@ -15023,7 +16886,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObje
     __pyx_t_2 = 0;
     goto __pyx_L0;
 
-    /* "pysam/libctabix.pyx":1151
+    /* "pysam/libctabix.pyx":1272
  * 
  *     """
  *     if PY_MAJOR_VERSION >= 3:             # <<<<<<<<<<<<<<
@@ -15032,7 +16895,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObje
  */
   }
 
-  /* "pysam/libctabix.pyx":1154
+  /* "pysam/libctabix.pyx":1275
  *         return tabix_generic_iterator(infile, parser)
  *     else:
  *         return tabix_file_iterator(infile, parser)             # <<<<<<<<<<<<<<
@@ -15041,7 +16904,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObje
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1154, __pyx_L1_error)
+    __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1275, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_INCREF(__pyx_v_infile);
     __Pyx_GIVEREF(__pyx_v_infile);
@@ -15049,7 +16912,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObje
     __Pyx_INCREF(__pyx_v_parser);
     __Pyx_GIVEREF(__pyx_v_parser);
     PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_v_parser);
-    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5pysam_9libctabix_tabix_file_iterator), __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1154, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5pysam_9libctabix_tabix_file_iterator), __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1275, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_r = __pyx_t_3;
@@ -15057,8 +16920,8 @@ static PyObject *__pyx_pf_5pysam_9libctabix_4tabix_iterator(CYTHON_UNUSED PyObje
     goto __pyx_L0;
   }
 
-  /* "pysam/libctabix.pyx":1141
- *         return self.__next__()
+  /* "pysam/libctabix.pyx":1262
+ * 
  * 
  * def tabix_iterator(infile, parser):             # <<<<<<<<<<<<<<
  *     """return an iterator over all entries in a file.
@@ -15114,7 +16977,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9Tabixfile___reduce_cython__(CYTHON_
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__47, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__39, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -15171,7 +17034,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9Tabixfile_2__setstate_cython__(CYTH
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__48, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__40, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -15202,10 +17065,10 @@ static PyObject *__pyx_pf_5pysam_9libctabix_9Tabixfile_2__setstate_cython__(CYTH
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libctabix_7__pyx_unpickle_Parser(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libctabix_6__pyx_unpickle_Parser[] = "__pyx_unpickle_Parser(__pyx_type, long __pyx_checksum, __pyx_state)";
-static PyMethodDef __pyx_mdef_5pysam_9libctabix_7__pyx_unpickle_Parser = {"__pyx_unpickle_Parser", (PyCFunction)__pyx_pw_5pysam_9libctabix_7__pyx_unpickle_Parser, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_6__pyx_unpickle_Parser};
-static PyObject *__pyx_pw_5pysam_9libctabix_7__pyx_unpickle_Parser(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_9libctabix_9__pyx_unpickle_Parser(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_9libctabix_8__pyx_unpickle_Parser[] = "__pyx_unpickle_Parser(__pyx_type, long __pyx_checksum, __pyx_state)";
+static PyMethodDef __pyx_mdef_5pysam_9libctabix_9__pyx_unpickle_Parser = {"__pyx_unpickle_Parser", (PyCFunction)__pyx_pw_5pysam_9libctabix_9__pyx_unpickle_Parser, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_8__pyx_unpickle_Parser};
+static PyObject *__pyx_pw_5pysam_9libctabix_9__pyx_unpickle_Parser(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v___pyx_type = 0;
   long __pyx_v___pyx_checksum;
   PyObject *__pyx_v___pyx_state = 0;
@@ -15268,14 +17131,14 @@ static PyObject *__pyx_pw_5pysam_9libctabix_7__pyx_unpickle_Parser(PyObject *__p
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libctabix_6__pyx_unpickle_Parser(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_8__pyx_unpickle_Parser(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libctabix_6__pyx_unpickle_Parser(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_5pysam_9libctabix_8__pyx_unpickle_Parser(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_v___pyx_PickleError = NULL;
   PyObject *__pyx_v___pyx_result = NULL;
   PyObject *__pyx_r = NULL;
@@ -15288,7 +17151,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_6__pyx_unpickle_Parser(CYTHON_UNUSED
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   int __pyx_t_7;
-  __Pyx_TraceFrameInit(__pyx_codeobj__49)
+  __Pyx_TraceFrameInit(__pyx_codeobj__41)
   __Pyx_RefNannySetupContext("__pyx_unpickle_Parser", 0);
   __Pyx_TraceCall("__pyx_unpickle_Parser", __pyx_f[1], 1, 0, __PYX_ERR(1, 1, __pyx_L1_error));
 
@@ -15688,10 +17551,10 @@ static PyObject *__pyx_f_5pysam_9libctabix___pyx_unpickle_Parser__set_state(stru
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libctabix_9__pyx_unpickle_asTuple(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libctabix_8__pyx_unpickle_asTuple[] = "__pyx_unpickle_asTuple(__pyx_type, long __pyx_checksum, __pyx_state)";
-static PyMethodDef __pyx_mdef_5pysam_9libctabix_9__pyx_unpickle_asTuple = {"__pyx_unpickle_asTuple", (PyCFunction)__pyx_pw_5pysam_9libctabix_9__pyx_unpickle_asTuple, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_8__pyx_unpickle_asTuple};
-static PyObject *__pyx_pw_5pysam_9libctabix_9__pyx_unpickle_asTuple(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_9libctabix_11__pyx_unpickle_asTuple(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_9libctabix_10__pyx_unpickle_asTuple[] = "__pyx_unpickle_asTuple(__pyx_type, long __pyx_checksum, __pyx_state)";
+static PyMethodDef __pyx_mdef_5pysam_9libctabix_11__pyx_unpickle_asTuple = {"__pyx_unpickle_asTuple", (PyCFunction)__pyx_pw_5pysam_9libctabix_11__pyx_unpickle_asTuple, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_10__pyx_unpickle_asTuple};
+static PyObject *__pyx_pw_5pysam_9libctabix_11__pyx_unpickle_asTuple(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v___pyx_type = 0;
   long __pyx_v___pyx_checksum;
   PyObject *__pyx_v___pyx_state = 0;
@@ -15754,14 +17617,14 @@ static PyObject *__pyx_pw_5pysam_9libctabix_9__pyx_unpickle_asTuple(PyObject *__
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libctabix_8__pyx_unpickle_asTuple(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_10__pyx_unpickle_asTuple(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libctabix_8__pyx_unpickle_asTuple(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_5pysam_9libctabix_10__pyx_unpickle_asTuple(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_v___pyx_PickleError = NULL;
   PyObject *__pyx_v___pyx_result = NULL;
   PyObject *__pyx_r = NULL;
@@ -15774,7 +17637,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_8__pyx_unpickle_asTuple(CYTHON_UNUSE
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   int __pyx_t_7;
-  __Pyx_TraceFrameInit(__pyx_codeobj__50)
+  __Pyx_TraceFrameInit(__pyx_codeobj__42)
   __Pyx_RefNannySetupContext("__pyx_unpickle_asTuple", 0);
   __Pyx_TraceCall("__pyx_unpickle_asTuple", __pyx_f[1], 1, 0, __PYX_ERR(1, 1, __pyx_L1_error));
 
@@ -16168,16 +18031,502 @@ static PyObject *__pyx_f_5pysam_9libctabix___pyx_unpickle_asTuple__set_state(str
 }
 
 /* "(tree fragment)":1
+ * def __pyx_unpickle_asGFF3(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ *     if __pyx_checksum != 0x84bea1f:
+ *         from pickle import PickleError as __pyx_PickleError
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_9libctabix_13__pyx_unpickle_asGFF3(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_9libctabix_12__pyx_unpickle_asGFF3[] = "__pyx_unpickle_asGFF3(__pyx_type, long __pyx_checksum, __pyx_state)";
+static PyMethodDef __pyx_mdef_5pysam_9libctabix_13__pyx_unpickle_asGFF3 = {"__pyx_unpickle_asGFF3", (PyCFunction)__pyx_pw_5pysam_9libctabix_13__pyx_unpickle_asGFF3, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_12__pyx_unpickle_asGFF3};
+static PyObject *__pyx_pw_5pysam_9libctabix_13__pyx_unpickle_asGFF3(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v___pyx_type = 0;
+  long __pyx_v___pyx_checksum;
+  PyObject *__pyx_v___pyx_state = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__pyx_unpickle_asGFF3 (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_pyx_type,&__pyx_n_s_pyx_checksum,&__pyx_n_s_pyx_state,0};
+    PyObject* values[3] = {0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pyx_type)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pyx_checksum)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_asGFF3", 1, 3, 3, 1); __PYX_ERR(1, 1, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pyx_state)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_asGFF3", 1, 3, 3, 2); __PYX_ERR(1, 1, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_unpickle_asGFF3") < 0)) __PYX_ERR(1, 1, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+    }
+    __pyx_v___pyx_type = values[0];
+    __pyx_v___pyx_checksum = __Pyx_PyInt_As_long(values[1]); if (unlikely((__pyx_v___pyx_checksum == (long)-1) && PyErr_Occurred())) __PYX_ERR(1, 1, __pyx_L3_error)
+    __pyx_v___pyx_state = values[2];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_asGFF3", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 1, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("pysam.libctabix.__pyx_unpickle_asGFF3", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5pysam_9libctabix_12__pyx_unpickle_asGFF3(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_9libctabix_12__pyx_unpickle_asGFF3(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_v___pyx_PickleError = NULL;
+  PyObject *__pyx_v___pyx_result = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  int __pyx_t_7;
+  __Pyx_TraceFrameInit(__pyx_codeobj__43)
+  __Pyx_RefNannySetupContext("__pyx_unpickle_asGFF3", 0);
+  __Pyx_TraceCall("__pyx_unpickle_asGFF3", __pyx_f[1], 1, 0, __PYX_ERR(1, 1, __pyx_L1_error));
+
+  /* "(tree fragment)":2
+ * def __pyx_unpickle_asGFF3(__pyx_type, long __pyx_checksum, __pyx_state):
+ *     if __pyx_checksum != 0x84bea1f:             # <<<<<<<<<<<<<<
+ *         from pickle import PickleError as __pyx_PickleError
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x84bea1f = (encoding))" % __pyx_checksum)
+ */
+  __pyx_t_1 = ((__pyx_v___pyx_checksum != 0x84bea1f) != 0);
+  if (__pyx_t_1) {
+
+    /* "(tree fragment)":3
+ * def __pyx_unpickle_asGFF3(__pyx_type, long __pyx_checksum, __pyx_state):
+ *     if __pyx_checksum != 0x84bea1f:
+ *         from pickle import PickleError as __pyx_PickleError             # <<<<<<<<<<<<<<
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x84bea1f = (encoding))" % __pyx_checksum)
+ *     __pyx_result = asGFF3.__new__(__pyx_type)
+ */
+    __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_INCREF(__pyx_n_s_PickleError);
+    __Pyx_GIVEREF(__pyx_n_s_PickleError);
+    PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_PickleError);
+    __pyx_t_3 = __Pyx_Import(__pyx_n_s_pickle, __pyx_t_2, -1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 3, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_3, __pyx_n_s_PickleError); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_INCREF(__pyx_t_2);
+    __pyx_v___pyx_PickleError = __pyx_t_2;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+    /* "(tree fragment)":4
+ *     if __pyx_checksum != 0x84bea1f:
+ *         from pickle import PickleError as __pyx_PickleError
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x84bea1f = (encoding))" % __pyx_checksum)             # <<<<<<<<<<<<<<
+ *     __pyx_result = asGFF3.__new__(__pyx_type)
+ *     if __pyx_state is not None:
+ */
+    __pyx_t_2 = __Pyx_PyInt_From_long(__pyx_v___pyx_checksum); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 4, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_Incompatible_checksums_s_vs_0x84, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 4, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_INCREF(__pyx_v___pyx_PickleError);
+    __pyx_t_2 = __pyx_v___pyx_PickleError; __pyx_t_5 = NULL;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_5)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_5);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
+      }
+    }
+    if (!__pyx_t_5) {
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 4, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_GOTREF(__pyx_t_3);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_2)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_4};
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 4, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_4};
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 4, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      } else
+      #endif
+      {
+        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 4, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_6);
+        __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
+        __Pyx_GIVEREF(__pyx_t_4);
+        PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_t_4);
+        __pyx_t_4 = 0;
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 4, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __PYX_ERR(1, 4, __pyx_L1_error)
+
+    /* "(tree fragment)":2
+ * def __pyx_unpickle_asGFF3(__pyx_type, long __pyx_checksum, __pyx_state):
+ *     if __pyx_checksum != 0x84bea1f:             # <<<<<<<<<<<<<<
+ *         from pickle import PickleError as __pyx_PickleError
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x84bea1f = (encoding))" % __pyx_checksum)
+ */
+  }
+
+  /* "(tree fragment)":5
+ *         from pickle import PickleError as __pyx_PickleError
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x84bea1f = (encoding))" % __pyx_checksum)
+ *     __pyx_result = asGFF3.__new__(__pyx_type)             # <<<<<<<<<<<<<<
+ *     if __pyx_state is not None:
+ *         __pyx_unpickle_asGFF3__set_state(<asGFF3> __pyx_result, __pyx_state)
+ */
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_ptype_5pysam_9libctabix_asGFF3), __pyx_n_s_new); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_6 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_6)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_6);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  if (!__pyx_t_6) {
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v___pyx_type); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 5, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+  } else {
+    #if CYTHON_FAST_PYCALL
+    if (PyFunction_Check(__pyx_t_2)) {
+      PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v___pyx_type};
+      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 5, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __Pyx_GOTREF(__pyx_t_3);
+    } else
+    #endif
+    #if CYTHON_FAST_PYCCALL
+    if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+      PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v___pyx_type};
+      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 5, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __Pyx_GOTREF(__pyx_t_3);
+    } else
+    #endif
+    {
+      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 5, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_6); __pyx_t_6 = NULL;
+      __Pyx_INCREF(__pyx_v___pyx_type);
+      __Pyx_GIVEREF(__pyx_v___pyx_type);
+      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v___pyx_type);
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 5, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    }
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v___pyx_result = __pyx_t_3;
+  __pyx_t_3 = 0;
+
+  /* "(tree fragment)":6
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x84bea1f = (encoding))" % __pyx_checksum)
+ *     __pyx_result = asGFF3.__new__(__pyx_type)
+ *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
+ *         __pyx_unpickle_asGFF3__set_state(<asGFF3> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ */
+  __pyx_t_1 = (__pyx_v___pyx_state != Py_None);
+  __pyx_t_7 = (__pyx_t_1 != 0);
+  if (__pyx_t_7) {
+
+    /* "(tree fragment)":7
+ *     __pyx_result = asGFF3.__new__(__pyx_type)
+ *     if __pyx_state is not None:
+ *         __pyx_unpickle_asGFF3__set_state(<asGFF3> __pyx_result, __pyx_state)             # <<<<<<<<<<<<<<
+ *     return __pyx_result
+ * cdef __pyx_unpickle_asGFF3__set_state(asGFF3 __pyx_result, tuple __pyx_state):
+ */
+    if (!(likely(PyTuple_CheckExact(__pyx_v___pyx_state))||((__pyx_v___pyx_state) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "tuple", Py_TYPE(__pyx_v___pyx_state)->tp_name), 0))) __PYX_ERR(1, 7, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_5pysam_9libctabix___pyx_unpickle_asGFF3__set_state(((struct __pyx_obj_5pysam_9libctabix_asGFF3 *)__pyx_v___pyx_result), ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 7, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+    /* "(tree fragment)":6
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x84bea1f = (encoding))" % __pyx_checksum)
+ *     __pyx_result = asGFF3.__new__(__pyx_type)
+ *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
+ *         __pyx_unpickle_asGFF3__set_state(<asGFF3> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ */
+  }
+
+  /* "(tree fragment)":8
+ *     if __pyx_state is not None:
+ *         __pyx_unpickle_asGFF3__set_state(<asGFF3> __pyx_result, __pyx_state)
+ *     return __pyx_result             # <<<<<<<<<<<<<<
+ * cdef __pyx_unpickle_asGFF3__set_state(asGFF3 __pyx_result, tuple __pyx_state):
+ *     __pyx_result.encoding = __pyx_state[0]
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v___pyx_result);
+  __pyx_r = __pyx_v___pyx_result;
+  goto __pyx_L0;
+
+  /* "(tree fragment)":1
+ * def __pyx_unpickle_asGFF3(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ *     if __pyx_checksum != 0x84bea1f:
+ *         from pickle import PickleError as __pyx_PickleError
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_AddTraceback("pysam.libctabix.__pyx_unpickle_asGFF3", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v___pyx_PickleError);
+  __Pyx_XDECREF(__pyx_v___pyx_result);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":9
+ *         __pyx_unpickle_asGFF3__set_state(<asGFF3> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ * cdef __pyx_unpickle_asGFF3__set_state(asGFF3 __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_result.encoding = __pyx_state[0]
+ *     if len(__pyx_state) > 1 and hasattr(__pyx_result, '__dict__'):
+ */
+
+static PyObject *__pyx_f_5pysam_9libctabix___pyx_unpickle_asGFF3__set_state(struct __pyx_obj_5pysam_9libctabix_asGFF3 *__pyx_v___pyx_result, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  Py_ssize_t __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9 = NULL;
+  __Pyx_RefNannySetupContext("__pyx_unpickle_asGFF3__set_state", 0);
+  __Pyx_TraceCall("__pyx_unpickle_asGFF3__set_state", __pyx_f[1], 9, 0, __PYX_ERR(1, 9, __pyx_L1_error));
+
+  /* "(tree fragment)":10
+ *     return __pyx_result
+ * cdef __pyx_unpickle_asGFF3__set_state(asGFF3 __pyx_result, tuple __pyx_state):
+ *     __pyx_result.encoding = __pyx_state[0]             # <<<<<<<<<<<<<<
+ *     if len(__pyx_state) > 1 and hasattr(__pyx_result, '__dict__'):
+ *         __pyx_result.__dict__.update(__pyx_state[1])
+ */
+  if (unlikely(__pyx_v___pyx_state == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+    __PYX_ERR(1, 10, __pyx_L1_error)
+  }
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF(__pyx_v___pyx_result->__pyx_base.encoding);
+  __Pyx_DECREF(__pyx_v___pyx_result->__pyx_base.encoding);
+  __pyx_v___pyx_result->__pyx_base.encoding = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "(tree fragment)":11
+ * cdef __pyx_unpickle_asGFF3__set_state(asGFF3 __pyx_result, tuple __pyx_state):
+ *     __pyx_result.encoding = __pyx_state[0]
+ *     if len(__pyx_state) > 1 and hasattr(__pyx_result, '__dict__'):             # <<<<<<<<<<<<<<
+ *         __pyx_result.__dict__.update(__pyx_state[1])
+ */
+  if (unlikely(__pyx_v___pyx_state == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
+    __PYX_ERR(1, 11, __pyx_L1_error)
+  }
+  __pyx_t_3 = PyTuple_GET_SIZE(__pyx_v___pyx_state); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(1, 11, __pyx_L1_error)
+  __pyx_t_4 = ((__pyx_t_3 > 1) != 0);
+  if (__pyx_t_4) {
+  } else {
+    __pyx_t_2 = __pyx_t_4;
+    goto __pyx_L4_bool_binop_done;
+  }
+  __pyx_t_4 = __Pyx_HasAttr(((PyObject *)__pyx_v___pyx_result), __pyx_n_s_dict); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(1, 11, __pyx_L1_error)
+  __pyx_t_5 = (__pyx_t_4 != 0);
+  __pyx_t_2 = __pyx_t_5;
+  __pyx_L4_bool_binop_done:;
+  if (__pyx_t_2) {
+
+    /* "(tree fragment)":12
+ *     __pyx_result.encoding = __pyx_state[0]
+ *     if len(__pyx_state) > 1 and hasattr(__pyx_result, '__dict__'):
+ *         __pyx_result.__dict__.update(__pyx_state[1])             # <<<<<<<<<<<<<<
+ */
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v___pyx_result), __pyx_n_s_dict); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 12, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_update); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 12, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    if (unlikely(__pyx_v___pyx_state == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+      __PYX_ERR(1, 12, __pyx_L1_error)
+    }
+    __pyx_t_6 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 12, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_8 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_7))) {
+      __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_7);
+      if (likely(__pyx_t_8)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
+        __Pyx_INCREF(__pyx_t_8);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_7, function);
+      }
+    }
+    if (!__pyx_t_8) {
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __Pyx_GOTREF(__pyx_t_1);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_7)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_8, __pyx_t_6};
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_7)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_8, __pyx_t_6};
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      } else
+      #endif
+      {
+        __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) __PYX_ERR(1, 12, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_9);
+        __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_8); __pyx_t_8 = NULL;
+        __Pyx_GIVEREF(__pyx_t_6);
+        PyTuple_SET_ITEM(__pyx_t_9, 0+1, __pyx_t_6);
+        __pyx_t_6 = 0;
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_9, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "(tree fragment)":11
+ * cdef __pyx_unpickle_asGFF3__set_state(asGFF3 __pyx_result, tuple __pyx_state):
+ *     __pyx_result.encoding = __pyx_state[0]
+ *     if len(__pyx_state) > 1 and hasattr(__pyx_result, '__dict__'):             # <<<<<<<<<<<<<<
+ *         __pyx_result.__dict__.update(__pyx_state[1])
+ */
+  }
+
+  /* "(tree fragment)":9
+ *         __pyx_unpickle_asGFF3__set_state(<asGFF3> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ * cdef __pyx_unpickle_asGFF3__set_state(asGFF3 __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_result.encoding = __pyx_state[0]
+ *     if len(__pyx_state) > 1 and hasattr(__pyx_result, '__dict__'):
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_9);
+  __Pyx_AddTraceback("pysam.libctabix.__pyx_unpickle_asGFF3__set_state", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":1
  * def __pyx_unpickle_asGTF(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     if __pyx_checksum != 0x84bea1f:
  *         from pickle import PickleError as __pyx_PickleError
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libctabix_11__pyx_unpickle_asGTF(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libctabix_10__pyx_unpickle_asGTF[] = "__pyx_unpickle_asGTF(__pyx_type, long __pyx_checksum, __pyx_state)";
-static PyMethodDef __pyx_mdef_5pysam_9libctabix_11__pyx_unpickle_asGTF = {"__pyx_unpickle_asGTF", (PyCFunction)__pyx_pw_5pysam_9libctabix_11__pyx_unpickle_asGTF, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_10__pyx_unpickle_asGTF};
-static PyObject *__pyx_pw_5pysam_9libctabix_11__pyx_unpickle_asGTF(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_9libctabix_15__pyx_unpickle_asGTF(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_9libctabix_14__pyx_unpickle_asGTF[] = "__pyx_unpickle_asGTF(__pyx_type, long __pyx_checksum, __pyx_state)";
+static PyMethodDef __pyx_mdef_5pysam_9libctabix_15__pyx_unpickle_asGTF = {"__pyx_unpickle_asGTF", (PyCFunction)__pyx_pw_5pysam_9libctabix_15__pyx_unpickle_asGTF, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_14__pyx_unpickle_asGTF};
+static PyObject *__pyx_pw_5pysam_9libctabix_15__pyx_unpickle_asGTF(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v___pyx_type = 0;
   long __pyx_v___pyx_checksum;
   PyObject *__pyx_v___pyx_state = 0;
@@ -16240,14 +18589,14 @@ static PyObject *__pyx_pw_5pysam_9libctabix_11__pyx_unpickle_asGTF(PyObject *__p
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libctabix_10__pyx_unpickle_asGTF(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_14__pyx_unpickle_asGTF(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libctabix_10__pyx_unpickle_asGTF(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_5pysam_9libctabix_14__pyx_unpickle_asGTF(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_v___pyx_PickleError = NULL;
   PyObject *__pyx_v___pyx_result = NULL;
   PyObject *__pyx_r = NULL;
@@ -16260,7 +18609,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_10__pyx_unpickle_asGTF(CYTHON_UNUSED
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   int __pyx_t_7;
-  __Pyx_TraceFrameInit(__pyx_codeobj__51)
+  __Pyx_TraceFrameInit(__pyx_codeobj__44)
   __Pyx_RefNannySetupContext("__pyx_unpickle_asGTF", 0);
   __Pyx_TraceCall("__pyx_unpickle_asGTF", __pyx_f[1], 1, 0, __PYX_ERR(1, 1, __pyx_L1_error));
 
@@ -16660,10 +19009,10 @@ static PyObject *__pyx_f_5pysam_9libctabix___pyx_unpickle_asGTF__set_state(struc
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libctabix_13__pyx_unpickle_asBed(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libctabix_12__pyx_unpickle_asBed[] = "__pyx_unpickle_asBed(__pyx_type, long __pyx_checksum, __pyx_state)";
-static PyMethodDef __pyx_mdef_5pysam_9libctabix_13__pyx_unpickle_asBed = {"__pyx_unpickle_asBed", (PyCFunction)__pyx_pw_5pysam_9libctabix_13__pyx_unpickle_asBed, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_12__pyx_unpickle_asBed};
-static PyObject *__pyx_pw_5pysam_9libctabix_13__pyx_unpickle_asBed(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_9libctabix_17__pyx_unpickle_asBed(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_9libctabix_16__pyx_unpickle_asBed[] = "__pyx_unpickle_asBed(__pyx_type, long __pyx_checksum, __pyx_state)";
+static PyMethodDef __pyx_mdef_5pysam_9libctabix_17__pyx_unpickle_asBed = {"__pyx_unpickle_asBed", (PyCFunction)__pyx_pw_5pysam_9libctabix_17__pyx_unpickle_asBed, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_16__pyx_unpickle_asBed};
+static PyObject *__pyx_pw_5pysam_9libctabix_17__pyx_unpickle_asBed(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v___pyx_type = 0;
   long __pyx_v___pyx_checksum;
   PyObject *__pyx_v___pyx_state = 0;
@@ -16726,14 +19075,14 @@ static PyObject *__pyx_pw_5pysam_9libctabix_13__pyx_unpickle_asBed(PyObject *__p
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libctabix_12__pyx_unpickle_asBed(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_16__pyx_unpickle_asBed(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libctabix_12__pyx_unpickle_asBed(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_5pysam_9libctabix_16__pyx_unpickle_asBed(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_v___pyx_PickleError = NULL;
   PyObject *__pyx_v___pyx_result = NULL;
   PyObject *__pyx_r = NULL;
@@ -16746,7 +19095,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_12__pyx_unpickle_asBed(CYTHON_UNUSED
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   int __pyx_t_7;
-  __Pyx_TraceFrameInit(__pyx_codeobj__52)
+  __Pyx_TraceFrameInit(__pyx_codeobj__45)
   __Pyx_RefNannySetupContext("__pyx_unpickle_asBed", 0);
   __Pyx_TraceCall("__pyx_unpickle_asBed", __pyx_f[1], 1, 0, __PYX_ERR(1, 1, __pyx_L1_error));
 
@@ -17146,10 +19495,10 @@ static PyObject *__pyx_f_5pysam_9libctabix___pyx_unpickle_asBed__set_state(struc
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_9libctabix_15__pyx_unpickle_asVCF(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_9libctabix_14__pyx_unpickle_asVCF[] = "__pyx_unpickle_asVCF(__pyx_type, long __pyx_checksum, __pyx_state)";
-static PyMethodDef __pyx_mdef_5pysam_9libctabix_15__pyx_unpickle_asVCF = {"__pyx_unpickle_asVCF", (PyCFunction)__pyx_pw_5pysam_9libctabix_15__pyx_unpickle_asVCF, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_14__pyx_unpickle_asVCF};
-static PyObject *__pyx_pw_5pysam_9libctabix_15__pyx_unpickle_asVCF(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_9libctabix_19__pyx_unpickle_asVCF(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_9libctabix_18__pyx_unpickle_asVCF[] = "__pyx_unpickle_asVCF(__pyx_type, long __pyx_checksum, __pyx_state)";
+static PyMethodDef __pyx_mdef_5pysam_9libctabix_19__pyx_unpickle_asVCF = {"__pyx_unpickle_asVCF", (PyCFunction)__pyx_pw_5pysam_9libctabix_19__pyx_unpickle_asVCF, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_9libctabix_18__pyx_unpickle_asVCF};
+static PyObject *__pyx_pw_5pysam_9libctabix_19__pyx_unpickle_asVCF(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v___pyx_type = 0;
   long __pyx_v___pyx_checksum;
   PyObject *__pyx_v___pyx_state = 0;
@@ -17212,14 +19561,14 @@ static PyObject *__pyx_pw_5pysam_9libctabix_15__pyx_unpickle_asVCF(PyObject *__p
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_9libctabix_14__pyx_unpickle_asVCF(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_5pysam_9libctabix_18__pyx_unpickle_asVCF(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_9libctabix_14__pyx_unpickle_asVCF(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_5pysam_9libctabix_18__pyx_unpickle_asVCF(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_v___pyx_PickleError = NULL;
   PyObject *__pyx_v___pyx_result = NULL;
   PyObject *__pyx_r = NULL;
@@ -17232,7 +19581,7 @@ static PyObject *__pyx_pf_5pysam_9libctabix_14__pyx_unpickle_asVCF(CYTHON_UNUSED
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   int __pyx_t_7;
-  __Pyx_TraceFrameInit(__pyx_codeobj__53)
+  __Pyx_TraceFrameInit(__pyx_codeobj__46)
   __Pyx_RefNannySetupContext("__pyx_unpickle_asVCF", 0);
   __Pyx_TraceCall("__pyx_unpickle_asVCF", __pyx_f[1], 1, 0, __PYX_ERR(1, 1, __pyx_L1_error));
 
@@ -18517,7 +20866,7 @@ static PyMethodDef __pyx_methods_5pysam_9libctabix_TabixFile[] = {
 };
 
 static struct PyGetSetDef __pyx_getsets_5pysam_9libctabix_TabixFile[] = {
-  {(char *)"header", __pyx_getprop_5pysam_9libctabix_9TabixFile_header, 0, (char *)"the file header.\n\n        The file header consists of the lines at the beginning of a\n        file that are prefixed by the comment character ``#``.\n       \n        .. note::\n            The header is returned as an iterator presenting lines\n            without the newline character.\n        \n        .. note::\n            The header is only available for local files. For remote\n            files an Attribute Error is raised.\n\n        ", 0},
+  {(char *)"header", __pyx_getprop_5pysam_9libctabix_9TabixFile_header, 0, (char *)"the file header.\n\n        The file header consists of the lines at the beginning of a\n        file that are prefixed by the comment character ``#``.\n       \n        .. note::\n            The header is returned as an iterator presenting lines\n            without the newline character.\n        ", 0},
   {(char *)"contigs", __pyx_getprop_5pysam_9libctabix_9TabixFile_contigs, 0, (char *)"list of chromosome names", 0},
   {(char *)"filename_index", __pyx_getprop_5pysam_9libctabix_9TabixFile_filename_index, 0, (char *)0, 0},
   {0, 0, 0, 0, 0}
@@ -18549,7 +20898,7 @@ static PyTypeObject __pyx_type_5pysam_9libctabix_TabixFile = {
   0, /*tp_setattro*/
   0, /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-  "Random access to bgzf formatted files that\n    have been indexed by :term:`tabix`.\n\n    The file is automatically opened. The index file of file\n    ``<filename>`` is expected to be called ``<filename>.tbi``\n    by default (see parameter `index`).\n    \n    Parameters\n    ----------\n    \n    filename : string\n        Filename of bgzf file to be opened.\n\n    index : string\n        The filename of the index. If not set, the default is to\n        assume that the index is called ``filename.tbi`\n\n    mode : char\n        The file opening mode. Currently, only ``r`` is permitted.\n        \n    parser : :class:`pysam.Parser`\n    \n        sets the default parser for this tabix file. If `parser`\n        is None, the results are returned as an unparsed string.\n        Otherwise, `parser` is assumed to be a functor that will return\n        parsed data (see for example :class:`~pysam.asTuple` and\n        :class:`~pysam.asGTF`).\n\n    encoding : string\n\n        The encoding passed to the parser\n\n    Raises\n    ------\n    \n    ValueError\n        if index file is missing.\n\n    IOError\n        if file could not be opened\n    ", /*tp_doc*/
+  "Random access to bgzf formatted files that\n    have been indexed by :term:`tabix`.\n\n    The file is automatically opened. The index file of file\n    ``<filename>`` is expected to be called ``<filename>.tbi``\n    by default (see parameter `index`).\n    \n    Parameters\n    ----------\n    \n    filename : string\n        Filename of bgzf file to be opened.\n\n    index : string\n        The filename of the index. If not set, the default is to\n        assume that the index is called ``filename.tbi`\n\n    mode : char\n        The file opening mode. Currently, only ``r`` is permitted.\n        \n    parser : :class:`pysam.Parser`\n    \n        sets the default parser for this tabix file. If `parser`\n        is None, the results are returned as an unparsed string.\n        Otherwise, `parser` is assumed to be a functor that will return\n        parsed data (see for example :class:`~pysam.asTuple` and\n        :class:`~pysam.asGTF`).\n\n    encoding : string\n\n        The encoding passed to the parser\n\n    threads: integer\n        Number of threads to use for decompressing Tabix files.\n        (Default=1)\n\n\n    Raises\n    ------\n    \n    ValueError\n        if index file is missing.\n\n    IOError\n        if file could not be opened\n    ", /*tp_doc*/
   __pyx_tp_traverse_5pysam_9libctabix_TabixFile, /*tp_traverse*/
   __pyx_tp_clear_5pysam_9libctabix_TabixFile, /*tp_clear*/
   0, /*tp_richcompare*/
@@ -18843,6 +21192,88 @@ static PyTypeObject __pyx_type_5pysam_9libctabix_asGTF = {
   #endif
   0, /*tp_alloc*/
   __pyx_tp_new_5pysam_9libctabix_asGTF, /*tp_new*/
+  0, /*tp_free*/
+  0, /*tp_is_gc*/
+  0, /*tp_bases*/
+  0, /*tp_mro*/
+  0, /*tp_cache*/
+  0, /*tp_subclasses*/
+  0, /*tp_weaklist*/
+  0, /*tp_del*/
+  0, /*tp_version_tag*/
+  #if PY_VERSION_HEX >= 0x030400a1
+  0, /*tp_finalize*/
+  #endif
+};
+static struct __pyx_vtabstruct_5pysam_9libctabix_asGFF3 __pyx_vtable_5pysam_9libctabix_asGFF3;
+
+static PyObject *__pyx_tp_new_5pysam_9libctabix_asGFF3(PyTypeObject *t, PyObject *a, PyObject *k) {
+  struct __pyx_obj_5pysam_9libctabix_asGFF3 *p;
+  PyObject *o = __pyx_tp_new_5pysam_9libctabix_Parser(t, a, k);
+  if (unlikely(!o)) return 0;
+  p = ((struct __pyx_obj_5pysam_9libctabix_asGFF3 *)o);
+  p->__pyx_base.__pyx_vtab = (struct __pyx_vtabstruct_5pysam_9libctabix_Parser*)__pyx_vtabptr_5pysam_9libctabix_asGFF3;
+  return o;
+}
+
+static PyMethodDef __pyx_methods_5pysam_9libctabix_asGFF3[] = {
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_5pysam_9libctabix_6asGFF3_1__reduce_cython__, METH_NOARGS, __pyx_doc_5pysam_9libctabix_6asGFF3___reduce_cython__},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_5pysam_9libctabix_6asGFF3_3__setstate_cython__, METH_O, __pyx_doc_5pysam_9libctabix_6asGFF3_2__setstate_cython__},
+  {0, 0, 0, 0}
+};
+
+static PyTypeObject __pyx_type_5pysam_9libctabix_asGFF3 = {
+  PyVarObject_HEAD_INIT(0, 0)
+  "pysam.libctabix.asGFF3", /*tp_name*/
+  sizeof(struct __pyx_obj_5pysam_9libctabix_asGFF3), /*tp_basicsize*/
+  0, /*tp_itemsize*/
+  __pyx_tp_dealloc_5pysam_9libctabix_Parser, /*tp_dealloc*/
+  0, /*tp_print*/
+  0, /*tp_getattr*/
+  0, /*tp_setattr*/
+  #if PY_MAJOR_VERSION < 3
+  0, /*tp_compare*/
+  #endif
+  #if PY_MAJOR_VERSION >= 3
+  0, /*tp_as_async*/
+  #endif
+  0, /*tp_repr*/
+  0, /*tp_as_number*/
+  0, /*tp_as_sequence*/
+  0, /*tp_as_mapping*/
+  0, /*tp_hash*/
+  #if CYTHON_COMPILING_IN_PYPY
+  __pyx_pw_5pysam_9libctabix_6Parser_7__call__, /*tp_call*/
+  #else
+  0, /*tp_call*/
+  #endif
+  0, /*tp_str*/
+  0, /*tp_getattro*/
+  0, /*tp_setattro*/
+  0, /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
+  "converts a :term:`tabix row` into a GFF record with the following\n    fields:\n   \n    +----------+----------+-------------------------------+\n    |*Column*  |*Name*    |*Content*                      |\n    +----------+----------+-------------------------------+\n    |1         |contig    |the chromosome name            |\n    +----------+----------+-------------------------------+\n    |2         |feature   |The feature type               |\n    +----------+----------+-------------------------------+\n    |3         |source    |The feature source             |\n    +----------+----------+-------------------------------+\n    |4         |start     |genomic start coordinate       |\n    |          |          |(0-based)                      |\n    +----------+----------+-------------------------------+\n    |5         |end       |genomic end coordinate         |\n    |          |          |(0-based)                      |\n    +----------+----------+-------------------------------+\n    |6         |score     |feature score                  |\n    +----------+----------+-------------------------------+\n    |7         |strand    |strand                         |\n    +----------+----------+-------------------------------+\n    |8         |frame     |frame                          |\n    +----------+----------+-------------------------------+\n    |9         |attributes|the attribute field            |\n    +----------+----------+-------------------------------+\n\n    ", /*tp_doc*/
+  __pyx_tp_traverse_5pysam_9libctabix_Parser, /*tp_traverse*/
+  __pyx_tp_clear_5pysam_9libctabix_Parser, /*tp_clear*/
+  0, /*tp_richcompare*/
+  0, /*tp_weaklistoffset*/
+  0, /*tp_iter*/
+  0, /*tp_iternext*/
+  __pyx_methods_5pysam_9libctabix_asGFF3, /*tp_methods*/
+  0, /*tp_members*/
+  0, /*tp_getset*/
+  0, /*tp_base*/
+  0, /*tp_dict*/
+  0, /*tp_descr_get*/
+  0, /*tp_descr_set*/
+  0, /*tp_dictoffset*/
+  #if CYTHON_COMPILING_IN_PYPY
+  __pyx_pw_5pysam_9libctabix_6Parser_1__init__, /*tp_init*/
+  #else
+  0, /*tp_init*/
+  #endif
+  0, /*tp_alloc*/
+  __pyx_tp_new_5pysam_9libctabix_asGFF3, /*tp_new*/
   0, /*tp_free*/
   0, /*tp_is_gc*/
   0, /*tp_bases*/
@@ -19697,13 +22128,12 @@ static struct PyModuleDef __pyx_moduledef = {
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_b_, __pyx_k_, sizeof(__pyx_k_), 0, 0, 0, 0},
-  {&__pyx_n_s_AttributeError, __pyx_k_AttributeError, sizeof(__pyx_k_AttributeError), 0, 0, 1, 1},
+  {&__pyx_kp_b_1f8b, __pyx_k_1f8b, sizeof(__pyx_k_1f8b), 0, 0, 0, 0},
   {&__pyx_n_s_EmptyIterator, __pyx_k_EmptyIterator, sizeof(__pyx_k_EmptyIterator), 0, 0, 1, 1},
   {&__pyx_n_s_EmptyIterator___iter, __pyx_k_EmptyIterator___iter, sizeof(__pyx_k_EmptyIterator___iter), 0, 0, 1, 1},
   {&__pyx_n_s_EmptyIterator___next, __pyx_k_EmptyIterator___next, sizeof(__pyx_k_EmptyIterator___next), 0, 0, 1, 1},
   {&__pyx_n_s_EmptyIterator_next, __pyx_k_EmptyIterator_next, sizeof(__pyx_k_EmptyIterator_next), 0, 0, 1, 1},
   {&__pyx_kp_s_Filename_s_already_exists_use_fo, __pyx_k_Filename_s_already_exists_use_fo, sizeof(__pyx_k_Filename_s_already_exists_use_fo), 0, 0, 1, 0},
-  {&__pyx_kp_s_Filename_s_tbi_already_exists_us, __pyx_k_Filename_s_tbi_already_exists_us, sizeof(__pyx_k_Filename_s_tbi_already_exists_us), 0, 0, 1, 0},
   {&__pyx_n_s_GZIterator, __pyx_k_GZIterator, sizeof(__pyx_k_GZIterator), 0, 0, 1, 1},
   {&__pyx_n_s_GZIteratorHead, __pyx_k_GZIteratorHead, sizeof(__pyx_k_GZIteratorHead), 0, 0, 1, 1},
   {&__pyx_n_s_IOError, __pyx_k_IOError, sizeof(__pyx_k_IOError), 0, 0, 1, 1},
@@ -19725,17 +22155,22 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_n_s_WINDOW_SIZE, __pyx_k_WINDOW_SIZE, sizeof(__pyx_k_WINDOW_SIZE), 0, 0, 1, 1},
   {&__pyx_kp_s__24, __pyx_k__24, sizeof(__pyx_k__24), 0, 0, 1, 0},
-  {&__pyx_kp_s__35, __pyx_k__35, sizeof(__pyx_k__35), 0, 0, 1, 0},
+  {&__pyx_kp_s__27, __pyx_k__27, sizeof(__pyx_k__27), 0, 0, 1, 0},
+  {&__pyx_n_s_a2b_hex, __pyx_k_a2b_hex, sizeof(__pyx_k_a2b_hex), 0, 0, 1, 1},
   {&__pyx_n_s_all, __pyx_k_all, sizeof(__pyx_k_all), 0, 0, 1, 1},
   {&__pyx_n_s_asBed, __pyx_k_asBed, sizeof(__pyx_k_asBed), 0, 0, 1, 1},
+  {&__pyx_n_s_asGFF3, __pyx_k_asGFF3, sizeof(__pyx_k_asGFF3), 0, 0, 1, 1},
   {&__pyx_n_s_asGTF, __pyx_k_asGTF, sizeof(__pyx_k_asGTF), 0, 0, 1, 1},
   {&__pyx_n_s_asTuple, __pyx_k_asTuple, sizeof(__pyx_k_asTuple), 0, 0, 1, 1},
   {&__pyx_n_s_asVCF, __pyx_k_asVCF, sizeof(__pyx_k_asVCF), 0, 0, 1, 1},
   {&__pyx_n_s_ascii, __pyx_k_ascii, sizeof(__pyx_k_ascii), 0, 0, 1, 1},
   {&__pyx_n_s_b, __pyx_k_b, sizeof(__pyx_k_b), 0, 0, 1, 1},
+  {&__pyx_n_s_bcf, __pyx_k_bcf, sizeof(__pyx_k_bcf), 0, 0, 1, 1},
   {&__pyx_n_s_bed, __pyx_k_bed, sizeof(__pyx_k_bed), 0, 0, 1, 1},
+  {&__pyx_n_s_binascii, __pyx_k_binascii, sizeof(__pyx_k_binascii), 0, 0, 1, 1},
   {&__pyx_n_s_buffer, __pyx_k_buffer, sizeof(__pyx_k_buffer), 0, 0, 1, 1},
   {&__pyx_n_s_buffer_size, __pyx_k_buffer_size, sizeof(__pyx_k_buffer_size), 0, 0, 1, 1},
+  {&__pyx_kp_s_building_of_index_for_failed, __pyx_k_building_of_index_for_failed, sizeof(__pyx_k_building_of_index_for_failed), 0, 0, 1, 0},
   {&__pyx_n_s_bytes_cpy, __pyx_k_bytes_cpy, sizeof(__pyx_k_bytes_cpy), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
   {&__pyx_n_s_cfn, __pyx_k_cfn, sizeof(__pyx_k_cfn), 0, 0, 1, 1},
@@ -19747,11 +22182,15 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_contigs, __pyx_k_contigs, sizeof(__pyx_k_contigs), 0, 0, 1, 1},
   {&__pyx_kp_s_could_not_create_iterator_for_re, __pyx_k_could_not_create_iterator_for_re, sizeof(__pyx_k_could_not_create_iterator_for_re), 0, 0, 1, 0},
   {&__pyx_kp_s_could_not_create_iterator_possib, __pyx_k_could_not_create_iterator_possib, sizeof(__pyx_k_could_not_create_iterator_possib), 0, 0, 1, 0},
+  {&__pyx_kp_s_could_not_load_tbi_csi_index_of, __pyx_k_could_not_load_tbi_csi_index_of, sizeof(__pyx_k_could_not_load_tbi_csi_index_of), 0, 0, 1, 0},
   {&__pyx_kp_s_could_not_open_file_s, __pyx_k_could_not_open_file_s, sizeof(__pyx_k_could_not_open_file_s), 0, 0, 1, 0},
+  {&__pyx_kp_s_could_not_open_for_reading_heade, __pyx_k_could_not_open_for_reading_heade, sizeof(__pyx_k_could_not_open_for_reading_heade), 0, 0, 1, 0},
   {&__pyx_kp_s_could_not_open_index_for_s, __pyx_k_could_not_open_index_for_s, sizeof(__pyx_k_could_not_open_index_for_s), 0, 0, 1, 0},
   {&__pyx_kp_s_could_not_open_s_for_reading, __pyx_k_could_not_open_s_for_reading, sizeof(__pyx_k_could_not_open_s_for_reading), 0, 0, 1, 0},
   {&__pyx_kp_s_could_not_open_s_for_writing, __pyx_k_could_not_open_s_for_writing, sizeof(__pyx_k_could_not_open_s_for_writing), 0, 0, 1, 0},
   {&__pyx_n_s_cpy, __pyx_k_cpy, sizeof(__pyx_k_cpy), 0, 0, 1, 1},
+  {&__pyx_n_s_csi, __pyx_k_csi, sizeof(__pyx_k_csi), 0, 0, 1, 1},
+  {&__pyx_kp_s_csi_2, __pyx_k_csi_2, sizeof(__pyx_k_csi_2), 0, 0, 1, 0},
   {&__pyx_n_s_dict, __pyx_k_dict, sizeof(__pyx_k_dict), 0, 0, 1, 1},
   {&__pyx_n_s_doc, __pyx_k_doc, sizeof(__pyx_k_doc), 0, 0, 1, 1},
   {&__pyx_n_s_dup, __pyx_k_dup, sizeof(__pyx_k_dup), 0, 0, 1, 1},
@@ -19760,22 +22199,29 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_end, __pyx_k_end, sizeof(__pyx_k_end), 0, 0, 1, 1},
   {&__pyx_n_s_end_col, __pyx_k_end_col, sizeof(__pyx_k_end_col), 0, 0, 1, 1},
   {&__pyx_kp_s_end_out_of_range_i, __pyx_k_end_out_of_range_i, sizeof(__pyx_k_end_out_of_range_i), 0, 0, 1, 0},
-  {&__pyx_n_s_endswith, __pyx_k_endswith, sizeof(__pyx_k_endswith), 0, 0, 1, 1},
   {&__pyx_kp_s_error_i_when_closing_file_s, __pyx_k_error_i_when_closing_file_s, sizeof(__pyx_k_error_i_when_closing_file_s), 0, 0, 1, 0},
   {&__pyx_kp_s_error_i_when_writing_to_file_s, __pyx_k_error_i_when_writing_to_file_s, sizeof(__pyx_k_error_i_when_writing_to_file_s), 0, 0, 1, 0},
   {&__pyx_n_s_exists, __pyx_k_exists, sizeof(__pyx_k_exists), 0, 0, 1, 1},
+  {&__pyx_n_s_fd, __pyx_k_fd, sizeof(__pyx_k_fd), 0, 0, 1, 1},
   {&__pyx_n_s_fd_src, __pyx_k_fd_src, sizeof(__pyx_k_fd_src), 0, 0, 1, 1},
   {&__pyx_kp_s_file_s_not_found, __pyx_k_file_s_not_found, sizeof(__pyx_k_file_s_not_found), 0, 0, 1, 0},
   {&__pyx_n_s_filename, __pyx_k_filename, sizeof(__pyx_k_filename), 0, 0, 1, 1},
   {&__pyx_n_s_filename_in, __pyx_k_filename_in, sizeof(__pyx_k_filename_in), 0, 0, 1, 1},
   {&__pyx_n_s_filename_out, __pyx_k_filename_out, sizeof(__pyx_k_filename_out), 0, 0, 1, 1},
+  {&__pyx_kp_s_filename_s_already_exists_use_fo, __pyx_k_filename_s_already_exists_use_fo, sizeof(__pyx_k_filename_s_already_exists_use_fo), 0, 0, 1, 0},
+  {&__pyx_n_s_fmt, __pyx_k_fmt, sizeof(__pyx_k_fmt), 0, 0, 1, 1},
   {&__pyx_n_s_fn, __pyx_k_fn, sizeof(__pyx_k_fn), 0, 0, 1, 1},
+  {&__pyx_n_s_fn_index, __pyx_k_fn_index, sizeof(__pyx_k_fn_index), 0, 0, 1, 1},
+  {&__pyx_n_s_fnidx, __pyx_k_fnidx, sizeof(__pyx_k_fnidx), 0, 0, 1, 1},
   {&__pyx_n_s_force, __pyx_k_force, sizeof(__pyx_k_force), 0, 0, 1, 1},
+  {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_fp, __pyx_k_fp, sizeof(__pyx_k_fp), 0, 0, 1, 1},
   {&__pyx_n_s_get_encoding, __pyx_k_get_encoding, sizeof(__pyx_k_get_encoding), 0, 0, 1, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
   {&__pyx_n_s_gff, __pyx_k_gff, sizeof(__pyx_k_gff), 0, 0, 1, 1},
   {&__pyx_kp_s_gz, __pyx_k_gz, sizeof(__pyx_k_gz), 0, 0, 1, 0},
+  {&__pyx_n_s_gzip_magic_hex, __pyx_k_gzip_magic_hex, sizeof(__pyx_k_gzip_magic_hex), 0, 0, 1, 1},
+  {&__pyx_n_s_header, __pyx_k_header, sizeof(__pyx_k_header), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_kp_s_incomplete_line_at_s, __pyx_k_incomplete_line_at_s, sizeof(__pyx_k_incomplete_line_at_s), 0, 0, 1, 0},
   {&__pyx_n_s_index, __pyx_k_index, sizeof(__pyx_k_index), 0, 0, 1, 1},
@@ -19784,14 +22230,17 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_init, __pyx_k_init, sizeof(__pyx_k_init), 0, 0, 1, 1},
   {&__pyx_kp_s_invalid_file_opening_mode_s, __pyx_k_invalid_file_opening_mode_s, sizeof(__pyx_k_invalid_file_opening_mode_s), 0, 0, 1, 0},
   {&__pyx_n_s_is_empty, __pyx_k_is_empty, sizeof(__pyx_k_is_empty), 0, 0, 1, 1},
+  {&__pyx_n_s_is_gzip_file, __pyx_k_is_gzip_file, sizeof(__pyx_k_is_gzip_file), 0, 0, 1, 1},
   {&__pyx_n_s_is_open, __pyx_k_is_open, sizeof(__pyx_k_is_open), 0, 0, 1, 1},
   {&__pyx_n_s_iter, __pyx_k_iter, sizeof(__pyx_k_iter), 0, 0, 1, 1},
   {&__pyx_kp_s_iterate_over_infile_Permits_the, __pyx_k_iterate_over_infile_Permits_the, sizeof(__pyx_k_iterate_over_infile_Permits_the), 0, 0, 1, 0},
   {&__pyx_kp_s_iteration_on_closed_file, __pyx_k_iteration_on_closed_file, sizeof(__pyx_k_iteration_on_closed_file), 0, 0, 1, 0},
   {&__pyx_n_s_join, __pyx_k_join, sizeof(__pyx_k_join), 0, 0, 1, 1},
+  {&__pyx_n_s_keep_original, __pyx_k_keep_original, sizeof(__pyx_k_keep_original), 0, 0, 1, 1},
   {&__pyx_n_s_keys, __pyx_k_keys, sizeof(__pyx_k_keys), 0, 0, 1, 1},
   {&__pyx_n_s_length, __pyx_k_length, sizeof(__pyx_k_length), 0, 0, 1, 1},
   {&__pyx_n_s_line, __pyx_k_line, sizeof(__pyx_k_line), 0, 0, 1, 1},
+  {&__pyx_n_s_line_skip, __pyx_k_line_skip, sizeof(__pyx_k_line_skip), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_meta_char, __pyx_k_meta_char, sizeof(__pyx_k_meta_char), 0, 0, 1, 1},
   {&__pyx_n_s_metaclass, __pyx_k_metaclass, sizeof(__pyx_k_metaclass), 0, 0, 1, 1},
@@ -19807,12 +22256,12 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_next_2, __pyx_k_next_2, sizeof(__pyx_k_next_2), 0, 0, 1, 1},
   {&__pyx_kp_s_no_default___reduce___due_to_non, __pyx_k_no_default___reduce___due_to_non, sizeof(__pyx_k_no_default___reduce___due_to_non), 0, 0, 1, 0},
   {&__pyx_n_s_open, __pyx_k_open, sizeof(__pyx_k_open), 0, 0, 1, 1},
+  {&__pyx_n_s_open_2, __pyx_k_open_2, sizeof(__pyx_k_open_2), 0, 0, 1, 1},
   {&__pyx_n_s_os, __pyx_k_os, sizeof(__pyx_k_os), 0, 0, 1, 1},
   {&__pyx_kp_s_parse_method_of_s_not_implemente, __pyx_k_parse_method_of_s_not_implemente, sizeof(__pyx_k_parse_method_of_s_not_implemente), 0, 0, 1, 0},
   {&__pyx_n_s_parser, __pyx_k_parser, sizeof(__pyx_k_parser), 0, 0, 1, 1},
   {&__pyx_n_s_path, __pyx_k_path, sizeof(__pyx_k_path), 0, 0, 1, 1},
   {&__pyx_n_s_pickle, __pyx_k_pickle, sizeof(__pyx_k_pickle), 0, 0, 1, 1},
-  {&__pyx_n_s_pileup, __pyx_k_pileup, sizeof(__pyx_k_pileup), 0, 0, 1, 1},
   {&__pyx_n_s_prepare, __pyx_k_prepare, sizeof(__pyx_k_prepare), 0, 0, 1, 1},
   {&__pyx_n_s_preset, __pyx_k_preset, sizeof(__pyx_k_preset), 0, 0, 1, 1},
   {&__pyx_n_s_preset2conf, __pyx_k_preset2conf, sizeof(__pyx_k_preset2conf), 0, 0, 1, 1},
@@ -19826,18 +22275,21 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_pyx_type, __pyx_k_pyx_type, sizeof(__pyx_k_pyx_type), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_unpickle_Parser, __pyx_k_pyx_unpickle_Parser, sizeof(__pyx_k_pyx_unpickle_Parser), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_unpickle_asBed, __pyx_k_pyx_unpickle_asBed, sizeof(__pyx_k_pyx_unpickle_asBed), 0, 0, 1, 1},
+  {&__pyx_n_s_pyx_unpickle_asGFF3, __pyx_k_pyx_unpickle_asGFF3, sizeof(__pyx_k_pyx_unpickle_asGFF3), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_unpickle_asGTF, __pyx_k_pyx_unpickle_asGTF, sizeof(__pyx_k_pyx_unpickle_asGTF), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_unpickle_asTuple, __pyx_k_pyx_unpickle_asTuple, sizeof(__pyx_k_pyx_unpickle_asTuple), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_unpickle_asVCF, __pyx_k_pyx_unpickle_asVCF, sizeof(__pyx_k_pyx_unpickle_asVCF), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
   {&__pyx_n_s_qualname, __pyx_k_qualname, sizeof(__pyx_k_qualname), 0, 0, 1, 1},
   {&__pyx_n_s_r, __pyx_k_r, sizeof(__pyx_k_r), 0, 0, 1, 1},
+  {&__pyx_n_s_read, __pyx_k_read, sizeof(__pyx_k_read), 0, 0, 1, 1},
   {&__pyx_n_s_readline, __pyx_k_readline, sizeof(__pyx_k_readline), 0, 0, 1, 1},
   {&__pyx_n_s_reduce, __pyx_k_reduce, sizeof(__pyx_k_reduce), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
   {&__pyx_n_s_reference, __pyx_k_reference, sizeof(__pyx_k_reference), 0, 0, 1, 1},
   {&__pyx_n_s_region, __pyx_k_region, sizeof(__pyx_k_region), 0, 0, 1, 1},
+  {&__pyx_n_s_retval, __pyx_k_retval, sizeof(__pyx_k_retval), 0, 0, 1, 1},
   {&__pyx_kp_s_s, __pyx_k_s, sizeof(__pyx_k_s), 0, 0, 1, 0},
   {&__pyx_n_s_s_2, __pyx_k_s_2, sizeof(__pyx_k_s_2), 0, 0, 1, 1},
   {&__pyx_kp_s_s_i, __pyx_k_s_i, sizeof(__pyx_k_s_i), 0, 0, 1, 0},
@@ -19855,6 +22307,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_start_i_end_i, __pyx_k_start_i_end_i, sizeof(__pyx_k_start_i_end_i), 0, 0, 1, 0},
   {&__pyx_kp_s_start_out_of_range_i, __pyx_k_start_out_of_range_i, sizeof(__pyx_k_start_out_of_range_i), 0, 0, 1, 0},
   {&__pyx_kp_s_stringsource, __pyx_k_stringsource, sizeof(__pyx_k_stringsource), 0, 0, 1, 0},
+  {&__pyx_n_s_suffix, __pyx_k_suffix, sizeof(__pyx_k_suffix), 0, 0, 1, 1},
   {&__pyx_n_s_sys, __pyx_k_sys, sizeof(__pyx_k_sys), 0, 0, 1, 1},
   {&__pyx_n_s_tabix_compress, __pyx_k_tabix_compress, sizeof(__pyx_k_tabix_compress), 0, 0, 1, 1},
   {&__pyx_n_s_tabix_file_iterator, __pyx_k_tabix_file_iterator, sizeof(__pyx_k_tabix_file_iterator), 0, 0, 1, 1},
@@ -19868,7 +22321,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_tbi, __pyx_k_tbi, sizeof(__pyx_k_tbi), 0, 0, 1, 0},
   {&__pyx_n_s_tell, __pyx_k_tell, sizeof(__pyx_k_tell), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
-  {&__pyx_kp_s_the_header_is_not_available_for, __pyx_k_the_header_is_not_available_for, sizeof(__pyx_k_the_header_is_not_available_for), 0, 0, 1, 0},
+  {&__pyx_n_s_threads, __pyx_k_threads, sizeof(__pyx_k_threads), 0, 0, 1, 1},
   {&__pyx_kp_s_unknown_preset_s_valid_presets_a, __pyx_k_unknown_preset_s_valid_presets_a, sizeof(__pyx_k_unknown_preset_s_valid_presets_a), 0, 0, 1, 0},
   {&__pyx_n_s_unlink, __pyx_k_unlink, sizeof(__pyx_k_unlink), 0, 0, 1, 1},
   {&__pyx_n_s_update, __pyx_k_update, sizeof(__pyx_k_update), 0, 0, 1, 1},
@@ -19878,14 +22331,13 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_NotImplementedError = __Pyx_GetBuiltinName(__pyx_n_s_NotImplementedError); if (!__pyx_builtin_NotImplementedError) __PYX_ERR(0, 92, __pyx_L1_error)
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 315, __pyx_L1_error)
-  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 331, __pyx_L1_error)
-  __pyx_builtin_AttributeError = __Pyx_GetBuiltinName(__pyx_n_s_AttributeError); if (!__pyx_builtin_AttributeError) __PYX_ERR(0, 502, __pyx_L1_error)
+  __pyx_builtin_NotImplementedError = __Pyx_GetBuiltinName(__pyx_n_s_NotImplementedError); if (!__pyx_builtin_NotImplementedError) __PYX_ERR(0, 96, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 363, __pyx_L1_error)
+  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 380, __pyx_L1_error)
+  __pyx_builtin_OSError = __Pyx_GetBuiltinName(__pyx_n_s_OSError); if (!__pyx_builtin_OSError) __PYX_ERR(0, 562, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
-  __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) __PYX_ERR(0, 598, __pyx_L1_error)
-  __pyx_builtin_OSError = __Pyx_GetBuiltinName(__pyx_n_s_OSError); if (!__pyx_builtin_OSError) __PYX_ERR(0, 794, __pyx_L1_error)
-  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 888, __pyx_L1_error)
+  __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) __PYX_ERR(0, 673, __pyx_L1_error)
+  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 989, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(3, 109, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -19896,306 +22348,207 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "pysam/libctabix.pyx":396
+  /* "pysam/libctabix.pyx":446
  *         '''
  *         if not self.is_open():
  *             raise ValueError("I/O operation on closed file")             # <<<<<<<<<<<<<<
  * 
  *         # convert coordinates to region string, which is one-based
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 396, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 446, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "pysam/libctabix.pyx":451
+  /* "pysam/libctabix.pyx":501
  *                     # when accessing a tabix file created prior tabix 1.0
  *                     # the full-file iterator is empty.
  *                     raise ValueError(             # <<<<<<<<<<<<<<
  *                         "could not create iterator, possible "
  *                         "tabix version mismatch")
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_could_not_create_iterator_possib); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 451, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_could_not_create_iterator_possib); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 501, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "pysam/libctabix.pyx":502
- *         def __get__(self):
- *             if self.is_remote:
- *                 raise AttributeError(             # <<<<<<<<<<<<<<
- *                     "the header is not available for remote files")
- *             return GZIteratorHead(self.filename)
+  /* "(tree fragment)":2
+ * def __reduce_cython__(self):
+ *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_the_header_is_not_available_for); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 502, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "(tree fragment)":2
- * def __reduce_cython__(self):
- *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
- * def __setstate_cython__(self, __pyx_state):
+  /* "(tree fragment)":4
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "(tree fragment)":4
- *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
- * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
+  /* "pysam/libctabix.pyx":671
+ *         cdef int retval = self.__cnext__()
+ *         if retval == -5:
+ *             raise IOError("iteration on closed file")             # <<<<<<<<<<<<<<
+ *         elif retval < 0:
+ *             raise StopIteration
  */
-  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s_iteration_on_closed_file); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 671, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "pysam/libctabix.pyx":596
- *         cdef int retval = self.__cnext__()
- *         if retval == -5:
- *             raise IOError("iteration on closed file")             # <<<<<<<<<<<<<<
- *         elif retval < 0:
- *             raise StopIteration
+  /* "(tree fragment)":2
+ * def __reduce_cython__(self):
+ *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")
  */
-  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_iteration_on_closed_file); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 596, __pyx_L1_error)
+  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_self_iterator_cannot_be_converte); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "(tree fragment)":2
- * def __reduce_cython__(self):
- *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
- * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")
- */
-  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s_self_iterator_cannot_be_converte); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(1, 2, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__8);
-  __Pyx_GIVEREF(__pyx_tuple__8);
-
   /* "(tree fragment)":4
  *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_self_iterator_cannot_be_converte); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(1, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__9);
-  __Pyx_GIVEREF(__pyx_tuple__9);
+  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s_self_iterator_cannot_be_converte); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__8);
+  __Pyx_GIVEREF(__pyx_tuple__8);
 
-  /* "pysam/libctabix.pyx":647
+  /* "pysam/libctabix.pyx":722
  *         cdef int retval = self.__cnext__()
  *         if retval == -5:
  *             raise IOError("iteration on closed file")             # <<<<<<<<<<<<<<
  *         elif retval < 0:
  *             raise StopIteration
  */
-  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_iteration_on_closed_file); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 647, __pyx_L1_error)
+  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s_iteration_on_closed_file); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 722, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__12);
+  __Pyx_GIVEREF(__pyx_tuple__12);
+
+  /* "(tree fragment)":2
+ * def __reduce_cython__(self):
+ *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")
+ */
+  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_self_iterator_cannot_be_converte); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
 
-  /* "(tree fragment)":2
- * def __reduce_cython__(self):
- *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
- * def __setstate_cython__(self, __pyx_state):
+  /* "(tree fragment)":4
  *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_self_iterator_cannot_be_converte); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_self_iterator_cannot_be_converte); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__14);
   __Pyx_GIVEREF(__pyx_tuple__14);
 
-  /* "(tree fragment)":4
- *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")
+  /* "(tree fragment)":2
+ * def __reduce_cython__(self):
+ *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("self.iterator cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")
  */
-  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_self_iterator_cannot_be_converte); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
 
-  /* "(tree fragment)":2
- * def __reduce_cython__(self):
- *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
- * def __setstate_cython__(self, __pyx_state):
+  /* "(tree fragment)":4
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__16);
   __Pyx_GIVEREF(__pyx_tuple__16);
 
-  /* "(tree fragment)":4
- *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")
- * def __setstate_cython__(self, __pyx_state):
+  /* "(tree fragment)":2
+ * def __reduce_cython__(self):
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")
  */
-  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__17);
   __Pyx_GIVEREF(__pyx_tuple__17);
 
-  /* "(tree fragment)":2
- * def __reduce_cython__(self):
- *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
- * def __setstate_cython__(self, __pyx_state):
+  /* "(tree fragment)":4
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__18);
   __Pyx_GIVEREF(__pyx_tuple__18);
 
-  /* "(tree fragment)":4
- *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")
- * def __setstate_cython__(self, __pyx_state):
- *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
- */
-  __pyx_tuple__19 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(1, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__19);
-  __Pyx_GIVEREF(__pyx_tuple__19);
-
   /* "(tree fragment)":2
  * def __reduce_cython__(self):
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")
  */
-  __pyx_tuple__20 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(1, 2, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__20);
-  __Pyx_GIVEREF(__pyx_tuple__20);
+  __pyx_tuple__19 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__19);
+  __Pyx_GIVEREF(__pyx_tuple__19);
 
   /* "(tree fragment)":4
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("self.gzipfile,self.kstream cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__21 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(1, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__21);
-  __Pyx_GIVEREF(__pyx_tuple__21);
+  __pyx_tuple__20 = PyTuple_Pack(1, __pyx_kp_s_self_gzipfile_self_kstream_canno); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__20);
+  __Pyx_GIVEREF(__pyx_tuple__20);
 
-  /* "pysam/libctabix.pyx":794
+  /* "pysam/libctabix.pyx":869
  *         if r < 0:
  *             free(buffer)
- *             raise OSError("writing failed")             # <<<<<<<<<<<<<<
+ *             raise IOError("writing failed")             # <<<<<<<<<<<<<<
  * 
  *     free(buffer)
  */
-  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_kp_s_writing_failed); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 794, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__23);
-  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_kp_s_writing_failed); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 869, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__22);
+  __Pyx_GIVEREF(__pyx_tuple__22);
 
-  /* "pysam/libctabix.pyx":860
+  /* "pysam/libctabix.pyx":953
  *     if preset is None and \
  *        (seq_col is None or start_col is None or end_col is None):
  *         raise ValueError(             # <<<<<<<<<<<<<<
  *             "neither preset nor seq_col,start_col and end_col given")
  * 
  */
-  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_kp_s_neither_preset_nor_seq_col_start); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 860, __pyx_L1_error)
+  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_kp_s_neither_preset_nor_seq_col_start); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 953, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__26);
   __Pyx_GIVEREF(__pyx_tuple__26);
 
-  /* "pysam/libctabix.pyx":863
- *             "neither preset nor seq_col,start_col and end_col given")
- * 
- *     if not filename.endswith(".gz"):             # <<<<<<<<<<<<<<
- *         tabix_compress(filename, filename + ".gz", force=force)
- *         os.unlink( filename )
- */
-  __pyx_tuple__27 = PyTuple_Pack(1, __pyx_kp_s_gz); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 863, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__27);
-  __Pyx_GIVEREF(__pyx_tuple__27);
-
-  /* "pysam/libctabix.pyx":869
- * 
- *     if not force and os.path.exists(filename + ".tbi"):
- *         raise IOError(             # <<<<<<<<<<<<<<
- *             "Filename '%s.tbi' already exists, use *force* to overwrite")
- * 
- */
-  __pyx_tuple__28 = PyTuple_Pack(1, __pyx_kp_s_Filename_s_tbi_already_exists_us); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 869, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__28);
-  __Pyx_GIVEREF(__pyx_tuple__28);
-
-  /* "pysam/libctabix.pyx":877
- *     # 0 is a missing column
- *     preset2conf = {
- *         'gff' : (0, 1, 4, 5, ord('#'), 0),             # <<<<<<<<<<<<<<
- *         'bed' : (0x10000, 1, 2, 3, ord('#'), 0),
- *         'psltbl' : (0x10000, 15, 17, 18, ord('#'), 0),
- */
-  __pyx_tuple__29 = PyTuple_Pack(6, __pyx_int_0, __pyx_int_1, __pyx_int_4, __pyx_int_5, __pyx_int_35, __pyx_int_0); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 877, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__29);
-  __Pyx_GIVEREF(__pyx_tuple__29);
-
-  /* "pysam/libctabix.pyx":878
- *     preset2conf = {
- *         'gff' : (0, 1, 4, 5, ord('#'), 0),
- *         'bed' : (0x10000, 1, 2, 3, ord('#'), 0),             # <<<<<<<<<<<<<<
- *         'psltbl' : (0x10000, 15, 17, 18, ord('#'), 0),
- *         'sam' : (1, 3, 4, 0, ord('@'), 0),
- */
-  __pyx_tuple__30 = PyTuple_Pack(6, __pyx_int_65536, __pyx_int_1, __pyx_int_2, __pyx_int_3, __pyx_int_35, __pyx_int_0); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 878, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__30);
-  __Pyx_GIVEREF(__pyx_tuple__30);
-
-  /* "pysam/libctabix.pyx":879
- *         'gff' : (0, 1, 4, 5, ord('#'), 0),
- *         'bed' : (0x10000, 1, 2, 3, ord('#'), 0),
- *         'psltbl' : (0x10000, 15, 17, 18, ord('#'), 0),             # <<<<<<<<<<<<<<
- *         'sam' : (1, 3, 4, 0, ord('@'), 0),
- *         'vcf' : (2, 1, 2, 0, ord('#'), 0),
- */
-  __pyx_tuple__31 = PyTuple_Pack(6, __pyx_int_65536, __pyx_int_15, __pyx_int_17, __pyx_int_18, __pyx_int_35, __pyx_int_0); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 879, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__31);
-  __Pyx_GIVEREF(__pyx_tuple__31);
-
-  /* "pysam/libctabix.pyx":880
- *         'bed' : (0x10000, 1, 2, 3, ord('#'), 0),
- *         'psltbl' : (0x10000, 15, 17, 18, ord('#'), 0),
- *         'sam' : (1, 3, 4, 0, ord('@'), 0),             # <<<<<<<<<<<<<<
- *         'vcf' : (2, 1, 2, 0, ord('#'), 0),
- *         'pileup': (3, 1, 2, 0, ord('#'), 0),
- */
-  __pyx_tuple__32 = PyTuple_Pack(6, __pyx_int_1, __pyx_int_3, __pyx_int_4, __pyx_int_0, __pyx_int_64, __pyx_int_0); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 880, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__32);
-  __Pyx_GIVEREF(__pyx_tuple__32);
-
-  /* "pysam/libctabix.pyx":881
- *         'psltbl' : (0x10000, 15, 17, 18, ord('#'), 0),
- *         'sam' : (1, 3, 4, 0, ord('@'), 0),
- *         'vcf' : (2, 1, 2, 0, ord('#'), 0),             # <<<<<<<<<<<<<<
- *         'pileup': (3, 1, 2, 0, ord('#'), 0),
- *         }
- */
-  __pyx_tuple__33 = PyTuple_Pack(6, __pyx_int_2, __pyx_int_1, __pyx_int_2, __pyx_int_0, __pyx_int_35, __pyx_int_0); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 881, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__33);
-  __Pyx_GIVEREF(__pyx_tuple__33);
-
-  /* "pysam/libctabix.pyx":882
- *         'sam' : (1, 3, 4, 0, ord('@'), 0),
- *         'vcf' : (2, 1, 2, 0, ord('#'), 0),
- *         'pileup': (3, 1, 2, 0, ord('#'), 0),             # <<<<<<<<<<<<<<
- *         }
- * 
- */
-  __pyx_tuple__34 = PyTuple_Pack(6, __pyx_int_3, __pyx_int_1, __pyx_int_2, __pyx_int_0, __pyx_int_35, __pyx_int_0); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 882, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__34);
-  __Pyx_GIVEREF(__pyx_tuple__34);
-
-  /* "pysam/libctabix.pyx":1005
+  /* "pysam/libctabix.pyx":1125
  * 
  *         if infile.closed:
  *             raise ValueError("I/O operation on closed file.")             # <<<<<<<<<<<<<<
  * 
  *         self.infile = infile
  */
-  __pyx_tuple__36 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file_2); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 1005, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__36);
-  __Pyx_GIVEREF(__pyx_tuple__36);
+  __pyx_tuple__28 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file_2); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 1125, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__28);
+  __Pyx_GIVEREF(__pyx_tuple__28);
 
-  /* "pysam/libctabix.pyx":1011
+  /* "pysam/libctabix.pyx":1131
  *         cdef int fd = PyObject_AsFileDescriptor(infile)
  *         if fd == -1:
  *             raise ValueError("I/O operation on closed file.")             # <<<<<<<<<<<<<<
  * 
  *         self.duplicated_fd = dup(fd)
  */
-  __pyx_tuple__37 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file_2); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 1011, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__37);
-  __Pyx_GIVEREF(__pyx_tuple__37);
+  __pyx_tuple__29 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file_2); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 1131, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__29);
+  __Pyx_GIVEREF(__pyx_tuple__29);
 
   /* "(tree fragment)":2
  * def __reduce_cython__(self):
@@ -20203,40 +22556,40 @@ static int __Pyx_InitCachedConstants(void) {
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_tuple__38 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(1, 2, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__38);
-  __Pyx_GIVEREF(__pyx_tuple__38);
+  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__30);
+  __Pyx_GIVEREF(__pyx_tuple__30);
 
   /* "(tree fragment)":4
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__39 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(1, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__39);
-  __Pyx_GIVEREF(__pyx_tuple__39);
+  __pyx_tuple__31 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__31);
+  __Pyx_GIVEREF(__pyx_tuple__31);
 
-  /* "pysam/libctabix.pyx":1087
+  /* "pysam/libctabix.pyx":1207
  *         self.infile = infile
  *         if self.infile.closed:
  *             raise ValueError("I/O operation on closed file.")             # <<<<<<<<<<<<<<
  *         self.parser = parser
  * 
  */
-  __pyx_tuple__41 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file_2); if (unlikely(!__pyx_tuple__41)) __PYX_ERR(0, 1087, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__41);
-  __Pyx_GIVEREF(__pyx_tuple__41);
+  __pyx_tuple__33 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file_2); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 1207, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__33);
+  __Pyx_GIVEREF(__pyx_tuple__33);
 
-  /* "pysam/libctabix.pyx":1105
+  /* "pysam/libctabix.pyx":1225
  *         # reading is still possible.
  *         if self.infile.closed:
  *             raise ValueError("I/O operation on closed file.")             # <<<<<<<<<<<<<<
  * 
  *         while 1:
  */
-  __pyx_tuple__44 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file_2); if (unlikely(!__pyx_tuple__44)) __PYX_ERR(0, 1105, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__44);
-  __Pyx_GIVEREF(__pyx_tuple__44);
+  __pyx_tuple__36 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file_2); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 1225, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__36);
+  __Pyx_GIVEREF(__pyx_tuple__36);
 
   /* "(tree fragment)":2
  * def __reduce_cython__(self):
@@ -20244,164 +22597,180 @@ static int __Pyx_InitCachedConstants(void) {
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_tuple__47 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__47)) __PYX_ERR(1, 2, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__47);
-  __Pyx_GIVEREF(__pyx_tuple__47);
+  __pyx_tuple__39 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__39);
+  __Pyx_GIVEREF(__pyx_tuple__39);
 
   /* "(tree fragment)":4
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__48 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__48)) __PYX_ERR(1, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__48);
-  __Pyx_GIVEREF(__pyx_tuple__48);
+  __pyx_tuple__40 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__40);
+  __Pyx_GIVEREF(__pyx_tuple__40);
 
-  /* "pysam/libctabix.pyx":615
+  /* "pysam/libctabix.pyx":690
  *     '''empty iterator'''
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
  *         return self
  * 
  */
-  __pyx_tuple__54 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__54)) __PYX_ERR(0, 615, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__54);
-  __Pyx_GIVEREF(__pyx_tuple__54);
-  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__54, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_iter, 615, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 615, __pyx_L1_error)
+  __pyx_tuple__47 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__47)) __PYX_ERR(0, 690, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__47);
+  __Pyx_GIVEREF(__pyx_tuple__47);
+  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_iter, 690, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 690, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":618
+  /* "pysam/libctabix.pyx":693
  *         return self
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
  *         raise StopIteration()
  * 
  */
-  __pyx_tuple__55 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__55)) __PYX_ERR(0, 618, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__55);
-  __Pyx_GIVEREF(__pyx_tuple__55);
-  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__55, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_next_2, 618, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 618, __pyx_L1_error)
+  __pyx_tuple__48 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__48)) __PYX_ERR(0, 693, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__48);
+  __Pyx_GIVEREF(__pyx_tuple__48);
+  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__48, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_next_2, 693, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 693, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":621
+  /* "pysam/libctabix.pyx":696
  *         raise StopIteration()
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
  *         raise StopIteration()
  * 
  */
-  __pyx_tuple__56 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__56)) __PYX_ERR(0, 621, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__56);
-  __Pyx_GIVEREF(__pyx_tuple__56);
-  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__56, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_next, 621, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 621, __pyx_L1_error)
+  __pyx_tuple__49 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__49)) __PYX_ERR(0, 696, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__49);
+  __Pyx_GIVEREF(__pyx_tuple__49);
+  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__49, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_next, 696, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 696, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":746
+  /* "pysam/libctabix.pyx":821
  * 
  * 
  * def tabix_compress(filename_in,             # <<<<<<<<<<<<<<
  *                    filename_out,
  *                    force=False):
  */
-  __pyx_tuple__57 = PyTuple_Pack(13, __pyx_n_s_filename_in, __pyx_n_s_filename_out, __pyx_n_s_force, __pyx_n_s_WINDOW_SIZE, __pyx_n_s_c, __pyx_n_s_r, __pyx_n_s_buffer, __pyx_n_s_fp, __pyx_n_s_fd_src, __pyx_n_s_is_empty, __pyx_n_s_O_RDONLY, __pyx_n_s_fn, __pyx_n_s_cfn); if (unlikely(!__pyx_tuple__57)) __PYX_ERR(0, 746, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__57);
-  __Pyx_GIVEREF(__pyx_tuple__57);
-  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(3, 0, 13, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__57, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_tabix_compress, 746, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(0, 746, __pyx_L1_error)
+  __pyx_tuple__50 = PyTuple_Pack(13, __pyx_n_s_filename_in, __pyx_n_s_filename_out, __pyx_n_s_force, __pyx_n_s_WINDOW_SIZE, __pyx_n_s_c, __pyx_n_s_r, __pyx_n_s_buffer, __pyx_n_s_fp, __pyx_n_s_fd_src, __pyx_n_s_is_empty, __pyx_n_s_O_RDONLY, __pyx_n_s_fn, __pyx_n_s_cfn); if (unlikely(!__pyx_tuple__50)) __PYX_ERR(0, 821, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__50);
+  __Pyx_GIVEREF(__pyx_tuple__50);
+  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(3, 0, 13, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__50, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_tabix_compress, 821, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 821, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":808
+  /* "pysam/libctabix.pyx":883
  * 
  * 
- * def tabix_index( filename,             # <<<<<<<<<<<<<<
- *                  force = False,
- *                  seq_col = None,
+ * def is_gzip_file(filename):             # <<<<<<<<<<<<<<
+ *     gzip_magic_hex = b'1f8b'
+ *     fd = os.open(filename, os.O_RDONLY)
  */
-  __pyx_tuple__58 = PyTuple_Pack(14, __pyx_n_s_filename, __pyx_n_s_force, __pyx_n_s_seq_col, __pyx_n_s_start_col, __pyx_n_s_end_col, __pyx_n_s_preset, __pyx_n_s_meta_char, __pyx_n_s_zerobased, __pyx_n_s_min_shift, __pyx_n_s_preset2conf, __pyx_n_s_conf_data, __pyx_n_s_conf, __pyx_n_s_fn, __pyx_n_s_cfn); if (unlikely(!__pyx_tuple__58)) __PYX_ERR(0, 808, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__58);
-  __Pyx_GIVEREF(__pyx_tuple__58);
-  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(9, 0, 14, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__58, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_tabix_index, 808, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(0, 808, __pyx_L1_error)
+  __pyx_tuple__51 = PyTuple_Pack(4, __pyx_n_s_filename, __pyx_n_s_gzip_magic_hex, __pyx_n_s_fd, __pyx_n_s_header); if (unlikely(!__pyx_tuple__51)) __PYX_ERR(0, 883, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__51);
+  __Pyx_GIVEREF(__pyx_tuple__51);
+  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__51, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_is_gzip_file, 883, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 883, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":1083
+  /* "pysam/libctabix.pyx":890
+ * 
+ * 
+ * def tabix_index(filename,             # <<<<<<<<<<<<<<
+ *                 force=False,
+ *                 seq_col=None,
+ */
+  __pyx_tuple__52 = PyTuple_Pack(24, __pyx_n_s_filename, __pyx_n_s_force, __pyx_n_s_seq_col, __pyx_n_s_start_col, __pyx_n_s_end_col, __pyx_n_s_preset, __pyx_n_s_meta_char, __pyx_n_s_line_skip, __pyx_n_s_zerobased, __pyx_n_s_min_shift, __pyx_n_s_index, __pyx_n_s_keep_original, __pyx_n_s_csi, __pyx_n_s_fn, __pyx_n_s_cfn, __pyx_n_s_fp, __pyx_n_s_fmt, __pyx_n_s_preset2conf, __pyx_n_s_conf_data, __pyx_n_s_conf, __pyx_n_s_suffix, __pyx_n_s_fn_index, __pyx_n_s_fnidx, __pyx_n_s_retval); if (unlikely(!__pyx_tuple__52)) __PYX_ERR(0, 890, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__52);
+  __Pyx_GIVEREF(__pyx_tuple__52);
+  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(13, 0, 24, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__52, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_tabix_index, 890, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(0, 890, __pyx_L1_error)
+
+  /* "pysam/libctabix.pyx":1203
  *     Permits the use of file-like objects for example from the gzip module.
  *     '''
  *     def __init__(self, infile, parser):             # <<<<<<<<<<<<<<
  * 
  *         self.infile = infile
  */
-  __pyx_tuple__59 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_infile, __pyx_n_s_parser); if (unlikely(!__pyx_tuple__59)) __PYX_ERR(0, 1083, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__59);
-  __Pyx_GIVEREF(__pyx_tuple__59);
-  __pyx_codeobj__40 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__59, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_init, 1083, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__40)) __PYX_ERR(0, 1083, __pyx_L1_error)
+  __pyx_tuple__53 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_infile, __pyx_n_s_parser); if (unlikely(!__pyx_tuple__53)) __PYX_ERR(0, 1203, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__53);
+  __Pyx_GIVEREF(__pyx_tuple__53);
+  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__53, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_init, 1203, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(0, 1203, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":1090
+  /* "pysam/libctabix.pyx":1210
  *         self.parser = parser
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
  *         return self
  * 
  */
-  __pyx_tuple__60 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__60)) __PYX_ERR(0, 1090, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__60);
-  __Pyx_GIVEREF(__pyx_tuple__60);
-  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__60, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_iter, 1090, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) __PYX_ERR(0, 1090, __pyx_L1_error)
+  __pyx_tuple__54 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__54)) __PYX_ERR(0, 1210, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__54);
+  __Pyx_GIVEREF(__pyx_tuple__54);
+  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__54, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_iter, 1210, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 1210, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":1094
+  /* "pysam/libctabix.pyx":1214
  * 
  *     # cython version - required for python 3
  *     def __next__(self):             # <<<<<<<<<<<<<<
  * 
  *         cdef char * b
  */
-  __pyx_tuple__61 = PyTuple_Pack(8, __pyx_n_s_self, __pyx_n_s_b, __pyx_n_s_cpy, __pyx_n_s_nbytes, __pyx_n_s_encoding, __pyx_n_s_line, __pyx_n_s_s_2, __pyx_n_s_bytes_cpy); if (unlikely(!__pyx_tuple__61)) __PYX_ERR(0, 1094, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__61);
-  __Pyx_GIVEREF(__pyx_tuple__61);
-  __pyx_codeobj__43 = (PyObject*)__Pyx_PyCode_New(1, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__61, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_next, 1094, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__43)) __PYX_ERR(0, 1094, __pyx_L1_error)
+  __pyx_tuple__55 = PyTuple_Pack(8, __pyx_n_s_self, __pyx_n_s_b, __pyx_n_s_cpy, __pyx_n_s_nbytes, __pyx_n_s_encoding, __pyx_n_s_line, __pyx_n_s_s_2, __pyx_n_s_bytes_cpy); if (unlikely(!__pyx_tuple__55)) __PYX_ERR(0, 1214, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__55);
+  __Pyx_GIVEREF(__pyx_tuple__55);
+  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(1, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__55, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_next, 1214, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(0, 1214, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":1138
+  /* "pysam/libctabix.pyx":1258
  * 
  *     # python version - required for python 2.7
  *     def next(self):             # <<<<<<<<<<<<<<
  *         return self.__next__()
  * 
  */
-  __pyx_tuple__62 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__62)) __PYX_ERR(0, 1138, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__62);
-  __Pyx_GIVEREF(__pyx_tuple__62);
-  __pyx_codeobj__45 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__62, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_next_2, 1138, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__45)) __PYX_ERR(0, 1138, __pyx_L1_error)
+  __pyx_tuple__56 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__56)) __PYX_ERR(0, 1258, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__56);
+  __Pyx_GIVEREF(__pyx_tuple__56);
+  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__56, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_next_2, 1258, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(0, 1258, __pyx_L1_error)
 
-  /* "pysam/libctabix.pyx":1141
- *         return self.__next__()
+  /* "pysam/libctabix.pyx":1262
+ * 
  * 
  * def tabix_iterator(infile, parser):             # <<<<<<<<<<<<<<
  *     """return an iterator over all entries in a file.
  * 
  */
-  __pyx_tuple__63 = PyTuple_Pack(2, __pyx_n_s_infile, __pyx_n_s_parser); if (unlikely(!__pyx_tuple__63)) __PYX_ERR(0, 1141, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__63);
-  __Pyx_GIVEREF(__pyx_tuple__63);
-  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__63, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_tabix_iterator, 1141, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) __PYX_ERR(0, 1141, __pyx_L1_error)
+  __pyx_tuple__57 = PyTuple_Pack(2, __pyx_n_s_infile, __pyx_n_s_parser); if (unlikely(!__pyx_tuple__57)) __PYX_ERR(0, 1262, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__57);
+  __Pyx_GIVEREF(__pyx_tuple__57);
+  __pyx_codeobj__38 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__57, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libctabix_pyx, __pyx_n_s_tabix_iterator, 1262, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__38)) __PYX_ERR(0, 1262, __pyx_L1_error)
 
   /* "(tree fragment)":1
  * def __pyx_unpickle_Parser(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     if __pyx_checksum != 0x84bea1f:
  *         from pickle import PickleError as __pyx_PickleError
  */
-  __pyx_tuple__64 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__64)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__64);
-  __Pyx_GIVEREF(__pyx_tuple__64);
-  __pyx_codeobj__49 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__64, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Parser, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__49)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __pyx_tuple__65 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__65)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__65);
-  __Pyx_GIVEREF(__pyx_tuple__65);
-  __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__65, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_asTuple, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __pyx_tuple__66 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__66)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__66);
-  __Pyx_GIVEREF(__pyx_tuple__66);
-  __pyx_codeobj__51 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__66, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_asGTF, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__51)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __pyx_tuple__67 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__67)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__67);
-  __Pyx_GIVEREF(__pyx_tuple__67);
-  __pyx_codeobj__52 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__67, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_asBed, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__52)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __pyx_tuple__68 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__68)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__68);
-  __Pyx_GIVEREF(__pyx_tuple__68);
-  __pyx_codeobj__53 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__68, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_asVCF, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__53)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__58 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__58)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__58);
+  __Pyx_GIVEREF(__pyx_tuple__58);
+  __pyx_codeobj__41 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__58, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Parser, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__41)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__59 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__59)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__59);
+  __Pyx_GIVEREF(__pyx_tuple__59);
+  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__59, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_asTuple, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__60 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__60)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__60);
+  __Pyx_GIVEREF(__pyx_tuple__60);
+  __pyx_codeobj__43 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__60, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_asGFF3, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__43)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__61 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__61)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__61);
+  __Pyx_GIVEREF(__pyx_tuple__61);
+  __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__61, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_asGTF, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__62 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__62)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__62);
+  __Pyx_GIVEREF(__pyx_tuple__62);
+  __pyx_codeobj__45 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__62, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_asBed, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__45)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__63 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__63)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__63);
+  __Pyx_GIVEREF(__pyx_tuple__63);
+  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__63, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_asVCF, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -20423,7 +22792,6 @@ static int __Pyx_InitGlobals(void) {
   __pyx_int_18 = PyInt_FromLong(18); if (unlikely(!__pyx_int_18)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_35 = PyInt_FromLong(35); if (unlikely(!__pyx_int_35)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_64 = PyInt_FromLong(64); if (unlikely(!__pyx_int_64)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_65536 = PyInt_FromLong(65536L); if (unlikely(!__pyx_int_65536)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_139192863 = PyInt_FromLong(139192863L); if (unlikely(!__pyx_int_139192863)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_neg_1 = PyInt_FromLong(-1); if (unlikely(!__pyx_int_neg_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
@@ -20469,102 +22837,115 @@ static int __Pyx_modinit_type_init_code(void) {
   /*--- Type init code ---*/
   __pyx_vtabptr_5pysam_9libctabix_tabix_file_iterator = &__pyx_vtable_5pysam_9libctabix_tabix_file_iterator;
   __pyx_vtable_5pysam_9libctabix_tabix_file_iterator.__pyx___cnext__ = (PyObject *(*)(struct __pyx_obj_5pysam_9libctabix_tabix_file_iterator *))__pyx_f_5pysam_9libctabix_19tabix_file_iterator___cnext__;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_tabix_file_iterator) < 0) __PYX_ERR(0, 995, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_tabix_file_iterator) < 0) __PYX_ERR(0, 1115, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_tabix_file_iterator.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_tabix_file_iterator.tp_dictoffset && __pyx_type_5pysam_9libctabix_tabix_file_iterator.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_tabix_file_iterator.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_tabix_file_iterator.tp_dict, __pyx_vtabptr_5pysam_9libctabix_tabix_file_iterator) < 0) __PYX_ERR(0, 995, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "tabix_file_iterator", (PyObject *)&__pyx_type_5pysam_9libctabix_tabix_file_iterator) < 0) __PYX_ERR(0, 995, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_tabix_file_iterator) < 0) __PYX_ERR(0, 995, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_tabix_file_iterator.tp_dict, __pyx_vtabptr_5pysam_9libctabix_tabix_file_iterator) < 0) __PYX_ERR(0, 1115, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "tabix_file_iterator", (PyObject *)&__pyx_type_5pysam_9libctabix_tabix_file_iterator) < 0) __PYX_ERR(0, 1115, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_tabix_file_iterator) < 0) __PYX_ERR(0, 1115, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_tabix_file_iterator = &__pyx_type_5pysam_9libctabix_tabix_file_iterator;
   __pyx_ptype_5pysam_10libchtslib_HTSFile = __Pyx_ImportType("pysam.libchtslib", "HTSFile", sizeof(struct __pyx_obj_5pysam_10libchtslib_HTSFile), 1); if (unlikely(!__pyx_ptype_5pysam_10libchtslib_HTSFile)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_vtabptr_5pysam_10libchtslib_HTSFile = (struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_10libchtslib_HTSFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_10libchtslib_HTSFile)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_vtabptr_5pysam_9libctabix_TabixFile = &__pyx_vtable_5pysam_9libctabix_TabixFile;
   __pyx_vtable_5pysam_9libctabix_TabixFile.__pyx_base = *__pyx_vtabptr_5pysam_10libchtslib_HTSFile;
   __pyx_type_5pysam_9libctabix_TabixFile.tp_base = __pyx_ptype_5pysam_10libchtslib_HTSFile;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_TabixFile) < 0) __PYX_ERR(0, 249, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_TabixFile) < 0) __PYX_ERR(0, 289, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_TabixFile.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_TabixFile.tp_dictoffset && __pyx_type_5pysam_9libctabix_TabixFile.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_TabixFile.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_TabixFile.tp_dict, __pyx_vtabptr_5pysam_9libctabix_TabixFile) < 0) __PYX_ERR(0, 249, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "TabixFile", (PyObject *)&__pyx_type_5pysam_9libctabix_TabixFile) < 0) __PYX_ERR(0, 249, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_TabixFile) < 0) __PYX_ERR(0, 249, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_TabixFile.tp_dict, __pyx_vtabptr_5pysam_9libctabix_TabixFile) < 0) __PYX_ERR(0, 289, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "TabixFile", (PyObject *)&__pyx_type_5pysam_9libctabix_TabixFile) < 0) __PYX_ERR(0, 289, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_TabixFile) < 0) __PYX_ERR(0, 289, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_TabixFile = &__pyx_type_5pysam_9libctabix_TabixFile;
   __pyx_vtabptr_5pysam_9libctabix_Parser = &__pyx_vtable_5pysam_9libctabix_Parser;
   __pyx_vtable_5pysam_9libctabix_Parser.parse = (PyObject *(*)(struct __pyx_obj_5pysam_9libctabix_Parser *, char *, int))__pyx_f_5pysam_9libctabix_6Parser_parse;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_Parser) < 0) __PYX_ERR(0, 80, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_Parser) < 0) __PYX_ERR(0, 84, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_Parser.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_Parser.tp_dictoffset && __pyx_type_5pysam_9libctabix_Parser.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_Parser.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_Parser.tp_dict, __pyx_vtabptr_5pysam_9libctabix_Parser) < 0) __PYX_ERR(0, 80, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "Parser", (PyObject *)&__pyx_type_5pysam_9libctabix_Parser) < 0) __PYX_ERR(0, 80, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_Parser) < 0) __PYX_ERR(0, 80, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_Parser.tp_dict, __pyx_vtabptr_5pysam_9libctabix_Parser) < 0) __PYX_ERR(0, 84, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "Parser", (PyObject *)&__pyx_type_5pysam_9libctabix_Parser) < 0) __PYX_ERR(0, 84, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_Parser) < 0) __PYX_ERR(0, 84, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_Parser = &__pyx_type_5pysam_9libctabix_Parser;
   __pyx_vtabptr_5pysam_9libctabix_asTuple = &__pyx_vtable_5pysam_9libctabix_asTuple;
   __pyx_vtable_5pysam_9libctabix_asTuple.__pyx_base = *__pyx_vtabptr_5pysam_9libctabix_Parser;
   __pyx_vtable_5pysam_9libctabix_asTuple.__pyx_base.parse = (PyObject *(*)(struct __pyx_obj_5pysam_9libctabix_Parser *, char *, int))__pyx_f_5pysam_9libctabix_7asTuple_parse;
   __pyx_type_5pysam_9libctabix_asTuple.tp_base = __pyx_ptype_5pysam_9libctabix_Parser;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_asTuple) < 0) __PYX_ERR(0, 99, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_asTuple) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_asTuple.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_asTuple.tp_dictoffset && __pyx_type_5pysam_9libctabix_asTuple.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_asTuple.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_asTuple.tp_dict, __pyx_vtabptr_5pysam_9libctabix_asTuple) < 0) __PYX_ERR(0, 99, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "asTuple", (PyObject *)&__pyx_type_5pysam_9libctabix_asTuple) < 0) __PYX_ERR(0, 99, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_asTuple) < 0) __PYX_ERR(0, 99, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_asTuple.tp_dict, __pyx_vtabptr_5pysam_9libctabix_asTuple) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "asTuple", (PyObject *)&__pyx_type_5pysam_9libctabix_asTuple) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_asTuple) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_asTuple = &__pyx_type_5pysam_9libctabix_asTuple;
   __pyx_vtabptr_5pysam_9libctabix_asGTF = &__pyx_vtable_5pysam_9libctabix_asGTF;
   __pyx_vtable_5pysam_9libctabix_asGTF.__pyx_base = *__pyx_vtabptr_5pysam_9libctabix_Parser;
   __pyx_vtable_5pysam_9libctabix_asGTF.__pyx_base.parse = (PyObject *(*)(struct __pyx_obj_5pysam_9libctabix_Parser *, char *, int))__pyx_f_5pysam_9libctabix_5asGTF_parse;
   __pyx_type_5pysam_9libctabix_asGTF.tp_base = __pyx_ptype_5pysam_9libctabix_Parser;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_asGTF) < 0) __PYX_ERR(0, 113, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_asGTF) < 0) __PYX_ERR(0, 153, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_asGTF.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_asGTF.tp_dictoffset && __pyx_type_5pysam_9libctabix_asGTF.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_asGTF.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_asGTF.tp_dict, __pyx_vtabptr_5pysam_9libctabix_asGTF) < 0) __PYX_ERR(0, 113, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "asGTF", (PyObject *)&__pyx_type_5pysam_9libctabix_asGTF) < 0) __PYX_ERR(0, 113, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_asGTF) < 0) __PYX_ERR(0, 113, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_asGTF.tp_dict, __pyx_vtabptr_5pysam_9libctabix_asGTF) < 0) __PYX_ERR(0, 153, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "asGTF", (PyObject *)&__pyx_type_5pysam_9libctabix_asGTF) < 0) __PYX_ERR(0, 153, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_asGTF) < 0) __PYX_ERR(0, 153, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_asGTF = &__pyx_type_5pysam_9libctabix_asGTF;
+  __pyx_vtabptr_5pysam_9libctabix_asGFF3 = &__pyx_vtable_5pysam_9libctabix_asGFF3;
+  __pyx_vtable_5pysam_9libctabix_asGFF3.__pyx_base = *__pyx_vtabptr_5pysam_9libctabix_Parser;
+  __pyx_vtable_5pysam_9libctabix_asGFF3.__pyx_base.parse = (PyObject *(*)(struct __pyx_obj_5pysam_9libctabix_Parser *, char *, int))__pyx_f_5pysam_9libctabix_6asGFF3_parse;
+  __pyx_type_5pysam_9libctabix_asGFF3.tp_base = __pyx_ptype_5pysam_9libctabix_Parser;
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_asGFF3) < 0) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_type_5pysam_9libctabix_asGFF3.tp_print = 0;
+  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_asGFF3.tp_dictoffset && __pyx_type_5pysam_9libctabix_asGFF3.tp_getattro == PyObject_GenericGetAttr)) {
+    __pyx_type_5pysam_9libctabix_asGFF3.tp_getattro = __Pyx_PyObject_GenericGetAttr;
+  }
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_asGFF3.tp_dict, __pyx_vtabptr_5pysam_9libctabix_asGFF3) < 0) __PYX_ERR(0, 117, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "asGFF3", (PyObject *)&__pyx_type_5pysam_9libctabix_asGFF3) < 0) __PYX_ERR(0, 117, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_asGFF3) < 0) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libctabix_asGFF3 = &__pyx_type_5pysam_9libctabix_asGFF3;
   __pyx_vtabptr_5pysam_9libctabix_asBed = &__pyx_vtable_5pysam_9libctabix_asBed;
   __pyx_vtable_5pysam_9libctabix_asBed.__pyx_base = *__pyx_vtabptr_5pysam_9libctabix_Parser;
   __pyx_vtable_5pysam_9libctabix_asBed.__pyx_base.parse = (PyObject *(*)(struct __pyx_obj_5pysam_9libctabix_Parser *, char *, int))__pyx_f_5pysam_9libctabix_5asBed_parse;
   __pyx_type_5pysam_9libctabix_asBed.tp_base = __pyx_ptype_5pysam_9libctabix_Parser;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_asBed) < 0) __PYX_ERR(0, 160, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_asBed) < 0) __PYX_ERR(0, 200, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_asBed.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_asBed.tp_dictoffset && __pyx_type_5pysam_9libctabix_asBed.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_asBed.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_asBed.tp_dict, __pyx_vtabptr_5pysam_9libctabix_asBed) < 0) __PYX_ERR(0, 160, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "asBed", (PyObject *)&__pyx_type_5pysam_9libctabix_asBed) < 0) __PYX_ERR(0, 160, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_asBed) < 0) __PYX_ERR(0, 160, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_asBed.tp_dict, __pyx_vtabptr_5pysam_9libctabix_asBed) < 0) __PYX_ERR(0, 200, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "asBed", (PyObject *)&__pyx_type_5pysam_9libctabix_asBed) < 0) __PYX_ERR(0, 200, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_asBed) < 0) __PYX_ERR(0, 200, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_asBed = &__pyx_type_5pysam_9libctabix_asBed;
   __pyx_vtabptr_5pysam_9libctabix_asVCF = &__pyx_vtable_5pysam_9libctabix_asVCF;
   __pyx_vtable_5pysam_9libctabix_asVCF.__pyx_base = *__pyx_vtabptr_5pysam_9libctabix_Parser;
   __pyx_vtable_5pysam_9libctabix_asVCF.__pyx_base.parse = (PyObject *(*)(struct __pyx_obj_5pysam_9libctabix_Parser *, char *, int))__pyx_f_5pysam_9libctabix_5asVCF_parse;
   __pyx_type_5pysam_9libctabix_asVCF.tp_base = __pyx_ptype_5pysam_9libctabix_Parser;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_asVCF) < 0) __PYX_ERR(0, 208, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_asVCF) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_asVCF.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_asVCF.tp_dictoffset && __pyx_type_5pysam_9libctabix_asVCF.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_asVCF.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_asVCF.tp_dict, __pyx_vtabptr_5pysam_9libctabix_asVCF) < 0) __PYX_ERR(0, 208, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "asVCF", (PyObject *)&__pyx_type_5pysam_9libctabix_asVCF) < 0) __PYX_ERR(0, 208, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_asVCF) < 0) __PYX_ERR(0, 208, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_asVCF.tp_dict, __pyx_vtabptr_5pysam_9libctabix_asVCF) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "asVCF", (PyObject *)&__pyx_type_5pysam_9libctabix_asVCF) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_asVCF) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_asVCF = &__pyx_type_5pysam_9libctabix_asVCF;
   __pyx_vtabptr_5pysam_9libctabix_TabixIterator = &__pyx_vtable_5pysam_9libctabix_TabixIterator;
   __pyx_vtable_5pysam_9libctabix_TabixIterator.__pyx___cnext__ = (int (*)(struct __pyx_obj_5pysam_9libctabix_TabixIterator *))__pyx_f_5pysam_9libctabix_13TabixIterator___cnext__;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_TabixIterator) < 0) __PYX_ERR(0, 546, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_TabixIterator) < 0) __PYX_ERR(0, 621, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_TabixIterator.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_TabixIterator.tp_dictoffset && __pyx_type_5pysam_9libctabix_TabixIterator.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_TabixIterator.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_TabixIterator, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 546, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_TabixIterator, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 621, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_5pysam_9libctabix_13TabixIterator_4__next__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_5pysam_9libctabix_13TabixIterator_4__next__.doc = __pyx_doc_5pysam_9libctabix_13TabixIterator_4__next__;
@@ -20572,21 +22953,21 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_TabixIterator.tp_dict, __pyx_vtabptr_5pysam_9libctabix_TabixIterator) < 0) __PYX_ERR(0, 546, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "TabixIterator", (PyObject *)&__pyx_type_5pysam_9libctabix_TabixIterator) < 0) __PYX_ERR(0, 546, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_TabixIterator) < 0) __PYX_ERR(0, 546, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_TabixIterator.tp_dict, __pyx_vtabptr_5pysam_9libctabix_TabixIterator) < 0) __PYX_ERR(0, 621, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "TabixIterator", (PyObject *)&__pyx_type_5pysam_9libctabix_TabixIterator) < 0) __PYX_ERR(0, 621, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_TabixIterator) < 0) __PYX_ERR(0, 621, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_TabixIterator = &__pyx_type_5pysam_9libctabix_TabixIterator;
   __pyx_vtabptr_5pysam_9libctabix_TabixIteratorParsed = &__pyx_vtable_5pysam_9libctabix_TabixIteratorParsed;
   __pyx_vtable_5pysam_9libctabix_TabixIteratorParsed.__pyx_base = *__pyx_vtabptr_5pysam_9libctabix_TabixIterator;
   __pyx_type_5pysam_9libctabix_TabixIteratorParsed.tp_base = __pyx_ptype_5pysam_9libctabix_TabixIterator;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_TabixIteratorParsed) < 0) __PYX_ERR(0, 625, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_TabixIteratorParsed) < 0) __PYX_ERR(0, 700, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_TabixIteratorParsed.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_TabixIteratorParsed.tp_dictoffset && __pyx_type_5pysam_9libctabix_TabixIteratorParsed.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_TabixIteratorParsed.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_TabixIteratorParsed, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 625, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_TabixIteratorParsed, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 700, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_5pysam_9libctabix_19TabixIteratorParsed_2__next__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_5pysam_9libctabix_19TabixIteratorParsed_2__next__.doc = __pyx_doc_5pysam_9libctabix_19TabixIteratorParsed_2__next__;
@@ -20594,20 +22975,20 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_TabixIteratorParsed.tp_dict, __pyx_vtabptr_5pysam_9libctabix_TabixIteratorParsed) < 0) __PYX_ERR(0, 625, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "TabixIteratorParsed", (PyObject *)&__pyx_type_5pysam_9libctabix_TabixIteratorParsed) < 0) __PYX_ERR(0, 625, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_TabixIteratorParsed) < 0) __PYX_ERR(0, 625, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_TabixIteratorParsed.tp_dict, __pyx_vtabptr_5pysam_9libctabix_TabixIteratorParsed) < 0) __PYX_ERR(0, 700, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "TabixIteratorParsed", (PyObject *)&__pyx_type_5pysam_9libctabix_TabixIteratorParsed) < 0) __PYX_ERR(0, 700, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_TabixIteratorParsed) < 0) __PYX_ERR(0, 700, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_TabixIteratorParsed = &__pyx_type_5pysam_9libctabix_TabixIteratorParsed;
   __pyx_vtabptr_5pysam_9libctabix_GZIterator = &__pyx_vtable_5pysam_9libctabix_GZIterator;
   __pyx_vtable_5pysam_9libctabix_GZIterator.__pyx___cnext__ = (int (*)(struct __pyx_obj_5pysam_9libctabix_GZIterator *))__pyx_f_5pysam_9libctabix_10GZIterator___cnext__;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_GZIterator) < 0) __PYX_ERR(0, 655, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_GZIterator) < 0) __PYX_ERR(0, 730, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_GZIterator.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_GZIterator.tp_dictoffset && __pyx_type_5pysam_9libctabix_GZIterator.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_GZIterator.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_GZIterator, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(0, 655, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_GZIterator, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(0, 730, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_5pysam_9libctabix_10GZIterator___init__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_5pysam_9libctabix_10GZIterator___init__.doc = __pyx_doc_5pysam_9libctabix_10GZIterator___init__;
@@ -20617,7 +22998,7 @@ static int __Pyx_modinit_type_init_code(void) {
   #endif
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_GZIterator, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 655, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_GZIterator, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 730, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_5pysam_9libctabix_10GZIterator_6__next__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_5pysam_9libctabix_10GZIterator_6__next__.doc = __pyx_doc_5pysam_9libctabix_10GZIterator_6__next__;
@@ -20625,21 +23006,21 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_GZIterator.tp_dict, __pyx_vtabptr_5pysam_9libctabix_GZIterator) < 0) __PYX_ERR(0, 655, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "GZIterator", (PyObject *)&__pyx_type_5pysam_9libctabix_GZIterator) < 0) __PYX_ERR(0, 655, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_GZIterator) < 0) __PYX_ERR(0, 655, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_GZIterator.tp_dict, __pyx_vtabptr_5pysam_9libctabix_GZIterator) < 0) __PYX_ERR(0, 730, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "GZIterator", (PyObject *)&__pyx_type_5pysam_9libctabix_GZIterator) < 0) __PYX_ERR(0, 730, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_GZIterator) < 0) __PYX_ERR(0, 730, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_GZIterator = &__pyx_type_5pysam_9libctabix_GZIterator;
   __pyx_vtabptr_5pysam_9libctabix_GZIteratorHead = &__pyx_vtable_5pysam_9libctabix_GZIteratorHead;
   __pyx_vtable_5pysam_9libctabix_GZIteratorHead.__pyx_base = *__pyx_vtabptr_5pysam_9libctabix_GZIterator;
   __pyx_type_5pysam_9libctabix_GZIteratorHead.tp_base = __pyx_ptype_5pysam_9libctabix_GZIterator;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_GZIteratorHead) < 0) __PYX_ERR(0, 710, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_GZIteratorHead) < 0) __PYX_ERR(0, 785, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_GZIteratorHead.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_GZIteratorHead.tp_dictoffset && __pyx_type_5pysam_9libctabix_GZIteratorHead.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_GZIteratorHead.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_GZIteratorHead, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 710, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_GZIteratorHead, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 785, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_5pysam_9libctabix_14GZIteratorHead___next__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_5pysam_9libctabix_14GZIteratorHead___next__.doc = __pyx_doc_5pysam_9libctabix_14GZIteratorHead___next__;
@@ -20647,21 +23028,21 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_GZIteratorHead.tp_dict, __pyx_vtabptr_5pysam_9libctabix_GZIteratorHead) < 0) __PYX_ERR(0, 710, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "GZIteratorHead", (PyObject *)&__pyx_type_5pysam_9libctabix_GZIteratorHead) < 0) __PYX_ERR(0, 710, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_GZIteratorHead) < 0) __PYX_ERR(0, 710, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_GZIteratorHead.tp_dict, __pyx_vtabptr_5pysam_9libctabix_GZIteratorHead) < 0) __PYX_ERR(0, 785, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "GZIteratorHead", (PyObject *)&__pyx_type_5pysam_9libctabix_GZIteratorHead) < 0) __PYX_ERR(0, 785, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_GZIteratorHead) < 0) __PYX_ERR(0, 785, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_GZIteratorHead = &__pyx_type_5pysam_9libctabix_GZIteratorHead;
   __pyx_vtabptr_5pysam_9libctabix_GZIteratorParsed = &__pyx_vtable_5pysam_9libctabix_GZIteratorParsed;
   __pyx_vtable_5pysam_9libctabix_GZIteratorParsed.__pyx_base = *__pyx_vtabptr_5pysam_9libctabix_GZIterator;
   __pyx_type_5pysam_9libctabix_GZIteratorParsed.tp_base = __pyx_ptype_5pysam_9libctabix_GZIterator;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_GZIteratorParsed) < 0) __PYX_ERR(0, 727, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_GZIteratorParsed) < 0) __PYX_ERR(0, 802, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_GZIteratorParsed.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_GZIteratorParsed.tp_dictoffset && __pyx_type_5pysam_9libctabix_GZIteratorParsed.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_GZIteratorParsed.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_GZIteratorParsed, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 727, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_5pysam_9libctabix_GZIteratorParsed, "__next__"); if (unlikely(!wrapper)) __PYX_ERR(0, 802, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_5pysam_9libctabix_16GZIteratorParsed_2__next__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_5pysam_9libctabix_16GZIteratorParsed_2__next__.doc = __pyx_doc_5pysam_9libctabix_16GZIteratorParsed_2__next__;
@@ -20669,21 +23050,21 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_GZIteratorParsed.tp_dict, __pyx_vtabptr_5pysam_9libctabix_GZIteratorParsed) < 0) __PYX_ERR(0, 727, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "GZIteratorParsed", (PyObject *)&__pyx_type_5pysam_9libctabix_GZIteratorParsed) < 0) __PYX_ERR(0, 727, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_GZIteratorParsed) < 0) __PYX_ERR(0, 727, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_GZIteratorParsed.tp_dict, __pyx_vtabptr_5pysam_9libctabix_GZIteratorParsed) < 0) __PYX_ERR(0, 802, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "GZIteratorParsed", (PyObject *)&__pyx_type_5pysam_9libctabix_GZIteratorParsed) < 0) __PYX_ERR(0, 802, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_GZIteratorParsed) < 0) __PYX_ERR(0, 802, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_GZIteratorParsed = &__pyx_type_5pysam_9libctabix_GZIteratorParsed;
   __pyx_vtabptr_5pysam_9libctabix_Tabixfile = &__pyx_vtable_5pysam_9libctabix_Tabixfile;
   __pyx_vtable_5pysam_9libctabix_Tabixfile.__pyx_base = *__pyx_vtabptr_5pysam_9libctabix_TabixFile;
   __pyx_type_5pysam_9libctabix_Tabixfile.tp_base = __pyx_ptype_5pysam_9libctabix_TabixFile;
-  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_Tabixfile) < 0) __PYX_ERR(0, 1169, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_9libctabix_Tabixfile) < 0) __PYX_ERR(0, 1290, __pyx_L1_error)
   __pyx_type_5pysam_9libctabix_Tabixfile.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_9libctabix_Tabixfile.tp_dictoffset && __pyx_type_5pysam_9libctabix_Tabixfile.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_9libctabix_Tabixfile.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_Tabixfile.tp_dict, __pyx_vtabptr_5pysam_9libctabix_Tabixfile) < 0) __PYX_ERR(0, 1169, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "Tabixfile", (PyObject *)&__pyx_type_5pysam_9libctabix_Tabixfile) < 0) __PYX_ERR(0, 1169, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_Tabixfile) < 0) __PYX_ERR(0, 1169, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_9libctabix_Tabixfile.tp_dict, __pyx_vtabptr_5pysam_9libctabix_Tabixfile) < 0) __PYX_ERR(0, 1290, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "Tabixfile", (PyObject *)&__pyx_type_5pysam_9libctabix_Tabixfile) < 0) __PYX_ERR(0, 1290, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_9libctabix_Tabixfile) < 0) __PYX_ERR(0, 1290, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_Tabixfile = &__pyx_type_5pysam_9libctabix_Tabixfile;
   __Pyx_RefNannyFinishContext();
   return 0;
@@ -20707,14 +23088,16 @@ static int __Pyx_modinit_type_import_code(void) {
   __pyx_ptype_7cpython_7complex_complex = __Pyx_ImportType(__Pyx_BUILTIN_MODULE_NAME, "complex", sizeof(PyComplexObject), 0); if (unlikely(!__pyx_ptype_7cpython_7complex_complex)) __PYX_ERR(6, 15, __pyx_L1_error)
   __pyx_ptype_5pysam_16libctabixproxies_TupleProxy = __Pyx_ImportType("pysam.libctabixproxies", "TupleProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_TupleProxy)) __PYX_ERR(7, 6, __pyx_L1_error)
   __pyx_vtabptr_5pysam_16libctabixproxies_TupleProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_TupleProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_TupleProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_TupleProxy)) __PYX_ERR(7, 6, __pyx_L1_error)
-  __pyx_ptype_5pysam_16libctabixproxies_GTFProxy = __Pyx_ImportType("pysam.libctabixproxies", "GTFProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_GTFProxy)) __PYX_ERR(7, 28, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_GTFProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy)) __PYX_ERR(7, 28, __pyx_L1_error)
-  __pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy = __Pyx_ImportType("pysam.libctabixproxies", "NamedTupleProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_NamedTupleProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy)) __PYX_ERR(7, 38, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_16libctabixproxies_NamedTupleProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_NamedTupleProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_NamedTupleProxy)) __PYX_ERR(7, 38, __pyx_L1_error)
-  __pyx_ptype_5pysam_16libctabixproxies_BedProxy = __Pyx_ImportType("pysam.libctabixproxies", "BedProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_BedProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_BedProxy)) __PYX_ERR(7, 41, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_16libctabixproxies_BedProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_BedProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_BedProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_BedProxy)) __PYX_ERR(7, 41, __pyx_L1_error)
-  __pyx_ptype_5pysam_16libctabixproxies_VCFProxy = __Pyx_ImportType("pysam.libctabixproxies", "VCFProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_VCFProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_VCFProxy)) __PYX_ERR(7, 53, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_16libctabixproxies_VCFProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_VCFProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_VCFProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_VCFProxy)) __PYX_ERR(7, 53, __pyx_L1_error)
+  __pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy = __Pyx_ImportType("pysam.libctabixproxies", "NamedTupleProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_NamedTupleProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy)) __PYX_ERR(7, 29, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_16libctabixproxies_NamedTupleProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_NamedTupleProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_NamedTupleProxy)) __PYX_ERR(7, 29, __pyx_L1_error)
+  __pyx_ptype_5pysam_16libctabixproxies_GTFProxy = __Pyx_ImportType("pysam.libctabixproxies", "GTFProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_GTFProxy)) __PYX_ERR(7, 33, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_GTFProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy)) __PYX_ERR(7, 33, __pyx_L1_error)
+  __pyx_ptype_5pysam_16libctabixproxies_GFF3Proxy = __Pyx_ImportType("pysam.libctabixproxies", "GFF3Proxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_GFF3Proxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_GFF3Proxy)) __PYX_ERR(7, 39, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_16libctabixproxies_GFF3Proxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_GFF3Proxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_GFF3Proxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_GFF3Proxy)) __PYX_ERR(7, 39, __pyx_L1_error)
+  __pyx_ptype_5pysam_16libctabixproxies_BedProxy = __Pyx_ImportType("pysam.libctabixproxies", "BedProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_BedProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_BedProxy)) __PYX_ERR(7, 43, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_16libctabixproxies_BedProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_BedProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_BedProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_BedProxy)) __PYX_ERR(7, 43, __pyx_L1_error)
+  __pyx_ptype_5pysam_16libctabixproxies_VCFProxy = __Pyx_ImportType("pysam.libctabixproxies", "VCFProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_VCFProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_VCFProxy)) __PYX_ERR(7, 55, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_16libctabixproxies_VCFProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_VCFProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_VCFProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_VCFProxy)) __PYX_ERR(7, 55, __pyx_L1_error)
   __pyx_ptype_7cpython_5array_array = __Pyx_ImportType("array", "array", sizeof(arrayobject), 0); if (unlikely(!__pyx_ptype_7cpython_5array_array)) __PYX_ERR(3, 58, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
@@ -20927,204 +23310,228 @@ if (!__Pyx_RefNanny) {
   #endif
   __Pyx_TraceCall("__Pyx_PyMODINIT_FUNC PyInit_libctabix(void)", __pyx_f[0], 1, 0, __PYX_ERR(0, 1, __pyx_L1_error));
 
-  /* "pysam/libctabix.pyx":55
+  /* "pysam/libctabix.pyx":56
  * #
  * ###############################################################################
+ * import binascii             # <<<<<<<<<<<<<<
+ * import os
+ * import sys
+ */
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_binascii, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 56, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_binascii, __pyx_t_1) < 0) __PYX_ERR(0, 56, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "pysam/libctabix.pyx":57
+ * ###############################################################################
+ * import binascii
  * import os             # <<<<<<<<<<<<<<
  * import sys
  * 
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_os, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_os, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_os, __pyx_t_1) < 0) __PYX_ERR(0, 55, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_os, __pyx_t_1) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":56
- * ###############################################################################
+  /* "pysam/libctabix.pyx":58
+ * import binascii
  * import os
  * import sys             # <<<<<<<<<<<<<<
  * 
  * from libc.stdio cimport printf, fprintf, stderr
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_sys, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 56, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_sys, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_sys, __pyx_t_1) < 0) __PYX_ERR(0, 56, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_sys, __pyx_t_1) < 0) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":612
+  /* "pysam/libctabix.pyx":687
  * 
  * 
  * class EmptyIterator:             # <<<<<<<<<<<<<<
  *     '''empty iterator'''
  * 
  */
-  __pyx_t_1 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_EmptyIterator, __pyx_n_s_EmptyIterator, (PyObject *) NULL, __pyx_n_s_pysam_libctabix, __pyx_kp_s_empty_iterator); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 612, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_EmptyIterator, __pyx_n_s_EmptyIterator, (PyObject *) NULL, __pyx_n_s_pysam_libctabix, __pyx_kp_s_empty_iterator); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 687, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "pysam/libctabix.pyx":615
+  /* "pysam/libctabix.pyx":690
  *     '''empty iterator'''
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
  *         return self
  * 
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_13EmptyIterator_1__iter__, 0, __pyx_n_s_EmptyIterator___iter, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__10)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 615, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_13EmptyIterator_1__iter__, 0, __pyx_n_s_EmptyIterator___iter, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__9)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 690, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_iter, __pyx_t_2) < 0) __PYX_ERR(0, 615, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_iter, __pyx_t_2) < 0) __PYX_ERR(0, 690, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libctabix.pyx":618
+  /* "pysam/libctabix.pyx":693
  *         return self
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
  *         raise StopIteration()
  * 
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_13EmptyIterator_3next, 0, __pyx_n_s_EmptyIterator_next, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__11)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 618, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_13EmptyIterator_3next, 0, __pyx_n_s_EmptyIterator_next, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__10)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 693, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_next_2, __pyx_t_2) < 0) __PYX_ERR(0, 618, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_next_2, __pyx_t_2) < 0) __PYX_ERR(0, 693, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libctabix.pyx":621
+  /* "pysam/libctabix.pyx":696
  *         raise StopIteration()
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
  *         raise StopIteration()
  * 
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_13EmptyIterator_5__next__, 0, __pyx_n_s_EmptyIterator___next, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__12)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 621, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_13EmptyIterator_5__next__, 0, __pyx_n_s_EmptyIterator___next, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__11)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 696, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_next, __pyx_t_2) < 0) __PYX_ERR(0, 621, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_next, __pyx_t_2) < 0) __PYX_ERR(0, 696, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libctabix.pyx":612
+  /* "pysam/libctabix.pyx":687
  * 
  * 
  * class EmptyIterator:             # <<<<<<<<<<<<<<
  *     '''empty iterator'''
  * 
  */
-  __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_EmptyIterator, __pyx_empty_tuple, __pyx_t_1, NULL, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 612, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_EmptyIterator, __pyx_empty_tuple, __pyx_t_1, NULL, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 687, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EmptyIterator, __pyx_t_2) < 0) __PYX_ERR(0, 612, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_EmptyIterator, __pyx_t_2) < 0) __PYX_ERR(0, 687, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":746
+  /* "pysam/libctabix.pyx":821
  * 
  * 
  * def tabix_compress(filename_in,             # <<<<<<<<<<<<<<
  *                    filename_out,
  *                    force=False):
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_1tabix_compress, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 746, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_1tabix_compress, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 821, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_tabix_compress, __pyx_t_1) < 0) __PYX_ERR(0, 746, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_tabix_compress, __pyx_t_1) < 0) __PYX_ERR(0, 821, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":808
+  /* "pysam/libctabix.pyx":883
  * 
  * 
- * def tabix_index( filename,             # <<<<<<<<<<<<<<
- *                  force = False,
- *                  seq_col = None,
+ * def is_gzip_file(filename):             # <<<<<<<<<<<<<<
+ *     gzip_magic_hex = b'1f8b'
+ *     fd = os.open(filename, os.O_RDONLY)
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_3tabix_index, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 808, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_3is_gzip_file, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 883, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_tabix_index, __pyx_t_1) < 0) __PYX_ERR(0, 808, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_is_gzip_file, __pyx_t_1) < 0) __PYX_ERR(0, 883, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":1078
+  /* "pysam/libctabix.pyx":890
+ * 
+ * 
+ * def tabix_index(filename,             # <<<<<<<<<<<<<<
+ *                 force=False,
+ *                 seq_col=None,
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_5tabix_index, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 890, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_tabix_index, __pyx_t_1) < 0) __PYX_ERR(0, 890, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "pysam/libctabix.pyx":1198
  * 
  * 
  * class tabix_generic_iterator:             # <<<<<<<<<<<<<<
  *     '''iterate over ``infile``.
  * 
  */
-  __pyx_t_1 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_tabix_generic_iterator, __pyx_n_s_tabix_generic_iterator, (PyObject *) NULL, __pyx_n_s_pysam_libctabix, __pyx_kp_s_iterate_over_infile_Permits_the); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1078, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_tabix_generic_iterator, __pyx_n_s_tabix_generic_iterator, (PyObject *) NULL, __pyx_n_s_pysam_libctabix, __pyx_kp_s_iterate_over_infile_Permits_the); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1198, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "pysam/libctabix.pyx":1083
+  /* "pysam/libctabix.pyx":1203
  *     Permits the use of file-like objects for example from the gzip module.
  *     '''
  *     def __init__(self, infile, parser):             # <<<<<<<<<<<<<<
  * 
  *         self.infile = infile
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_22tabix_generic_iterator_1__init__, 0, __pyx_n_s_tabix_generic_iterator___init, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__40)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1083, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_22tabix_generic_iterator_1__init__, 0, __pyx_n_s_tabix_generic_iterator___init, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__32)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_init, __pyx_t_2) < 0) __PYX_ERR(0, 1083, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_init, __pyx_t_2) < 0) __PYX_ERR(0, 1203, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libctabix.pyx":1090
+  /* "pysam/libctabix.pyx":1210
  *         self.parser = parser
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
  *         return self
  * 
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_22tabix_generic_iterator_3__iter__, 0, __pyx_n_s_tabix_generic_iterator___iter, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__42)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1090, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_22tabix_generic_iterator_3__iter__, 0, __pyx_n_s_tabix_generic_iterator___iter, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__34)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1210, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_iter, __pyx_t_2) < 0) __PYX_ERR(0, 1090, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_iter, __pyx_t_2) < 0) __PYX_ERR(0, 1210, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libctabix.pyx":1094
+  /* "pysam/libctabix.pyx":1214
  * 
  *     # cython version - required for python 3
  *     def __next__(self):             # <<<<<<<<<<<<<<
  * 
  *         cdef char * b
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_22tabix_generic_iterator_5__next__, 0, __pyx_n_s_tabix_generic_iterator___next, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__43)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1094, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_22tabix_generic_iterator_5__next__, 0, __pyx_n_s_tabix_generic_iterator___next, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_next, __pyx_t_2) < 0) __PYX_ERR(0, 1094, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_next, __pyx_t_2) < 0) __PYX_ERR(0, 1214, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libctabix.pyx":1138
+  /* "pysam/libctabix.pyx":1258
  * 
  *     # python version - required for python 2.7
  *     def next(self):             # <<<<<<<<<<<<<<
  *         return self.__next__()
  * 
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_22tabix_generic_iterator_7next, 0, __pyx_n_s_tabix_generic_iterator_next, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__45)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1138, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_22tabix_generic_iterator_7next, 0, __pyx_n_s_tabix_generic_iterator_next, NULL, __pyx_n_s_pysam_libctabix, __pyx_d, ((PyObject *)__pyx_codeobj__37)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1258, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_next_2, __pyx_t_2) < 0) __PYX_ERR(0, 1138, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_next_2, __pyx_t_2) < 0) __PYX_ERR(0, 1258, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libctabix.pyx":1078
+  /* "pysam/libctabix.pyx":1198
  * 
  * 
  * class tabix_generic_iterator:             # <<<<<<<<<<<<<<
  *     '''iterate over ``infile``.
  * 
  */
-  __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_tabix_generic_iterator, __pyx_empty_tuple, __pyx_t_1, NULL, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1078, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_tabix_generic_iterator, __pyx_empty_tuple, __pyx_t_1, NULL, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1198, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_tabix_generic_iterator, __pyx_t_2) < 0) __PYX_ERR(0, 1078, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_tabix_generic_iterator, __pyx_t_2) < 0) __PYX_ERR(0, 1198, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":1141
- *         return self.__next__()
+  /* "pysam/libctabix.pyx":1262
+ * 
  * 
  * def tabix_iterator(infile, parser):             # <<<<<<<<<<<<<<
  *     """return an iterator over all entries in a file.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_5tabix_iterator, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1141, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_7tabix_iterator, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1262, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_tabix_iterator, __pyx_t_1) < 0) __PYX_ERR(0, 1141, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_tabix_iterator, __pyx_t_1) < 0) __PYX_ERR(0, 1262, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libctabix.pyx":1174
+  /* "pysam/libctabix.pyx":1295
  * 
  * 
  * __all__ = [             # <<<<<<<<<<<<<<
  *     "tabix_index",
  *     "tabix_compress",
  */
-  __pyx_t_1 = PyList_New(13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1174, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(14); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1295, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_tabix_index);
   __Pyx_GIVEREF(__pyx_n_s_tabix_index);
@@ -21144,28 +23551,31 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_n_s_asGTF);
   __Pyx_GIVEREF(__pyx_n_s_asGTF);
   PyList_SET_ITEM(__pyx_t_1, 5, __pyx_n_s_asGTF);
+  __Pyx_INCREF(__pyx_n_s_asGFF3);
+  __Pyx_GIVEREF(__pyx_n_s_asGFF3);
+  PyList_SET_ITEM(__pyx_t_1, 6, __pyx_n_s_asGFF3);
   __Pyx_INCREF(__pyx_n_s_asVCF);
   __Pyx_GIVEREF(__pyx_n_s_asVCF);
-  PyList_SET_ITEM(__pyx_t_1, 6, __pyx_n_s_asVCF);
+  PyList_SET_ITEM(__pyx_t_1, 7, __pyx_n_s_asVCF);
   __Pyx_INCREF(__pyx_n_s_asBed);
   __Pyx_GIVEREF(__pyx_n_s_asBed);
-  PyList_SET_ITEM(__pyx_t_1, 7, __pyx_n_s_asBed);
+  PyList_SET_ITEM(__pyx_t_1, 8, __pyx_n_s_asBed);
   __Pyx_INCREF(__pyx_n_s_GZIterator);
   __Pyx_GIVEREF(__pyx_n_s_GZIterator);
-  PyList_SET_ITEM(__pyx_t_1, 8, __pyx_n_s_GZIterator);
+  PyList_SET_ITEM(__pyx_t_1, 9, __pyx_n_s_GZIterator);
   __Pyx_INCREF(__pyx_n_s_GZIteratorHead);
   __Pyx_GIVEREF(__pyx_n_s_GZIteratorHead);
-  PyList_SET_ITEM(__pyx_t_1, 9, __pyx_n_s_GZIteratorHead);
+  PyList_SET_ITEM(__pyx_t_1, 10, __pyx_n_s_GZIteratorHead);
   __Pyx_INCREF(__pyx_n_s_tabix_iterator);
   __Pyx_GIVEREF(__pyx_n_s_tabix_iterator);
-  PyList_SET_ITEM(__pyx_t_1, 10, __pyx_n_s_tabix_iterator);
+  PyList_SET_ITEM(__pyx_t_1, 11, __pyx_n_s_tabix_iterator);
   __Pyx_INCREF(__pyx_n_s_tabix_generic_iterator);
   __Pyx_GIVEREF(__pyx_n_s_tabix_generic_iterator);
-  PyList_SET_ITEM(__pyx_t_1, 11, __pyx_n_s_tabix_generic_iterator);
+  PyList_SET_ITEM(__pyx_t_1, 12, __pyx_n_s_tabix_generic_iterator);
   __Pyx_INCREF(__pyx_n_s_tabix_file_iterator);
   __Pyx_GIVEREF(__pyx_n_s_tabix_file_iterator);
-  PyList_SET_ITEM(__pyx_t_1, 12, __pyx_n_s_tabix_file_iterator);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_all, __pyx_t_1) < 0) __PYX_ERR(0, 1174, __pyx_L1_error)
+  PyList_SET_ITEM(__pyx_t_1, 13, __pyx_n_s_tabix_file_iterator);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_all, __pyx_t_1) < 0) __PYX_ERR(0, 1295, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "(tree fragment)":1
@@ -21173,7 +23583,7 @@ if (!__Pyx_RefNanny) {
  *     if __pyx_checksum != 0x84bea1f:
  *         from pickle import PickleError as __pyx_PickleError
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_7__pyx_unpickle_Parser, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_9__pyx_unpickle_Parser, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_Parser, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -21185,39 +23595,51 @@ if (!__Pyx_RefNanny) {
  *     __pyx_result.encoding = __pyx_state[0]
  *     if len(__pyx_state) > 1 and hasattr(__pyx_result, '__dict__'):
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_9__pyx_unpickle_asTuple, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_11__pyx_unpickle_asTuple, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_asTuple, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "(tree fragment)":1
- * def __pyx_unpickle_asGTF(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ * def __pyx_unpickle_asGFF3(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     if __pyx_checksum != 0x84bea1f:
  *         from pickle import PickleError as __pyx_PickleError
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_11__pyx_unpickle_asGTF, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_13__pyx_unpickle_asGFF3, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_asGFF3, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "(tree fragment)":9
+ *         __pyx_unpickle_asGFF3__set_state(<asGFF3> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ * cdef __pyx_unpickle_asGFF3__set_state(asGFF3 __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_result.encoding = __pyx_state[0]
+ *     if len(__pyx_state) > 1 and hasattr(__pyx_result, '__dict__'):
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_15__pyx_unpickle_asGTF, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_asGTF, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "(tree fragment)":9
- *         __pyx_unpickle_asGTF__set_state(<asGTF> __pyx_result, __pyx_state)
- *     return __pyx_result
- * cdef __pyx_unpickle_asGTF__set_state(asGTF __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
- *     __pyx_result.encoding = __pyx_state[0]
- *     if len(__pyx_state) > 1 and hasattr(__pyx_result, '__dict__'):
+  /* "(tree fragment)":1
+ * def __pyx_unpickle_asBed(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ *     if __pyx_checksum != 0x84bea1f:
+ *         from pickle import PickleError as __pyx_PickleError
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_13__pyx_unpickle_asBed, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_17__pyx_unpickle_asBed, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_asBed, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "(tree fragment)":1
- * def __pyx_unpickle_asVCF(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
- *     if __pyx_checksum != 0x84bea1f:
- *         from pickle import PickleError as __pyx_PickleError
+  /* "(tree fragment)":9
+ *         __pyx_unpickle_asBed__set_state(<asBed> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ * cdef __pyx_unpickle_asBed__set_state(asBed __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_result.encoding = __pyx_state[0]
+ *     if len(__pyx_state) > 1 and hasattr(__pyx_result, '__dict__'):
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_15__pyx_unpickle_asVCF, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_5pysam_9libctabix_19__pyx_unpickle_asVCF, NULL, __pyx_n_s_pysam_libctabix); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_asVCF, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -22579,115 +25001,6 @@ bad:
     else
         return PyDict_Keys(d);
 }
-
-/* PyIntBinop */
-        #if !CYTHON_COMPILING_IN_PYPY
-static PyObject* __Pyx_PyInt_OrObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, CYTHON_UNUSED int inplace) {
-    #if PY_MAJOR_VERSION < 3
-    if (likely(PyInt_CheckExact(op1))) {
-        const long b = intval;
-        long a = PyInt_AS_LONG(op1);
-            return PyInt_FromLong(a | b);
-    }
-    #endif
-    #if CYTHON_USE_PYLONG_INTERNALS
-    if (likely(PyLong_CheckExact(op1))) {
-        const long b = intval;
-        long a, x;
-#ifdef HAVE_LONG_LONG
-        const PY_LONG_LONG llb = intval;
-        PY_LONG_LONG lla, llx;
-#endif
-        const digit* digits = ((PyLongObject*)op1)->ob_digit;
-        const Py_ssize_t size = Py_SIZE(op1);
-        if (likely(__Pyx_sst_abs(size) <= 1)) {
-            a = likely(size) ? digits[0] : 0;
-            if (size == -1) a = -a;
-        } else {
-            switch (size) {
-                case -2:
-                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT) {
-                        a = -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
-                        lla = -(PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case 2:
-                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT) {
-                        a = (long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
-                        lla = (PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case -3:
-                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT) {
-                        a = -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
-                        lla = -(PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case 3:
-                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT) {
-                        a = (long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
-                        lla = (PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case -4:
-                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT) {
-                        a = -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
-                        lla = -(PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case 4:
-                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT) {
-                        a = (long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
-                        lla = (PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                default: return PyLong_Type.tp_as_number->nb_or(op1, op2);
-            }
-        }
-                x = a | b;
-            return PyLong_FromLong(x);
-#ifdef HAVE_LONG_LONG
-        long_long:
-                llx = lla | llb;
-            return PyLong_FromLongLong(llx);
-#endif
-        
-        
-    }
-    #endif
-    return (inplace ? PyNumber_InPlaceOr : PyNumber_Or)(op1, op2);
-}
-#endif
 
 /* UnicodeAsUCS4 */
         static CYTHON_INLINE Py_UCS4 __Pyx_PyUnicode_AsPy_UCS4(PyObject* x) {
@@ -24198,6 +26511,37 @@ bad:
         int one = 1; int little = (int)*(unsigned char *)&one;
         unsigned char *bytes = (unsigned char *)&value;
         return _PyLong_FromByteArray(bytes, sizeof(int),
+                                     little, !is_unsigned);
+    }
+}
+
+/* CIntToPy */
+            static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int8_t(int8_t value) {
+    const int8_t neg_one = (int8_t) -1, const_zero = (int8_t) 0;
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(int8_t) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(int8_t) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(int8_t) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(int8_t) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(int8_t) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
+        }
+    }
+    {
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        unsigned char *bytes = (unsigned char *)&value;
+        return _PyLong_FromByteArray(bytes, sizeof(int8_t),
                                      little, !is_unsigned);
     }
 }

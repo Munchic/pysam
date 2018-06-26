@@ -567,6 +567,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include "stdarg.h"
 #include "htslib/kstring.h"
 #include "htslib_util.h"
 #include "htslib/hfile.h"
@@ -577,9 +578,10 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "htslib/tbx.h"
 #include "htslib/vcf.h"
 #include "htslib/vcfutils.h"
+#include "htslib/cram.h"
 #include <unistd.h>
+#include <errno.h>
 #include "pythread.h"
-#include "pysam_util.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -810,6 +812,7 @@ struct arrayobject;
 typedef struct arrayobject arrayobject;
 #endif
 struct __pyx_obj_5pysam_10libchtslib_HTSFile;
+struct __pyx_obj_5pysam_10libchtslib_HFile;
 struct __pyx_opt_args_5pysam_9libcutils_parse_region;
 struct __pyx_opt_args_5pysam_9libcutils_qualitystring_to_array;
 struct __pyx_opt_args_5pysam_9libcutils_array_to_qualitystring;
@@ -930,8 +933,21 @@ struct __pyx_opt_args_5pysam_9libcutils_force_bytes {
   int __pyx_n;
   PyObject *encoding;
 };
+struct __pyx_opt_args_5pysam_10libchtslib_5HFile__open;
 
-/* "pysam/libchtslib.pxd":1904
+/* "pysam/libchtslib.pyx":86
+ *         return self.fp == NULL
+ * 
+ *     cdef _open(self, name, mode, closefd=True):             # <<<<<<<<<<<<<<
+ *         self.name = name
+ *         self.mode = mode
+ */
+struct __pyx_opt_args_5pysam_10libchtslib_5HFile__open {
+  int __pyx_n;
+  PyObject *closefd;
+};
+
+/* "pysam/libchtslib.pxd":2590
  * 
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
@@ -945,6 +961,7 @@ struct __pyx_obj_5pysam_10libchtslib_HTSFile {
   int64_t start_offset;
   PyObject *filename;
   PyObject *mode;
+  PyObject *threads;
   PyObject *index_filename;
   int is_stream;
   int is_remote;
@@ -952,9 +969,25 @@ struct __pyx_obj_5pysam_10libchtslib_HTSFile {
 };
 
 
-
-/* "pysam/libchtslib.pyx":57
+/* "pysam/libchtslib.pyx":72
+ * ########################################################################
  * 
+ * cdef class HFile(object):             # <<<<<<<<<<<<<<
+ *     cdef hFILE *fp
+ *     cdef readonly object name, mode
+ */
+struct __pyx_obj_5pysam_10libchtslib_HFile {
+  PyObject_HEAD
+  struct __pyx_vtabstruct_5pysam_10libchtslib_HFile *__pyx_vtab;
+  hFILE *fp;
+  PyObject *name;
+  PyObject *mode;
+};
+
+
+
+/* "pysam/libchtslib.pyx":326
+ * ########################################################################
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
  *     """
@@ -965,6 +998,20 @@ struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile {
   htsFile *(*_open_htsfile)(struct __pyx_obj_5pysam_10libchtslib_HTSFile *);
 };
 static struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile *__pyx_vtabptr_5pysam_10libchtslib_HTSFile;
+
+
+/* "pysam/libchtslib.pyx":72
+ * ########################################################################
+ * 
+ * cdef class HFile(object):             # <<<<<<<<<<<<<<
+ *     cdef hFILE *fp
+ *     cdef readonly object name, mode
+ */
+
+struct __pyx_vtabstruct_5pysam_10libchtslib_HFile {
+  PyObject *(*_open)(struct __pyx_obj_5pysam_10libchtslib_HFile *, PyObject *, PyObject *, struct __pyx_opt_args_5pysam_10libchtslib_5HFile__open *__pyx_optional_args);
+};
+static struct __pyx_vtabstruct_5pysam_10libchtslib_HFile *__pyx_vtabptr_5pysam_10libchtslib_HFile;
 
 /* --- Runtime support code (head) --- */
 /* Refnanny.proto */
@@ -1278,10 +1325,6 @@ static CYTHON_INLINE void __Pyx_ErrFetchInState(PyThreadState *tstate, PyObject 
   #define __Pyx_TraceLine(lineno, nogil, goto_error)   if ((1)); else goto_error;
 #endif
 
-/* RaiseArgTupleInvalid.proto */
-static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
-    Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
-
 /* RaiseDoubleKeywords.proto */
 static void __Pyx_RaiseDoubleKeywordsError(const char* func_name, PyObject* kw_name);
 
@@ -1290,22 +1333,9 @@ static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[],\
     PyObject *kwds2, PyObject *values[], Py_ssize_t num_pos_args,\
     const char* function_name);
 
-/* PyObjectSetAttrStr.proto */
-#if CYTHON_USE_TYPE_SLOTS
-#define __Pyx_PyObject_DelAttrStr(o,n) __Pyx_PyObject_SetAttrStr(o, n, NULL)
-static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr_name, PyObject* value);
-#else
-#define __Pyx_PyObject_DelAttrStr(o,n)   PyObject_DelAttr(o,n)
-#define __Pyx_PyObject_SetAttrStr(o,n,v) PyObject_SetAttr(o,n,v)
-#endif
-
-/* KeywordStringCheck.proto */
-static int __Pyx_CheckKeywordStrings(PyObject *kwdict, const char* function_name, int kw_allowed);
-
-/* WriteUnraisableException.proto */
-static void __Pyx_WriteUnraisable(const char *name, int clineno,
-                                  int lineno, const char *filename,
-                                  int full_traceback, int nogil);
+/* RaiseArgTupleInvalid.proto */
+static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
+    Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
 
 /* PyCFunctionFastCall.proto */
 #if CYTHON_FAST_PYCCALL
@@ -1347,8 +1377,75 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func);
 #define __Pyx_PyObject_CallNoArg(func) __Pyx_PyObject_Call(func, __pyx_empty_tuple, NULL)
 #endif
 
+/* WriteUnraisableException.proto */
+static void __Pyx_WriteUnraisable(const char *name, int clineno,
+                                  int lineno, const char *filename,
+                                  int full_traceback, int nogil);
+
 /* RaiseException.proto */
 static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject *cause);
+
+/* PySequenceContains.proto */
+static CYTHON_INLINE int __Pyx_PySequence_ContainsTF(PyObject* item, PyObject* seq, int eq) {
+    int result = PySequence_Contains(seq, item);
+    return unlikely(result < 0) ? result : (result == (eq == Py_EQ));
+}
+
+/* ListAppend.proto */
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
+static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
+    PyListObject* L = (PyListObject*) list;
+    Py_ssize_t len = Py_SIZE(list);
+    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
+        Py_INCREF(x);
+        PyList_SET_ITEM(list, len, x);
+        Py_SIZE(list) = len+1;
+        return 0;
+    }
+    return PyList_Append(list, x);
+}
+#else
+#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
+#endif
+
+/* StringJoin.proto */
+#if PY_MAJOR_VERSION < 3
+#define __Pyx_PyString_Join __Pyx_PyBytes_Join
+#define __Pyx_PyBaseString_Join(s, v) (PyUnicode_CheckExact(s) ? PyUnicode_Join(s, v) : __Pyx_PyBytes_Join(s, v))
+#else
+#define __Pyx_PyString_Join PyUnicode_Join
+#define __Pyx_PyBaseString_Join PyUnicode_Join
+#endif
+#if CYTHON_COMPILING_IN_CPYTHON
+    #if PY_MAJOR_VERSION < 3
+    #define __Pyx_PyBytes_Join _PyString_Join
+    #else
+    #define __Pyx_PyBytes_Join _PyBytes_Join
+    #endif
+#else
+static CYTHON_INLINE PyObject* __Pyx_PyBytes_Join(PyObject* sep, PyObject* values);
+#endif
+
+/* GetModuleGlobalName.proto */
+static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name);
+
+/* ArgTypeTest.proto */
+#define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact)\
+    ((likely((Py_TYPE(obj) == type) | (none_allowed && (obj == Py_None)))) ? 1 :\
+        __Pyx__ArgTypeTest(obj, type, name, exact))
+static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
+
+/* PyObjectSetAttrStr.proto */
+#if CYTHON_USE_TYPE_SLOTS
+#define __Pyx_PyObject_DelAttrStr(o,n) __Pyx_PyObject_SetAttrStr(o, n, NULL)
+static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr_name, PyObject* value);
+#else
+#define __Pyx_PyObject_DelAttrStr(o,n)   PyObject_DelAttr(o,n)
+#define __Pyx_PyObject_SetAttrStr(o,n,v) PyObject_SetAttr(o,n,v)
+#endif
+
+/* KeywordStringCheck.proto */
+static int __Pyx_CheckKeywordStrings(PyObject *kwdict, const char* function_name, int kw_allowed);
 
 /* GetItemInt.proto */
 #define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
@@ -1406,14 +1503,13 @@ static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject 
 #define __Pyx_ExceptionReset(type, value, tb)  PyErr_SetExcInfo(type, value, tb)
 #endif
 
-/* GetModuleGlobalName.proto */
-static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name);
-
-/* PySequenceContains.proto */
-static CYTHON_INLINE int __Pyx_PySequence_ContainsTF(PyObject* item, PyObject* seq, int eq) {
-    int result = PySequence_Contains(seq, item);
-    return unlikely(result < 0) ? result : (result == (eq == Py_EQ));
-}
+/* PyIntBinop.proto */
+#if !CYTHON_COMPILING_IN_PYPY
+static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, long intval, int inplace);
+#else
+#define __Pyx_PyInt_SubtractObjC(op1, op2, intval, inplace)\
+    (inplace ? PyNumber_InPlaceSubtract(op1, op2) : PyNumber_Subtract(op1, op2))
+#endif
 
 /* PyErrExceptionMatches.proto */
 #if CYTHON_FAST_THREAD_STATE
@@ -1421,6 +1517,22 @@ static CYTHON_INLINE int __Pyx_PySequence_ContainsTF(PyObject* item, PyObject* s
 static CYTHON_INLINE int __Pyx_PyErr_ExceptionMatchesInState(PyThreadState* tstate, PyObject* err);
 #else
 #define __Pyx_PyErr_ExceptionMatches(err)  PyErr_ExceptionMatches(err)
+#endif
+
+/* IncludeStringH.proto */
+#include <string.h>
+
+/* BytesEquals.proto */
+static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
+
+/* UnicodeEquals.proto */
+static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals);
+
+/* StrEquals.proto */
+#if PY_MAJOR_VERSION >= 3
+#define __Pyx_PyString_Equals __Pyx_PyUnicode_Equals
+#else
+#define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
 #endif
 
 /* PyObject_GenericGetAttrNoDict.proto */
@@ -1445,6 +1557,9 @@ static int __Pyx_setup_reduce(PyObject* type_obj);
 
 /* Import.proto */
 static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level);
+
+/* ImportFrom.proto */
+static PyObject* __Pyx_ImportFrom(PyObject* module, PyObject* name);
 
 /* CalculateMetaclass.proto */
 static PyObject *__Pyx_CalculateMetaclass(PyTypeObject *metaclass, PyObject *bases);
@@ -1552,6 +1667,9 @@ static void __Pyx_AddTraceback(const char *funcname, int c_line,
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 
 /* CIntToPy.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_off_t(off_t value);
+
+/* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_enum__htsFormatCategory(enum htsFormatCategory value);
 
 /* CIntToPy.proto */
@@ -1565,6 +1683,12 @@ static CYTHON_INLINE PyObject* __Pyx_PyInt_From_enum__htsCompression(enum htsCom
 
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int64_t(int64_t value);
+
+/* CIntToPy.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
+
+/* CIntToPy.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_PY_LONG_LONG(PY_LONG_LONG value);
 
 /* ArrayAPI.proto */
 #ifndef _ARRAYARRAY_H
@@ -1687,8 +1811,8 @@ static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
 /* CIntFromPy.proto */
 static CYTHON_INLINE uint64_t __Pyx_PyInt_As_uint64_t(PyObject *);
 
-/* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
+/* CIntFromPy.proto */
+static CYTHON_INLINE PY_LONG_LONG __Pyx_PyInt_As_PY_LONG_LONG(PyObject *);
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *);
@@ -1730,6 +1854,7 @@ static int __Pyx_ImportFunction(PyObject *module, const char *funcname, void (**
 /* InitStrings.proto */
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
+static PyObject *__pyx_f_5pysam_10libchtslib_5HFile__open(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, PyObject *__pyx_v_name, PyObject *__pyx_v_mode, struct __pyx_opt_args_5pysam_10libchtslib_5HFile__open *__pyx_optional_args); /* proto*/
 static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto*/
 
 /* Module declarations from 'libc.stdint' */
@@ -1744,7 +1869,7 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
 
 /* Module declarations from 'posix.unistd' */
 
-/* Module declarations from 'cython' */
+/* Module declarations from 'libc.errno' */
 
 /* Module declarations from 'cpython.version' */
 
@@ -1825,6 +1950,8 @@ static PyTypeObject *__pyx_ptype_7cpython_7complex_complex = 0;
 
 /* Module declarations from 'cpython' */
 
+/* Module declarations from 'cython' */
+
 /* Module declarations from 'array' */
 
 /* Module declarations from 'cpython.array' */
@@ -1841,6 +1968,7 @@ static PyObject *(*__pyx_f_5pysam_9libcutils_from_string_and_size)(char const *,
 
 /* Module declarations from 'pysam.libchtslib' */
 static PyTypeObject *__pyx_ptype_5pysam_10libchtslib_HTSFile = 0;
+static PyTypeObject *__pyx_ptype_5pysam_10libchtslib_HFile = 0;
 static int __pyx_v_5pysam_10libchtslib_MAX_POS;
 static PyObject *__pyx_v_5pysam_10libchtslib_FORMAT_CATEGORIES = 0;
 static PyObject *__pyx_v_5pysam_10libchtslib_FORMATS = 0;
@@ -1853,18 +1981,28 @@ int __pyx_module_is_main_pysam__libchtslib = 0;
 
 /* Implementation of 'pysam.libchtslib' */
 static PyObject *__pyx_builtin_object;
-static PyObject *__pyx_builtin_ValueError;
-static PyObject *__pyx_builtin_OSError;
 static PyObject *__pyx_builtin_IOError;
 static PyObject *__pyx_builtin_AttributeError;
+static PyObject *__pyx_builtin_StopIteration;
+static PyObject *__pyx_builtin_NotImplementedError;
 static PyObject *__pyx_builtin_TypeError;
+static PyObject *__pyx_builtin_ValueError;
+static PyObject *__pyx_builtin_RuntimeError;
+static PyObject *__pyx_builtin_OverflowError;
+static PyObject *__pyx_builtin_IndexError;
 static PyObject *__pyx_builtin_MemoryError;
 static const char __pyx_k_b[] = "b";
 static const char __pyx_k_c[] = "c";
+static const char __pyx_k_r[] = "r";
+static const char __pyx_k_w[] = "w";
+static const char __pyx_k__6[] = "";
 static const char __pyx_k_eq[] = "__eq__";
 static const char __pyx_k_fd[] = "<fd:{}>";
+static const char __pyx_k_io[] = "io";
 static const char __pyx_k_ne[] = "__ne__";
 static const char __pyx_k_os[] = "os";
+static const char __pyx_k_re[] = "re";
+static const char __pyx_k_tb[] = "tb";
 static const char __pyx_k_BAI[] = "BAI";
 static const char __pyx_k_BAM[] = "BAM";
 static const char __pyx_k_BCF[] = "BCF";
@@ -1874,10 +2012,13 @@ static const char __pyx_k_GZI[] = "GZI";
 static const char __pyx_k_SAM[] = "SAM";
 static const char __pyx_k_TBI[] = "TBI";
 static const char __pyx_k_VCF[] = "VCF";
-static const char __pyx_k__16[] = "";
-static const char __pyx_k__20[] = "-";
+static const char __pyx_k__36[] = "[:-]";
+static const char __pyx_k__38[] = "*";
+static const char __pyx_k__39[] = ".";
 static const char __pyx_k_all[] = "__all__";
 static const char __pyx_k_doc[] = "__doc__";
+static const char __pyx_k_end[] = "end";
+static const char __pyx_k_tid[] = "tid";
 static const char __pyx_k_BGZF[] = "BGZF";
 static const char __pyx_k_CRAI[] = "CRAI";
 static const char __pyx_k_CRAM[] = "CRAM";
@@ -1886,31 +2027,46 @@ static const char __pyx_k_NONE[] = "NONE";
 static const char __pyx_k_bool[] = "__bool__";
 static const char __pyx_k_call[] = "__call__";
 static const char __pyx_k_init[] = "__init__";
+static const char __pyx_k_join[] = "join";
 static const char __pyx_k_main[] = "__main__";
+static const char __pyx_k_mode[] = "mode";
 static const char __pyx_k_name[] = "name";
-static const char __pyx_k_path[] = "path";
+static const char __pyx_k_read[] = "read";
 static const char __pyx_k_seek[] = "seek";
 static const char __pyx_k_self[] = "self";
+static const char __pyx_k_size[] = "size";
+static const char __pyx_k_stop[] = "stop";
 static const char __pyx_k_test[] = "__test__";
+static const char __pyx_k_type[] = "type";
+static const char __pyx_k_warn[] = "warn";
 static const char __pyx_k_CTrue[] = "CTrue";
+static const char __pyx_k_HFile[] = "HFile";
 static const char __pyx_k_INDEX[] = "INDEX";
 static const char __pyx_k_close[] = "close";
 static const char __pyx_k_other[] = "other";
+static const char __pyx_k_split[] = "split";
+static const char __pyx_k_start[] = "start";
 static const char __pyx_k_value[] = "value";
+static const char __pyx_k_write[] = "write";
 static const char __pyx_k_CFalse[] = "CFalse";
 static const char __pyx_k_CUSTOM[] = "CUSTOM";
-static const char __pyx_k_exists[] = "exists";
+static const char __pyx_k_contig[] = "contig";
 static const char __pyx_k_fileno[] = "fileno";
 static const char __pyx_k_format[] = "format";
 static const char __pyx_k_import[] = "__import__";
 static const char __pyx_k_module[] = "__module__";
 static const char __pyx_k_name_2[] = "__name__";
 static const char __pyx_k_object[] = "object";
+static const char __pyx_k_offset[] = "offset";
 static const char __pyx_k_reduce[] = "__reduce__";
+static const char __pyx_k_region[] = "region";
+static const char __pyx_k_whence[] = "whence";
+static const char __pyx_k_HTSFile[] = "HTSFile";
 static const char __pyx_k_IOError[] = "IOError";
-static const char __pyx_k_OSError[] = "OSError";
 static const char __pyx_k_REGIONS[] = "REGIONS";
 static const char __pyx_k_UNKNOWN[] = "UNKNOWN";
+static const char __pyx_k_closedf[] = "closedf";
+static const char __pyx_k_get_tid[] = "get_tid";
 static const char __pyx_k_is_open[] = "is_open";
 static const char __pyx_k_nonzero[] = "__nonzero__";
 static const char __pyx_k_prepare[] = "__prepare__";
@@ -1919,40 +2075,75 @@ static const char __pyx_k_VARIANTS[] = "VARIANTS";
 static const char __pyx_k_exc_type[] = "exc_type";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_qualname[] = "__qualname__";
+static const char __pyx_k_readline[] = "readline";
 static const char __pyx_k_setstate[] = "__setstate__";
+static const char __pyx_k_warnings[] = "warnings";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_exc_value[] = "exc_value";
 static const char __pyx_k_metaclass[] = "__metaclass__";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
+static const char __pyx_k_reference[] = "reference";
 static const char __pyx_k_traceback[] = "traceback";
 static const char __pyx_k_ALIGNMENTS[] = "ALIGNMENTS";
+static const char __pyx_k_IndexError[] = "IndexError";
 static const char __pyx_k_ValueError[] = "ValueError";
+static const char __pyx_k_memoryview[] = "memoryview";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_TEXT_FORMAT[] = "TEXT_FORMAT";
+static const char __pyx_k_invalid_tid[] = "invalid tid";
+static const char __pyx_k_RuntimeError[] = "RuntimeError";
+static const char __pyx_k_is_valid_tid[] = "is_valid_tid";
 static const char __pyx_k_BINARY_FORMAT[] = "BINARY_FORMAT";
 static const char __pyx_k_CallableValue[] = "CallableValue";
+static const char __pyx_k_OverflowError[] = "OverflowError";
+static const char __pyx_k_StopIteration[] = "StopIteration";
 static const char __pyx_k_get_verbosity[] = "get_verbosity";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_set_verbosity[] = "set_verbosity";
 static const char __pyx_k_AttributeError[] = "AttributeError";
+static const char __pyx_k_format_options[] = "format_options";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
+static const char __pyx_k_invalid_contig_s[] = "invalid contig `%s`";
 static const char __pyx_k_pysam_libchtslib[] = "pysam.libchtslib";
+static const char __pyx_k_ignore_truncation[] = "ignore_truncation";
 static const char __pyx_k_CallableValue___eq[] = "CallableValue.__eq__";
 static const char __pyx_k_CallableValue___ne[] = "CallableValue.__ne__";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_Cannot_create_hfile[] = "Cannot create hfile";
+static const char __pyx_k_NotImplementedError[] = "NotImplementedError";
+static const char __pyx_k_stop_out_of_range_i[] = "stop out of range (%i)";
 static const char __pyx_k_CallableValue___bool[] = "CallableValue.__bool__";
 static const char __pyx_k_CallableValue___call[] = "CallableValue.__call__";
 static const char __pyx_k_CallableValue___init[] = "CallableValue.__init__";
+static const char __pyx_k_failed_to_open_HFile[] = "failed to open HFile";
+static const char __pyx_k_failed_to_read_HFile[] = "failed to read HFile";
+static const char __pyx_k_fileno_not_available[] = "fileno not available";
 static const char __pyx_k_pysam_libchtslib_pyx[] = "pysam/libchtslib.pyx";
+static const char __pyx_k_seek_failed_on_HFile[] = "seek failed on HFile";
+static const char __pyx_k_start_out_of_range_i[] = "start out of range (%i)";
+static const char __pyx_k_tell_failed_on_HFile[] = "tell failed on HFile";
+static const char __pyx_k_failed_to_close_HFile[] = "failed to close HFile";
+static const char __pyx_k_failed_to_flush_HFile[] = "failed to flush HFile";
+static const char __pyx_k_write_failed_on_HFile[] = "write failed on HFile";
 static const char __pyx_k_CallableValue___nonzero[] = "CallableValue.__nonzero__";
+static const char __pyx_k_operation_on_closed_HFile[] = "operation on closed HFile";
 static const char __pyx_k_I_O_operation_on_closed_file[] = "I/O operation on closed file";
+static const char __pyx_k_error_checking_for_EOF_marker[] = "error checking for EOF marker";
 static const char __pyx_k_seek_not_available_in_streams[] = "seek not available in streams";
 static const char __pyx_k_tell_not_available_in_streams[] = "tell not available in streams";
+static const char __pyx_k_An_error_occured_while_applying[] = "An error occured while applying the requested format options";
+static const char __pyx_k_Invalid_format_option_specified[] = "Invalid format option ({}) specified";
+static const char __pyx_k_contig_and_reference_should_not[] = "contig and reference should not both be specified";
+static const char __pyx_k_stop_and_end_should_not_both_be[] = "stop and end should not both be specified";
+static const char __pyx_k_invalid_coordinates_start_i_stop[] = "invalid coordinates: start (%i) > stop (%i)";
 static const char __pyx_k_metadata_not_available_on_closed[] = "metadata not available on closed file";
+static const char __pyx_k_no_BGZF_EOF_marker_file_may_be_t[] = "no BGZF EOF marker; file may be truncated";
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
+static const char __pyx_k_seek_not_implemented_in_files_co[] = "seek not implemented in files compressed by method {}";
+static const char __pyx_k_self_fp_cannot_be_converted_to_a[] = "self.fp cannot be converted to a Python object for pickling";
 static PyObject *__pyx_n_s_ALIGNMENTS;
+static PyObject *__pyx_kp_s_An_error_occured_while_applying;
 static PyObject *__pyx_n_s_AttributeError;
 static PyObject *__pyx_n_s_BAI;
 static PyObject *__pyx_n_s_BAM;
@@ -1976,14 +2167,21 @@ static PyObject *__pyx_n_s_CallableValue___nonzero;
 static PyObject *__pyx_kp_s_Cannot_create_hfile;
 static PyObject *__pyx_n_s_GZI;
 static PyObject *__pyx_n_s_GZIP;
+static PyObject *__pyx_n_s_HFile;
+static PyObject *__pyx_n_s_HTSFile;
 static PyObject *__pyx_n_s_INDEX;
 static PyObject *__pyx_n_s_IOError;
 static PyObject *__pyx_kp_s_I_O_operation_on_closed_file;
+static PyObject *__pyx_n_s_IndexError;
+static PyObject *__pyx_kp_s_Invalid_format_option_specified;
 static PyObject *__pyx_n_s_MemoryError;
 static PyObject *__pyx_n_s_NONE;
-static PyObject *__pyx_n_s_OSError;
+static PyObject *__pyx_n_s_NotImplementedError;
+static PyObject *__pyx_n_s_OverflowError;
 static PyObject *__pyx_n_s_REGIONS;
+static PyObject *__pyx_n_s_RuntimeError;
 static PyObject *__pyx_n_s_SAM;
+static PyObject *__pyx_n_s_StopIteration;
 static PyObject *__pyx_n_s_TBI;
 static PyObject *__pyx_n_s_TEXT_FORMAT;
 static PyObject *__pyx_n_s_TypeError;
@@ -1991,8 +2189,10 @@ static PyObject *__pyx_n_s_UNKNOWN;
 static PyObject *__pyx_n_s_VARIANTS;
 static PyObject *__pyx_n_s_VCF;
 static PyObject *__pyx_n_s_ValueError;
-static PyObject *__pyx_kp_b__16;
-static PyObject *__pyx_kp_b__20;
+static PyObject *__pyx_kp_s__36;
+static PyObject *__pyx_kp_s__38;
+static PyObject *__pyx_kp_s__39;
+static PyObject *__pyx_kp_b__6;
 static PyObject *__pyx_n_s_all;
 static PyObject *__pyx_n_b_b;
 static PyObject *__pyx_n_s_bool;
@@ -2000,53 +2200,129 @@ static PyObject *__pyx_n_b_c;
 static PyObject *__pyx_n_s_call;
 static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_n_s_close;
+static PyObject *__pyx_n_s_closedf;
+static PyObject *__pyx_n_s_contig;
+static PyObject *__pyx_kp_s_contig_and_reference_should_not;
 static PyObject *__pyx_n_s_doc;
+static PyObject *__pyx_n_s_end;
 static PyObject *__pyx_n_s_eq;
+static PyObject *__pyx_kp_s_error_checking_for_EOF_marker;
 static PyObject *__pyx_n_s_exc_type;
 static PyObject *__pyx_n_s_exc_value;
-static PyObject *__pyx_n_s_exists;
+static PyObject *__pyx_kp_s_failed_to_close_HFile;
+static PyObject *__pyx_kp_s_failed_to_flush_HFile;
+static PyObject *__pyx_kp_s_failed_to_open_HFile;
+static PyObject *__pyx_kp_s_failed_to_read_HFile;
 static PyObject *__pyx_kp_s_fd;
 static PyObject *__pyx_n_s_fileno;
+static PyObject *__pyx_kp_s_fileno_not_available;
 static PyObject *__pyx_n_s_format;
+static PyObject *__pyx_n_s_format_options;
+static PyObject *__pyx_n_s_get_tid;
 static PyObject *__pyx_n_s_get_verbosity;
 static PyObject *__pyx_n_s_getstate;
+static PyObject *__pyx_n_s_ignore_truncation;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_init;
+static PyObject *__pyx_kp_s_invalid_contig_s;
+static PyObject *__pyx_kp_s_invalid_coordinates_start_i_stop;
+static PyObject *__pyx_kp_s_invalid_tid;
+static PyObject *__pyx_n_s_io;
 static PyObject *__pyx_n_s_is_open;
+static PyObject *__pyx_n_s_is_valid_tid;
+static PyObject *__pyx_n_s_join;
 static PyObject *__pyx_n_s_main;
+static PyObject *__pyx_n_s_memoryview;
 static PyObject *__pyx_n_s_metaclass;
 static PyObject *__pyx_kp_s_metadata_not_available_on_closed;
+static PyObject *__pyx_n_s_mode;
 static PyObject *__pyx_n_s_module;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_name_2;
 static PyObject *__pyx_n_s_ne;
+static PyObject *__pyx_kp_s_no_BGZF_EOF_marker_file_may_be_t;
 static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
 static PyObject *__pyx_n_s_nonzero;
 static PyObject *__pyx_n_s_object;
+static PyObject *__pyx_n_s_offset;
+static PyObject *__pyx_kp_s_operation_on_closed_HFile;
 static PyObject *__pyx_n_s_os;
 static PyObject *__pyx_n_s_other;
-static PyObject *__pyx_n_s_path;
 static PyObject *__pyx_n_s_prepare;
 static PyObject *__pyx_n_s_pysam_libchtslib;
 static PyObject *__pyx_kp_s_pysam_libchtslib_pyx;
 static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_qualname;
+static PyObject *__pyx_n_s_r;
+static PyObject *__pyx_n_s_re;
+static PyObject *__pyx_n_s_read;
+static PyObject *__pyx_n_s_readline;
 static PyObject *__pyx_n_s_reduce;
 static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_reduce_ex;
+static PyObject *__pyx_n_s_reference;
+static PyObject *__pyx_n_s_region;
 static PyObject *__pyx_n_s_replace;
 static PyObject *__pyx_n_s_seek;
+static PyObject *__pyx_kp_s_seek_failed_on_HFile;
 static PyObject *__pyx_kp_s_seek_not_available_in_streams;
+static PyObject *__pyx_kp_s_seek_not_implemented_in_files_co;
 static PyObject *__pyx_n_s_self;
+static PyObject *__pyx_kp_s_self_fp_cannot_be_converted_to_a;
 static PyObject *__pyx_n_s_set_verbosity;
 static PyObject *__pyx_n_s_setstate;
 static PyObject *__pyx_n_s_setstate_cython;
+static PyObject *__pyx_n_s_size;
+static PyObject *__pyx_n_s_split;
+static PyObject *__pyx_n_s_start;
+static PyObject *__pyx_kp_s_start_out_of_range_i;
+static PyObject *__pyx_n_s_stop;
+static PyObject *__pyx_kp_s_stop_and_end_should_not_both_be;
+static PyObject *__pyx_kp_s_stop_out_of_range_i;
+static PyObject *__pyx_n_s_tb;
+static PyObject *__pyx_kp_s_tell_failed_on_HFile;
 static PyObject *__pyx_kp_s_tell_not_available_in_streams;
 static PyObject *__pyx_n_s_test;
+static PyObject *__pyx_n_s_tid;
 static PyObject *__pyx_n_s_traceback;
+static PyObject *__pyx_n_s_type;
 static PyObject *__pyx_n_s_value;
+static PyObject *__pyx_n_s_w;
+static PyObject *__pyx_n_s_warn;
+static PyObject *__pyx_n_s_warnings;
+static PyObject *__pyx_n_s_whence;
+static PyObject *__pyx_n_s_write;
+static PyObject *__pyx_kp_s_write_failed_on_HFile;
 static PyObject *__pyx_pf_5pysam_10libchtslib_set_verbosity(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_verbosity); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_2get_verbosity(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
+static int __pyx_pf_5pysam_10libchtslib_5HFile___init__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, PyObject *__pyx_v_name, PyObject *__pyx_v_mode, CYTHON_UNUSED PyObject *__pyx_v_closedf); /* proto */
+static void __pyx_pf_5pysam_10libchtslib_5HFile_2__dealloc__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_6closed___get__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_4close(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_6fileno(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_8__enter__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_10__exit__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_type, CYTHON_UNUSED PyObject *__pyx_v_value, CYTHON_UNUSED PyObject *__pyx_v_tb); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_12__iter__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_14__next__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_16flush(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_18isatty(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_20readable(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_22read(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, Py_ssize_t __pyx_v_size); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_24readall(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_26readinto(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, PyObject *__pyx_v_buf); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_28readline(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, Py_ssize_t __pyx_v_size); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_30readlines(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_32seek(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, Py_ssize_t __pyx_v_offset, int __pyx_v_whence); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_34tell(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_36seekable(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_38truncate(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_size); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_40writable(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_42write(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, PyObject *__pyx_v_b); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_44writelines(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, PyObject *__pyx_v_lines); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_4name___get__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_4mode___get__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_46__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_48__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_2__call__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_4__bool__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self); /* proto */
@@ -2054,9 +2330,11 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_6__nonzero__(CYTHO
 static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_8__eq__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_10__ne__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
 static int __pyx_pf_5pysam_10libchtslib_7HTSFile___cinit__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_args, CYTHON_UNUSED PyObject *__pyx_v_kwargs); /* proto */
-static void __pyx_pf_5pysam_10libchtslib_7HTSFile_2__dealloc__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_4__enter__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6__exit__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_exc_type, CYTHON_UNUSED PyObject *__pyx_v_exc_value, CYTHON_UNUSED PyObject *__pyx_v_traceback); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_2close(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
+static void __pyx_pf_5pysam_10libchtslib_7HTSFile_4__dealloc__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6check_truncation(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, PyObject *__pyx_v_ignore_truncation); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8__enter__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10__exit__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_exc_type, CYTHON_UNUSED PyObject *__pyx_v_exc_value, CYTHON_UNUSED PyObject *__pyx_v_traceback); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8category___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6format___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7version___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
@@ -2072,22 +2350,36 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_bam___get__(struct __
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_cram___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_vcf___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_bcf___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8reset(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, uint64_t __pyx_v_offset); /* proto */
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12tell(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_14_exists(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12reset(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_14seek(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, uint64_t __pyx_v_offset); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_16tell(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_18add_hts_options(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, PyObject *__pyx_v_format_options); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_20parse_region(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, PyObject *__pyx_v_contig, PyObject *__pyx_v_start, PyObject *__pyx_v_stop, PyObject *__pyx_v_region, PyObject *__pyx_v_tid, PyObject *__pyx_v_reference, PyObject *__pyx_v_end); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_22is_valid_tid(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_tid); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_24is_valid_reference_name(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, PyObject *__pyx_v_contig); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_26get_tid(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_contig); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_28get_reference_name(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_tid); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8filename___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_4mode___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7threads___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_14index_filename___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_9is_stream___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_9is_remote___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_20duplicate_filehandle___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_16__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_18__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_30__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_32__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_pf_7cpython_5array_5array___getbuffer__(arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info, CYTHON_UNUSED int __pyx_v_flags); /* proto */
 static void __pyx_pf_7cpython_5array_5array_2__releasebuffer__(CYTHON_UNUSED arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static PyObject *__pyx_tp_new_5pysam_10libchtslib_HTSFile(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
-static PyObject *__pyx_codeobj_;
+static PyObject *__pyx_tp_new_5pysam_10libchtslib_HFile(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_int_0;
+static PyObject *__pyx_int_1;
+static PyObject *__pyx_int_neg_1;
+static PyObject *__pyx_tuple_;
+static PyObject *__pyx_tuple__2;
+static PyObject *__pyx_tuple__3;
+static PyObject *__pyx_tuple__4;
+static PyObject *__pyx_tuple__5;
 static PyObject *__pyx_tuple__7;
 static PyObject *__pyx_tuple__8;
 static PyObject *__pyx_tuple__9;
@@ -2095,11 +2387,7 @@ static PyObject *__pyx_tuple__10;
 static PyObject *__pyx_tuple__11;
 static PyObject *__pyx_tuple__12;
 static PyObject *__pyx_tuple__13;
-static PyObject *__pyx_tuple__14;
-static PyObject *__pyx_tuple__15;
-static PyObject *__pyx_tuple__17;
-static PyObject *__pyx_tuple__18;
-static PyObject *__pyx_tuple__19;
+static PyObject *__pyx_tuple__20;
 static PyObject *__pyx_tuple__21;
 static PyObject *__pyx_tuple__22;
 static PyObject *__pyx_tuple__23;
@@ -2114,14 +2402,31 @@ static PyObject *__pyx_tuple__31;
 static PyObject *__pyx_tuple__32;
 static PyObject *__pyx_tuple__33;
 static PyObject *__pyx_tuple__34;
-static PyObject *__pyx_codeobj__2;
-static PyObject *__pyx_codeobj__3;
-static PyObject *__pyx_codeobj__4;
-static PyObject *__pyx_codeobj__5;
-static PyObject *__pyx_codeobj__6;
+static PyObject *__pyx_tuple__35;
+static PyObject *__pyx_tuple__37;
+static PyObject *__pyx_tuple__40;
+static PyObject *__pyx_tuple__41;
+static PyObject *__pyx_tuple__42;
+static PyObject *__pyx_tuple__43;
+static PyObject *__pyx_tuple__44;
+static PyObject *__pyx_tuple__45;
+static PyObject *__pyx_tuple__46;
+static PyObject *__pyx_tuple__47;
+static PyObject *__pyx_tuple__48;
+static PyObject *__pyx_tuple__49;
+static PyObject *__pyx_tuple__50;
+static PyObject *__pyx_tuple__51;
+static PyObject *__pyx_tuple__52;
+static PyObject *__pyx_tuple__53;
+static PyObject *__pyx_codeobj__14;
+static PyObject *__pyx_codeobj__15;
+static PyObject *__pyx_codeobj__16;
+static PyObject *__pyx_codeobj__17;
+static PyObject *__pyx_codeobj__18;
+static PyObject *__pyx_codeobj__19;
 /* Late includes */
 
-/* "pysam/libchtslib.pyx":29
+/* "pysam/libchtslib.pyx":58
  * 
  * 
  * cpdef set_verbosity(int verbosity):             # <<<<<<<<<<<<<<
@@ -2136,9 +2441,9 @@ static PyObject *__pyx_f_5pysam_10libchtslib_set_verbosity(int __pyx_v_verbosity
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("set_verbosity", 0);
-  __Pyx_TraceCall("set_verbosity", __pyx_f[0], 29, 0, __PYX_ERR(0, 29, __pyx_L1_error));
+  __Pyx_TraceCall("set_verbosity", __pyx_f[0], 58, 0, __PYX_ERR(0, 58, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":31
+  /* "pysam/libchtslib.pyx":60
  * cpdef set_verbosity(int verbosity):
  *     """Set htslib's hts_verbose global variable to the specified value."""
  *     return hts_set_verbosity(verbosity)             # <<<<<<<<<<<<<<
@@ -2146,13 +2451,13 @@ static PyObject *__pyx_f_5pysam_10libchtslib_set_verbosity(int __pyx_v_verbosity
  * cpdef get_verbosity():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(hts_set_verbosity(__pyx_v_verbosity)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(hts_set_verbosity(__pyx_v_verbosity)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":29
+  /* "pysam/libchtslib.pyx":58
  * 
  * 
  * cpdef set_verbosity(int verbosity):             # <<<<<<<<<<<<<<
@@ -2181,7 +2486,7 @@ static PyObject *__pyx_pw_5pysam_10libchtslib_1set_verbosity(PyObject *__pyx_sel
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("set_verbosity (wrapper)", 0);
   assert(__pyx_arg_verbosity); {
-    __pyx_v_verbosity = __Pyx_PyInt_As_int(__pyx_arg_verbosity); if (unlikely((__pyx_v_verbosity == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 29, __pyx_L3_error)
+    __pyx_v_verbosity = __Pyx_PyInt_As_int(__pyx_arg_verbosity); if (unlikely((__pyx_v_verbosity == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -2202,9 +2507,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_set_verbosity(CYTHON_UNUSED PyObje
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("set_verbosity", 0);
-  __Pyx_TraceCall("set_verbosity (wrapper)", __pyx_f[0], 29, 0, __PYX_ERR(0, 29, __pyx_L1_error));
+  __Pyx_TraceCall("set_verbosity (wrapper)", __pyx_f[0], 58, 0, __PYX_ERR(0, 58, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_5pysam_10libchtslib_set_verbosity(__pyx_v_verbosity, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5pysam_10libchtslib_set_verbosity(__pyx_v_verbosity, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2222,7 +2527,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_set_verbosity(CYTHON_UNUSED PyObje
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":33
+/* "pysam/libchtslib.pyx":62
  *     return hts_set_verbosity(verbosity)
  * 
  * cpdef get_verbosity():             # <<<<<<<<<<<<<<
@@ -2237,9 +2542,9 @@ static PyObject *__pyx_f_5pysam_10libchtslib_get_verbosity(CYTHON_UNUSED int __p
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_verbosity", 0);
-  __Pyx_TraceCall("get_verbosity", __pyx_f[0], 33, 0, __PYX_ERR(0, 33, __pyx_L1_error));
+  __Pyx_TraceCall("get_verbosity", __pyx_f[0], 62, 0, __PYX_ERR(0, 62, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":35
+  /* "pysam/libchtslib.pyx":64
  * cpdef get_verbosity():
  *     """Return the value of htslib's hts_verbose global variable."""
  *     return hts_get_verbosity()             # <<<<<<<<<<<<<<
@@ -2247,13 +2552,13 @@ static PyObject *__pyx_f_5pysam_10libchtslib_get_verbosity(CYTHON_UNUSED int __p
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(hts_get_verbosity()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(hts_get_verbosity()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":33
+  /* "pysam/libchtslib.pyx":62
  *     return hts_set_verbosity(verbosity)
  * 
  * cpdef get_verbosity():             # <<<<<<<<<<<<<<
@@ -2293,9 +2598,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_2get_verbosity(CYTHON_UNUSED PyObj
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_verbosity", 0);
-  __Pyx_TraceCall("get_verbosity (wrapper)", __pyx_f[0], 33, 0, __PYX_ERR(0, 33, __pyx_L1_error));
+  __Pyx_TraceCall("get_verbosity (wrapper)", __pyx_f[0], 62, 0, __PYX_ERR(0, 62, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_5pysam_10libchtslib_get_verbosity(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5pysam_10libchtslib_get_verbosity(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2313,7 +2618,3912 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_2get_verbosity(CYTHON_UNUSED PyObj
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":39
+/* "pysam/libchtslib.pyx":76
+ *     cdef readonly object name, mode
+ * 
+ *     def __init__(self, name, mode='r', closedf=True):             # <<<<<<<<<<<<<<
+ *         self._open(name, mode, closefd=True)
+ * 
+ */
+
+/* Python wrapper */
+static int __pyx_pw_5pysam_10libchtslib_5HFile_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_5pysam_10libchtslib_5HFile_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_name = 0;
+  PyObject *__pyx_v_mode = 0;
+  CYTHON_UNUSED PyObject *__pyx_v_closedf = 0;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_name,&__pyx_n_s_mode,&__pyx_n_s_closedf,0};
+    PyObject* values[3] = {0,0,0};
+    values[1] = ((PyObject *)__pyx_n_s_r);
+    values[2] = ((PyObject *)Py_True);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_name)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_mode);
+          if (value) { values[1] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_closedf);
+          if (value) { values[2] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 76, __pyx_L3_error)
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_name = values[0];
+    __pyx_v_mode = values[1];
+    __pyx_v_closedf = values[2];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 76, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return -1;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile___init__(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self), __pyx_v_name, __pyx_v_mode, __pyx_v_closedf);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_5pysam_10libchtslib_5HFile___init__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, PyObject *__pyx_v_name, PyObject *__pyx_v_mode, CYTHON_UNUSED PyObject *__pyx_v_closedf) {
+  int __pyx_r;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  struct __pyx_opt_args_5pysam_10libchtslib_5HFile__open __pyx_t_2;
+  __Pyx_RefNannySetupContext("__init__", 0);
+  __Pyx_TraceCall("__init__", __pyx_f[0], 76, 0, __PYX_ERR(0, 76, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":77
+ * 
+ *     def __init__(self, name, mode='r', closedf=True):
+ *         self._open(name, mode, closefd=True)             # <<<<<<<<<<<<<<
+ * 
+ *     def __dealloc__(self):
+ */
+  __pyx_t_2.__pyx_n = 1;
+  __pyx_t_2.closefd = Py_True;
+  __pyx_t_1 = ((struct __pyx_vtabstruct_5pysam_10libchtslib_HFile *)__pyx_v_self->__pyx_vtab)->_open(__pyx_v_self, __pyx_v_name, __pyx_v_mode, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "pysam/libchtslib.pyx":76
+ *     cdef readonly object name, mode
+ * 
+ *     def __init__(self, name, mode='r', closedf=True):             # <<<<<<<<<<<<<<
+ *         self._open(name, mode, closefd=True)
+ * 
+ */
+
+  /* function exit code */
+  __pyx_r = 0;
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = -1;
+  __pyx_L0:;
+  __Pyx_TraceReturn(Py_None, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":79
+ *         self._open(name, mode, closefd=True)
+ * 
+ *     def __dealloc__(self):             # <<<<<<<<<<<<<<
+ *         self.close()
+ * 
+ */
+
+/* Python wrapper */
+static void __pyx_pw_5pysam_10libchtslib_5HFile_3__dealloc__(PyObject *__pyx_v_self); /*proto*/
+static void __pyx_pw_5pysam_10libchtslib_5HFile_3__dealloc__(PyObject *__pyx_v_self) {
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__dealloc__ (wrapper)", 0);
+  __pyx_pf_5pysam_10libchtslib_5HFile_2__dealloc__(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+static void __pyx_pf_5pysam_10libchtslib_5HFile_2__dealloc__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  __Pyx_RefNannySetupContext("__dealloc__", 0);
+  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 79, 0, __PYX_ERR(0, 79, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":80
+ * 
+ *     def __dealloc__(self):
+ *         self.close()             # <<<<<<<<<<<<<<
+ * 
+ *     @property
+ */
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 80, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  if (__pyx_t_3) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 80, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  } else {
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 80, __pyx_L1_error)
+  }
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "pysam/libchtslib.pyx":79
+ *         self._open(name, mode, closefd=True)
+ * 
+ *     def __dealloc__(self):             # <<<<<<<<<<<<<<
+ *         self.close()
+ * 
+ */
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_WriteUnraisable("pysam.libchtslib.HFile.__dealloc__", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
+  __pyx_L0:;
+  __Pyx_TraceReturn(Py_None, 0);
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "pysam/libchtslib.pyx":83
+ * 
+ *     @property
+ *     def closed(self):             # <<<<<<<<<<<<<<
+ *         return self.fp == NULL
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_6closed_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_6closed_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_6closed___get__(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_6closed___get__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__get__", 0);
+  __Pyx_TraceCall("__get__", __pyx_f[0], 83, 0, __PYX_ERR(0, 83, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":84
+ *     @property
+ *     def closed(self):
+ *         return self.fp == NULL             # <<<<<<<<<<<<<<
+ * 
+ *     cdef _open(self, name, mode, closefd=True):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->fp == NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":83
+ * 
+ *     @property
+ *     def closed(self):             # <<<<<<<<<<<<<<
+ *         return self.fp == NULL
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.closed.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":86
+ *         return self.fp == NULL
+ * 
+ *     cdef _open(self, name, mode, closefd=True):             # <<<<<<<<<<<<<<
+ *         self.name = name
+ *         self.mode = mode
+ */
+
+static PyObject *__pyx_f_5pysam_10libchtslib_5HFile__open(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, PyObject *__pyx_v_name, PyObject *__pyx_v_mode, struct __pyx_opt_args_5pysam_10libchtslib_5HFile__open *__pyx_optional_args) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  char const *__pyx_t_5;
+  char const *__pyx_t_6;
+  char const *__pyx_t_7;
+  PyObject *__pyx_t_8 = NULL;
+  __Pyx_RefNannySetupContext("_open", 0);
+  __Pyx_TraceCall("_open", __pyx_f[0], 86, 0, __PYX_ERR(0, 86, __pyx_L1_error));
+  if (__pyx_optional_args) {
+  }
+  __Pyx_INCREF(__pyx_v_name);
+  __Pyx_INCREF(__pyx_v_mode);
+
+  /* "pysam/libchtslib.pyx":87
+ * 
+ *     cdef _open(self, name, mode, closefd=True):
+ *         self.name = name             # <<<<<<<<<<<<<<
+ *         self.mode = mode
+ * 
+ */
+  __Pyx_INCREF(__pyx_v_name);
+  __Pyx_GIVEREF(__pyx_v_name);
+  __Pyx_GOTREF(__pyx_v_self->name);
+  __Pyx_DECREF(__pyx_v_self->name);
+  __pyx_v_self->name = __pyx_v_name;
+
+  /* "pysam/libchtslib.pyx":88
+ *     cdef _open(self, name, mode, closefd=True):
+ *         self.name = name
+ *         self.mode = mode             # <<<<<<<<<<<<<<
+ * 
+ *         mode = force_bytes(mode)
+ */
+  __Pyx_INCREF(__pyx_v_mode);
+  __Pyx_GIVEREF(__pyx_v_mode);
+  __Pyx_GOTREF(__pyx_v_self->mode);
+  __Pyx_DECREF(__pyx_v_self->mode);
+  __pyx_v_self->mode = __pyx_v_mode;
+
+  /* "pysam/libchtslib.pyx":90
+ *         self.mode = mode
+ * 
+ *         mode = force_bytes(mode)             # <<<<<<<<<<<<<<
+ * 
+ *         if isinstance(name, int):
+ */
+  __pyx_t_1 = __pyx_f_5pysam_9libcutils_force_bytes(__pyx_v_mode, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF_SET(__pyx_v_mode, __pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "pysam/libchtslib.pyx":92
+ *         mode = force_bytes(mode)
+ * 
+ *         if isinstance(name, int):             # <<<<<<<<<<<<<<
+ *             if self.fp != NULL:
+ *                 name = dup(name)
+ */
+  __pyx_t_2 = PyInt_Check(__pyx_v_name); 
+  __pyx_t_3 = (__pyx_t_2 != 0);
+  if (__pyx_t_3) {
+
+    /* "pysam/libchtslib.pyx":93
+ * 
+ *         if isinstance(name, int):
+ *             if self.fp != NULL:             # <<<<<<<<<<<<<<
+ *                 name = dup(name)
+ *             self.fp = hdopen(name, mode)
+ */
+    __pyx_t_3 = ((__pyx_v_self->fp != NULL) != 0);
+    if (__pyx_t_3) {
+
+      /* "pysam/libchtslib.pyx":94
+ *         if isinstance(name, int):
+ *             if self.fp != NULL:
+ *                 name = dup(name)             # <<<<<<<<<<<<<<
+ *             self.fp = hdopen(name, mode)
+ *         else:
+ */
+      __pyx_t_4 = __Pyx_PyInt_As_int(__pyx_v_name); if (unlikely((__pyx_t_4 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 94, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyInt_From_int(dup(__pyx_t_4)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF_SET(__pyx_v_name, __pyx_t_1);
+      __pyx_t_1 = 0;
+
+      /* "pysam/libchtslib.pyx":93
+ * 
+ *         if isinstance(name, int):
+ *             if self.fp != NULL:             # <<<<<<<<<<<<<<
+ *                 name = dup(name)
+ *             self.fp = hdopen(name, mode)
+ */
+    }
+
+    /* "pysam/libchtslib.pyx":95
+ *             if self.fp != NULL:
+ *                 name = dup(name)
+ *             self.fp = hdopen(name, mode)             # <<<<<<<<<<<<<<
+ *         else:
+ *             name = encode_filename(name)
+ */
+    __pyx_t_4 = __Pyx_PyInt_As_int(__pyx_v_name); if (unlikely((__pyx_t_4 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_AsString(__pyx_v_mode); if (unlikely((!__pyx_t_5) && PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L1_error)
+    __pyx_v_self->fp = hdopen(__pyx_t_4, __pyx_t_5);
+
+    /* "pysam/libchtslib.pyx":92
+ *         mode = force_bytes(mode)
+ * 
+ *         if isinstance(name, int):             # <<<<<<<<<<<<<<
+ *             if self.fp != NULL:
+ *                 name = dup(name)
+ */
+    goto __pyx_L3;
+  }
+
+  /* "pysam/libchtslib.pyx":97
+ *             self.fp = hdopen(name, mode)
+ *         else:
+ *             name = encode_filename(name)             # <<<<<<<<<<<<<<
+ *             self.fp = hopen(name, mode)
+ * 
+ */
+  /*else*/ {
+    __pyx_t_1 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_name); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF_SET(__pyx_v_name, __pyx_t_1);
+    __pyx_t_1 = 0;
+
+    /* "pysam/libchtslib.pyx":98
+ *         else:
+ *             name = encode_filename(name)
+ *             self.fp = hopen(name, mode)             # <<<<<<<<<<<<<<
+ * 
+ *         if not self.fp:
+ */
+    __pyx_t_6 = __Pyx_PyObject_AsString(__pyx_v_name); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) __PYX_ERR(0, 98, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_AsString(__pyx_v_mode); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 98, __pyx_L1_error)
+    __pyx_v_self->fp = hopen(__pyx_t_6, __pyx_t_7);
+  }
+  __pyx_L3:;
+
+  /* "pysam/libchtslib.pyx":100
+ *             self.fp = hopen(name, mode)
+ * 
+ *         if not self.fp:             # <<<<<<<<<<<<<<
+ *             raise IOError(errno, 'failed to open HFile', self.name)
+ * 
+ */
+  __pyx_t_3 = ((!(__pyx_v_self->fp != 0)) != 0);
+  if (unlikely(__pyx_t_3)) {
+
+    /* "pysam/libchtslib.pyx":101
+ * 
+ *         if not self.fp:
+ *             raise IOError(errno, 'failed to open HFile', self.name)             # <<<<<<<<<<<<<<
+ * 
+ *     def close(self):
+ */
+    __pyx_t_1 = __Pyx_PyInt_From_int(errno); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 101, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 101, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __Pyx_GIVEREF(__pyx_t_1);
+    PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_1);
+    __Pyx_INCREF(__pyx_kp_s_failed_to_open_HFile);
+    __Pyx_GIVEREF(__pyx_kp_s_failed_to_open_HFile);
+    PyTuple_SET_ITEM(__pyx_t_8, 1, __pyx_kp_s_failed_to_open_HFile);
+    __Pyx_INCREF(__pyx_v_self->name);
+    __Pyx_GIVEREF(__pyx_v_self->name);
+    PyTuple_SET_ITEM(__pyx_t_8, 2, __pyx_v_self->name);
+    __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 101, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __PYX_ERR(0, 101, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":100
+ *             self.fp = hopen(name, mode)
+ * 
+ *         if not self.fp:             # <<<<<<<<<<<<<<
+ *             raise IOError(errno, 'failed to open HFile', self.name)
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":86
+ *         return self.fp == NULL
+ * 
+ *     cdef _open(self, name, mode, closefd=True):             # <<<<<<<<<<<<<<
+ *         self.name = name
+ *         self.mode = mode
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile._open", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_name);
+  __Pyx_XDECREF(__pyx_v_mode);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":103
+ *             raise IOError(errno, 'failed to open HFile', self.name)
+ * 
+ *     def close(self):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             return
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_5close(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_4close[] = "HFile.close(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_5close(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("close (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_4close(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_4close(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  hFILE *__pyx_v_fp;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  hFILE *__pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  __Pyx_RefNannySetupContext("close", 0);
+  __Pyx_TraceCall("close", __pyx_f[0], 103, 0, __PYX_ERR(0, 103, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":104
+ * 
+ *     def close(self):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_self->fp == NULL) != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":105
+ *     def close(self):
+ *         if self.fp == NULL:
+ *             return             # <<<<<<<<<<<<<<
+ * 
+ *         cdef hFILE *fp = self.fp
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+    goto __pyx_L0;
+
+    /* "pysam/libchtslib.pyx":104
+ * 
+ *     def close(self):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":107
+ *             return
+ * 
+ *         cdef hFILE *fp = self.fp             # <<<<<<<<<<<<<<
+ *         self.fp = NULL
+ * 
+ */
+  __pyx_t_2 = __pyx_v_self->fp;
+  __pyx_v_fp = __pyx_t_2;
+
+  /* "pysam/libchtslib.pyx":108
+ * 
+ *         cdef hFILE *fp = self.fp
+ *         self.fp = NULL             # <<<<<<<<<<<<<<
+ * 
+ *         if hclose(fp) != 0:
+ */
+  __pyx_v_self->fp = NULL;
+
+  /* "pysam/libchtslib.pyx":110
+ *         self.fp = NULL
+ * 
+ *         if hclose(fp) != 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(herrno(self.fp), 'failed to close HFile', self.name)
+ * 
+ */
+  __pyx_t_1 = ((hclose(__pyx_v_fp) != 0) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":111
+ * 
+ *         if hclose(fp) != 0:
+ *             raise IOError(herrno(self.fp), 'failed to close HFile', self.name)             # <<<<<<<<<<<<<<
+ * 
+ *     def fileno(self):
+ */
+    __pyx_t_3 = __Pyx_PyInt_From_int(herrno(__pyx_v_self->fp)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 111, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 111, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_GIVEREF(__pyx_t_3);
+    PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
+    __Pyx_INCREF(__pyx_kp_s_failed_to_close_HFile);
+    __Pyx_GIVEREF(__pyx_kp_s_failed_to_close_HFile);
+    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_kp_s_failed_to_close_HFile);
+    __Pyx_INCREF(__pyx_v_self->name);
+    __Pyx_GIVEREF(__pyx_v_self->name);
+    PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_v_self->name);
+    __pyx_t_3 = 0;
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 111, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __PYX_ERR(0, 111, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":110
+ *         self.fp = NULL
+ * 
+ *         if hclose(fp) != 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(herrno(self.fp), 'failed to close HFile', self.name)
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":103
+ *             raise IOError(errno, 'failed to open HFile', self.name)
+ * 
+ *     def close(self):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             return
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.close", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":113
+ *             raise IOError(herrno(self.fp), 'failed to close HFile', self.name)
+ * 
+ *     def fileno(self):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_7fileno(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_6fileno[] = "HFile.fileno(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_7fileno(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("fileno (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_6fileno(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_6fileno(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  int __pyx_t_3;
+  __Pyx_RefNannySetupContext("fileno", 0);
+  __Pyx_TraceCall("fileno", __pyx_f[0], 113, 0, __PYX_ERR(0, 113, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":114
+ * 
+ *     def fileno(self):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ *         if isinstance(self.name, int):
+ */
+  __pyx_t_1 = ((__pyx_v_self->fp == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":115
+ *     def fileno(self):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ *         if isinstance(self.name, int):
+ *             return self.name
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 115, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 115, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":114
+ * 
+ *     def fileno(self):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ *         if isinstance(self.name, int):
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":116
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ *         if isinstance(self.name, int):             # <<<<<<<<<<<<<<
+ *             return self.name
+ *         else:
+ */
+  __pyx_t_2 = __pyx_v_self->name;
+  __Pyx_INCREF(__pyx_t_2);
+  __pyx_t_1 = PyInt_Check(__pyx_t_2); 
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_3 = (__pyx_t_1 != 0);
+  if (likely(__pyx_t_3)) {
+
+    /* "pysam/libchtslib.pyx":117
+ *             raise IOError('operation on closed HFile')
+ *         if isinstance(self.name, int):
+ *             return self.name             # <<<<<<<<<<<<<<
+ *         else:
+ *             raise AttributeError('fileno not available')
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_INCREF(__pyx_v_self->name);
+    __pyx_r = __pyx_v_self->name;
+    goto __pyx_L0;
+
+    /* "pysam/libchtslib.pyx":116
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ *         if isinstance(self.name, int):             # <<<<<<<<<<<<<<
+ *             return self.name
+ *         else:
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":119
+ *             return self.name
+ *         else:
+ *             raise AttributeError('fileno not available')             # <<<<<<<<<<<<<<
+ * 
+ *     def __enter__(self):
+ */
+  /*else*/ {
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_AttributeError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 119, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 119, __pyx_L1_error)
+  }
+
+  /* "pysam/libchtslib.pyx":113
+ *             raise IOError(herrno(self.fp), 'failed to close HFile', self.name)
+ * 
+ *     def fileno(self):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.fileno", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":121
+ *             raise AttributeError('fileno not available')
+ * 
+ *     def __enter__(self):             # <<<<<<<<<<<<<<
+ *         return self
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_9__enter__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_8__enter__[] = "HFile.__enter__(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_9__enter__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__enter__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_8__enter__(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_8__enter__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__enter__", 0);
+  __Pyx_TraceCall("__enter__", __pyx_f[0], 121, 0, __PYX_ERR(0, 121, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":122
+ * 
+ *     def __enter__(self):
+ *         return self             # <<<<<<<<<<<<<<
+ * 
+ *     def __exit__(self, type, value, tb):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(((PyObject *)__pyx_v_self));
+  __pyx_r = ((PyObject *)__pyx_v_self);
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":121
+ *             raise AttributeError('fileno not available')
+ * 
+ *     def __enter__(self):             # <<<<<<<<<<<<<<
+ *         return self
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.__enter__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":124
+ *         return self
+ * 
+ *     def __exit__(self, type, value, tb):             # <<<<<<<<<<<<<<
+ *         self.close()
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_11__exit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_10__exit__[] = "HFile.__exit__(self, type, value, tb)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_11__exit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  CYTHON_UNUSED PyObject *__pyx_v_type = 0;
+  CYTHON_UNUSED PyObject *__pyx_v_value = 0;
+  CYTHON_UNUSED PyObject *__pyx_v_tb = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__exit__ (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_type,&__pyx_n_s_value,&__pyx_n_s_tb,0};
+    PyObject* values[3] = {0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_type)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_value)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 1); __PYX_ERR(0, 124, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_tb)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 2); __PYX_ERR(0, 124, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__exit__") < 0)) __PYX_ERR(0, 124, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+    }
+    __pyx_v_type = values[0];
+    __pyx_v_value = values[1];
+    __pyx_v_tb = values[2];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 124, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.__exit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_10__exit__(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self), __pyx_v_type, __pyx_v_value, __pyx_v_tb);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_10__exit__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_type, CYTHON_UNUSED PyObject *__pyx_v_value, CYTHON_UNUSED PyObject *__pyx_v_tb) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  __Pyx_RefNannySetupContext("__exit__", 0);
+  __Pyx_TraceCall("__exit__", __pyx_f[0], 124, 0, __PYX_ERR(0, 124, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":125
+ * 
+ *     def __exit__(self, type, value, tb):
+ *         self.close()             # <<<<<<<<<<<<<<
+ * 
+ *     def __iter__(self):
+ */
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 125, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  if (__pyx_t_3) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  } else {
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L1_error)
+  }
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "pysam/libchtslib.pyx":124
+ *         return self
+ * 
+ *     def __exit__(self, type, value, tb):             # <<<<<<<<<<<<<<
+ *         self.close()
+ * 
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.__exit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":127
+ *         self.close()
+ * 
+ *     def __iter__(self):             # <<<<<<<<<<<<<<
+ *         return self
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_13__iter__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_13__iter__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__iter__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_12__iter__(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_12__iter__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__iter__", 0);
+  __Pyx_TraceCall("__iter__", __pyx_f[0], 127, 0, __PYX_ERR(0, 127, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":128
+ * 
+ *     def __iter__(self):
+ *         return self             # <<<<<<<<<<<<<<
+ * 
+ *     def __next__(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(((PyObject *)__pyx_v_self));
+  __pyx_r = ((PyObject *)__pyx_v_self);
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":127
+ *         self.close()
+ * 
+ *     def __iter__(self):             # <<<<<<<<<<<<<<
+ *         return self
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.__iter__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":130
+ *         return self
+ * 
+ *     def __next__(self):             # <<<<<<<<<<<<<<
+ *         line = self.readline()
+ *         if not line:
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_15__next__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_15__next__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__next__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_14__next__(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_14__next__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_v_line = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  __Pyx_RefNannySetupContext("__next__", 0);
+  __Pyx_TraceCall("__next__", __pyx_f[0], 130, 0, __PYX_ERR(0, 130, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":131
+ * 
+ *     def __next__(self):
+ *         line = self.readline()             # <<<<<<<<<<<<<<
+ *         if not line:
+ *             raise StopIteration()
+ */
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_readline); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  if (__pyx_t_3) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  } else {
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
+  }
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v_line = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "pysam/libchtslib.pyx":132
+ *     def __next__(self):
+ *         line = self.readline()
+ *         if not line:             # <<<<<<<<<<<<<<
+ *             raise StopIteration()
+ *         return line
+ */
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_line); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_t_5 = ((!__pyx_t_4) != 0);
+  if (unlikely(__pyx_t_5)) {
+
+    /* "pysam/libchtslib.pyx":133
+ *         line = self.readline()
+ *         if not line:
+ *             raise StopIteration()             # <<<<<<<<<<<<<<
+ *         return line
+ * 
+ */
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_builtin_StopIteration); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 133, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __PYX_ERR(0, 133, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":132
+ *     def __next__(self):
+ *         line = self.readline()
+ *         if not line:             # <<<<<<<<<<<<<<
+ *             raise StopIteration()
+ *         return line
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":134
+ *         if not line:
+ *             raise StopIteration()
+ *         return line             # <<<<<<<<<<<<<<
+ * 
+ *     def flush(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_line);
+  __pyx_r = __pyx_v_line;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":130
+ *         return self
+ * 
+ *     def __next__(self):             # <<<<<<<<<<<<<<
+ *         line = self.readline()
+ *         if not line:
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.__next__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_line);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":136
+ *         return line
+ * 
+ *     def flush(self):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_17flush(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_16flush[] = "HFile.flush(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_17flush(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("flush (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_16flush(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_16flush(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  __Pyx_RefNannySetupContext("flush", 0);
+  __Pyx_TraceCall("flush", __pyx_f[0], 136, 0, __PYX_ERR(0, 136, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":137
+ * 
+ *     def flush(self):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ *         if hflush(self.fp) != 0:
+ */
+  __pyx_t_1 = ((__pyx_v_self->fp == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":138
+ *     def flush(self):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ *         if hflush(self.fp) != 0:
+ *             raise IOError(herrno(self.fp), 'failed to flush HFile', self.name)
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 138, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 138, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":137
+ * 
+ *     def flush(self):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ *         if hflush(self.fp) != 0:
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":139
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ *         if hflush(self.fp) != 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(herrno(self.fp), 'failed to flush HFile', self.name)
+ * 
+ */
+  __pyx_t_1 = ((hflush(__pyx_v_self->fp) != 0) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":140
+ *             raise IOError('operation on closed HFile')
+ *         if hflush(self.fp) != 0:
+ *             raise IOError(herrno(self.fp), 'failed to flush HFile', self.name)             # <<<<<<<<<<<<<<
+ * 
+ *     def isatty(self):
+ */
+    __pyx_t_2 = __Pyx_PyInt_From_int(herrno(__pyx_v_self->fp)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 140, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
+    __Pyx_INCREF(__pyx_kp_s_failed_to_flush_HFile);
+    __Pyx_GIVEREF(__pyx_kp_s_failed_to_flush_HFile);
+    PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_kp_s_failed_to_flush_HFile);
+    __Pyx_INCREF(__pyx_v_self->name);
+    __Pyx_GIVEREF(__pyx_v_self->name);
+    PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_v_self->name);
+    __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 140, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 140, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":139
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ *         if hflush(self.fp) != 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(herrno(self.fp), 'failed to flush HFile', self.name)
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":136
+ *         return line
+ * 
+ *     def flush(self):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.flush", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":142
+ *             raise IOError(herrno(self.fp), 'failed to flush HFile', self.name)
+ * 
+ *     def isatty(self):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_19isatty(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_18isatty[] = "HFile.isatty(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_19isatty(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("isatty (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_18isatty(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_18isatty(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  __Pyx_RefNannySetupContext("isatty", 0);
+  __Pyx_TraceCall("isatty", __pyx_f[0], 142, 0, __PYX_ERR(0, 142, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":143
+ * 
+ *     def isatty(self):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ *         return False
+ */
+  __pyx_t_1 = ((__pyx_v_self->fp == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":144
+ *     def isatty(self):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ *         return False
+ * 
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 144, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 144, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":143
+ * 
+ *     def isatty(self):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ *         return False
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":145
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ *         return False             # <<<<<<<<<<<<<<
+ * 
+ *     def readable(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(Py_False);
+  __pyx_r = Py_False;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":142
+ *             raise IOError(herrno(self.fp), 'failed to flush HFile', self.name)
+ * 
+ *     def isatty(self):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.isatty", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":147
+ *         return False
+ * 
+ *     def readable(self):             # <<<<<<<<<<<<<<
+ *         return self.fp != NULL and 'r' in self.mode
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_21readable(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_20readable[] = "HFile.readable(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_21readable(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("readable (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_20readable(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_20readable(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  __Pyx_RefNannySetupContext("readable", 0);
+  __Pyx_TraceCall("readable", __pyx_f[0], 147, 0, __PYX_ERR(0, 147, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":148
+ * 
+ *     def readable(self):
+ *         return self.fp != NULL and 'r' in self.mode             # <<<<<<<<<<<<<<
+ * 
+ *     def read(self, Py_ssize_t size=-1):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = (__pyx_v_self->fp != NULL);
+  if (__pyx_t_2) {
+  } else {
+    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 148, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_1 = __pyx_t_3;
+    __pyx_t_3 = 0;
+    goto __pyx_L3_bool_binop_done;
+  }
+  __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_r, __pyx_v_self->mode, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_1 = __pyx_t_3;
+  __pyx_t_3 = 0;
+  __pyx_L3_bool_binop_done:;
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":147
+ *         return False
+ * 
+ *     def readable(self):             # <<<<<<<<<<<<<<
+ *         return self.fp != NULL and 'r' in self.mode
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.readable", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":150
+ *         return self.fp != NULL and 'r' in self.mode
+ * 
+ *     def read(self, Py_ssize_t size=-1):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_23read(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_22read[] = "HFile.read(self, Py_ssize_t size=-1)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_23read(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  Py_ssize_t __pyx_v_size;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("read (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_size,0};
+    PyObject* values[1] = {0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_size);
+          if (value) { values[0] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read") < 0)) __PYX_ERR(0, 150, __pyx_L3_error)
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    if (values[0]) {
+      __pyx_v_size = __Pyx_PyIndex_AsSsize_t(values[0]); if (unlikely((__pyx_v_size == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 150, __pyx_L3_error)
+    } else {
+      __pyx_v_size = ((Py_ssize_t)-1L);
+    }
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("read", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 150, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.read", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_22read(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self), __pyx_v_size);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_22read(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, Py_ssize_t __pyx_v_size) {
+  PyObject *__pyx_v_parts = 0;
+  PyObject *__pyx_v_part = 0;
+  Py_ssize_t __pyx_v_chunk_size;
+  Py_ssize_t __pyx_v_ret;
+  Py_ssize_t __pyx_v_bytes_read;
+  char *__pyx_v_cpart;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  int __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  char *__pyx_t_7;
+  PyObject *__pyx_t_8 = NULL;
+  int __pyx_t_9;
+  __Pyx_RefNannySetupContext("read", 0);
+  __Pyx_TraceCall("read", __pyx_f[0], 150, 0, __PYX_ERR(0, 150, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":151
+ * 
+ *     def read(self, Py_ssize_t size=-1):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_self->fp == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":152
+ *     def read(self, Py_ssize_t size=-1):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         if size == 0:
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 152, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 152, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":151
+ * 
+ *     def read(self, Py_ssize_t size=-1):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":154
+ *             raise IOError('operation on closed HFile')
+ * 
+ *         if size == 0:             # <<<<<<<<<<<<<<
+ *             return b''
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_size == 0) != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":155
+ * 
+ *         if size == 0:
+ *             return b''             # <<<<<<<<<<<<<<
+ * 
+ *         cdef list parts = []
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_INCREF(__pyx_kp_b__6);
+    __pyx_r = __pyx_kp_b__6;
+    goto __pyx_L0;
+
+    /* "pysam/libchtslib.pyx":154
+ *             raise IOError('operation on closed HFile')
+ * 
+ *         if size == 0:             # <<<<<<<<<<<<<<
+ *             return b''
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":157
+ *             return b''
+ * 
+ *         cdef list parts = []             # <<<<<<<<<<<<<<
+ *         cdef bytes part
+ *         cdef Py_ssize_t chunk_size, ret, bytes_read = 0
+ */
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_v_parts = ((PyObject*)__pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "pysam/libchtslib.pyx":159
+ *         cdef list parts = []
+ *         cdef bytes part
+ *         cdef Py_ssize_t chunk_size, ret, bytes_read = 0             # <<<<<<<<<<<<<<
+ *         cdef char *cpart
+ * 
+ */
+  __pyx_v_bytes_read = 0;
+
+  /* "pysam/libchtslib.pyx":162
+ *         cdef char *cpart
+ * 
+ *         while size == -1 or bytes_read < size:             # <<<<<<<<<<<<<<
+ *             chunk_size = 4096
+ *             if size != -1:
+ */
+  while (1) {
+    __pyx_t_3 = ((__pyx_v_size == -1L) != 0);
+    if (!__pyx_t_3) {
+    } else {
+      __pyx_t_1 = __pyx_t_3;
+      goto __pyx_L7_bool_binop_done;
+    }
+    __pyx_t_3 = ((__pyx_v_bytes_read < __pyx_v_size) != 0);
+    __pyx_t_1 = __pyx_t_3;
+    __pyx_L7_bool_binop_done:;
+    if (!__pyx_t_1) break;
+
+    /* "pysam/libchtslib.pyx":163
+ * 
+ *         while size == -1 or bytes_read < size:
+ *             chunk_size = 4096             # <<<<<<<<<<<<<<
+ *             if size != -1:
+ *                 chunk_size = min(chunk_size, size - bytes_read)
+ */
+    __pyx_v_chunk_size = 0x1000;
+
+    /* "pysam/libchtslib.pyx":164
+ *         while size == -1 or bytes_read < size:
+ *             chunk_size = 4096
+ *             if size != -1:             # <<<<<<<<<<<<<<
+ *                 chunk_size = min(chunk_size, size - bytes_read)
+ * 
+ */
+    __pyx_t_1 = ((__pyx_v_size != -1L) != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":165
+ *             chunk_size = 4096
+ *             if size != -1:
+ *                 chunk_size = min(chunk_size, size - bytes_read)             # <<<<<<<<<<<<<<
+ * 
+ *             part = PyBytes_FromStringAndSize(NULL, chunk_size)
+ */
+      __pyx_t_4 = (__pyx_v_size - __pyx_v_bytes_read);
+      __pyx_t_5 = __pyx_v_chunk_size;
+      if (((__pyx_t_4 < __pyx_t_5) != 0)) {
+        __pyx_t_6 = __pyx_t_4;
+      } else {
+        __pyx_t_6 = __pyx_t_5;
+      }
+      __pyx_v_chunk_size = __pyx_t_6;
+
+      /* "pysam/libchtslib.pyx":164
+ *         while size == -1 or bytes_read < size:
+ *             chunk_size = 4096
+ *             if size != -1:             # <<<<<<<<<<<<<<
+ *                 chunk_size = min(chunk_size, size - bytes_read)
+ * 
+ */
+    }
+
+    /* "pysam/libchtslib.pyx":167
+ *                 chunk_size = min(chunk_size, size - bytes_read)
+ * 
+ *             part = PyBytes_FromStringAndSize(NULL, chunk_size)             # <<<<<<<<<<<<<<
+ *             cpart = <char *>part
+ *             ret = hread(self.fp, <void *>cpart, chunk_size)
+ */
+    __pyx_t_2 = PyBytes_FromStringAndSize(NULL, __pyx_v_chunk_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 167, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_XDECREF_SET(__pyx_v_part, ((PyObject*)__pyx_t_2));
+    __pyx_t_2 = 0;
+
+    /* "pysam/libchtslib.pyx":168
+ * 
+ *             part = PyBytes_FromStringAndSize(NULL, chunk_size)
+ *             cpart = <char *>part             # <<<<<<<<<<<<<<
+ *             ret = hread(self.fp, <void *>cpart, chunk_size)
+ * 
+ */
+    if (unlikely(__pyx_v_part == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
+      __PYX_ERR(0, 168, __pyx_L1_error)
+    }
+    __pyx_t_7 = __Pyx_PyBytes_AsWritableString(__pyx_v_part); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 168, __pyx_L1_error)
+    __pyx_v_cpart = ((char *)__pyx_t_7);
+
+    /* "pysam/libchtslib.pyx":169
+ *             part = PyBytes_FromStringAndSize(NULL, chunk_size)
+ *             cpart = <char *>part
+ *             ret = hread(self.fp, <void *>cpart, chunk_size)             # <<<<<<<<<<<<<<
+ * 
+ *             if ret < 0:
+ */
+    __pyx_v_ret = hread(__pyx_v_self->fp, ((void *)__pyx_v_cpart), __pyx_v_chunk_size);
+
+    /* "pysam/libchtslib.pyx":171
+ *             ret = hread(self.fp, <void *>cpart, chunk_size)
+ * 
+ *             if ret < 0:             # <<<<<<<<<<<<<<
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ *             elif not ret:
+ */
+    __pyx_t_1 = ((__pyx_v_ret < 0) != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":172
+ * 
+ *             if ret < 0:
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)             # <<<<<<<<<<<<<<
+ *             elif not ret:
+ *                 break
+ */
+      __pyx_t_2 = __Pyx_PyInt_From_int(herrno(__pyx_v_self->fp)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 172, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 172, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __Pyx_GIVEREF(__pyx_t_2);
+      PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_2);
+      __Pyx_INCREF(__pyx_kp_s_failed_to_read_HFile);
+      __Pyx_GIVEREF(__pyx_kp_s_failed_to_read_HFile);
+      PyTuple_SET_ITEM(__pyx_t_8, 1, __pyx_kp_s_failed_to_read_HFile);
+      __Pyx_INCREF(__pyx_v_self->name);
+      __Pyx_GIVEREF(__pyx_v_self->name);
+      PyTuple_SET_ITEM(__pyx_t_8, 2, __pyx_v_self->name);
+      __pyx_t_2 = 0;
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 172, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+      /* "pysam/libchtslib.pyx":171
+ *             ret = hread(self.fp, <void *>cpart, chunk_size)
+ * 
+ *             if ret < 0:             # <<<<<<<<<<<<<<
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ *             elif not ret:
+ */
+      goto __pyx_L10;
+    }
+
+    /* "pysam/libchtslib.pyx":173
+ *             if ret < 0:
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ *             elif not ret:             # <<<<<<<<<<<<<<
+ *                 break
+ * 
+ */
+    __pyx_t_1 = ((!(__pyx_v_ret != 0)) != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":174
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ *             elif not ret:
+ *                 break             # <<<<<<<<<<<<<<
+ * 
+ *             bytes_read += ret
+ */
+      goto __pyx_L6_break;
+
+      /* "pysam/libchtslib.pyx":173
+ *             if ret < 0:
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ *             elif not ret:             # <<<<<<<<<<<<<<
+ *                 break
+ * 
+ */
+    }
+    __pyx_L10:;
+
+    /* "pysam/libchtslib.pyx":176
+ *                 break
+ * 
+ *             bytes_read += ret             # <<<<<<<<<<<<<<
+ * 
+ *             if ret < chunk_size:
+ */
+    __pyx_v_bytes_read = (__pyx_v_bytes_read + __pyx_v_ret);
+
+    /* "pysam/libchtslib.pyx":178
+ *             bytes_read += ret
+ * 
+ *             if ret < chunk_size:             # <<<<<<<<<<<<<<
+ *                 part = cpart[:ret]
+ * 
+ */
+    __pyx_t_1 = ((__pyx_v_ret < __pyx_v_chunk_size) != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":179
+ * 
+ *             if ret < chunk_size:
+ *                 part = cpart[:ret]             # <<<<<<<<<<<<<<
+ * 
+ *             parts.append(part)
+ */
+      __pyx_t_2 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_cpart + 0, __pyx_v_ret - 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 179, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF_SET(__pyx_v_part, ((PyObject*)__pyx_t_2));
+      __pyx_t_2 = 0;
+
+      /* "pysam/libchtslib.pyx":178
+ *             bytes_read += ret
+ * 
+ *             if ret < chunk_size:             # <<<<<<<<<<<<<<
+ *                 part = cpart[:ret]
+ * 
+ */
+    }
+
+    /* "pysam/libchtslib.pyx":181
+ *                 part = cpart[:ret]
+ * 
+ *             parts.append(part)             # <<<<<<<<<<<<<<
+ * 
+ *         return b''.join(parts)
+ */
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_parts, __pyx_v_part); if (unlikely(__pyx_t_9 == ((int)-1))) __PYX_ERR(0, 181, __pyx_L1_error)
+  }
+  __pyx_L6_break:;
+
+  /* "pysam/libchtslib.pyx":183
+ *             parts.append(part)
+ * 
+ *         return b''.join(parts)             # <<<<<<<<<<<<<<
+ * 
+ *     def readall(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = __Pyx_PyBytes_Join(__pyx_kp_b__6, __pyx_v_parts); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 183, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":150
+ *         return self.fp != NULL and 'r' in self.mode
+ * 
+ *     def read(self, Py_ssize_t size=-1):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.read", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_parts);
+  __Pyx_XDECREF(__pyx_v_part);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":185
+ *         return b''.join(parts)
+ * 
+ *     def readall(self):             # <<<<<<<<<<<<<<
+ *         return self.read()
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_25readall(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_24readall[] = "HFile.readall(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_25readall(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("readall (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_24readall(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_24readall(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  __Pyx_RefNannySetupContext("readall", 0);
+  __Pyx_TraceCall("readall", __pyx_f[0], 185, 0, __PYX_ERR(0, 185, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":186
+ * 
+ *     def readall(self):
+ *         return self.read()             # <<<<<<<<<<<<<<
+ * 
+ *     def readinto(self, buf):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_read); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  if (__pyx_t_3) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 186, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  } else {
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 186, __pyx_L1_error)
+  }
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":185
+ *         return b''.join(parts)
+ * 
+ *     def readall(self):             # <<<<<<<<<<<<<<
+ *         return self.read()
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.readall", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":188
+ *         return self.read()
+ * 
+ *     def readinto(self, buf):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_27readinto(PyObject *__pyx_v_self, PyObject *__pyx_v_buf); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_26readinto[] = "HFile.readinto(self, buf)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_27readinto(PyObject *__pyx_v_self, PyObject *__pyx_v_buf) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("readinto (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_26readinto(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self), ((PyObject *)__pyx_v_buf));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_26readinto(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, PyObject *__pyx_v_buf) {
+  Py_ssize_t __pyx_v_size;
+  PyObject *__pyx_v_mv = NULL;
+  Py_ssize_t __pyx_v_ret;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  Py_ssize_t __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  __Pyx_RefNannySetupContext("readinto", 0);
+  __Pyx_TraceCall("readinto", __pyx_f[0], 188, 0, __PYX_ERR(0, 188, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":189
+ * 
+ *     def readinto(self, buf):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_self->fp == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":190
+ *     def readinto(self, buf):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         size = len(buf)
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 190, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 190, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":189
+ * 
+ *     def readinto(self, buf):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":192
+ *             raise IOError('operation on closed HFile')
+ * 
+ *         size = len(buf)             # <<<<<<<<<<<<<<
+ * 
+ *         if size == 0:
+ */
+  __pyx_t_3 = PyObject_Length(__pyx_v_buf); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_v_size = __pyx_t_3;
+
+  /* "pysam/libchtslib.pyx":194
+ *         size = len(buf)
+ * 
+ *         if size == 0:             # <<<<<<<<<<<<<<
+ *             return size
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_size == 0) != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":195
+ * 
+ *         if size == 0:
+ *             return size             # <<<<<<<<<<<<<<
+ * 
+ *         mv = memoryview(buf)
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_t_2 = PyInt_FromSsize_t(__pyx_v_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 195, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_r = __pyx_t_2;
+    __pyx_t_2 = 0;
+    goto __pyx_L0;
+
+    /* "pysam/libchtslib.pyx":194
+ *         size = len(buf)
+ * 
+ *         if size == 0:             # <<<<<<<<<<<<<<
+ *             return size
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":197
+ *             return size
+ * 
+ *         mv = memoryview(buf)             # <<<<<<<<<<<<<<
+ *         ret = hread(self.fp, <void *>mv, size)
+ * 
+ */
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_memoryview); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 197, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_buf); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 197, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v_mv = __pyx_t_4;
+  __pyx_t_4 = 0;
+
+  /* "pysam/libchtslib.pyx":198
+ * 
+ *         mv = memoryview(buf)
+ *         ret = hread(self.fp, <void *>mv, size)             # <<<<<<<<<<<<<<
+ * 
+ *         if ret < 0:
+ */
+  __pyx_v_ret = hread(__pyx_v_self->fp, ((void *)__pyx_v_mv), __pyx_v_size);
+
+  /* "pysam/libchtslib.pyx":200
+ *         ret = hread(self.fp, <void *>mv, size)
+ * 
+ *         if ret < 0:             # <<<<<<<<<<<<<<
+ *             IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_ret < 0) != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":201
+ * 
+ *         if ret < 0:
+ *             IOError(herrno(self.fp), 'failed to read HFile', self.name)             # <<<<<<<<<<<<<<
+ * 
+ *         return ret
+ */
+    __pyx_t_4 = __Pyx_PyInt_From_int(herrno(__pyx_v_self->fp)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 201, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 201, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_GIVEREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4);
+    __Pyx_INCREF(__pyx_kp_s_failed_to_read_HFile);
+    __Pyx_GIVEREF(__pyx_kp_s_failed_to_read_HFile);
+    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_kp_s_failed_to_read_HFile);
+    __Pyx_INCREF(__pyx_v_self->name);
+    __Pyx_GIVEREF(__pyx_v_self->name);
+    PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_v_self->name);
+    __pyx_t_4 = 0;
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 201, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+    /* "pysam/libchtslib.pyx":200
+ *         ret = hread(self.fp, <void *>mv, size)
+ * 
+ *         if ret < 0:             # <<<<<<<<<<<<<<
+ *             IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":203
+ *             IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ * 
+ *         return ret             # <<<<<<<<<<<<<<
+ * 
+ *     def readline(self, Py_ssize_t size=-1):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_4 = PyInt_FromSsize_t(__pyx_v_ret); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 203, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_r = __pyx_t_4;
+  __pyx_t_4 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":188
+ *         return self.read()
+ * 
+ *     def readinto(self, buf):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.readinto", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_mv);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":205
+ *         return ret
+ * 
+ *     def readline(self, Py_ssize_t size=-1):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_29readline(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_28readline[] = "HFile.readline(self, Py_ssize_t size=-1)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_29readline(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  Py_ssize_t __pyx_v_size;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("readline (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_size,0};
+    PyObject* values[1] = {0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_size);
+          if (value) { values[0] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "readline") < 0)) __PYX_ERR(0, 205, __pyx_L3_error)
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    if (values[0]) {
+      __pyx_v_size = __Pyx_PyIndex_AsSsize_t(values[0]); if (unlikely((__pyx_v_size == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 205, __pyx_L3_error)
+    } else {
+      __pyx_v_size = ((Py_ssize_t)-1L);
+    }
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("readline", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 205, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.readline", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_28readline(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self), __pyx_v_size);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_28readline(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, Py_ssize_t __pyx_v_size) {
+  PyObject *__pyx_v_parts = 0;
+  PyObject *__pyx_v_part = 0;
+  Py_ssize_t __pyx_v_chunk_size;
+  Py_ssize_t __pyx_v_ret;
+  Py_ssize_t __pyx_v_bytes_read;
+  char *__pyx_v_cpart;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  int __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  char *__pyx_t_7;
+  PyObject *__pyx_t_8 = NULL;
+  int __pyx_t_9;
+  __Pyx_RefNannySetupContext("readline", 0);
+  __Pyx_TraceCall("readline", __pyx_f[0], 205, 0, __PYX_ERR(0, 205, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":206
+ * 
+ *     def readline(self, Py_ssize_t size=-1):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_self->fp == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":207
+ *     def readline(self, Py_ssize_t size=-1):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         if size == 0:
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 207, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 207, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":206
+ * 
+ *     def readline(self, Py_ssize_t size=-1):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":209
+ *             raise IOError('operation on closed HFile')
+ * 
+ *         if size == 0:             # <<<<<<<<<<<<<<
+ *             return b''
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_size == 0) != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":210
+ * 
+ *         if size == 0:
+ *             return b''             # <<<<<<<<<<<<<<
+ * 
+ *         cdef list parts = []
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_INCREF(__pyx_kp_b__6);
+    __pyx_r = __pyx_kp_b__6;
+    goto __pyx_L0;
+
+    /* "pysam/libchtslib.pyx":209
+ *             raise IOError('operation on closed HFile')
+ * 
+ *         if size == 0:             # <<<<<<<<<<<<<<
+ *             return b''
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":212
+ *             return b''
+ * 
+ *         cdef list parts = []             # <<<<<<<<<<<<<<
+ *         cdef bytes part
+ *         cdef Py_ssize_t chunk_size, ret, bytes_read = 0
+ */
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_v_parts = ((PyObject*)__pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "pysam/libchtslib.pyx":214
+ *         cdef list parts = []
+ *         cdef bytes part
+ *         cdef Py_ssize_t chunk_size, ret, bytes_read = 0             # <<<<<<<<<<<<<<
+ *         cdef char *cpart
+ * 
+ */
+  __pyx_v_bytes_read = 0;
+
+  /* "pysam/libchtslib.pyx":217
+ *         cdef char *cpart
+ * 
+ *         while size == -1 or bytes_read < size:             # <<<<<<<<<<<<<<
+ *             chunk_size = 4096
+ *             if size != -1:
+ */
+  while (1) {
+    __pyx_t_3 = ((__pyx_v_size == -1L) != 0);
+    if (!__pyx_t_3) {
+    } else {
+      __pyx_t_1 = __pyx_t_3;
+      goto __pyx_L7_bool_binop_done;
+    }
+    __pyx_t_3 = ((__pyx_v_bytes_read < __pyx_v_size) != 0);
+    __pyx_t_1 = __pyx_t_3;
+    __pyx_L7_bool_binop_done:;
+    if (!__pyx_t_1) break;
+
+    /* "pysam/libchtslib.pyx":218
+ * 
+ *         while size == -1 or bytes_read < size:
+ *             chunk_size = 4096             # <<<<<<<<<<<<<<
+ *             if size != -1:
+ *                 chunk_size = min(chunk_size, size - bytes_read)
+ */
+    __pyx_v_chunk_size = 0x1000;
+
+    /* "pysam/libchtslib.pyx":219
+ *         while size == -1 or bytes_read < size:
+ *             chunk_size = 4096
+ *             if size != -1:             # <<<<<<<<<<<<<<
+ *                 chunk_size = min(chunk_size, size - bytes_read)
+ * 
+ */
+    __pyx_t_1 = ((__pyx_v_size != -1L) != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":220
+ *             chunk_size = 4096
+ *             if size != -1:
+ *                 chunk_size = min(chunk_size, size - bytes_read)             # <<<<<<<<<<<<<<
+ * 
+ *             part = PyBytes_FromStringAndSize(NULL, chunk_size)
+ */
+      __pyx_t_4 = (__pyx_v_size - __pyx_v_bytes_read);
+      __pyx_t_5 = __pyx_v_chunk_size;
+      if (((__pyx_t_4 < __pyx_t_5) != 0)) {
+        __pyx_t_6 = __pyx_t_4;
+      } else {
+        __pyx_t_6 = __pyx_t_5;
+      }
+      __pyx_v_chunk_size = __pyx_t_6;
+
+      /* "pysam/libchtslib.pyx":219
+ *         while size == -1 or bytes_read < size:
+ *             chunk_size = 4096
+ *             if size != -1:             # <<<<<<<<<<<<<<
+ *                 chunk_size = min(chunk_size, size - bytes_read)
+ * 
+ */
+    }
+
+    /* "pysam/libchtslib.pyx":222
+ *                 chunk_size = min(chunk_size, size - bytes_read)
+ * 
+ *             part = PyBytes_FromStringAndSize(NULL, chunk_size)             # <<<<<<<<<<<<<<
+ *             cpart = <char *>part
+ * 
+ */
+    __pyx_t_2 = PyBytes_FromStringAndSize(NULL, __pyx_v_chunk_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 222, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_XDECREF_SET(__pyx_v_part, ((PyObject*)__pyx_t_2));
+    __pyx_t_2 = 0;
+
+    /* "pysam/libchtslib.pyx":223
+ * 
+ *             part = PyBytes_FromStringAndSize(NULL, chunk_size)
+ *             cpart = <char *>part             # <<<<<<<<<<<<<<
+ * 
+ *             # Python bytes objects allocate an extra byte for a null terminator
+ */
+    if (unlikely(__pyx_v_part == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "expected bytes, NoneType found");
+      __PYX_ERR(0, 223, __pyx_L1_error)
+    }
+    __pyx_t_7 = __Pyx_PyBytes_AsWritableString(__pyx_v_part); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 223, __pyx_L1_error)
+    __pyx_v_cpart = ((char *)__pyx_t_7);
+
+    /* "pysam/libchtslib.pyx":226
+ * 
+ *             # Python bytes objects allocate an extra byte for a null terminator
+ *             ret = hgetln(cpart, chunk_size+1, self.fp)             # <<<<<<<<<<<<<<
+ * 
+ *             if ret < 0:
+ */
+    __pyx_v_ret = hgetln(__pyx_v_cpart, (__pyx_v_chunk_size + 1), __pyx_v_self->fp);
+
+    /* "pysam/libchtslib.pyx":228
+ *             ret = hgetln(cpart, chunk_size+1, self.fp)
+ * 
+ *             if ret < 0:             # <<<<<<<<<<<<<<
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ *             elif not ret:
+ */
+    __pyx_t_1 = ((__pyx_v_ret < 0) != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":229
+ * 
+ *             if ret < 0:
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)             # <<<<<<<<<<<<<<
+ *             elif not ret:
+ *                 break
+ */
+      __pyx_t_2 = __Pyx_PyInt_From_int(herrno(__pyx_v_self->fp)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 229, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 229, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __Pyx_GIVEREF(__pyx_t_2);
+      PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_2);
+      __Pyx_INCREF(__pyx_kp_s_failed_to_read_HFile);
+      __Pyx_GIVEREF(__pyx_kp_s_failed_to_read_HFile);
+      PyTuple_SET_ITEM(__pyx_t_8, 1, __pyx_kp_s_failed_to_read_HFile);
+      __Pyx_INCREF(__pyx_v_self->name);
+      __Pyx_GIVEREF(__pyx_v_self->name);
+      PyTuple_SET_ITEM(__pyx_t_8, 2, __pyx_v_self->name);
+      __pyx_t_2 = 0;
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 229, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+      /* "pysam/libchtslib.pyx":228
+ *             ret = hgetln(cpart, chunk_size+1, self.fp)
+ * 
+ *             if ret < 0:             # <<<<<<<<<<<<<<
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ *             elif not ret:
+ */
+      goto __pyx_L10;
+    }
+
+    /* "pysam/libchtslib.pyx":230
+ *             if ret < 0:
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ *             elif not ret:             # <<<<<<<<<<<<<<
+ *                 break
+ * 
+ */
+    __pyx_t_1 = ((!(__pyx_v_ret != 0)) != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":231
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ *             elif not ret:
+ *                 break             # <<<<<<<<<<<<<<
+ * 
+ *             bytes_read += ret
+ */
+      goto __pyx_L6_break;
+
+      /* "pysam/libchtslib.pyx":230
+ *             if ret < 0:
+ *                 IOError(herrno(self.fp), 'failed to read HFile', self.name)
+ *             elif not ret:             # <<<<<<<<<<<<<<
+ *                 break
+ * 
+ */
+    }
+    __pyx_L10:;
+
+    /* "pysam/libchtslib.pyx":233
+ *                 break
+ * 
+ *             bytes_read += ret             # <<<<<<<<<<<<<<
+ * 
+ *             if ret < chunk_size:
+ */
+    __pyx_v_bytes_read = (__pyx_v_bytes_read + __pyx_v_ret);
+
+    /* "pysam/libchtslib.pyx":235
+ *             bytes_read += ret
+ * 
+ *             if ret < chunk_size:             # <<<<<<<<<<<<<<
+ *                 part = cpart[:ret]
+ *                 cpart = <char *>part
+ */
+    __pyx_t_1 = ((__pyx_v_ret < __pyx_v_chunk_size) != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":236
+ * 
+ *             if ret < chunk_size:
+ *                 part = cpart[:ret]             # <<<<<<<<<<<<<<
+ *                 cpart = <char *>part
+ * 
+ */
+      __pyx_t_2 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_cpart + 0, __pyx_v_ret - 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 236, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF_SET(__pyx_v_part, ((PyObject*)__pyx_t_2));
+      __pyx_t_2 = 0;
+
+      /* "pysam/libchtslib.pyx":237
+ *             if ret < chunk_size:
+ *                 part = cpart[:ret]
+ *                 cpart = <char *>part             # <<<<<<<<<<<<<<
+ * 
+ *             parts.append(part)
+ */
+      __pyx_t_7 = __Pyx_PyBytes_AsWritableString(__pyx_v_part); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) __PYX_ERR(0, 237, __pyx_L1_error)
+      __pyx_v_cpart = ((char *)__pyx_t_7);
+
+      /* "pysam/libchtslib.pyx":235
+ *             bytes_read += ret
+ * 
+ *             if ret < chunk_size:             # <<<<<<<<<<<<<<
+ *                 part = cpart[:ret]
+ *                 cpart = <char *>part
+ */
+    }
+
+    /* "pysam/libchtslib.pyx":239
+ *                 cpart = <char *>part
+ * 
+ *             parts.append(part)             # <<<<<<<<<<<<<<
+ * 
+ *             if cpart[ret-1] == b'\n':
+ */
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_parts, __pyx_v_part); if (unlikely(__pyx_t_9 == ((int)-1))) __PYX_ERR(0, 239, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":241
+ *             parts.append(part)
+ * 
+ *             if cpart[ret-1] == b'\n':             # <<<<<<<<<<<<<<
+ *                break
+ * 
+ */
+    __pyx_t_1 = (((__pyx_v_cpart[(__pyx_v_ret - 1)]) == '\n') != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":242
+ * 
+ *             if cpart[ret-1] == b'\n':
+ *                break             # <<<<<<<<<<<<<<
+ * 
+ *         return b''.join(parts)
+ */
+      goto __pyx_L6_break;
+
+      /* "pysam/libchtslib.pyx":241
+ *             parts.append(part)
+ * 
+ *             if cpart[ret-1] == b'\n':             # <<<<<<<<<<<<<<
+ *                break
+ * 
+ */
+    }
+  }
+  __pyx_L6_break:;
+
+  /* "pysam/libchtslib.pyx":244
+ *                break
+ * 
+ *         return b''.join(parts)             # <<<<<<<<<<<<<<
+ * 
+ *     def readlines(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = __Pyx_PyBytes_Join(__pyx_kp_b__6, __pyx_v_parts); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":205
+ *         return ret
+ * 
+ *     def readline(self, Py_ssize_t size=-1):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.readline", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_parts);
+  __Pyx_XDECREF(__pyx_v_part);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":246
+ *         return b''.join(parts)
+ * 
+ *     def readlines(self):             # <<<<<<<<<<<<<<
+ *         return list(self)
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_31readlines(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_30readlines[] = "HFile.readlines(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_31readlines(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("readlines (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_30readlines(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_30readlines(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("readlines", 0);
+  __Pyx_TraceCall("readlines", __pyx_f[0], 246, 0, __PYX_ERR(0, 246, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":247
+ * 
+ *     def readlines(self):
+ *         return list(self)             # <<<<<<<<<<<<<<
+ * 
+ *     def seek(self, Py_ssize_t offset, int whence=SEEK_SET):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PySequence_List(((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":246
+ *         return b''.join(parts)
+ * 
+ *     def readlines(self):             # <<<<<<<<<<<<<<
+ *         return list(self)
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.readlines", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":249
+ *         return list(self)
+ * 
+ *     def seek(self, Py_ssize_t offset, int whence=SEEK_SET):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_33seek(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_32seek[] = "HFile.seek(self, Py_ssize_t offset, int whence=0)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_33seek(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  Py_ssize_t __pyx_v_offset;
+  int __pyx_v_whence;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("seek (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_offset,&__pyx_n_s_whence,0};
+    PyObject* values[2] = {0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_offset)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_whence);
+          if (value) { values[1] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "seek") < 0)) __PYX_ERR(0, 249, __pyx_L3_error)
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_offset = __Pyx_PyIndex_AsSsize_t(values[0]); if (unlikely((__pyx_v_offset == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 249, __pyx_L3_error)
+    if (values[1]) {
+      __pyx_v_whence = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_whence == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 249, __pyx_L3_error)
+    } else {
+      __pyx_v_whence = ((int)0);
+    }
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("seek", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 249, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.seek", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_32seek(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self), __pyx_v_offset, __pyx_v_whence);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_32seek(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, Py_ssize_t __pyx_v_offset, int __pyx_v_whence) {
+  Py_ssize_t __pyx_v_off;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  __Pyx_RefNannySetupContext("seek", 0);
+  __Pyx_TraceCall("seek", __pyx_f[0], 249, 0, __PYX_ERR(0, 249, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":250
+ * 
+ *     def seek(self, Py_ssize_t offset, int whence=SEEK_SET):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_self->fp == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":251
+ *     def seek(self, Py_ssize_t offset, int whence=SEEK_SET):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         cdef Py_ssize_t off = hseek(self.fp, offset, whence)
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 251, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 251, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":250
+ * 
+ *     def seek(self, Py_ssize_t offset, int whence=SEEK_SET):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":253
+ *             raise IOError('operation on closed HFile')
+ * 
+ *         cdef Py_ssize_t off = hseek(self.fp, offset, whence)             # <<<<<<<<<<<<<<
+ * 
+ *         if off < 0:
+ */
+  __pyx_v_off = hseek(__pyx_v_self->fp, __pyx_v_offset, __pyx_v_whence);
+
+  /* "pysam/libchtslib.pyx":255
+ *         cdef Py_ssize_t off = hseek(self.fp, offset, whence)
+ * 
+ *         if off < 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(herrno(self.fp), 'seek failed on HFile', self.name)
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_off < 0) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":256
+ * 
+ *         if off < 0:
+ *             raise IOError(herrno(self.fp), 'seek failed on HFile', self.name)             # <<<<<<<<<<<<<<
+ * 
+ *         return off
+ */
+    __pyx_t_2 = __Pyx_PyInt_From_int(herrno(__pyx_v_self->fp)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
+    __Pyx_INCREF(__pyx_kp_s_seek_failed_on_HFile);
+    __Pyx_GIVEREF(__pyx_kp_s_seek_failed_on_HFile);
+    PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_kp_s_seek_failed_on_HFile);
+    __Pyx_INCREF(__pyx_v_self->name);
+    __Pyx_GIVEREF(__pyx_v_self->name);
+    PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_v_self->name);
+    __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 256, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":255
+ *         cdef Py_ssize_t off = hseek(self.fp, offset, whence)
+ * 
+ *         if off < 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(herrno(self.fp), 'seek failed on HFile', self.name)
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":258
+ *             raise IOError(herrno(self.fp), 'seek failed on HFile', self.name)
+ * 
+ *         return off             # <<<<<<<<<<<<<<
+ * 
+ *     def tell(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = PyInt_FromSsize_t(__pyx_v_off); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":249
+ *         return list(self)
+ * 
+ *     def seek(self, Py_ssize_t offset, int whence=SEEK_SET):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.seek", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":260
+ *         return off
+ * 
+ *     def tell(self):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_35tell(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_34tell[] = "HFile.tell(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_35tell(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("tell (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_34tell(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_34tell(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  off_t __pyx_v_ret;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  __Pyx_RefNannySetupContext("tell", 0);
+  __Pyx_TraceCall("tell", __pyx_f[0], 260, 0, __PYX_ERR(0, 260, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":261
+ * 
+ *     def tell(self):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_self->fp == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":262
+ *     def tell(self):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         ret = htell(self.fp)
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 262, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 262, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":261
+ * 
+ *     def tell(self):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":264
+ *             raise IOError('operation on closed HFile')
+ * 
+ *         ret = htell(self.fp)             # <<<<<<<<<<<<<<
+ * 
+ *         if ret < 0:
+ */
+  __pyx_v_ret = htell(__pyx_v_self->fp);
+
+  /* "pysam/libchtslib.pyx":266
+ *         ret = htell(self.fp)
+ * 
+ *         if ret < 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(herrno(self.fp), 'tell failed on HFile', self.name)
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_ret < 0) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":267
+ * 
+ *         if ret < 0:
+ *             raise IOError(herrno(self.fp), 'tell failed on HFile', self.name)             # <<<<<<<<<<<<<<
+ * 
+ *         return ret
+ */
+    __pyx_t_2 = __Pyx_PyInt_From_int(herrno(__pyx_v_self->fp)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 267, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 267, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
+    __Pyx_INCREF(__pyx_kp_s_tell_failed_on_HFile);
+    __Pyx_GIVEREF(__pyx_kp_s_tell_failed_on_HFile);
+    PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_kp_s_tell_failed_on_HFile);
+    __Pyx_INCREF(__pyx_v_self->name);
+    __Pyx_GIVEREF(__pyx_v_self->name);
+    PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_v_self->name);
+    __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 267, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 267, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":266
+ *         ret = htell(self.fp)
+ * 
+ *         if ret < 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(herrno(self.fp), 'tell failed on HFile', self.name)
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":269
+ *             raise IOError(herrno(self.fp), 'tell failed on HFile', self.name)
+ * 
+ *         return ret             # <<<<<<<<<<<<<<
+ * 
+ *     def seekable(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = __Pyx_PyInt_From_off_t(__pyx_v_ret); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 269, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":260
+ *         return off
+ * 
+ *     def tell(self):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.tell", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":271
+ *         return ret
+ * 
+ *     def seekable(self):             # <<<<<<<<<<<<<<
+ *         return self.fp != NULL
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_37seekable(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_36seekable[] = "HFile.seekable(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_37seekable(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("seekable (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_36seekable(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_36seekable(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("seekable", 0);
+  __Pyx_TraceCall("seekable", __pyx_f[0], 271, 0, __PYX_ERR(0, 271, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":272
+ * 
+ *     def seekable(self):
+ *         return self.fp != NULL             # <<<<<<<<<<<<<<
+ * 
+ *     def truncate(self, size=None):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->fp != NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 272, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":271
+ *         return ret
+ * 
+ *     def seekable(self):             # <<<<<<<<<<<<<<
+ *         return self.fp != NULL
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.seekable", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":274
+ *         return self.fp != NULL
+ * 
+ *     def truncate(self, size=None):             # <<<<<<<<<<<<<<
+ *         raise NotImplementedError()
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_39truncate(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_38truncate[] = "HFile.truncate(self, size=None)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_39truncate(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  CYTHON_UNUSED PyObject *__pyx_v_size = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("truncate (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_size,0};
+    PyObject* values[1] = {0};
+    values[0] = ((PyObject *)Py_None);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_size);
+          if (value) { values[0] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "truncate") < 0)) __PYX_ERR(0, 274, __pyx_L3_error)
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_size = values[0];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("truncate", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 274, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.truncate", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_38truncate(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self), __pyx_v_size);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_38truncate(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_size) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("truncate", 0);
+  __Pyx_TraceCall("truncate", __pyx_f[0], 274, 0, __PYX_ERR(0, 274, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":275
+ * 
+ *     def truncate(self, size=None):
+ *         raise NotImplementedError()             # <<<<<<<<<<<<<<
+ * 
+ *     def writable(self):
+ */
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_builtin_NotImplementedError); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 275, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __PYX_ERR(0, 275, __pyx_L1_error)
+
+  /* "pysam/libchtslib.pyx":274
+ *         return self.fp != NULL
+ * 
+ *     def truncate(self, size=None):             # <<<<<<<<<<<<<<
+ *         raise NotImplementedError()
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.truncate", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":277
+ *         raise NotImplementedError()
+ * 
+ *     def writable(self):             # <<<<<<<<<<<<<<
+ *         return self.fp != NULL and 'w' in self.mode
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_41writable(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_40writable[] = "HFile.writable(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_41writable(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("writable (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_40writable(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_40writable(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  __Pyx_RefNannySetupContext("writable", 0);
+  __Pyx_TraceCall("writable", __pyx_f[0], 277, 0, __PYX_ERR(0, 277, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":278
+ * 
+ *     def writable(self):
+ *         return self.fp != NULL and 'w' in self.mode             # <<<<<<<<<<<<<<
+ * 
+ *     def write(self, bytes b):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = (__pyx_v_self->fp != NULL);
+  if (__pyx_t_2) {
+  } else {
+    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 278, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_1 = __pyx_t_3;
+    __pyx_t_3 = 0;
+    goto __pyx_L3_bool_binop_done;
+  }
+  __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_w, __pyx_v_self->mode, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 278, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 278, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_1 = __pyx_t_3;
+  __pyx_t_3 = 0;
+  __pyx_L3_bool_binop_done:;
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":277
+ *         raise NotImplementedError()
+ * 
+ *     def writable(self):             # <<<<<<<<<<<<<<
+ *         return self.fp != NULL and 'w' in self.mode
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.writable", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":280
+ *         return self.fp != NULL and 'w' in self.mode
+ * 
+ *     def write(self, bytes b):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_43write(PyObject *__pyx_v_self, PyObject *__pyx_v_b); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_42write[] = "HFile.write(self, bytes b)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_43write(PyObject *__pyx_v_self, PyObject *__pyx_v_b) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("write (wrapper)", 0);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_b), (&PyBytes_Type), 1, "b", 1))) __PYX_ERR(0, 280, __pyx_L1_error)
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_42write(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self), ((PyObject*)__pyx_v_b));
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_42write(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, PyObject *__pyx_v_b) {
+  Py_ssize_t __pyx_v_got;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  Py_ssize_t __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  __Pyx_RefNannySetupContext("write", 0);
+  __Pyx_TraceCall("write", __pyx_f[0], 280, 0, __PYX_ERR(0, 280, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":281
+ * 
+ *     def write(self, bytes b):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_self->fp == NULL) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":282
+ *     def write(self, bytes b):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         got = hwrite(self.fp, <void *>b, len(b))
+ */
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 282, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 282, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":281
+ * 
+ *     def write(self, bytes b):
+ *         if self.fp == NULL:             # <<<<<<<<<<<<<<
+ *             raise IOError('operation on closed HFile')
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":284
+ *             raise IOError('operation on closed HFile')
+ * 
+ *         got = hwrite(self.fp, <void *>b, len(b))             # <<<<<<<<<<<<<<
+ * 
+ *         if got < 0:
+ */
+  if (unlikely(__pyx_v_b == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
+    __PYX_ERR(0, 284, __pyx_L1_error)
+  }
+  __pyx_t_3 = PyBytes_GET_SIZE(__pyx_v_b); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 284, __pyx_L1_error)
+  __pyx_v_got = hwrite(__pyx_v_self->fp, ((void *)__pyx_v_b), __pyx_t_3);
+
+  /* "pysam/libchtslib.pyx":286
+ *         got = hwrite(self.fp, <void *>b, len(b))
+ * 
+ *         if got < 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(herrno(self.fp), 'write failed on HFile', self.name)
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_got < 0) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":287
+ * 
+ *         if got < 0:
+ *             raise IOError(herrno(self.fp), 'write failed on HFile', self.name)             # <<<<<<<<<<<<<<
+ * 
+ *         return got
+ */
+    __pyx_t_2 = __Pyx_PyInt_From_int(herrno(__pyx_v_self->fp)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 287, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_GIVEREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
+    __Pyx_INCREF(__pyx_kp_s_write_failed_on_HFile);
+    __Pyx_GIVEREF(__pyx_kp_s_write_failed_on_HFile);
+    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_kp_s_write_failed_on_HFile);
+    __Pyx_INCREF(__pyx_v_self->name);
+    __Pyx_GIVEREF(__pyx_v_self->name);
+    PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_v_self->name);
+    __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 287, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":286
+ *         got = hwrite(self.fp, <void *>b, len(b))
+ * 
+ *         if got < 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(herrno(self.fp), 'write failed on HFile', self.name)
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":289
+ *             raise IOError(herrno(self.fp), 'write failed on HFile', self.name)
+ * 
+ *         return got             # <<<<<<<<<<<<<<
+ * 
+ *     def writelines(self, lines):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = PyInt_FromSsize_t(__pyx_v_got); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 289, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":280
+ *         return self.fp != NULL and 'w' in self.mode
+ * 
+ *     def write(self, bytes b):             # <<<<<<<<<<<<<<
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.write", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":291
+ *         return got
+ * 
+ *     def writelines(self, lines):             # <<<<<<<<<<<<<<
+ *         for line in lines:
+ *             self.write(line)
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_45writelines(PyObject *__pyx_v_self, PyObject *__pyx_v_lines); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_44writelines[] = "HFile.writelines(self, lines)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_45writelines(PyObject *__pyx_v_self, PyObject *__pyx_v_lines) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("writelines (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_44writelines(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self), ((PyObject *)__pyx_v_lines));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_44writelines(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, PyObject *__pyx_v_lines) {
+  PyObject *__pyx_v_line = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  Py_ssize_t __pyx_t_2;
+  PyObject *(*__pyx_t_3)(PyObject *);
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
+  __Pyx_RefNannySetupContext("writelines", 0);
+  __Pyx_TraceCall("writelines", __pyx_f[0], 291, 0, __PYX_ERR(0, 291, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":292
+ * 
+ *     def writelines(self, lines):
+ *         for line in lines:             # <<<<<<<<<<<<<<
+ *             self.write(line)
+ * 
+ */
+  if (likely(PyList_CheckExact(__pyx_v_lines)) || PyTuple_CheckExact(__pyx_v_lines)) {
+    __pyx_t_1 = __pyx_v_lines; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
+    __pyx_t_3 = NULL;
+  } else {
+    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_lines); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 292, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 292, __pyx_L1_error)
+  }
+  for (;;) {
+    if (likely(!__pyx_t_3)) {
+      if (likely(PyList_CheckExact(__pyx_t_1))) {
+        if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 292, __pyx_L1_error)
+        #else
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 292, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        #endif
+      } else {
+        if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 292, __pyx_L1_error)
+        #else
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 292, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        #endif
+      }
+    } else {
+      __pyx_t_4 = __pyx_t_3(__pyx_t_1);
+      if (unlikely(!__pyx_t_4)) {
+        PyObject* exc_type = PyErr_Occurred();
+        if (exc_type) {
+          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+          else __PYX_ERR(0, 292, __pyx_L1_error)
+        }
+        break;
+      }
+      __Pyx_GOTREF(__pyx_t_4);
+    }
+    __Pyx_XDECREF_SET(__pyx_v_line, __pyx_t_4);
+    __pyx_t_4 = 0;
+
+    /* "pysam/libchtslib.pyx":293
+ *     def writelines(self, lines):
+ *         for line in lines:
+ *             self.write(line)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_write); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 293, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_5);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_5, function);
+      }
+    }
+    if (!__pyx_t_6) {
+      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_line); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 293, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_5)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_line};
+        __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 293, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_4);
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_line};
+        __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 293, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_4);
+      } else
+      #endif
+      {
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 293, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
+        __Pyx_INCREF(__pyx_v_line);
+        __Pyx_GIVEREF(__pyx_v_line);
+        PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_line);
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 293, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+    /* "pysam/libchtslib.pyx":292
+ * 
+ *     def writelines(self, lines):
+ *         for line in lines:             # <<<<<<<<<<<<<<
+ *             self.write(line)
+ * 
+ */
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "pysam/libchtslib.pyx":291
+ *         return got
+ * 
+ *     def writelines(self, lines):             # <<<<<<<<<<<<<<
+ *         for line in lines:
+ *             self.write(line)
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.writelines", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_line);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":74
+ * cdef class HFile(object):
+ *     cdef hFILE *fp
+ *     cdef readonly object name, mode             # <<<<<<<<<<<<<<
+ * 
+ *     def __init__(self, name, mode='r', closedf=True):
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_4name_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_4name_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_4name___get__(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_4name___get__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__", 0);
+  __Pyx_TraceCall("__get__", __pyx_f[0], 74, 0, __PYX_ERR(0, 74, __pyx_L1_error));
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_self->name);
+  __pyx_r = __pyx_v_self->name;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.name.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_4mode_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_4mode_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_4mode___get__(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_4mode___get__(struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__", 0);
+  __Pyx_TraceCall("__get__", __pyx_f[0], 74, 0, __PYX_ERR(0, 74, __pyx_L1_error));
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_self->mode);
+  __pyx_r = __pyx_v_self->mode;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.mode.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")
+ * def __setstate_cython__(self, __pyx_state):
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_47__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_46__reduce_cython__[] = "HFile.__reduce_cython__(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_47__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_46__reduce_cython__(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_46__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__reduce_cython__", 0);
+  __Pyx_TraceCall("__reduce_cython__", __pyx_f[1], 1, 0, __PYX_ERR(1, 1, __pyx_L1_error));
+
+  /* "(tree fragment)":2
+ * def __reduce_cython__(self):
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")
+ */
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __PYX_ERR(1, 2, __pyx_L1_error)
+
+  /* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")
+ * def __setstate_cython__(self, __pyx_state):
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":3
+ * def __reduce_cython__(self):
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_49__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_5HFile_48__setstate_cython__[] = "HFile.__setstate_cython__(self, __pyx_state)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_5HFile_49__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_5HFile_48__setstate_cython__(((struct __pyx_obj_5pysam_10libchtslib_HFile *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_5HFile_48__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__setstate_cython__", 0);
+  __Pyx_TraceCall("__setstate_cython__", __pyx_f[1], 3, 0, __PYX_ERR(1, 3, __pyx_L1_error));
+
+  /* "(tree fragment)":4
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ */
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __PYX_ERR(1, 4, __pyx_L1_error)
+
+  /* "(tree fragment)":3
+ * def __reduce_cython__(self):
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libchtslib.HFile.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":303
  * 
  * class CallableValue(object):
  *     def __init__(self, value):             # <<<<<<<<<<<<<<
@@ -2354,11 +6564,11 @@ static PyObject *__pyx_pw_5pysam_10libchtslib_13CallableValue_1__init__(PyObject
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_value)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 39, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 303, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 39, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 303, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2371,7 +6581,7 @@ static PyObject *__pyx_pw_5pysam_10libchtslib_13CallableValue_1__init__(PyObject
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 39, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 303, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libchtslib.CallableValue.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2388,20 +6598,20 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue___init__(CYTHON_UN
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
-  __Pyx_TraceFrameInit(__pyx_codeobj_)
+  __Pyx_TraceFrameInit(__pyx_codeobj__14)
   __Pyx_RefNannySetupContext("__init__", 0);
-  __Pyx_TraceCall("__init__", __pyx_f[0], 39, 0, __PYX_ERR(0, 39, __pyx_L1_error));
+  __Pyx_TraceCall("__init__", __pyx_f[0], 303, 0, __PYX_ERR(0, 303, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":40
+  /* "pysam/libchtslib.pyx":304
  * class CallableValue(object):
  *     def __init__(self, value):
  *         self.value = value             # <<<<<<<<<<<<<<
  *     def __call__(self):
  *         return self.value
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_value, __pyx_v_value) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_value, __pyx_v_value) < 0) __PYX_ERR(0, 304, __pyx_L1_error)
 
-  /* "pysam/libchtslib.pyx":39
+  /* "pysam/libchtslib.pyx":303
  * 
  * class CallableValue(object):
  *     def __init__(self, value):             # <<<<<<<<<<<<<<
@@ -2422,7 +6632,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue___init__(CYTHON_UN
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":41
+/* "pysam/libchtslib.pyx":305
  *     def __init__(self, value):
  *         self.value = value
  *     def __call__(self):             # <<<<<<<<<<<<<<
@@ -2450,11 +6660,11 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_2__call__(CYTHON_U
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  __Pyx_TraceFrameInit(__pyx_codeobj__2)
+  __Pyx_TraceFrameInit(__pyx_codeobj__15)
   __Pyx_RefNannySetupContext("__call__", 0);
-  __Pyx_TraceCall("__call__", __pyx_f[0], 41, 0, __PYX_ERR(0, 41, __pyx_L1_error));
+  __Pyx_TraceCall("__call__", __pyx_f[0], 305, 0, __PYX_ERR(0, 305, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":42
+  /* "pysam/libchtslib.pyx":306
  *         self.value = value
  *     def __call__(self):
  *         return self.value             # <<<<<<<<<<<<<<
@@ -2462,13 +6672,13 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_2__call__(CYTHON_U
  *         return self.value
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":41
+  /* "pysam/libchtslib.pyx":305
  *     def __init__(self, value):
  *         self.value = value
  *     def __call__(self):             # <<<<<<<<<<<<<<
@@ -2488,7 +6698,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_2__call__(CYTHON_U
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":43
+/* "pysam/libchtslib.pyx":307
  *     def __call__(self):
  *         return self.value
  *     def __bool__(self):             # <<<<<<<<<<<<<<
@@ -2516,11 +6726,11 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_4__bool__(CYTHON_U
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  __Pyx_TraceFrameInit(__pyx_codeobj__3)
+  __Pyx_TraceFrameInit(__pyx_codeobj__16)
   __Pyx_RefNannySetupContext("__bool__", 0);
-  __Pyx_TraceCall("__bool__", __pyx_f[0], 43, 0, __PYX_ERR(0, 43, __pyx_L1_error));
+  __Pyx_TraceCall("__bool__", __pyx_f[0], 307, 0, __PYX_ERR(0, 307, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":44
+  /* "pysam/libchtslib.pyx":308
  *         return self.value
  *     def __bool__(self):
  *         return self.value             # <<<<<<<<<<<<<<
@@ -2528,13 +6738,13 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_4__bool__(CYTHON_U
  *         return self.value
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 308, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":43
+  /* "pysam/libchtslib.pyx":307
  *     def __call__(self):
  *         return self.value
  *     def __bool__(self):             # <<<<<<<<<<<<<<
@@ -2554,7 +6764,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_4__bool__(CYTHON_U
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":45
+/* "pysam/libchtslib.pyx":309
  *     def __bool__(self):
  *         return self.value
  *     def __nonzero__(self):             # <<<<<<<<<<<<<<
@@ -2582,11 +6792,11 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_6__nonzero__(CYTHO
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  __Pyx_TraceFrameInit(__pyx_codeobj__4)
+  __Pyx_TraceFrameInit(__pyx_codeobj__17)
   __Pyx_RefNannySetupContext("__nonzero__", 0);
-  __Pyx_TraceCall("__nonzero__", __pyx_f[0], 45, 0, __PYX_ERR(0, 45, __pyx_L1_error));
+  __Pyx_TraceCall("__nonzero__", __pyx_f[0], 309, 0, __PYX_ERR(0, 309, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":46
+  /* "pysam/libchtslib.pyx":310
  *         return self.value
  *     def __nonzero__(self):
  *         return self.value             # <<<<<<<<<<<<<<
@@ -2594,13 +6804,13 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_6__nonzero__(CYTHO
  *         return self.value == other
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 310, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":45
+  /* "pysam/libchtslib.pyx":309
  *     def __bool__(self):
  *         return self.value
  *     def __nonzero__(self):             # <<<<<<<<<<<<<<
@@ -2620,7 +6830,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_6__nonzero__(CYTHO
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":47
+/* "pysam/libchtslib.pyx":311
  *     def __nonzero__(self):
  *         return self.value
  *     def __eq__(self, other):             # <<<<<<<<<<<<<<
@@ -2661,11 +6871,11 @@ static PyObject *__pyx_pw_5pysam_10libchtslib_13CallableValue_9__eq__(PyObject *
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_other)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__eq__", 1, 2, 2, 1); __PYX_ERR(0, 47, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__eq__", 1, 2, 2, 1); __PYX_ERR(0, 311, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__eq__") < 0)) __PYX_ERR(0, 47, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__eq__") < 0)) __PYX_ERR(0, 311, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2678,7 +6888,7 @@ static PyObject *__pyx_pw_5pysam_10libchtslib_13CallableValue_9__eq__(PyObject *
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__eq__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 47, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__eq__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 311, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libchtslib.CallableValue.__eq__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2697,11 +6907,11 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_8__eq__(CYTHON_UNU
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
-  __Pyx_TraceFrameInit(__pyx_codeobj__5)
+  __Pyx_TraceFrameInit(__pyx_codeobj__18)
   __Pyx_RefNannySetupContext("__eq__", 0);
-  __Pyx_TraceCall("__eq__", __pyx_f[0], 47, 0, __PYX_ERR(0, 47, __pyx_L1_error));
+  __Pyx_TraceCall("__eq__", __pyx_f[0], 311, 0, __PYX_ERR(0, 311, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":48
+  /* "pysam/libchtslib.pyx":312
  *         return self.value
  *     def __eq__(self, other):
  *         return self.value == other             # <<<<<<<<<<<<<<
@@ -2709,15 +6919,15 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_8__eq__(CYTHON_UNU
  *         return self.value != other
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 312, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_v_other, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_v_other, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 312, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":47
+  /* "pysam/libchtslib.pyx":311
  *     def __nonzero__(self):
  *         return self.value
  *     def __eq__(self, other):             # <<<<<<<<<<<<<<
@@ -2738,7 +6948,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_8__eq__(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":49
+/* "pysam/libchtslib.pyx":313
  *     def __eq__(self, other):
  *         return self.value == other
  *     def __ne__(self, other):             # <<<<<<<<<<<<<<
@@ -2779,11 +6989,11 @@ static PyObject *__pyx_pw_5pysam_10libchtslib_13CallableValue_11__ne__(PyObject 
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_other)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__ne__", 1, 2, 2, 1); __PYX_ERR(0, 49, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__ne__", 1, 2, 2, 1); __PYX_ERR(0, 313, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__ne__") < 0)) __PYX_ERR(0, 49, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__ne__") < 0)) __PYX_ERR(0, 313, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2796,7 +7006,7 @@ static PyObject *__pyx_pw_5pysam_10libchtslib_13CallableValue_11__ne__(PyObject 
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__ne__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 49, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__ne__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 313, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libchtslib.CallableValue.__ne__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2815,11 +7025,11 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_10__ne__(CYTHON_UN
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
-  __Pyx_TraceFrameInit(__pyx_codeobj__6)
+  __Pyx_TraceFrameInit(__pyx_codeobj__19)
   __Pyx_RefNannySetupContext("__ne__", 0);
-  __Pyx_TraceCall("__ne__", __pyx_f[0], 49, 0, __PYX_ERR(0, 49, __pyx_L1_error));
+  __Pyx_TraceCall("__ne__", __pyx_f[0], 313, 0, __PYX_ERR(0, 313, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":50
+  /* "pysam/libchtslib.pyx":314
  *         return self.value == other
  *     def __ne__(self, other):
  *         return self.value != other             # <<<<<<<<<<<<<<
@@ -2827,15 +7037,15 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_10__ne__(CYTHON_UN
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 314, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_v_other, Py_NE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_v_other, Py_NE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 314, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":49
+  /* "pysam/libchtslib.pyx":313
  *     def __eq__(self, other):
  *         return self.value == other
  *     def __ne__(self, other):             # <<<<<<<<<<<<<<
@@ -2856,12 +7066,12 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_13CallableValue_10__ne__(CYTHON_UN
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":61
+/* "pysam/libchtslib.pyx":330
  *     Base class for HTS file types
  *     """
  *     def __cinit__(self, *args, **kwargs):             # <<<<<<<<<<<<<<
  *         self.htsfile = NULL
- *         self.duplicate_filehandle = True
+ *         self.threads = 1
  */
 
 /* Python wrapper */
@@ -2889,32 +7099,45 @@ static int __pyx_pf_5pysam_10libchtslib_7HTSFile___cinit__(struct __pyx_obj_5pys
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__cinit__", 0);
-  __Pyx_TraceCall("__cinit__", __pyx_f[0], 61, 0, __PYX_ERR(0, 61, __pyx_L1_error));
+  __Pyx_TraceCall("__cinit__", __pyx_f[0], 330, 0, __PYX_ERR(0, 330, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":62
+  /* "pysam/libchtslib.pyx":331
  *     """
  *     def __cinit__(self, *args, **kwargs):
  *         self.htsfile = NULL             # <<<<<<<<<<<<<<
+ *         self.threads = 1
  *         self.duplicate_filehandle = True
- * 
  */
   __pyx_v_self->htsfile = NULL;
 
-  /* "pysam/libchtslib.pyx":63
+  /* "pysam/libchtslib.pyx":332
  *     def __cinit__(self, *args, **kwargs):
  *         self.htsfile = NULL
+ *         self.threads = 1             # <<<<<<<<<<<<<<
+ *         self.duplicate_filehandle = True
+ * 
+ */
+  __Pyx_INCREF(__pyx_int_1);
+  __Pyx_GIVEREF(__pyx_int_1);
+  __Pyx_GOTREF(__pyx_v_self->threads);
+  __Pyx_DECREF(__pyx_v_self->threads);
+  __pyx_v_self->threads = __pyx_int_1;
+
+  /* "pysam/libchtslib.pyx":333
+ *         self.htsfile = NULL
+ *         self.threads = 1
  *         self.duplicate_filehandle = True             # <<<<<<<<<<<<<<
  * 
- *     def __dealloc__(self):
+ *     def close(self):
  */
   __pyx_v_self->duplicate_filehandle = 1;
 
-  /* "pysam/libchtslib.pyx":61
+  /* "pysam/libchtslib.pyx":330
  *     Base class for HTS file types
  *     """
  *     def __cinit__(self, *args, **kwargs):             # <<<<<<<<<<<<<<
  *         self.htsfile = NULL
- *         self.duplicate_filehandle = True
+ *         self.threads = 1
  */
 
   /* function exit code */
@@ -2929,8 +7152,96 @@ static int __pyx_pf_5pysam_10libchtslib_7HTSFile___cinit__(struct __pyx_obj_5pys
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":65
+/* "pysam/libchtslib.pyx":335
  *         self.duplicate_filehandle = True
+ * 
+ *     def close(self):             # <<<<<<<<<<<<<<
+ *         if self.htsfile:
+ *             hts_close(self.htsfile)
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_3close(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_2close[] = "HTSFile.close(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_3close(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("close (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_2close(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_2close(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  __Pyx_RefNannySetupContext("close", 0);
+  __Pyx_TraceCall("close", __pyx_f[0], 335, 0, __PYX_ERR(0, 335, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":336
+ * 
+ *     def close(self):
+ *         if self.htsfile:             # <<<<<<<<<<<<<<
+ *             hts_close(self.htsfile)
+ *             self.htsfile = NULL
+ */
+  __pyx_t_1 = (__pyx_v_self->htsfile != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":337
+ *     def close(self):
+ *         if self.htsfile:
+ *             hts_close(self.htsfile)             # <<<<<<<<<<<<<<
+ *             self.htsfile = NULL
+ * 
+ */
+    (void)(hts_close(__pyx_v_self->htsfile));
+
+    /* "pysam/libchtslib.pyx":338
+ *         if self.htsfile:
+ *             hts_close(self.htsfile)
+ *             self.htsfile = NULL             # <<<<<<<<<<<<<<
+ * 
+ *     def __dealloc__(self):
+ */
+    __pyx_v_self->htsfile = NULL;
+
+    /* "pysam/libchtslib.pyx":336
+ * 
+ *     def close(self):
+ *         if self.htsfile:             # <<<<<<<<<<<<<<
+ *             hts_close(self.htsfile)
+ *             self.htsfile = NULL
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":335
+ *         self.duplicate_filehandle = True
+ * 
+ *     def close(self):             # <<<<<<<<<<<<<<
+ *         if self.htsfile:
+ *             hts_close(self.htsfile)
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.close", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":340
+ *             self.htsfile = NULL
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
  *         if self.htsfile:
@@ -2938,24 +7249,24 @@ static int __pyx_pf_5pysam_10libchtslib_7HTSFile___cinit__(struct __pyx_obj_5pys
  */
 
 /* Python wrapper */
-static void __pyx_pw_5pysam_10libchtslib_7HTSFile_3__dealloc__(PyObject *__pyx_v_self); /*proto*/
-static void __pyx_pw_5pysam_10libchtslib_7HTSFile_3__dealloc__(PyObject *__pyx_v_self) {
+static void __pyx_pw_5pysam_10libchtslib_7HTSFile_5__dealloc__(PyObject *__pyx_v_self); /*proto*/
+static void __pyx_pw_5pysam_10libchtslib_7HTSFile_5__dealloc__(PyObject *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__dealloc__ (wrapper)", 0);
-  __pyx_pf_5pysam_10libchtslib_7HTSFile_2__dealloc__(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
+  __pyx_pf_5pysam_10libchtslib_7HTSFile_4__dealloc__(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
 }
 
-static void __pyx_pf_5pysam_10libchtslib_7HTSFile_2__dealloc__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
+static void __pyx_pf_5pysam_10libchtslib_7HTSFile_4__dealloc__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
-  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 65, 0, __PYX_ERR(0, 65, __pyx_L1_error));
+  __Pyx_TraceCall("__dealloc__", __pyx_f[0], 340, 0, __PYX_ERR(0, 340, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":66
+  /* "pysam/libchtslib.pyx":341
  * 
  *     def __dealloc__(self):
  *         if self.htsfile:             # <<<<<<<<<<<<<<
@@ -2965,7 +7276,7 @@ static void __pyx_pf_5pysam_10libchtslib_7HTSFile_2__dealloc__(struct __pyx_obj_
   __pyx_t_1 = (__pyx_v_self->htsfile != 0);
   if (__pyx_t_1) {
 
-    /* "pysam/libchtslib.pyx":67
+    /* "pysam/libchtslib.pyx":342
  *     def __dealloc__(self):
  *         if self.htsfile:
  *             hts_close(self.htsfile)             # <<<<<<<<<<<<<<
@@ -2974,16 +7285,16 @@ static void __pyx_pf_5pysam_10libchtslib_7HTSFile_2__dealloc__(struct __pyx_obj_
  */
     (void)(hts_close(__pyx_v_self->htsfile));
 
-    /* "pysam/libchtslib.pyx":68
+    /* "pysam/libchtslib.pyx":343
  *         if self.htsfile:
  *             hts_close(self.htsfile)
  *             self.htsfile = NULL             # <<<<<<<<<<<<<<
  * 
- *     def __enter__(self):
+ *     def check_truncation(self, ignore_truncation=False):
  */
     __pyx_v_self->htsfile = NULL;
 
-    /* "pysam/libchtslib.pyx":66
+    /* "pysam/libchtslib.pyx":341
  * 
  *     def __dealloc__(self):
  *         if self.htsfile:             # <<<<<<<<<<<<<<
@@ -2992,8 +7303,8 @@ static void __pyx_pf_5pysam_10libchtslib_7HTSFile_2__dealloc__(struct __pyx_obj_
  */
   }
 
-  /* "pysam/libchtslib.pyx":65
- *         self.duplicate_filehandle = True
+  /* "pysam/libchtslib.pyx":340
+ *             self.htsfile = NULL
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
  *         if self.htsfile:
@@ -3009,8 +7320,429 @@ static void __pyx_pf_5pysam_10libchtslib_7HTSFile_2__dealloc__(struct __pyx_obj_
   __Pyx_RefNannyFinishContext();
 }
 
-/* "pysam/libchtslib.pyx":70
+/* "pysam/libchtslib.pyx":345
  *             self.htsfile = NULL
+ * 
+ *     def check_truncation(self, ignore_truncation=False):             # <<<<<<<<<<<<<<
+ *         """Check if file is truncated."""
+ *         if not self.htsfile:
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_7check_truncation(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_6check_truncation[] = "HTSFile.check_truncation(self, ignore_truncation=False)\nCheck if file is truncated.";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_7check_truncation(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_ignore_truncation = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("check_truncation (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_ignore_truncation,0};
+    PyObject* values[1] = {0};
+    values[0] = ((PyObject *)Py_False);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ignore_truncation);
+          if (value) { values[0] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "check_truncation") < 0)) __PYX_ERR(0, 345, __pyx_L3_error)
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_ignore_truncation = values[0];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("check_truncation", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 345, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.check_truncation", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_6check_truncation(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), __pyx_v_ignore_truncation);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6check_truncation(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, PyObject *__pyx_v_ignore_truncation) {
+  BGZF *__pyx_v_bgzfp;
+  int __pyx_v_ret;
+  PyObject *__pyx_v_msg = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  __Pyx_RefNannySetupContext("check_truncation", 0);
+  __Pyx_TraceCall("check_truncation", __pyx_f[0], 345, 0, __PYX_ERR(0, 345, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":347
+ *     def check_truncation(self, ignore_truncation=False):
+ *         """Check if file is truncated."""
+ *         if not self.htsfile:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  __pyx_t_1 = ((!(__pyx_v_self->htsfile != 0)) != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":348
+ *         """Check if file is truncated."""
+ *         if not self.htsfile:
+ *             return             # <<<<<<<<<<<<<<
+ * 
+ *         if self.htsfile.format.compression != bgzf:
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+    goto __pyx_L0;
+
+    /* "pysam/libchtslib.pyx":347
+ *     def check_truncation(self, ignore_truncation=False):
+ *         """Check if file is truncated."""
+ *         if not self.htsfile:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":350
+ *             return
+ * 
+ *         if self.htsfile.format.compression != bgzf:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  __pyx_t_1 = ((__pyx_v_self->htsfile->format.compression != bgzf) != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":351
+ * 
+ *         if self.htsfile.format.compression != bgzf:
+ *             return             # <<<<<<<<<<<<<<
+ * 
+ *         cdef BGZF *bgzfp = hts_get_bgzfp(self.htsfile)
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+    goto __pyx_L0;
+
+    /* "pysam/libchtslib.pyx":350
+ *             return
+ * 
+ *         if self.htsfile.format.compression != bgzf:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":353
+ *             return
+ * 
+ *         cdef BGZF *bgzfp = hts_get_bgzfp(self.htsfile)             # <<<<<<<<<<<<<<
+ *         if not bgzfp:
+ *             return
+ */
+  __pyx_v_bgzfp = hts_get_bgzfp(__pyx_v_self->htsfile);
+
+  /* "pysam/libchtslib.pyx":354
+ * 
+ *         cdef BGZF *bgzfp = hts_get_bgzfp(self.htsfile)
+ *         if not bgzfp:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  __pyx_t_1 = ((!(__pyx_v_bgzfp != 0)) != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":355
+ *         cdef BGZF *bgzfp = hts_get_bgzfp(self.htsfile)
+ *         if not bgzfp:
+ *             return             # <<<<<<<<<<<<<<
+ * 
+ *         cdef int ret = bgzf_check_EOF(bgzfp)
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+    goto __pyx_L0;
+
+    /* "pysam/libchtslib.pyx":354
+ * 
+ *         cdef BGZF *bgzfp = hts_get_bgzfp(self.htsfile)
+ *         if not bgzfp:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":357
+ *             return
+ * 
+ *         cdef int ret = bgzf_check_EOF(bgzfp)             # <<<<<<<<<<<<<<
+ *         if ret < 0:
+ *             raise IOError(errno, 'error checking for EOF marker')
+ */
+  __pyx_v_ret = bgzf_check_EOF(__pyx_v_bgzfp);
+
+  /* "pysam/libchtslib.pyx":358
+ * 
+ *         cdef int ret = bgzf_check_EOF(bgzfp)
+ *         if ret < 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(errno, 'error checking for EOF marker')
+ *         elif ret == 0:
+ */
+  __pyx_t_1 = ((__pyx_v_ret < 0) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":359
+ *         cdef int ret = bgzf_check_EOF(bgzfp)
+ *         if ret < 0:
+ *             raise IOError(errno, 'error checking for EOF marker')             # <<<<<<<<<<<<<<
+ *         elif ret == 0:
+ *             msg = 'no BGZF EOF marker; file may be truncated'.format(self.filename)
+ */
+    __pyx_t_2 = __Pyx_PyInt_From_int(errno); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 359, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 359, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
+    __Pyx_INCREF(__pyx_kp_s_error_checking_for_EOF_marker);
+    __Pyx_GIVEREF(__pyx_kp_s_error_checking_for_EOF_marker);
+    PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_kp_s_error_checking_for_EOF_marker);
+    __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 359, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __PYX_ERR(0, 359, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":358
+ * 
+ *         cdef int ret = bgzf_check_EOF(bgzfp)
+ *         if ret < 0:             # <<<<<<<<<<<<<<
+ *             raise IOError(errno, 'error checking for EOF marker')
+ *         elif ret == 0:
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":360
+ *         if ret < 0:
+ *             raise IOError(errno, 'error checking for EOF marker')
+ *         elif ret == 0:             # <<<<<<<<<<<<<<
+ *             msg = 'no BGZF EOF marker; file may be truncated'.format(self.filename)
+ *             if ignore_truncation:
+ */
+  __pyx_t_1 = ((__pyx_v_ret == 0) != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":361
+ *             raise IOError(errno, 'error checking for EOF marker')
+ *         elif ret == 0:
+ *             msg = 'no BGZF EOF marker; file may be truncated'.format(self.filename)             # <<<<<<<<<<<<<<
+ *             if ignore_truncation:
+ *                 warn(msg)
+ */
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_no_BGZF_EOF_marker_file_may_be_t, __pyx_n_s_format); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 361, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_4 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
+      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
+      if (likely(__pyx_t_4)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+        __Pyx_INCREF(__pyx_t_4);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_3, function);
+      }
+    }
+    if (!__pyx_t_4) {
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_self->filename); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 361, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_3)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_self->filename};
+        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 361, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_GOTREF(__pyx_t_2);
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_self->filename};
+        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 361, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_GOTREF(__pyx_t_2);
+      } else
+      #endif
+      {
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 361, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
+        __Pyx_INCREF(__pyx_v_self->filename);
+        __Pyx_GIVEREF(__pyx_v_self->filename);
+        PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_self->filename);
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 361, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_v_msg = __pyx_t_2;
+    __pyx_t_2 = 0;
+
+    /* "pysam/libchtslib.pyx":362
+ *         elif ret == 0:
+ *             msg = 'no BGZF EOF marker; file may be truncated'.format(self.filename)
+ *             if ignore_truncation:             # <<<<<<<<<<<<<<
+ *                 warn(msg)
+ *             else:
+ */
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_ignore_truncation); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 362, __pyx_L1_error)
+    if (likely(__pyx_t_1)) {
+
+      /* "pysam/libchtslib.pyx":363
+ *             msg = 'no BGZF EOF marker; file may be truncated'.format(self.filename)
+ *             if ignore_truncation:
+ *                 warn(msg)             # <<<<<<<<<<<<<<
+ *             else:
+ *                 raise IOError(msg)
+ */
+      __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_warn); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 363, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_5 = NULL;
+      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_3);
+        if (likely(__pyx_t_5)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_5);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
+        }
+      }
+      if (!__pyx_t_5) {
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_msg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 363, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+      } else {
+        #if CYTHON_FAST_PYCALL
+        if (PyFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_msg};
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 363, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+          __Pyx_GOTREF(__pyx_t_2);
+        } else
+        #endif
+        #if CYTHON_FAST_PYCCALL
+        if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_msg};
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 363, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+          __Pyx_GOTREF(__pyx_t_2);
+        } else
+        #endif
+        {
+          __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 363, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
+          __Pyx_INCREF(__pyx_v_msg);
+          __Pyx_GIVEREF(__pyx_v_msg);
+          PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_msg);
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 363, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        }
+      }
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+      /* "pysam/libchtslib.pyx":362
+ *         elif ret == 0:
+ *             msg = 'no BGZF EOF marker; file may be truncated'.format(self.filename)
+ *             if ignore_truncation:             # <<<<<<<<<<<<<<
+ *                 warn(msg)
+ *             else:
+ */
+      goto __pyx_L7;
+    }
+
+    /* "pysam/libchtslib.pyx":365
+ *                 warn(msg)
+ *             else:
+ *                 raise IOError(msg)             # <<<<<<<<<<<<<<
+ * 
+ *     def __enter__(self):
+ */
+    /*else*/ {
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_IOError, __pyx_v_msg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 365, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __PYX_ERR(0, 365, __pyx_L1_error)
+    }
+    __pyx_L7:;
+
+    /* "pysam/libchtslib.pyx":360
+ *         if ret < 0:
+ *             raise IOError(errno, 'error checking for EOF marker')
+ *         elif ret == 0:             # <<<<<<<<<<<<<<
+ *             msg = 'no BGZF EOF marker; file may be truncated'.format(self.filename)
+ *             if ignore_truncation:
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":345
+ *             self.htsfile = NULL
+ * 
+ *     def check_truncation(self, ignore_truncation=False):             # <<<<<<<<<<<<<<
+ *         """Check if file is truncated."""
+ *         if not self.htsfile:
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.check_truncation", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_msg);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":367
+ *                 raise IOError(msg)
  * 
  *     def __enter__(self):             # <<<<<<<<<<<<<<
  *         return self
@@ -3018,27 +7750,27 @@ static void __pyx_pf_5pysam_10libchtslib_7HTSFile_2__dealloc__(struct __pyx_obj_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_5__enter__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_5pysam_10libchtslib_7HTSFile_4__enter__[] = "HTSFile.__enter__(self)";
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_5__enter__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_9__enter__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_8__enter__[] = "HTSFile.__enter__(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_9__enter__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__enter__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_4__enter__(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_8__enter__(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_4__enter__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8__enter__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__enter__", 0);
-  __Pyx_TraceCall("__enter__", __pyx_f[0], 70, 0, __PYX_ERR(0, 70, __pyx_L1_error));
+  __Pyx_TraceCall("__enter__", __pyx_f[0], 367, 0, __PYX_ERR(0, 367, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":71
+  /* "pysam/libchtslib.pyx":368
  * 
  *     def __enter__(self):
  *         return self             # <<<<<<<<<<<<<<
@@ -3050,8 +7782,8 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_4__enter__(struct __pyx_o
   __pyx_r = ((PyObject *)__pyx_v_self);
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":70
- *             self.htsfile = NULL
+  /* "pysam/libchtslib.pyx":367
+ *                 raise IOError(msg)
  * 
  *     def __enter__(self):             # <<<<<<<<<<<<<<
  *         return self
@@ -3069,7 +7801,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_4__enter__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":73
+/* "pysam/libchtslib.pyx":370
  *         return self
  * 
  *     def __exit__(self, exc_type, exc_value, traceback):             # <<<<<<<<<<<<<<
@@ -3078,9 +7810,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_4__enter__(struct __pyx_o
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_7__exit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5pysam_10libchtslib_7HTSFile_6__exit__[] = "HTSFile.__exit__(self, exc_type, exc_value, traceback)";
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_7__exit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_11__exit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_10__exit__[] = "HTSFile.__exit__(self, exc_type, exc_value, traceback)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_11__exit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   CYTHON_UNUSED PyObject *__pyx_v_exc_type = 0;
   CYTHON_UNUSED PyObject *__pyx_v_exc_value = 0;
   CYTHON_UNUSED PyObject *__pyx_v_traceback = 0;
@@ -3112,17 +7844,17 @@ static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_7__exit__(PyObject *__pyx
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_exc_value)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 1); __PYX_ERR(0, 73, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 1); __PYX_ERR(0, 370, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_traceback)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 2); __PYX_ERR(0, 73, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, 2); __PYX_ERR(0, 370, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__exit__") < 0)) __PYX_ERR(0, 73, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__exit__") < 0)) __PYX_ERR(0, 370, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -3137,20 +7869,20 @@ static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_7__exit__(PyObject *__pyx
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 73, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__exit__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 370, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pysam.libchtslib.HTSFile.__exit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_6__exit__(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), __pyx_v_exc_type, __pyx_v_exc_value, __pyx_v_traceback);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_10__exit__(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), __pyx_v_exc_type, __pyx_v_exc_value, __pyx_v_traceback);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6__exit__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_exc_type, CYTHON_UNUSED PyObject *__pyx_v_exc_value, CYTHON_UNUSED PyObject *__pyx_v_traceback) {
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10__exit__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_exc_type, CYTHON_UNUSED PyObject *__pyx_v_exc_value, CYTHON_UNUSED PyObject *__pyx_v_traceback) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -3158,16 +7890,16 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6__exit__(struct __pyx_ob
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__exit__", 0);
-  __Pyx_TraceCall("__exit__", __pyx_f[0], 73, 0, __PYX_ERR(0, 73, __pyx_L1_error));
+  __Pyx_TraceCall("__exit__", __pyx_f[0], 370, 0, __PYX_ERR(0, 370, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":74
+  /* "pysam/libchtslib.pyx":371
  * 
  *     def __exit__(self, exc_type, exc_value, traceback):
  *         self.close()             # <<<<<<<<<<<<<<
  *         return False
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 371, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3180,16 +7912,16 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6__exit__(struct __pyx_ob
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 74, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 371, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 74, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 371, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libchtslib.pyx":75
+  /* "pysam/libchtslib.pyx":372
  *     def __exit__(self, exc_type, exc_value, traceback):
  *         self.close()
  *         return False             # <<<<<<<<<<<<<<
@@ -3201,7 +7933,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6__exit__(struct __pyx_ob
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":73
+  /* "pysam/libchtslib.pyx":370
  *         return self
  * 
  *     def __exit__(self, exc_type, exc_value, traceback):             # <<<<<<<<<<<<<<
@@ -3223,7 +7955,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6__exit__(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":78
+/* "pysam/libchtslib.pyx":375
  * 
  *     @property
  *     def category(self):             # <<<<<<<<<<<<<<
@@ -3252,9 +7984,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8category___get__(struct 
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 78, 0, __PYX_ERR(0, 78, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 375, 0, __PYX_ERR(0, 375, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":81
+  /* "pysam/libchtslib.pyx":378
  *         """General file format category.  One of UNKNOWN, ALIGNMENTS,
  *         VARIANTS, INDEX, REGIONS"""
  *         if not self.htsfile:             # <<<<<<<<<<<<<<
@@ -3264,20 +7996,20 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8category___get__(struct 
   __pyx_t_1 = ((!(__pyx_v_self->htsfile != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libchtslib.pyx":82
+    /* "pysam/libchtslib.pyx":379
  *         VARIANTS, INDEX, REGIONS"""
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')             # <<<<<<<<<<<<<<
  *         return FORMAT_CATEGORIES[self.htsfile.format.category]
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 82, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__20, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 379, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 82, __pyx_L1_error)
+    __PYX_ERR(0, 379, __pyx_L1_error)
 
-    /* "pysam/libchtslib.pyx":81
+    /* "pysam/libchtslib.pyx":378
  *         """General file format category.  One of UNKNOWN, ALIGNMENTS,
  *         VARIANTS, INDEX, REGIONS"""
  *         if not self.htsfile:             # <<<<<<<<<<<<<<
@@ -3286,7 +8018,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8category___get__(struct 
  */
   }
 
-  /* "pysam/libchtslib.pyx":83
+  /* "pysam/libchtslib.pyx":380
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')
  *         return FORMAT_CATEGORIES[self.htsfile.format.category]             # <<<<<<<<<<<<<<
@@ -3296,18 +8028,18 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8category___get__(struct 
   __Pyx_XDECREF(__pyx_r);
   if (unlikely(__pyx_v_5pysam_10libchtslib_FORMAT_CATEGORIES == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    __PYX_ERR(0, 83, __pyx_L1_error)
+    __PYX_ERR(0, 380, __pyx_L1_error)
   }
-  __pyx_t_2 = __Pyx_PyInt_From_enum__htsFormatCategory(__pyx_v_self->htsfile->format.category); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_enum__htsFormatCategory(__pyx_v_self->htsfile->format.category); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 380, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_5pysam_10libchtslib_FORMAT_CATEGORIES, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_5pysam_10libchtslib_FORMAT_CATEGORIES, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 380, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":78
+  /* "pysam/libchtslib.pyx":375
  * 
  *     @property
  *     def category(self):             # <<<<<<<<<<<<<<
@@ -3328,7 +8060,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8category___get__(struct 
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":86
+/* "pysam/libchtslib.pyx":383
  * 
  *     @property
  *     def format(self):             # <<<<<<<<<<<<<<
@@ -3357,9 +8089,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6format___get__(struct __
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 86, 0, __PYX_ERR(0, 86, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 383, 0, __PYX_ERR(0, 383, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":92
+  /* "pysam/libchtslib.pyx":389
  *         BAI, CRAM, CRAI, VCF, BCF, CSI, GZI, TBI, BED.
  *         """
  *         if not self.htsfile:             # <<<<<<<<<<<<<<
@@ -3369,20 +8101,20 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6format___get__(struct __
   __pyx_t_1 = ((!(__pyx_v_self->htsfile != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libchtslib.pyx":93
+    /* "pysam/libchtslib.pyx":390
  *         """
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')             # <<<<<<<<<<<<<<
  *         return FORMATS[self.htsfile.format.format]
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 93, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__21, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 390, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 93, __pyx_L1_error)
+    __PYX_ERR(0, 390, __pyx_L1_error)
 
-    /* "pysam/libchtslib.pyx":92
+    /* "pysam/libchtslib.pyx":389
  *         BAI, CRAM, CRAI, VCF, BCF, CSI, GZI, TBI, BED.
  *         """
  *         if not self.htsfile:             # <<<<<<<<<<<<<<
@@ -3391,7 +8123,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6format___get__(struct __
  */
   }
 
-  /* "pysam/libchtslib.pyx":94
+  /* "pysam/libchtslib.pyx":391
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')
  *         return FORMATS[self.htsfile.format.format]             # <<<<<<<<<<<<<<
@@ -3401,18 +8133,18 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6format___get__(struct __
   __Pyx_XDECREF(__pyx_r);
   if (unlikely(__pyx_v_5pysam_10libchtslib_FORMATS == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    __PYX_ERR(0, 94, __pyx_L1_error)
+    __PYX_ERR(0, 391, __pyx_L1_error)
   }
-  __pyx_t_2 = __Pyx_PyInt_From_enum__htsExactFormat(__pyx_v_self->htsfile->format.format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_enum__htsExactFormat(__pyx_v_self->htsfile->format.format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 391, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_5pysam_10libchtslib_FORMATS, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_5pysam_10libchtslib_FORMATS, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 391, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":86
+  /* "pysam/libchtslib.pyx":383
  * 
  *     @property
  *     def format(self):             # <<<<<<<<<<<<<<
@@ -3433,7 +8165,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6format___get__(struct __
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":97
+/* "pysam/libchtslib.pyx":394
  * 
  *     @property
  *     def version(self):             # <<<<<<<<<<<<<<
@@ -3463,9 +8195,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7version___get__(struct _
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 97, 0, __PYX_ERR(0, 97, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 394, 0, __PYX_ERR(0, 394, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":99
+  /* "pysam/libchtslib.pyx":396
  *     def version(self):
  *         """Tuple of file format version numbers (major, minor)"""
  *         if not self.htsfile:             # <<<<<<<<<<<<<<
@@ -3475,20 +8207,20 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7version___get__(struct _
   __pyx_t_1 = ((!(__pyx_v_self->htsfile != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libchtslib.pyx":100
+    /* "pysam/libchtslib.pyx":397
  *         """Tuple of file format version numbers (major, minor)"""
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')             # <<<<<<<<<<<<<<
  *         return self.htsfile.format.version.major, self.htsfile.format.version.minor
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 100, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__22, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 397, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 100, __pyx_L1_error)
+    __PYX_ERR(0, 397, __pyx_L1_error)
 
-    /* "pysam/libchtslib.pyx":99
+    /* "pysam/libchtslib.pyx":396
  *     def version(self):
  *         """Tuple of file format version numbers (major, minor)"""
  *         if not self.htsfile:             # <<<<<<<<<<<<<<
@@ -3497,7 +8229,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7version___get__(struct _
  */
   }
 
-  /* "pysam/libchtslib.pyx":101
+  /* "pysam/libchtslib.pyx":398
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')
  *         return self.htsfile.format.version.major, self.htsfile.format.version.minor             # <<<<<<<<<<<<<<
@@ -3505,11 +8237,11 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7version___get__(struct _
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyInt_From_short(__pyx_v_self->htsfile->format.version.major); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_short(__pyx_v_self->htsfile->format.version.major); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_short(__pyx_v_self->htsfile->format.version.minor); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_short(__pyx_v_self->htsfile->format.version.minor); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 398, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
@@ -3521,7 +8253,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7version___get__(struct _
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":97
+  /* "pysam/libchtslib.pyx":394
  * 
  *     @property
  *     def version(self):             # <<<<<<<<<<<<<<
@@ -3543,7 +8275,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7version___get__(struct _
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":104
+/* "pysam/libchtslib.pyx":401
  * 
  *     @property
  *     def compression(self):             # <<<<<<<<<<<<<<
@@ -3572,9 +8304,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11compression___get__(str
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 104, 0, __PYX_ERR(0, 104, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 401, 0, __PYX_ERR(0, 401, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":108
+  /* "pysam/libchtslib.pyx":405
  * 
  *         One of NONE, GZIP, BGZF, CUSTOM."""
  *         if not self.htsfile:             # <<<<<<<<<<<<<<
@@ -3584,20 +8316,20 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11compression___get__(str
   __pyx_t_1 = ((!(__pyx_v_self->htsfile != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libchtslib.pyx":109
+    /* "pysam/libchtslib.pyx":406
  *         One of NONE, GZIP, BGZF, CUSTOM."""
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')             # <<<<<<<<<<<<<<
  *         return COMPRESSION[self.htsfile.format.compression]
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 109, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__23, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 406, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 109, __pyx_L1_error)
+    __PYX_ERR(0, 406, __pyx_L1_error)
 
-    /* "pysam/libchtslib.pyx":108
+    /* "pysam/libchtslib.pyx":405
  * 
  *         One of NONE, GZIP, BGZF, CUSTOM."""
  *         if not self.htsfile:             # <<<<<<<<<<<<<<
@@ -3606,7 +8338,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11compression___get__(str
  */
   }
 
-  /* "pysam/libchtslib.pyx":110
+  /* "pysam/libchtslib.pyx":407
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')
  *         return COMPRESSION[self.htsfile.format.compression]             # <<<<<<<<<<<<<<
@@ -3616,18 +8348,18 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11compression___get__(str
   __Pyx_XDECREF(__pyx_r);
   if (unlikely(__pyx_v_5pysam_10libchtslib_COMPRESSION == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    __PYX_ERR(0, 110, __pyx_L1_error)
+    __PYX_ERR(0, 407, __pyx_L1_error)
   }
-  __pyx_t_2 = __Pyx_PyInt_From_enum__htsCompression(__pyx_v_self->htsfile->format.compression); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 110, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_enum__htsCompression(__pyx_v_self->htsfile->format.compression); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 407, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_5pysam_10libchtslib_COMPRESSION, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 110, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_5pysam_10libchtslib_COMPRESSION, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 407, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":104
+  /* "pysam/libchtslib.pyx":401
  * 
  *     @property
  *     def compression(self):             # <<<<<<<<<<<<<<
@@ -3648,7 +8380,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11compression___get__(str
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":113
+/* "pysam/libchtslib.pyx":410
  * 
  *     @property
  *     def description(self):             # <<<<<<<<<<<<<<
@@ -3686,9 +8418,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11description___get__(str
   PyObject *__pyx_t_10 = NULL;
   PyObject *__pyx_t_11 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 113, 0, __PYX_ERR(0, 113, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 410, 0, __PYX_ERR(0, 410, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":115
+  /* "pysam/libchtslib.pyx":412
  *     def description(self):
  *         """Vaguely human readable description of the file format"""
  *         if not self.htsfile:             # <<<<<<<<<<<<<<
@@ -3698,20 +8430,20 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11description___get__(str
   __pyx_t_1 = ((!(__pyx_v_self->htsfile != 0)) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "pysam/libchtslib.pyx":116
+    /* "pysam/libchtslib.pyx":413
  *         """Vaguely human readable description of the file format"""
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')             # <<<<<<<<<<<<<<
  *         cdef char *desc = hts_format_description(&self.htsfile.format)
  *         try:
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 116, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__24, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 413, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 116, __pyx_L1_error)
+    __PYX_ERR(0, 413, __pyx_L1_error)
 
-    /* "pysam/libchtslib.pyx":115
+    /* "pysam/libchtslib.pyx":412
  *     def description(self):
  *         """Vaguely human readable description of the file format"""
  *         if not self.htsfile:             # <<<<<<<<<<<<<<
@@ -3720,7 +8452,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11description___get__(str
  */
   }
 
-  /* "pysam/libchtslib.pyx":117
+  /* "pysam/libchtslib.pyx":414
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')
  *         cdef char *desc = hts_format_description(&self.htsfile.format)             # <<<<<<<<<<<<<<
@@ -3729,7 +8461,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11description___get__(str
  */
   __pyx_v_desc = hts_format_description((&__pyx_v_self->htsfile->format));
 
-  /* "pysam/libchtslib.pyx":118
+  /* "pysam/libchtslib.pyx":415
  *             raise ValueError('metadata not available on closed file')
  *         cdef char *desc = hts_format_description(&self.htsfile.format)
  *         try:             # <<<<<<<<<<<<<<
@@ -3738,7 +8470,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11description___get__(str
  */
   /*try:*/ {
 
-    /* "pysam/libchtslib.pyx":119
+    /* "pysam/libchtslib.pyx":416
  *         cdef char *desc = hts_format_description(&self.htsfile.format)
  *         try:
  *             return charptr_to_str(desc)             # <<<<<<<<<<<<<<
@@ -3746,14 +8478,14 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11description___get__(str
  *             free(desc)
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_desc, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 119, __pyx_L5_error)
+    __pyx_t_2 = __pyx_f_5pysam_9libcutils_charptr_to_str(__pyx_v_desc, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 416, __pyx_L5_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_r = __pyx_t_2;
     __pyx_t_2 = 0;
     goto __pyx_L4_return;
   }
 
-  /* "pysam/libchtslib.pyx":121
+  /* "pysam/libchtslib.pyx":418
  *             return charptr_to_str(desc)
  *         finally:
  *             free(desc)             # <<<<<<<<<<<<<<
@@ -3803,7 +8535,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11description___get__(str
     }
   }
 
-  /* "pysam/libchtslib.pyx":113
+  /* "pysam/libchtslib.pyx":410
  * 
  *     @property
  *     def description(self):             # <<<<<<<<<<<<<<
@@ -3823,7 +8555,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_11description___get__(str
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":124
+/* "pysam/libchtslib.pyx":421
  * 
  *     @property
  *     def is_open(self):             # <<<<<<<<<<<<<<
@@ -3851,9 +8583,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_open___get__(struct _
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 124, 0, __PYX_ERR(0, 124, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 421, 0, __PYX_ERR(0, 421, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":126
+  /* "pysam/libchtslib.pyx":423
  *     def is_open(self):
  *         """return True if HTSFile is open and in a valid state."""
  *         return CTrue if self.htsfile != NULL else CFalse             # <<<<<<<<<<<<<<
@@ -3862,12 +8594,12 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_open___get__(struct _
  */
   __Pyx_XDECREF(__pyx_r);
   if (((__pyx_v_self->htsfile != NULL) != 0)) {
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_CTrue); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 126, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_CTrue); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 423, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_1 = __pyx_t_2;
     __pyx_t_2 = 0;
   } else {
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_CFalse); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 126, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_CFalse); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 423, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_1 = __pyx_t_2;
     __pyx_t_2 = 0;
@@ -3876,7 +8608,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_open___get__(struct _
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":124
+  /* "pysam/libchtslib.pyx":421
  * 
  *     @property
  *     def is_open(self):             # <<<<<<<<<<<<<<
@@ -3897,7 +8629,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_open___get__(struct _
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":129
+/* "pysam/libchtslib.pyx":426
  * 
  *     @property
  *     def is_closed(self):             # <<<<<<<<<<<<<<
@@ -3924,9 +8656,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_9is_closed___get__(struct
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 129, 0, __PYX_ERR(0, 129, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 426, 0, __PYX_ERR(0, 426, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":131
+  /* "pysam/libchtslib.pyx":428
  *     def is_closed(self):
  *         """return True if HTSFile is closed."""
  *         return self.htsfile == NULL             # <<<<<<<<<<<<<<
@@ -3934,13 +8666,13 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_9is_closed___get__(struct
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->htsfile == NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->htsfile == NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 428, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":129
+  /* "pysam/libchtslib.pyx":426
  * 
  *     @property
  *     def is_closed(self):             # <<<<<<<<<<<<<<
@@ -3960,7 +8692,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_9is_closed___get__(struct
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":134
+/* "pysam/libchtslib.pyx":431
  * 
  *     @property
  *     def closed(self):             # <<<<<<<<<<<<<<
@@ -3987,9 +8719,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6closed___get__(struct __
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 134, 0, __PYX_ERR(0, 134, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 431, 0, __PYX_ERR(0, 431, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":136
+  /* "pysam/libchtslib.pyx":433
  *     def closed(self):
  *         """return True if HTSFile is closed."""
  *         return self.htsfile == NULL             # <<<<<<<<<<<<<<
@@ -3997,13 +8729,13 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6closed___get__(struct __
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->htsfile == NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 136, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong((__pyx_v_self->htsfile == NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 433, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":134
+  /* "pysam/libchtslib.pyx":431
  * 
  *     @property
  *     def closed(self):             # <<<<<<<<<<<<<<
@@ -4023,7 +8755,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6closed___get__(struct __
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":139
+/* "pysam/libchtslib.pyx":436
  * 
  *     @property
  *     def is_write(self):             # <<<<<<<<<<<<<<
@@ -4052,9 +8784,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8is_write___get__(struct 
   int __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 139, 0, __PYX_ERR(0, 139, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 436, 0, __PYX_ERR(0, 436, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":141
+  /* "pysam/libchtslib.pyx":438
  *     def is_write(self):
  *         """return True if HTSFile is open for writing"""
  *         return self.htsfile != NULL and self.htsfile.is_write != 0             # <<<<<<<<<<<<<<
@@ -4065,14 +8797,14 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8is_write___get__(struct 
   __pyx_t_2 = (__pyx_v_self->htsfile != NULL);
   if (__pyx_t_2) {
   } else {
-    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 141, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 438, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_1 = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L3_bool_binop_done;
   }
   __pyx_t_2 = (__pyx_v_self->htsfile->is_write != 0);
-  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 141, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 438, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_1 = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -4081,7 +8813,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8is_write___get__(struct 
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":139
+  /* "pysam/libchtslib.pyx":436
  * 
  *     @property
  *     def is_write(self):             # <<<<<<<<<<<<<<
@@ -4102,7 +8834,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8is_write___get__(struct 
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":144
+/* "pysam/libchtslib.pyx":441
  * 
  *     @property
  *     def is_read(self):             # <<<<<<<<<<<<<<
@@ -4131,9 +8863,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_read___get__(struct _
   int __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 144, 0, __PYX_ERR(0, 144, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 441, 0, __PYX_ERR(0, 441, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":146
+  /* "pysam/libchtslib.pyx":443
  *     def is_read(self):
  *         """return True if HTSFile is open for reading"""
  *         return self.htsfile != NULL and self.htsfile.is_write == 0             # <<<<<<<<<<<<<<
@@ -4144,14 +8876,14 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_read___get__(struct _
   __pyx_t_2 = (__pyx_v_self->htsfile != NULL);
   if (__pyx_t_2) {
   } else {
-    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 443, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_1 = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L3_bool_binop_done;
   }
   __pyx_t_2 = (__pyx_v_self->htsfile->is_write == 0);
-  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 443, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_1 = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -4160,7 +8892,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_read___get__(struct _
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":144
+  /* "pysam/libchtslib.pyx":441
  * 
  *     @property
  *     def is_read(self):             # <<<<<<<<<<<<<<
@@ -4181,7 +8913,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_read___get__(struct _
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":149
+/* "pysam/libchtslib.pyx":446
  * 
  *     @property
  *     def is_sam(self):             # <<<<<<<<<<<<<<
@@ -4210,9 +8942,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_sam___get__(struct __
   int __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 149, 0, __PYX_ERR(0, 149, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 446, 0, __PYX_ERR(0, 446, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":151
+  /* "pysam/libchtslib.pyx":448
  *     def is_sam(self):
  *         """return True if HTSFile is reading or writing a SAM alignment file"""
  *         return self.htsfile != NULL and self.htsfile.format.format == sam             # <<<<<<<<<<<<<<
@@ -4223,14 +8955,14 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_sam___get__(struct __
   __pyx_t_2 = (__pyx_v_self->htsfile != NULL);
   if (__pyx_t_2) {
   } else {
-    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 151, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 448, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_1 = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L3_bool_binop_done;
   }
   __pyx_t_2 = (__pyx_v_self->htsfile->format.format == sam);
-  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 151, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 448, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_1 = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -4239,7 +8971,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_sam___get__(struct __
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":149
+  /* "pysam/libchtslib.pyx":446
  * 
  *     @property
  *     def is_sam(self):             # <<<<<<<<<<<<<<
@@ -4260,7 +8992,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_sam___get__(struct __
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":154
+/* "pysam/libchtslib.pyx":451
  * 
  *     @property
  *     def is_bam(self):             # <<<<<<<<<<<<<<
@@ -4289,9 +9021,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_bam___get__(struct __
   int __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 154, 0, __PYX_ERR(0, 154, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 451, 0, __PYX_ERR(0, 451, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":156
+  /* "pysam/libchtslib.pyx":453
  *     def is_bam(self):
  *         """return True if HTSFile is reading or writing a BAM alignment file"""
  *         return self.htsfile != NULL and self.htsfile.format.format == bam             # <<<<<<<<<<<<<<
@@ -4302,14 +9034,14 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_bam___get__(struct __
   __pyx_t_2 = (__pyx_v_self->htsfile != NULL);
   if (__pyx_t_2) {
   } else {
-    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 453, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_1 = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L3_bool_binop_done;
   }
   __pyx_t_2 = (__pyx_v_self->htsfile->format.format == bam);
-  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_1 = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -4318,7 +9050,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_bam___get__(struct __
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":154
+  /* "pysam/libchtslib.pyx":451
  * 
  *     @property
  *     def is_bam(self):             # <<<<<<<<<<<<<<
@@ -4339,7 +9071,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_bam___get__(struct __
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":159
+/* "pysam/libchtslib.pyx":456
  * 
  *     @property
  *     def is_cram(self):             # <<<<<<<<<<<<<<
@@ -4368,9 +9100,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_cram___get__(struct _
   int __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 159, 0, __PYX_ERR(0, 159, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 456, 0, __PYX_ERR(0, 456, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":161
+  /* "pysam/libchtslib.pyx":458
  *     def is_cram(self):
  *         """return True if HTSFile is reading or writing a BAM alignment file"""
  *         return self.htsfile != NULL and self.htsfile.format.format == cram             # <<<<<<<<<<<<<<
@@ -4381,14 +9113,14 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_cram___get__(struct _
   __pyx_t_2 = (__pyx_v_self->htsfile != NULL);
   if (__pyx_t_2) {
   } else {
-    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 161, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 458, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_1 = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L3_bool_binop_done;
   }
   __pyx_t_2 = (__pyx_v_self->htsfile->format.format == cram);
-  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 161, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 458, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_1 = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -4397,7 +9129,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_cram___get__(struct _
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":159
+  /* "pysam/libchtslib.pyx":456
  * 
  *     @property
  *     def is_cram(self):             # <<<<<<<<<<<<<<
@@ -4418,7 +9150,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7is_cram___get__(struct _
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":164
+/* "pysam/libchtslib.pyx":461
  * 
  *     @property
  *     def is_vcf(self):             # <<<<<<<<<<<<<<
@@ -4447,9 +9179,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_vcf___get__(struct __
   int __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 164, 0, __PYX_ERR(0, 164, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 461, 0, __PYX_ERR(0, 461, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":166
+  /* "pysam/libchtslib.pyx":463
  *     def is_vcf(self):
  *         """return True if HTSFile is reading or writing a VCF variant file"""
  *         return self.htsfile != NULL and self.htsfile.format.format == vcf             # <<<<<<<<<<<<<<
@@ -4460,14 +9192,14 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_vcf___get__(struct __
   __pyx_t_2 = (__pyx_v_self->htsfile != NULL);
   if (__pyx_t_2) {
   } else {
-    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 463, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_1 = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L3_bool_binop_done;
   }
   __pyx_t_2 = (__pyx_v_self->htsfile->format.format == vcf);
-  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 463, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_1 = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -4476,7 +9208,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_vcf___get__(struct __
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":164
+  /* "pysam/libchtslib.pyx":461
  * 
  *     @property
  *     def is_vcf(self):             # <<<<<<<<<<<<<<
@@ -4497,7 +9229,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_vcf___get__(struct __
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":169
+/* "pysam/libchtslib.pyx":466
  * 
  *     @property
  *     def is_bcf(self):             # <<<<<<<<<<<<<<
@@ -4526,9 +9258,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_bcf___get__(struct __
   int __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[0], 169, 0, __PYX_ERR(0, 169, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[0], 466, 0, __PYX_ERR(0, 466, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":171
+  /* "pysam/libchtslib.pyx":468
  *     def is_bcf(self):
  *         """return True if HTSFile is reading or writing a BCF variant file"""
  *         return self.htsfile != NULL and self.htsfile.format.format == bcf             # <<<<<<<<<<<<<<
@@ -4539,14 +9271,14 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_bcf___get__(struct __
   __pyx_t_2 = (__pyx_v_self->htsfile != NULL);
   if (__pyx_t_2) {
   } else {
-    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 171, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 468, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_1 = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L3_bool_binop_done;
   }
   __pyx_t_2 = (__pyx_v_self->htsfile->format.format == bcf);
-  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 171, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 468, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_1 = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -4555,7 +9287,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_bcf___get__(struct __
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":169
+  /* "pysam/libchtslib.pyx":466
  * 
  *     @property
  *     def is_bcf(self):             # <<<<<<<<<<<<<<
@@ -4576,7 +9308,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_bcf___get__(struct __
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":173
+/* "pysam/libchtslib.pyx":470
  *         return self.htsfile != NULL and self.htsfile.format.format == bcf
  * 
  *     def reset(self):             # <<<<<<<<<<<<<<
@@ -4585,20 +9317,20 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_6is_bcf___get__(struct __
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_9reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_5pysam_10libchtslib_7HTSFile_8reset[] = "HTSFile.reset(self)\nreset file position to beginning of file just after the header.\n\n        Returns\n        -------\n\n        The file position after moving the file pointer.\n\n        ";
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_9reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_13reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_12reset[] = "HTSFile.reset(self)\nreset file position to beginning of file just after the header.\n\n        Returns\n        -------\n\n        The file position after moving the file pointer.\n\n        ";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_13reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("reset (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_8reset(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_12reset(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8reset(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12reset(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -4608,9 +9340,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8reset(struct __pyx_obj_5
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
   __Pyx_RefNannySetupContext("reset", 0);
-  __Pyx_TraceCall("reset", __pyx_f[0], 173, 0, __PYX_ERR(0, 173, __pyx_L1_error));
+  __Pyx_TraceCall("reset", __pyx_f[0], 470, 0, __PYX_ERR(0, 470, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":182
+  /* "pysam/libchtslib.pyx":479
  * 
  *         """
  *         return self.seek(self.start_offset)             # <<<<<<<<<<<<<<
@@ -4618,9 +9350,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8reset(struct __pyx_obj_5
  *     def seek(self, uint64_t offset):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_seek); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_seek); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 479, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_int64_t(__pyx_v_self->start_offset); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int64_t(__pyx_v_self->start_offset); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 479, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4633,14 +9365,14 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8reset(struct __pyx_obj_5
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 182, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 479, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 182, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 479, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4649,20 +9381,20 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8reset(struct __pyx_obj_5
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
       PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 182, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 479, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     } else
     #endif
     {
-      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 182, __pyx_L1_error)
+      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 479, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
       __Pyx_GIVEREF(__pyx_t_3);
       PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_3);
       __pyx_t_3 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 182, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 479, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     }
@@ -4672,7 +9404,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8reset(struct __pyx_obj_5
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":173
+  /* "pysam/libchtslib.pyx":470
  *         return self.htsfile != NULL and self.htsfile.format.format == bcf
  * 
  *     def reset(self):             # <<<<<<<<<<<<<<
@@ -4696,7 +9428,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8reset(struct __pyx_obj_5
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":184
+/* "pysam/libchtslib.pyx":481
  *         return self.seek(self.start_offset)
  * 
  *     def seek(self, uint64_t offset):             # <<<<<<<<<<<<<<
@@ -4705,15 +9437,15 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8reset(struct __pyx_obj_5
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_11seek(PyObject *__pyx_v_self, PyObject *__pyx_arg_offset); /*proto*/
-static char __pyx_doc_5pysam_10libchtslib_7HTSFile_10seek[] = "HTSFile.seek(self, uint64_t offset)\nmove file pointer to position *offset*, see :meth:`pysam.HTSFile.tell`.";
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_11seek(PyObject *__pyx_v_self, PyObject *__pyx_arg_offset) {
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_15seek(PyObject *__pyx_v_self, PyObject *__pyx_arg_offset); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_14seek[] = "HTSFile.seek(self, uint64_t offset)\nmove file pointer to position *offset*, see :meth:`pysam.HTSFile.tell`.";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_15seek(PyObject *__pyx_v_self, PyObject *__pyx_arg_offset) {
   uint64_t __pyx_v_offset;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("seek (wrapper)", 0);
   assert(__pyx_arg_offset); {
-    __pyx_v_offset = __Pyx_PyInt_As_uint64_t(__pyx_arg_offset); if (unlikely((__pyx_v_offset == ((uint64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 184, __pyx_L3_error)
+    __pyx_v_offset = __Pyx_PyInt_As_uint64_t(__pyx_arg_offset); if (unlikely((__pyx_v_offset == ((uint64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 481, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -4721,14 +9453,14 @@ static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_11seek(PyObject *__pyx_v_
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), ((uint64_t)__pyx_v_offset));
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_14seek(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), ((uint64_t)__pyx_v_offset));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, uint64_t __pyx_v_offset) {
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_14seek(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, uint64_t __pyx_v_offset) {
   int64_t __pyx_v_ret;
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
@@ -4736,37 +9468,41 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(struct __pyx_obj_5
   PyObject *__pyx_t_1 = NULL;
   int __pyx_t_2;
   int __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("seek", 0);
-  __Pyx_TraceCall("seek", __pyx_f[0], 184, 0, __PYX_ERR(0, 184, __pyx_L1_error));
+  __Pyx_TraceCall("seek", __pyx_f[0], 481, 0, __PYX_ERR(0, 481, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":186
+  /* "pysam/libchtslib.pyx":483
  *     def seek(self, uint64_t offset):
  *         """move file pointer to position *offset*, see :meth:`pysam.HTSFile.tell`."""
  *         if not self.is_open:             # <<<<<<<<<<<<<<
  *             raise ValueError('I/O operation on closed file')
  *         if self.is_stream:
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 483, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 483, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_3 = ((!__pyx_t_2) != 0);
   if (unlikely(__pyx_t_3)) {
 
-    /* "pysam/libchtslib.pyx":187
+    /* "pysam/libchtslib.pyx":484
  *         """move file pointer to position *offset*, see :meth:`pysam.HTSFile.tell`."""
  *         if not self.is_open:
  *             raise ValueError('I/O operation on closed file')             # <<<<<<<<<<<<<<
  *         if self.is_stream:
- *             raise OSError('seek not available in streams')
+ *             raise IOError('seek not available in streams')
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 187, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__25, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 484, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 187, __pyx_L1_error)
+    __PYX_ERR(0, 484, __pyx_L1_error)
 
-    /* "pysam/libchtslib.pyx":186
+    /* "pysam/libchtslib.pyx":483
  *     def seek(self, uint64_t offset):
  *         """move file pointer to position *offset*, see :meth:`pysam.HTSFile.tell`."""
  *         if not self.is_open:             # <<<<<<<<<<<<<<
@@ -4775,54 +9511,54 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libchtslib.pyx":188
+  /* "pysam/libchtslib.pyx":485
  *         if not self.is_open:
  *             raise ValueError('I/O operation on closed file')
  *         if self.is_stream:             # <<<<<<<<<<<<<<
- *             raise OSError('seek not available in streams')
+ *             raise IOError('seek not available in streams')
  * 
  */
   __pyx_t_3 = (__pyx_v_self->is_stream != 0);
   if (unlikely(__pyx_t_3)) {
 
-    /* "pysam/libchtslib.pyx":189
+    /* "pysam/libchtslib.pyx":486
  *             raise ValueError('I/O operation on closed file')
  *         if self.is_stream:
- *             raise OSError('seek not available in streams')             # <<<<<<<<<<<<<<
+ *             raise IOError('seek not available in streams')             # <<<<<<<<<<<<<<
  * 
  *         cdef int64_t ret
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_OSError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__26, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 486, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 189, __pyx_L1_error)
+    __PYX_ERR(0, 486, __pyx_L1_error)
 
-    /* "pysam/libchtslib.pyx":188
+    /* "pysam/libchtslib.pyx":485
  *         if not self.is_open:
  *             raise ValueError('I/O operation on closed file')
  *         if self.is_stream:             # <<<<<<<<<<<<<<
- *             raise OSError('seek not available in streams')
+ *             raise IOError('seek not available in streams')
  * 
  */
   }
 
-  /* "pysam/libchtslib.pyx":192
+  /* "pysam/libchtslib.pyx":489
  * 
  *         cdef int64_t ret
- *         if self.htsfile.format.compression != no_compression:             # <<<<<<<<<<<<<<
+ *         if self.htsfile.format.compression == bgzf:             # <<<<<<<<<<<<<<
  *             with nogil:
  *                 ret = bgzf_seek(hts_get_bgzfp(self.htsfile), offset, SEEK_SET)
  */
-  __pyx_t_3 = ((__pyx_v_self->htsfile->format.compression != no_compression) != 0);
-  if (__pyx_t_3) {
+  switch (__pyx_v_self->htsfile->format.compression) {
+    case bgzf:
 
-    /* "pysam/libchtslib.pyx":193
+    /* "pysam/libchtslib.pyx":490
  *         cdef int64_t ret
- *         if self.htsfile.format.compression != no_compression:
+ *         if self.htsfile.format.compression == bgzf:
  *             with nogil:             # <<<<<<<<<<<<<<
  *                 ret = bgzf_seek(hts_get_bgzfp(self.htsfile), offset, SEEK_SET)
- *         else:
+ *         elif self.htsfile.format.compression == no_compression:
  */
     {
         #ifdef WITH_THREAD
@@ -4832,22 +9568,22 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(struct __pyx_obj_5
         #endif
         /*try:*/ {
 
-          /* "pysam/libchtslib.pyx":194
- *         if self.htsfile.format.compression != no_compression:
+          /* "pysam/libchtslib.pyx":491
+ *         if self.htsfile.format.compression == bgzf:
  *             with nogil:
  *                 ret = bgzf_seek(hts_get_bgzfp(self.htsfile), offset, SEEK_SET)             # <<<<<<<<<<<<<<
- *         else:
+ *         elif self.htsfile.format.compression == no_compression:
  *             with nogil:
  */
-          __pyx_v_ret = bgzf_seek(hts_get_bgzfp(__pyx_v_self->htsfile), __pyx_v_offset, SEEK_SET);
+          __pyx_v_ret = bgzf_seek(hts_get_bgzfp(__pyx_v_self->htsfile), __pyx_v_offset, 0);
         }
 
-        /* "pysam/libchtslib.pyx":193
+        /* "pysam/libchtslib.pyx":490
  *         cdef int64_t ret
- *         if self.htsfile.format.compression != no_compression:
+ *         if self.htsfile.format.compression == bgzf:
  *             with nogil:             # <<<<<<<<<<<<<<
  *                 ret = bgzf_seek(hts_get_bgzfp(self.htsfile), offset, SEEK_SET)
- *         else:
+ *         elif self.htsfile.format.compression == no_compression:
  */
         /*finally:*/ {
           /*normal exit:*/{
@@ -4855,30 +9591,37 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(struct __pyx_obj_5
             __Pyx_FastGIL_Forget();
             Py_BLOCK_THREADS
             #endif
-            goto __pyx_L8;
+            goto __pyx_L7;
           }
-          __pyx_L8:;
+          __pyx_L7:;
         }
     }
 
-    /* "pysam/libchtslib.pyx":192
+    /* "pysam/libchtslib.pyx":489
  * 
  *         cdef int64_t ret
- *         if self.htsfile.format.compression != no_compression:             # <<<<<<<<<<<<<<
+ *         if self.htsfile.format.compression == bgzf:             # <<<<<<<<<<<<<<
  *             with nogil:
  *                 ret = bgzf_seek(hts_get_bgzfp(self.htsfile), offset, SEEK_SET)
  */
-    goto __pyx_L5;
-  }
+    break;
 
-  /* "pysam/libchtslib.pyx":196
+    /* "pysam/libchtslib.pyx":492
+ *             with nogil:
  *                 ret = bgzf_seek(hts_get_bgzfp(self.htsfile), offset, SEEK_SET)
- *         else:
+ *         elif self.htsfile.format.compression == no_compression:             # <<<<<<<<<<<<<<
+ *             with nogil:
+ *                 ret = hts_useek(self.htsfile, <int>offset, SEEK_SET)
+ */
+    case no_compression:
+
+    /* "pysam/libchtslib.pyx":493
+ *                 ret = bgzf_seek(hts_get_bgzfp(self.htsfile), offset, SEEK_SET)
+ *         elif self.htsfile.format.compression == no_compression:
  *             with nogil:             # <<<<<<<<<<<<<<
  *                 ret = hts_useek(self.htsfile, <int>offset, SEEK_SET)
- *         return ret
+ *         else:
  */
-  /*else*/ {
     {
         #ifdef WITH_THREAD
         PyThreadState *_save;
@@ -4887,22 +9630,22 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(struct __pyx_obj_5
         #endif
         /*try:*/ {
 
-          /* "pysam/libchtslib.pyx":197
- *         else:
+          /* "pysam/libchtslib.pyx":494
+ *         elif self.htsfile.format.compression == no_compression:
  *             with nogil:
  *                 ret = hts_useek(self.htsfile, <int>offset, SEEK_SET)             # <<<<<<<<<<<<<<
- *         return ret
- * 
+ *         else:
+ *             raise NotImplementedError("seek not implemented in files compressed by method {}".format(
  */
-          __pyx_v_ret = hts_useek(__pyx_v_self->htsfile, ((int)__pyx_v_offset), SEEK_SET);
+          __pyx_v_ret = hts_useek(__pyx_v_self->htsfile, ((int)__pyx_v_offset), 0);
         }
 
-        /* "pysam/libchtslib.pyx":196
+        /* "pysam/libchtslib.pyx":493
  *                 ret = bgzf_seek(hts_get_bgzfp(self.htsfile), offset, SEEK_SET)
- *         else:
+ *         elif self.htsfile.format.compression == no_compression:
  *             with nogil:             # <<<<<<<<<<<<<<
  *                 ret = hts_useek(self.htsfile, <int>offset, SEEK_SET)
- *         return ret
+ *         else:
  */
         /*finally:*/ {
           /*normal exit:*/{
@@ -4910,29 +9653,119 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(struct __pyx_obj_5
             __Pyx_FastGIL_Forget();
             Py_BLOCK_THREADS
             #endif
-            goto __pyx_L11;
+            goto __pyx_L10;
           }
-          __pyx_L11:;
+          __pyx_L10:;
         }
     }
-  }
-  __pyx_L5:;
 
-  /* "pysam/libchtslib.pyx":198
+    /* "pysam/libchtslib.pyx":492
+ *             with nogil:
+ *                 ret = bgzf_seek(hts_get_bgzfp(self.htsfile), offset, SEEK_SET)
+ *         elif self.htsfile.format.compression == no_compression:             # <<<<<<<<<<<<<<
  *             with nogil:
  *                 ret = hts_useek(self.htsfile, <int>offset, SEEK_SET)
+ */
+    break;
+    default:
+
+    /* "pysam/libchtslib.pyx":496
+ *                 ret = hts_useek(self.htsfile, <int>offset, SEEK_SET)
+ *         else:
+ *             raise NotImplementedError("seek not implemented in files compressed by method {}".format(             # <<<<<<<<<<<<<<
+ *                 self.htsfile.format.compression))
+ *         return ret
+ */
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_seek_not_implemented_in_files_co, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 496, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+
+    /* "pysam/libchtslib.pyx":497
+ *         else:
+ *             raise NotImplementedError("seek not implemented in files compressed by method {}".format(
+ *                 self.htsfile.format.compression))             # <<<<<<<<<<<<<<
+ *         return ret
+ * 
+ */
+    __pyx_t_5 = __Pyx_PyInt_From_enum__htsCompression(__pyx_v_self->htsfile->format.compression); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 497, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_4);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_4, function);
+      }
+    }
+    if (!__pyx_t_6) {
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 496, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_GOTREF(__pyx_t_1);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_4)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 496, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 496, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      } else
+      #endif
+      {
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 496, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
+        __Pyx_GIVEREF(__pyx_t_5);
+        PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
+        __pyx_t_5 = 0;
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 496, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+    /* "pysam/libchtslib.pyx":496
+ *                 ret = hts_useek(self.htsfile, <int>offset, SEEK_SET)
+ *         else:
+ *             raise NotImplementedError("seek not implemented in files compressed by method {}".format(             # <<<<<<<<<<<<<<
+ *                 self.htsfile.format.compression))
+ *         return ret
+ */
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_NotImplementedError, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 496, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_Raise(__pyx_t_4, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __PYX_ERR(0, 496, __pyx_L1_error)
+    break;
+  }
+
+  /* "pysam/libchtslib.pyx":498
+ *             raise NotImplementedError("seek not implemented in files compressed by method {}".format(
+ *                 self.htsfile.format.compression))
  *         return ret             # <<<<<<<<<<<<<<
  * 
  *     def tell(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int64_t(__pyx_v_ret); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 198, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_4 = __Pyx_PyInt_From_int64_t(__pyx_v_ret); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 498, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_r = __pyx_t_4;
+  __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":184
+  /* "pysam/libchtslib.pyx":481
  *         return self.seek(self.start_offset)
  * 
  *     def seek(self, uint64_t offset):             # <<<<<<<<<<<<<<
@@ -4943,6 +9776,10 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(struct __pyx_obj_5
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
   __Pyx_AddTraceback("pysam.libchtslib.HTSFile.seek", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -4952,7 +9789,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(struct __pyx_obj_5
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":200
+/* "pysam/libchtslib.pyx":500
  *         return ret
  * 
  *     def tell(self):             # <<<<<<<<<<<<<<
@@ -4961,20 +9798,20 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_10seek(struct __pyx_obj_5
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_13tell(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_5pysam_10libchtslib_7HTSFile_12tell[] = "HTSFile.tell(self)\nreturn current file position, see :meth:`pysam.HTSFile.seek`.";
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_13tell(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_17tell(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_16tell[] = "HTSFile.tell(self)\nreturn current file position, see :meth:`pysam.HTSFile.seek`.";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_17tell(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("tell (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_12tell(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_16tell(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12tell(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_16tell(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
   int64_t __pyx_v_ret;
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
@@ -4982,37 +9819,41 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12tell(struct __pyx_obj_5
   PyObject *__pyx_t_1 = NULL;
   int __pyx_t_2;
   int __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("tell", 0);
-  __Pyx_TraceCall("tell", __pyx_f[0], 200, 0, __PYX_ERR(0, 200, __pyx_L1_error));
+  __Pyx_TraceCall("tell", __pyx_f[0], 500, 0, __PYX_ERR(0, 500, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":202
+  /* "pysam/libchtslib.pyx":502
  *     def tell(self):
  *         """return current file position, see :meth:`pysam.HTSFile.seek`."""
  *         if not self.is_open:             # <<<<<<<<<<<<<<
  *             raise ValueError('I/O operation on closed file')
  *         if self.is_stream:
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 202, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_open); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 502, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 202, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 502, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_3 = ((!__pyx_t_2) != 0);
   if (unlikely(__pyx_t_3)) {
 
-    /* "pysam/libchtslib.pyx":203
+    /* "pysam/libchtslib.pyx":503
  *         """return current file position, see :meth:`pysam.HTSFile.seek`."""
  *         if not self.is_open:
  *             raise ValueError('I/O operation on closed file')             # <<<<<<<<<<<<<<
  *         if self.is_stream:
- *             raise OSError('tell not available in streams')
+ *             raise IOError('tell not available in streams')
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 203, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__27, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 503, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 203, __pyx_L1_error)
+    __PYX_ERR(0, 503, __pyx_L1_error)
 
-    /* "pysam/libchtslib.pyx":202
+    /* "pysam/libchtslib.pyx":502
  *     def tell(self):
  *         """return current file position, see :meth:`pysam.HTSFile.seek`."""
  *         if not self.is_open:             # <<<<<<<<<<<<<<
@@ -5021,54 +9862,54 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12tell(struct __pyx_obj_5
  */
   }
 
-  /* "pysam/libchtslib.pyx":204
+  /* "pysam/libchtslib.pyx":504
  *         if not self.is_open:
  *             raise ValueError('I/O operation on closed file')
  *         if self.is_stream:             # <<<<<<<<<<<<<<
- *             raise OSError('tell not available in streams')
+ *             raise IOError('tell not available in streams')
  * 
  */
   __pyx_t_3 = (__pyx_v_self->is_stream != 0);
   if (unlikely(__pyx_t_3)) {
 
-    /* "pysam/libchtslib.pyx":205
+    /* "pysam/libchtslib.pyx":505
  *             raise ValueError('I/O operation on closed file')
  *         if self.is_stream:
- *             raise OSError('tell not available in streams')             # <<<<<<<<<<<<<<
+ *             raise IOError('tell not available in streams')             # <<<<<<<<<<<<<<
  * 
  *         cdef int64_t ret
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_OSError, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 205, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__28, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 505, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 205, __pyx_L1_error)
+    __PYX_ERR(0, 505, __pyx_L1_error)
 
-    /* "pysam/libchtslib.pyx":204
+    /* "pysam/libchtslib.pyx":504
  *         if not self.is_open:
  *             raise ValueError('I/O operation on closed file')
  *         if self.is_stream:             # <<<<<<<<<<<<<<
- *             raise OSError('tell not available in streams')
+ *             raise IOError('tell not available in streams')
  * 
  */
   }
 
-  /* "pysam/libchtslib.pyx":208
+  /* "pysam/libchtslib.pyx":508
  * 
  *         cdef int64_t ret
- *         if self.htsfile.format.compression != no_compression:             # <<<<<<<<<<<<<<
+ *         if self.htsfile.format.compression == bgzf:             # <<<<<<<<<<<<<<
  *             with nogil:
  *                 ret = bgzf_tell(hts_get_bgzfp(self.htsfile))
  */
-  __pyx_t_3 = ((__pyx_v_self->htsfile->format.compression != no_compression) != 0);
+  __pyx_t_3 = ((__pyx_v_self->htsfile->format.compression == bgzf) != 0);
   if (__pyx_t_3) {
 
-    /* "pysam/libchtslib.pyx":209
+    /* "pysam/libchtslib.pyx":509
  *         cdef int64_t ret
- *         if self.htsfile.format.compression != no_compression:
+ *         if self.htsfile.format.compression == bgzf:
  *             with nogil:             # <<<<<<<<<<<<<<
  *                 ret = bgzf_tell(hts_get_bgzfp(self.htsfile))
- *         else:
+ *         elif self.htsfile.format.compression == no_compression:
  */
     {
         #ifdef WITH_THREAD
@@ -5078,22 +9919,22 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12tell(struct __pyx_obj_5
         #endif
         /*try:*/ {
 
-          /* "pysam/libchtslib.pyx":210
- *         if self.htsfile.format.compression != no_compression:
+          /* "pysam/libchtslib.pyx":510
+ *         if self.htsfile.format.compression == bgzf:
  *             with nogil:
  *                 ret = bgzf_tell(hts_get_bgzfp(self.htsfile))             # <<<<<<<<<<<<<<
- *         else:
+ *         elif self.htsfile.format.compression == no_compression:
  *             with nogil:
  */
           __pyx_v_ret = bgzf_tell(hts_get_bgzfp(__pyx_v_self->htsfile));
         }
 
-        /* "pysam/libchtslib.pyx":209
+        /* "pysam/libchtslib.pyx":509
  *         cdef int64_t ret
- *         if self.htsfile.format.compression != no_compression:
+ *         if self.htsfile.format.compression == bgzf:
  *             with nogil:             # <<<<<<<<<<<<<<
  *                 ret = bgzf_tell(hts_get_bgzfp(self.htsfile))
- *         else:
+ *         elif self.htsfile.format.compression == no_compression:
  */
         /*finally:*/ {
           /*normal exit:*/{
@@ -5107,24 +9948,33 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12tell(struct __pyx_obj_5
         }
     }
 
-    /* "pysam/libchtslib.pyx":208
+    /* "pysam/libchtslib.pyx":508
  * 
  *         cdef int64_t ret
- *         if self.htsfile.format.compression != no_compression:             # <<<<<<<<<<<<<<
+ *         if self.htsfile.format.compression == bgzf:             # <<<<<<<<<<<<<<
  *             with nogil:
  *                 ret = bgzf_tell(hts_get_bgzfp(self.htsfile))
  */
     goto __pyx_L5;
   }
 
-  /* "pysam/libchtslib.pyx":212
+  /* "pysam/libchtslib.pyx":511
+ *             with nogil:
  *                 ret = bgzf_tell(hts_get_bgzfp(self.htsfile))
- *         else:
+ *         elif self.htsfile.format.compression == no_compression:             # <<<<<<<<<<<<<<
+ *             with nogil:
+ *                 ret = hts_utell(self.htsfile)
+ */
+  __pyx_t_3 = ((__pyx_v_self->htsfile->format.compression == no_compression) != 0);
+  if (__pyx_t_3) {
+
+    /* "pysam/libchtslib.pyx":512
+ *                 ret = bgzf_tell(hts_get_bgzfp(self.htsfile))
+ *         elif self.htsfile.format.compression == no_compression:
  *             with nogil:             # <<<<<<<<<<<<<<
  *                 ret = hts_utell(self.htsfile)
- *         return ret
+ *         elif self.htsfile.format.format == cram:
  */
-  /*else*/ {
     {
         #ifdef WITH_THREAD
         PyThreadState *_save;
@@ -5133,22 +9983,22 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12tell(struct __pyx_obj_5
         #endif
         /*try:*/ {
 
-          /* "pysam/libchtslib.pyx":213
- *         else:
+          /* "pysam/libchtslib.pyx":513
+ *         elif self.htsfile.format.compression == no_compression:
  *             with nogil:
  *                 ret = hts_utell(self.htsfile)             # <<<<<<<<<<<<<<
- *         return ret
- * 
+ *         elif self.htsfile.format.format == cram:
+ *             with nogil:
  */
           __pyx_v_ret = hts_utell(__pyx_v_self->htsfile);
         }
 
-        /* "pysam/libchtslib.pyx":212
+        /* "pysam/libchtslib.pyx":512
  *                 ret = bgzf_tell(hts_get_bgzfp(self.htsfile))
- *         else:
+ *         elif self.htsfile.format.compression == no_compression:
  *             with nogil:             # <<<<<<<<<<<<<<
  *                 ret = hts_utell(self.htsfile)
- *         return ret
+ *         elif self.htsfile.format.format == cram:
  */
         /*finally:*/ {
           /*normal exit:*/{
@@ -5161,24 +10011,179 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12tell(struct __pyx_obj_5
           __pyx_L11:;
         }
     }
+
+    /* "pysam/libchtslib.pyx":511
+ *             with nogil:
+ *                 ret = bgzf_tell(hts_get_bgzfp(self.htsfile))
+ *         elif self.htsfile.format.compression == no_compression:             # <<<<<<<<<<<<<<
+ *             with nogil:
+ *                 ret = hts_utell(self.htsfile)
+ */
+    goto __pyx_L5;
+  }
+
+  /* "pysam/libchtslib.pyx":514
+ *             with nogil:
+ *                 ret = hts_utell(self.htsfile)
+ *         elif self.htsfile.format.format == cram:             # <<<<<<<<<<<<<<
+ *             with nogil:
+ *                 ret = htell(cram_fd_get_fp(self.htsfile.fp.cram))
+ */
+  __pyx_t_3 = ((__pyx_v_self->htsfile->format.format == cram) != 0);
+  if (likely(__pyx_t_3)) {
+
+    /* "pysam/libchtslib.pyx":515
+ *                 ret = hts_utell(self.htsfile)
+ *         elif self.htsfile.format.format == cram:
+ *             with nogil:             # <<<<<<<<<<<<<<
+ *                 ret = htell(cram_fd_get_fp(self.htsfile.fp.cram))
+ *         else:
+ */
+    {
+        #ifdef WITH_THREAD
+        PyThreadState *_save;
+        Py_UNBLOCK_THREADS
+        __Pyx_FastGIL_Remember();
+        #endif
+        /*try:*/ {
+
+          /* "pysam/libchtslib.pyx":516
+ *         elif self.htsfile.format.format == cram:
+ *             with nogil:
+ *                 ret = htell(cram_fd_get_fp(self.htsfile.fp.cram))             # <<<<<<<<<<<<<<
+ *         else:
+ *             raise NotImplementedError("seek not implemented in files compressed by method {}".format(
+ */
+          __pyx_v_ret = htell(cram_fd_get_fp(__pyx_v_self->htsfile->fp.cram));
+        }
+
+        /* "pysam/libchtslib.pyx":515
+ *                 ret = hts_utell(self.htsfile)
+ *         elif self.htsfile.format.format == cram:
+ *             with nogil:             # <<<<<<<<<<<<<<
+ *                 ret = htell(cram_fd_get_fp(self.htsfile.fp.cram))
+ *         else:
+ */
+        /*finally:*/ {
+          /*normal exit:*/{
+            #ifdef WITH_THREAD
+            __Pyx_FastGIL_Forget();
+            Py_BLOCK_THREADS
+            #endif
+            goto __pyx_L14;
+          }
+          __pyx_L14:;
+        }
+    }
+
+    /* "pysam/libchtslib.pyx":514
+ *             with nogil:
+ *                 ret = hts_utell(self.htsfile)
+ *         elif self.htsfile.format.format == cram:             # <<<<<<<<<<<<<<
+ *             with nogil:
+ *                 ret = htell(cram_fd_get_fp(self.htsfile.fp.cram))
+ */
+    goto __pyx_L5;
+  }
+
+  /* "pysam/libchtslib.pyx":518
+ *                 ret = htell(cram_fd_get_fp(self.htsfile.fp.cram))
+ *         else:
+ *             raise NotImplementedError("seek not implemented in files compressed by method {}".format(             # <<<<<<<<<<<<<<
+ *                 self.htsfile.format.compression))
+ * 
+ */
+  /*else*/ {
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_seek_not_implemented_in_files_co, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 518, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+
+    /* "pysam/libchtslib.pyx":519
+ *         else:
+ *             raise NotImplementedError("seek not implemented in files compressed by method {}".format(
+ *                 self.htsfile.format.compression))             # <<<<<<<<<<<<<<
+ * 
+ *         return ret
+ */
+    __pyx_t_5 = __Pyx_PyInt_From_enum__htsCompression(__pyx_v_self->htsfile->format.compression); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 519, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_4);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_4, function);
+      }
+    }
+    if (!__pyx_t_6) {
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 518, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_GOTREF(__pyx_t_1);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_4)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 518, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 518, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      } else
+      #endif
+      {
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 518, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
+        __Pyx_GIVEREF(__pyx_t_5);
+        PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
+        __pyx_t_5 = 0;
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 518, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+    /* "pysam/libchtslib.pyx":518
+ *                 ret = htell(cram_fd_get_fp(self.htsfile.fp.cram))
+ *         else:
+ *             raise NotImplementedError("seek not implemented in files compressed by method {}".format(             # <<<<<<<<<<<<<<
+ *                 self.htsfile.format.compression))
+ * 
+ */
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_NotImplementedError, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 518, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_Raise(__pyx_t_4, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __PYX_ERR(0, 518, __pyx_L1_error)
   }
   __pyx_L5:;
 
-  /* "pysam/libchtslib.pyx":214
- *             with nogil:
- *                 ret = hts_utell(self.htsfile)
+  /* "pysam/libchtslib.pyx":521
+ *                 self.htsfile.format.compression))
+ * 
  *         return ret             # <<<<<<<<<<<<<<
  * 
  *     cdef htsFile *_open_htsfile(self) except? NULL:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int64_t(__pyx_v_ret); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 214, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_4 = __Pyx_PyInt_From_int64_t(__pyx_v_ret); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 521, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_r = __pyx_t_4;
+  __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":200
+  /* "pysam/libchtslib.pyx":500
  *         return ret
  * 
  *     def tell(self):             # <<<<<<<<<<<<<<
@@ -5189,6 +10194,10 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12tell(struct __pyx_obj_5
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
   __Pyx_AddTraceback("pysam.libchtslib.HTSFile.tell", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -5198,7 +10207,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_12tell(struct __pyx_obj_5
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":216
+/* "pysam/libchtslib.pyx":523
  *         return ret
  * 
  *     cdef htsFile *_open_htsfile(self) except? NULL:             # <<<<<<<<<<<<<<
@@ -5211,6 +10220,8 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
   char *__pyx_v_cmode;
   int __pyx_v_fd;
   int __pyx_v_dup_fd;
+  int __pyx_v_threads;
+  htsFile *__pyx_v_htsfile;
   PyObject *__pyx_v_smode = NULL;
   hFILE *__pyx_v_hfile;
   PyObject *__pyx_v_filename = NULL;
@@ -5233,48 +10244,61 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
   PyObject *__pyx_t_14 = NULL;
   PyObject *__pyx_t_15 = NULL;
   __Pyx_RefNannySetupContext("_open_htsfile", 0);
-  __Pyx_TraceCall("_open_htsfile", __pyx_f[0], 216, 0, __PYX_ERR(0, 216, __pyx_L1_error));
+  __Pyx_TraceCall("_open_htsfile", __pyx_f[0], 523, 0, __PYX_ERR(0, 523, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":218
+  /* "pysam/libchtslib.pyx":525
  *     cdef htsFile *_open_htsfile(self) except? NULL:
  *         cdef char *cfilename
  *         cdef char *cmode = self.mode             # <<<<<<<<<<<<<<
- *         cdef int fd, dup_fd
+ *         cdef int fd, dup_fd, threads
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_AsWritableString(__pyx_v_self->mode); if (unlikely((!__pyx_t_1) && PyErr_Occurred())) __PYX_ERR(0, 218, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_AsWritableString(__pyx_v_self->mode); if (unlikely((!__pyx_t_1) && PyErr_Occurred())) __PYX_ERR(0, 525, __pyx_L1_error)
   __pyx_v_cmode = __pyx_t_1;
 
-  /* "pysam/libchtslib.pyx":221
- *         cdef int fd, dup_fd
+  /* "pysam/libchtslib.pyx":528
+ *         cdef int fd, dup_fd, threads
  * 
+ *         threads = self.threads - 1             # <<<<<<<<<<<<<<
+ *         if isinstance(self.filename, bytes):
+ *             cfilename = self.filename
+ */
+  __pyx_t_2 = __Pyx_PyInt_SubtractObjC(__pyx_v_self->threads, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 528, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 528, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v_threads = __pyx_t_3;
+
+  /* "pysam/libchtslib.pyx":529
+ * 
+ *         threads = self.threads - 1
  *         if isinstance(self.filename, bytes):             # <<<<<<<<<<<<<<
  *             cfilename = self.filename
  *             with nogil:
  */
   __pyx_t_2 = __pyx_v_self->filename;
   __Pyx_INCREF(__pyx_t_2);
-  __pyx_t_3 = PyBytes_Check(__pyx_t_2); 
+  __pyx_t_4 = PyBytes_Check(__pyx_t_2); 
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = (__pyx_t_3 != 0);
-  if (__pyx_t_4) {
+  __pyx_t_5 = (__pyx_t_4 != 0);
+  if (__pyx_t_5) {
 
-    /* "pysam/libchtslib.pyx":222
- * 
+    /* "pysam/libchtslib.pyx":530
+ *         threads = self.threads - 1
  *         if isinstance(self.filename, bytes):
  *             cfilename = self.filename             # <<<<<<<<<<<<<<
  *             with nogil:
- *                 return hts_open(cfilename, cmode)
+ *                 htsfile = hts_open(cfilename, cmode)
  */
-    __pyx_t_1 = __Pyx_PyObject_AsWritableString(__pyx_v_self->filename); if (unlikely((!__pyx_t_1) && PyErr_Occurred())) __PYX_ERR(0, 222, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_AsWritableString(__pyx_v_self->filename); if (unlikely((!__pyx_t_1) && PyErr_Occurred())) __PYX_ERR(0, 530, __pyx_L1_error)
     __pyx_v_cfilename = __pyx_t_1;
 
-    /* "pysam/libchtslib.pyx":223
+    /* "pysam/libchtslib.pyx":531
  *         if isinstance(self.filename, bytes):
  *             cfilename = self.filename
  *             with nogil:             # <<<<<<<<<<<<<<
- *                 return hts_open(cfilename, cmode)
- *         else:
+ *                 htsfile = hts_open(cfilename, cmode)
+ *                 if htsfile != NULL:
  */
     {
         #ifdef WITH_THREAD
@@ -5284,23 +10308,60 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
         #endif
         /*try:*/ {
 
-          /* "pysam/libchtslib.pyx":224
+          /* "pysam/libchtslib.pyx":532
  *             cfilename = self.filename
  *             with nogil:
- *                 return hts_open(cfilename, cmode)             # <<<<<<<<<<<<<<
+ *                 htsfile = hts_open(cfilename, cmode)             # <<<<<<<<<<<<<<
+ *                 if htsfile != NULL:
+ *                     hts_set_threads(htsfile, threads)
+ */
+          __pyx_v_htsfile = hts_open(__pyx_v_cfilename, __pyx_v_cmode);
+
+          /* "pysam/libchtslib.pyx":533
+ *             with nogil:
+ *                 htsfile = hts_open(cfilename, cmode)
+ *                 if htsfile != NULL:             # <<<<<<<<<<<<<<
+ *                     hts_set_threads(htsfile, threads)
+ *                 return htsfile
+ */
+          __pyx_t_5 = ((__pyx_v_htsfile != NULL) != 0);
+          if (__pyx_t_5) {
+
+            /* "pysam/libchtslib.pyx":534
+ *                 htsfile = hts_open(cfilename, cmode)
+ *                 if htsfile != NULL:
+ *                     hts_set_threads(htsfile, threads)             # <<<<<<<<<<<<<<
+ *                 return htsfile
+ *         else:
+ */
+            (void)(hts_set_threads(__pyx_v_htsfile, __pyx_v_threads));
+
+            /* "pysam/libchtslib.pyx":533
+ *             with nogil:
+ *                 htsfile = hts_open(cfilename, cmode)
+ *                 if htsfile != NULL:             # <<<<<<<<<<<<<<
+ *                     hts_set_threads(htsfile, threads)
+ *                 return htsfile
+ */
+          }
+
+          /* "pysam/libchtslib.pyx":535
+ *                 if htsfile != NULL:
+ *                     hts_set_threads(htsfile, threads)
+ *                 return htsfile             # <<<<<<<<<<<<<<
  *         else:
  *             if isinstance(self.filename, int):
  */
-          __pyx_r = hts_open(__pyx_v_cfilename, __pyx_v_cmode);
+          __pyx_r = __pyx_v_htsfile;
           goto __pyx_L4_return;
         }
 
-        /* "pysam/libchtslib.pyx":223
+        /* "pysam/libchtslib.pyx":531
  *         if isinstance(self.filename, bytes):
  *             cfilename = self.filename
  *             with nogil:             # <<<<<<<<<<<<<<
- *                 return hts_open(cfilename, cmode)
- *         else:
+ *                 htsfile = hts_open(cfilename, cmode)
+ *                 if htsfile != NULL:
  */
         /*finally:*/ {
           __pyx_L4_return: {
@@ -5313,17 +10374,17 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
         }
     }
 
-    /* "pysam/libchtslib.pyx":221
- *         cdef int fd, dup_fd
+    /* "pysam/libchtslib.pyx":529
  * 
+ *         threads = self.threads - 1
  *         if isinstance(self.filename, bytes):             # <<<<<<<<<<<<<<
  *             cfilename = self.filename
  *             with nogil:
  */
   }
 
-  /* "pysam/libchtslib.pyx":226
- *                 return hts_open(cfilename, cmode)
+  /* "pysam/libchtslib.pyx":537
+ *                 return htsfile
  *         else:
  *             if isinstance(self.filename, int):             # <<<<<<<<<<<<<<
  *                 fd = self.filename
@@ -5332,32 +10393,32 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
   /*else*/ {
     __pyx_t_2 = __pyx_v_self->filename;
     __Pyx_INCREF(__pyx_t_2);
-    __pyx_t_4 = PyInt_Check(__pyx_t_2); 
+    __pyx_t_5 = PyInt_Check(__pyx_t_2); 
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_3 = (__pyx_t_4 != 0);
-    if (__pyx_t_3) {
+    __pyx_t_4 = (__pyx_t_5 != 0);
+    if (__pyx_t_4) {
 
-      /* "pysam/libchtslib.pyx":227
+      /* "pysam/libchtslib.pyx":538
  *         else:
  *             if isinstance(self.filename, int):
  *                 fd = self.filename             # <<<<<<<<<<<<<<
  *             else:
  *                 fd = self.filename.fileno()
  */
-      __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_v_self->filename); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 227, __pyx_L1_error)
-      __pyx_v_fd = __pyx_t_5;
+      __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_v_self->filename); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 538, __pyx_L1_error)
+      __pyx_v_fd = __pyx_t_3;
 
-      /* "pysam/libchtslib.pyx":226
- *                 return hts_open(cfilename, cmode)
+      /* "pysam/libchtslib.pyx":537
+ *                 return htsfile
  *         else:
  *             if isinstance(self.filename, int):             # <<<<<<<<<<<<<<
  *                 fd = self.filename
  *             else:
  */
-      goto __pyx_L7;
+      goto __pyx_L8;
     }
 
-    /* "pysam/libchtslib.pyx":229
+    /* "pysam/libchtslib.pyx":540
  *                 fd = self.filename
  *             else:
  *                 fd = self.filename.fileno()             # <<<<<<<<<<<<<<
@@ -5365,7 +10426,7 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
  *             if self.duplicate_filehandle:
  */
     /*else*/ {
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->filename, __pyx_n_s_fileno); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 229, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->filename, __pyx_n_s_fileno); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 540, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __pyx_t_7 = NULL;
       if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_6))) {
@@ -5378,30 +10439,30 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
         }
       }
       if (__pyx_t_7) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 229, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 540, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 229, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 540, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 229, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 540, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_v_fd = __pyx_t_5;
+      __pyx_v_fd = __pyx_t_3;
     }
-    __pyx_L7:;
+    __pyx_L8:;
 
-    /* "pysam/libchtslib.pyx":231
+    /* "pysam/libchtslib.pyx":542
  *                 fd = self.filename.fileno()
  * 
  *             if self.duplicate_filehandle:             # <<<<<<<<<<<<<<
  *                 dup_fd = dup(fd)
  *             else:
  */
-    __pyx_t_3 = (__pyx_v_self->duplicate_filehandle != 0);
-    if (__pyx_t_3) {
+    __pyx_t_4 = (__pyx_v_self->duplicate_filehandle != 0);
+    if (__pyx_t_4) {
 
-      /* "pysam/libchtslib.pyx":232
+      /* "pysam/libchtslib.pyx":543
  * 
  *             if self.duplicate_filehandle:
  *                 dup_fd = dup(fd)             # <<<<<<<<<<<<<<
@@ -5410,17 +10471,17 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
  */
       __pyx_v_dup_fd = dup(__pyx_v_fd);
 
-      /* "pysam/libchtslib.pyx":231
+      /* "pysam/libchtslib.pyx":542
  *                 fd = self.filename.fileno()
  * 
  *             if self.duplicate_filehandle:             # <<<<<<<<<<<<<<
  *                 dup_fd = dup(fd)
  *             else:
  */
-      goto __pyx_L8;
+      goto __pyx_L9;
     }
 
-    /* "pysam/libchtslib.pyx":234
+    /* "pysam/libchtslib.pyx":545
  *                 dup_fd = dup(fd)
  *             else:
  *                 dup_fd = fd             # <<<<<<<<<<<<<<
@@ -5430,86 +10491,86 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
     /*else*/ {
       __pyx_v_dup_fd = __pyx_v_fd;
     }
-    __pyx_L8:;
+    __pyx_L9:;
 
-    /* "pysam/libchtslib.pyx":237
+    /* "pysam/libchtslib.pyx":548
  * 
  *             # Replicate mode normalization done in hts_open_format
  *             smode = self.mode.replace(b'b', b'').replace(b'c', b'')             # <<<<<<<<<<<<<<
  *             if b'b' in self.mode:
  *                 smode += b'b'
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->mode, __pyx_n_s_replace); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 237, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->mode, __pyx_n_s_replace); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 548, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 237, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__29, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 548, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_replace); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 237, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_replace); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 548, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 237, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__30, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 548, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_smode = __pyx_t_6;
     __pyx_t_6 = 0;
 
-    /* "pysam/libchtslib.pyx":238
+    /* "pysam/libchtslib.pyx":549
  *             # Replicate mode normalization done in hts_open_format
  *             smode = self.mode.replace(b'b', b'').replace(b'c', b'')
  *             if b'b' in self.mode:             # <<<<<<<<<<<<<<
  *                 smode += b'b'
  *             elif b'c' in self.mode:
  */
-    __pyx_t_3 = (__Pyx_PySequence_ContainsTF(__pyx_n_b_b, __pyx_v_self->mode, Py_EQ)); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 238, __pyx_L1_error)
-    __pyx_t_4 = (__pyx_t_3 != 0);
-    if (__pyx_t_4) {
+    __pyx_t_4 = (__Pyx_PySequence_ContainsTF(__pyx_n_b_b, __pyx_v_self->mode, Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 549, __pyx_L1_error)
+    __pyx_t_5 = (__pyx_t_4 != 0);
+    if (__pyx_t_5) {
 
-      /* "pysam/libchtslib.pyx":239
+      /* "pysam/libchtslib.pyx":550
  *             smode = self.mode.replace(b'b', b'').replace(b'c', b'')
  *             if b'b' in self.mode:
  *                 smode += b'b'             # <<<<<<<<<<<<<<
  *             elif b'c' in self.mode:
  *                 smode += b'c'
  */
-      __pyx_t_6 = PyNumber_InPlaceAdd(__pyx_v_smode, __pyx_n_b_b); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 239, __pyx_L1_error)
+      __pyx_t_6 = PyNumber_InPlaceAdd(__pyx_v_smode, __pyx_n_b_b); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 550, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF_SET(__pyx_v_smode, __pyx_t_6);
       __pyx_t_6 = 0;
 
-      /* "pysam/libchtslib.pyx":238
+      /* "pysam/libchtslib.pyx":549
  *             # Replicate mode normalization done in hts_open_format
  *             smode = self.mode.replace(b'b', b'').replace(b'c', b'')
  *             if b'b' in self.mode:             # <<<<<<<<<<<<<<
  *                 smode += b'b'
  *             elif b'c' in self.mode:
  */
-      goto __pyx_L9;
+      goto __pyx_L10;
     }
 
-    /* "pysam/libchtslib.pyx":240
+    /* "pysam/libchtslib.pyx":551
  *             if b'b' in self.mode:
  *                 smode += b'b'
  *             elif b'c' in self.mode:             # <<<<<<<<<<<<<<
  *                 smode += b'c'
  *             cmode = smode
  */
-    __pyx_t_4 = (__Pyx_PySequence_ContainsTF(__pyx_n_b_c, __pyx_v_self->mode, Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 240, __pyx_L1_error)
-    __pyx_t_3 = (__pyx_t_4 != 0);
-    if (__pyx_t_3) {
+    __pyx_t_5 = (__Pyx_PySequence_ContainsTF(__pyx_n_b_c, __pyx_v_self->mode, Py_EQ)); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 551, __pyx_L1_error)
+    __pyx_t_4 = (__pyx_t_5 != 0);
+    if (__pyx_t_4) {
 
-      /* "pysam/libchtslib.pyx":241
+      /* "pysam/libchtslib.pyx":552
  *                 smode += b'b'
  *             elif b'c' in self.mode:
  *                 smode += b'c'             # <<<<<<<<<<<<<<
  *             cmode = smode
  * 
  */
-      __pyx_t_6 = PyNumber_InPlaceAdd(__pyx_v_smode, __pyx_n_b_c); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 241, __pyx_L1_error)
+      __pyx_t_6 = PyNumber_InPlaceAdd(__pyx_v_smode, __pyx_n_b_c); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 552, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF_SET(__pyx_v_smode, __pyx_t_6);
       __pyx_t_6 = 0;
 
-      /* "pysam/libchtslib.pyx":240
+      /* "pysam/libchtslib.pyx":551
  *             if b'b' in self.mode:
  *                 smode += b'b'
  *             elif b'c' in self.mode:             # <<<<<<<<<<<<<<
@@ -5517,19 +10578,19 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
  *             cmode = smode
  */
     }
-    __pyx_L9:;
+    __pyx_L10:;
 
-    /* "pysam/libchtslib.pyx":242
+    /* "pysam/libchtslib.pyx":553
  *             elif b'c' in self.mode:
  *                 smode += b'c'
  *             cmode = smode             # <<<<<<<<<<<<<<
  * 
  *             hfile = hdopen(dup_fd, cmode)
  */
-    __pyx_t_1 = __Pyx_PyObject_AsWritableString(__pyx_v_smode); if (unlikely((!__pyx_t_1) && PyErr_Occurred())) __PYX_ERR(0, 242, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_AsWritableString(__pyx_v_smode); if (unlikely((!__pyx_t_1) && PyErr_Occurred())) __PYX_ERR(0, 553, __pyx_L1_error)
     __pyx_v_cmode = __pyx_t_1;
 
-    /* "pysam/libchtslib.pyx":244
+    /* "pysam/libchtslib.pyx":555
  *             cmode = smode
  * 
  *             hfile = hdopen(dup_fd, cmode)             # <<<<<<<<<<<<<<
@@ -5538,30 +10599,30 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
  */
     __pyx_v_hfile = hdopen(__pyx_v_dup_fd, __pyx_v_cmode);
 
-    /* "pysam/libchtslib.pyx":245
+    /* "pysam/libchtslib.pyx":556
  * 
  *             hfile = hdopen(dup_fd, cmode)
  *             if hfile == NULL:             # <<<<<<<<<<<<<<
  *                 raise IOError('Cannot create hfile')
  * 
  */
-    __pyx_t_3 = ((__pyx_v_hfile == NULL) != 0);
-    if (unlikely(__pyx_t_3)) {
+    __pyx_t_4 = ((__pyx_v_hfile == NULL) != 0);
+    if (unlikely(__pyx_t_4)) {
 
-      /* "pysam/libchtslib.pyx":246
+      /* "pysam/libchtslib.pyx":557
  *             hfile = hdopen(dup_fd, cmode)
  *             if hfile == NULL:
  *                 raise IOError('Cannot create hfile')             # <<<<<<<<<<<<<<
  * 
  *             try:
  */
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 246, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__31, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 557, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_Raise(__pyx_t_6, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __PYX_ERR(0, 246, __pyx_L1_error)
+      __PYX_ERR(0, 557, __pyx_L1_error)
 
-      /* "pysam/libchtslib.pyx":245
+      /* "pysam/libchtslib.pyx":556
  * 
  *             hfile = hdopen(dup_fd, cmode)
  *             if hfile == NULL:             # <<<<<<<<<<<<<<
@@ -5570,7 +10631,7 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
  */
     }
 
-    /* "pysam/libchtslib.pyx":248
+    /* "pysam/libchtslib.pyx":559
  *                 raise IOError('Cannot create hfile')
  * 
  *             try:             # <<<<<<<<<<<<<<
@@ -5586,22 +10647,22 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
       __Pyx_XGOTREF(__pyx_t_10);
       /*try:*/ {
 
-        /* "pysam/libchtslib.pyx":250
+        /* "pysam/libchtslib.pyx":561
  *             try:
  *                 # filename.name can be an int
  *                 filename = str(self.filename.name)             # <<<<<<<<<<<<<<
  *             except AttributeError:
  *                 filename = '<fd:{}>'.format(fd)
  */
-        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->filename, __pyx_n_s_name); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 250, __pyx_L11_error)
+        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->filename, __pyx_n_s_name); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 561, __pyx_L12_error)
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 250, __pyx_L11_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 561, __pyx_L12_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __pyx_v_filename = __pyx_t_2;
         __pyx_t_2 = 0;
 
-        /* "pysam/libchtslib.pyx":248
+        /* "pysam/libchtslib.pyx":559
  *                 raise IOError('Cannot create hfile')
  * 
  *             try:             # <<<<<<<<<<<<<<
@@ -5612,37 +10673,37 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
       __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-      goto __pyx_L16_try_end;
-      __pyx_L11_error:;
+      goto __pyx_L17_try_end;
+      __pyx_L12_error:;
       __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-      /* "pysam/libchtslib.pyx":251
+      /* "pysam/libchtslib.pyx":562
  *                 # filename.name can be an int
  *                 filename = str(self.filename.name)
  *             except AttributeError:             # <<<<<<<<<<<<<<
  *                 filename = '<fd:{}>'.format(fd)
  * 
  */
-      __pyx_t_5 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_AttributeError);
-      if (__pyx_t_5) {
+      __pyx_t_3 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_AttributeError);
+      if (__pyx_t_3) {
         __Pyx_AddTraceback("pysam.libchtslib.HTSFile._open_htsfile", __pyx_clineno, __pyx_lineno, __pyx_filename);
-        if (__Pyx_GetException(&__pyx_t_2, &__pyx_t_6, &__pyx_t_7) < 0) __PYX_ERR(0, 251, __pyx_L13_except_error)
+        if (__Pyx_GetException(&__pyx_t_2, &__pyx_t_6, &__pyx_t_7) < 0) __PYX_ERR(0, 562, __pyx_L14_except_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_GOTREF(__pyx_t_7);
 
-        /* "pysam/libchtslib.pyx":252
+        /* "pysam/libchtslib.pyx":563
  *                 filename = str(self.filename.name)
  *             except AttributeError:
  *                 filename = '<fd:{}>'.format(fd)             # <<<<<<<<<<<<<<
  * 
  *             filename = encode_filename(filename)
  */
-        __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_fd, __pyx_n_s_format); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 252, __pyx_L13_except_error)
+        __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_fd, __pyx_n_s_format); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 563, __pyx_L14_except_error)
         __Pyx_GOTREF(__pyx_t_12);
-        __pyx_t_13 = __Pyx_PyInt_From_int(__pyx_v_fd); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 252, __pyx_L13_except_error)
+        __pyx_t_13 = __Pyx_PyInt_From_int(__pyx_v_fd); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 563, __pyx_L14_except_error)
         __Pyx_GOTREF(__pyx_t_13);
         __pyx_t_14 = NULL;
         if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_12))) {
@@ -5655,14 +10716,14 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
           }
         }
         if (!__pyx_t_14) {
-          __pyx_t_11 = __Pyx_PyObject_CallOneArg(__pyx_t_12, __pyx_t_13); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 252, __pyx_L13_except_error)
+          __pyx_t_11 = __Pyx_PyObject_CallOneArg(__pyx_t_12, __pyx_t_13); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 563, __pyx_L14_except_error)
           __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
           __Pyx_GOTREF(__pyx_t_11);
         } else {
           #if CYTHON_FAST_PYCALL
           if (PyFunction_Check(__pyx_t_12)) {
             PyObject *__pyx_temp[2] = {__pyx_t_14, __pyx_t_13};
-            __pyx_t_11 = __Pyx_PyFunction_FastCall(__pyx_t_12, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 252, __pyx_L13_except_error)
+            __pyx_t_11 = __Pyx_PyFunction_FastCall(__pyx_t_12, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 563, __pyx_L14_except_error)
             __Pyx_XDECREF(__pyx_t_14); __pyx_t_14 = 0;
             __Pyx_GOTREF(__pyx_t_11);
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
@@ -5671,20 +10732,20 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
           #if CYTHON_FAST_PYCCALL
           if (__Pyx_PyFastCFunction_Check(__pyx_t_12)) {
             PyObject *__pyx_temp[2] = {__pyx_t_14, __pyx_t_13};
-            __pyx_t_11 = __Pyx_PyCFunction_FastCall(__pyx_t_12, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 252, __pyx_L13_except_error)
+            __pyx_t_11 = __Pyx_PyCFunction_FastCall(__pyx_t_12, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 563, __pyx_L14_except_error)
             __Pyx_XDECREF(__pyx_t_14); __pyx_t_14 = 0;
             __Pyx_GOTREF(__pyx_t_11);
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
           } else
           #endif
           {
-            __pyx_t_15 = PyTuple_New(1+1); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 252, __pyx_L13_except_error)
+            __pyx_t_15 = PyTuple_New(1+1); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 563, __pyx_L14_except_error)
             __Pyx_GOTREF(__pyx_t_15);
             __Pyx_GIVEREF(__pyx_t_14); PyTuple_SET_ITEM(__pyx_t_15, 0, __pyx_t_14); __pyx_t_14 = NULL;
             __Pyx_GIVEREF(__pyx_t_13);
             PyTuple_SET_ITEM(__pyx_t_15, 0+1, __pyx_t_13);
             __pyx_t_13 = 0;
-            __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_t_15, NULL); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 252, __pyx_L13_except_error)
+            __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_t_15, NULL); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 563, __pyx_L14_except_error)
             __Pyx_GOTREF(__pyx_t_11);
             __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
           }
@@ -5695,12 +10756,12 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        goto __pyx_L12_exception_handled;
+        goto __pyx_L13_exception_handled;
       }
-      goto __pyx_L13_except_error;
-      __pyx_L13_except_error:;
+      goto __pyx_L14_except_error;
+      __pyx_L14_except_error:;
 
-      /* "pysam/libchtslib.pyx":248
+      /* "pysam/libchtslib.pyx":559
  *                 raise IOError('Cannot create hfile')
  * 
  *             try:             # <<<<<<<<<<<<<<
@@ -5712,42 +10773,42 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
       __Pyx_XGIVEREF(__pyx_t_10);
       __Pyx_ExceptionReset(__pyx_t_8, __pyx_t_9, __pyx_t_10);
       goto __pyx_L1_error;
-      __pyx_L12_exception_handled:;
+      __pyx_L13_exception_handled:;
       __Pyx_XGIVEREF(__pyx_t_8);
       __Pyx_XGIVEREF(__pyx_t_9);
       __Pyx_XGIVEREF(__pyx_t_10);
       __Pyx_ExceptionReset(__pyx_t_8, __pyx_t_9, __pyx_t_10);
-      __pyx_L16_try_end:;
+      __pyx_L17_try_end:;
     }
 
-    /* "pysam/libchtslib.pyx":254
+    /* "pysam/libchtslib.pyx":565
  *                 filename = '<fd:{}>'.format(fd)
  * 
  *             filename = encode_filename(filename)             # <<<<<<<<<<<<<<
  *             cfilename = filename
  *             with nogil:
  */
-    __pyx_t_7 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 254, __pyx_L1_error)
+    __pyx_t_7 = __pyx_f_5pysam_9libcutils_encode_filename(__pyx_v_filename); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 565, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF_SET(__pyx_v_filename, __pyx_t_7);
     __pyx_t_7 = 0;
 
-    /* "pysam/libchtslib.pyx":255
+    /* "pysam/libchtslib.pyx":566
  * 
  *             filename = encode_filename(filename)
  *             cfilename = filename             # <<<<<<<<<<<<<<
  *             with nogil:
- *                 return hts_hopen(hfile, cfilename, cmode)
+ *                 htsfile = hts_hopen(hfile, cfilename, cmode)
  */
-    __pyx_t_1 = __Pyx_PyObject_AsWritableString(__pyx_v_filename); if (unlikely((!__pyx_t_1) && PyErr_Occurred())) __PYX_ERR(0, 255, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_AsWritableString(__pyx_v_filename); if (unlikely((!__pyx_t_1) && PyErr_Occurred())) __PYX_ERR(0, 566, __pyx_L1_error)
     __pyx_v_cfilename = __pyx_t_1;
 
-    /* "pysam/libchtslib.pyx":256
+    /* "pysam/libchtslib.pyx":567
  *             filename = encode_filename(filename)
  *             cfilename = filename
  *             with nogil:             # <<<<<<<<<<<<<<
- *                 return hts_hopen(hfile, cfilename, cmode)
- * 
+ *                 htsfile = hts_hopen(hfile, cfilename, cmode)
+ *                 if htsfile != NULL:
  */
     {
         #ifdef WITH_THREAD
@@ -5757,26 +10818,63 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
         #endif
         /*try:*/ {
 
-          /* "pysam/libchtslib.pyx":257
+          /* "pysam/libchtslib.pyx":568
  *             cfilename = filename
  *             with nogil:
- *                 return hts_hopen(hfile, cfilename, cmode)             # <<<<<<<<<<<<<<
- * 
- *     def _exists(self):
+ *                 htsfile = hts_hopen(hfile, cfilename, cmode)             # <<<<<<<<<<<<<<
+ *                 if htsfile != NULL:
+ *                     hts_set_threads(htsfile, threads)
  */
-          __pyx_r = hts_hopen(__pyx_v_hfile, __pyx_v_cfilename, __pyx_v_cmode);
-          goto __pyx_L19_return;
+          __pyx_v_htsfile = hts_hopen(__pyx_v_hfile, __pyx_v_cfilename, __pyx_v_cmode);
+
+          /* "pysam/libchtslib.pyx":569
+ *             with nogil:
+ *                 htsfile = hts_hopen(hfile, cfilename, cmode)
+ *                 if htsfile != NULL:             # <<<<<<<<<<<<<<
+ *                     hts_set_threads(htsfile, threads)
+ *                 return htsfile
+ */
+          __pyx_t_4 = ((__pyx_v_htsfile != NULL) != 0);
+          if (__pyx_t_4) {
+
+            /* "pysam/libchtslib.pyx":570
+ *                 htsfile = hts_hopen(hfile, cfilename, cmode)
+ *                 if htsfile != NULL:
+ *                     hts_set_threads(htsfile, threads)             # <<<<<<<<<<<<<<
+ *                 return htsfile
+ * 
+ */
+            (void)(hts_set_threads(__pyx_v_htsfile, __pyx_v_threads));
+
+            /* "pysam/libchtslib.pyx":569
+ *             with nogil:
+ *                 htsfile = hts_hopen(hfile, cfilename, cmode)
+ *                 if htsfile != NULL:             # <<<<<<<<<<<<<<
+ *                     hts_set_threads(htsfile, threads)
+ *                 return htsfile
+ */
+          }
+
+          /* "pysam/libchtslib.pyx":571
+ *                 if htsfile != NULL:
+ *                     hts_set_threads(htsfile, threads)
+ *                 return htsfile             # <<<<<<<<<<<<<<
+ * 
+ *     def add_hts_options(self, format_options=None):
+ */
+          __pyx_r = __pyx_v_htsfile;
+          goto __pyx_L20_return;
         }
 
-        /* "pysam/libchtslib.pyx":256
+        /* "pysam/libchtslib.pyx":567
  *             filename = encode_filename(filename)
  *             cfilename = filename
  *             with nogil:             # <<<<<<<<<<<<<<
- *                 return hts_hopen(hfile, cfilename, cmode)
- * 
+ *                 htsfile = hts_hopen(hfile, cfilename, cmode)
+ *                 if htsfile != NULL:
  */
         /*finally:*/ {
-          __pyx_L19_return: {
+          __pyx_L20_return: {
             #ifdef WITH_THREAD
             __Pyx_FastGIL_Forget();
             Py_BLOCK_THREADS
@@ -5787,7 +10885,7 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
     }
   }
 
-  /* "pysam/libchtslib.pyx":216
+  /* "pysam/libchtslib.pyx":523
  *         return ret
  * 
  *     cdef htsFile *_open_htsfile(self) except? NULL:             # <<<<<<<<<<<<<<
@@ -5815,191 +10913,1814 @@ static htsFile *__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile(struct __pyx_
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pyx":259
- *                 return hts_hopen(hfile, cfilename, cmode)
+/* "pysam/libchtslib.pyx":573
+ *                 return htsfile
  * 
- *     def _exists(self):             # <<<<<<<<<<<<<<
- *         """return False iff file is local, a file and exists.
+ *     def add_hts_options(self, format_options=None):             # <<<<<<<<<<<<<<
+ *         """Given a list of key=value format option strings, add them to an open htsFile
  *         """
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_15_exists(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_5pysam_10libchtslib_7HTSFile_14_exists[] = "HTSFile._exists(self)\nreturn False iff file is local, a file and exists.\n        ";
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_15_exists(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_19add_hts_options(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_18add_hts_options[] = "HTSFile.add_hts_options(self, format_options=None)\nGiven a list of key=value format option strings, add them to an open htsFile\n        ";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_19add_hts_options(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_format_options = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("_exists (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_14_exists(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("add_hts_options (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_format_options,0};
+    PyObject* values[1] = {0};
+    values[0] = ((PyObject *)Py_None);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_format_options);
+          if (value) { values[0] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_hts_options") < 0)) __PYX_ERR(0, 573, __pyx_L3_error)
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_format_options = values[0];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("add_hts_options", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 573, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.add_hts_options", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_18add_hts_options(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), __pyx_v_format_options);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_14_exists(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_18add_hts_options(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, PyObject *__pyx_v_format_options) {
+  int __pyx_v_rval;
+  hts_opt *__pyx_v_opts;
+  PyObject *__pyx_v_format_option = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  Py_ssize_t __pyx_t_3;
+  PyObject *(*__pyx_t_4)(PyObject *);
+  PyObject *__pyx_t_5 = NULL;
+  char const *__pyx_t_6;
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9 = NULL;
+  __Pyx_RefNannySetupContext("add_hts_options", 0);
+  __Pyx_TraceCall("add_hts_options", __pyx_f[0], 573, 0, __PYX_ERR(0, 573, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":577
+ *         """
+ *         cdef int rval
+ *         cdef hts_opt *opts = NULL             # <<<<<<<<<<<<<<
+ * 
+ *         if format_options:
+ */
+  __pyx_v_opts = NULL;
+
+  /* "pysam/libchtslib.pyx":579
+ *         cdef hts_opt *opts = NULL
+ * 
+ *         if format_options:             # <<<<<<<<<<<<<<
+ *             for format_option in format_options:
+ *                 rval = hts_opt_add(&opts, format_option)
+ */
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_format_options); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 579, __pyx_L1_error)
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":580
+ * 
+ *         if format_options:
+ *             for format_option in format_options:             # <<<<<<<<<<<<<<
+ *                 rval = hts_opt_add(&opts, format_option)
+ *                 if rval != 0:
+ */
+    if (likely(PyList_CheckExact(__pyx_v_format_options)) || PyTuple_CheckExact(__pyx_v_format_options)) {
+      __pyx_t_2 = __pyx_v_format_options; __Pyx_INCREF(__pyx_t_2); __pyx_t_3 = 0;
+      __pyx_t_4 = NULL;
+    } else {
+      __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_v_format_options); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 580, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 580, __pyx_L1_error)
+    }
+    for (;;) {
+      if (likely(!__pyx_t_4)) {
+        if (likely(PyList_CheckExact(__pyx_t_2))) {
+          if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_2)) break;
+          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+          __pyx_t_5 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 580, __pyx_L1_error)
+          #else
+          __pyx_t_5 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 580, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          #endif
+        } else {
+          if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
+          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+          __pyx_t_5 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 580, __pyx_L1_error)
+          #else
+          __pyx_t_5 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 580, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          #endif
+        }
+      } else {
+        __pyx_t_5 = __pyx_t_4(__pyx_t_2);
+        if (unlikely(!__pyx_t_5)) {
+          PyObject* exc_type = PyErr_Occurred();
+          if (exc_type) {
+            if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+            else __PYX_ERR(0, 580, __pyx_L1_error)
+          }
+          break;
+        }
+        __Pyx_GOTREF(__pyx_t_5);
+      }
+      __Pyx_XDECREF_SET(__pyx_v_format_option, __pyx_t_5);
+      __pyx_t_5 = 0;
+
+      /* "pysam/libchtslib.pyx":581
+ *         if format_options:
+ *             for format_option in format_options:
+ *                 rval = hts_opt_add(&opts, format_option)             # <<<<<<<<<<<<<<
+ *                 if rval != 0:
+ *                     if opts != NULL:
+ */
+      __pyx_t_6 = __Pyx_PyObject_AsString(__pyx_v_format_option); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) __PYX_ERR(0, 581, __pyx_L1_error)
+      __pyx_v_rval = hts_opt_add((&__pyx_v_opts), __pyx_t_6);
+
+      /* "pysam/libchtslib.pyx":582
+ *             for format_option in format_options:
+ *                 rval = hts_opt_add(&opts, format_option)
+ *                 if rval != 0:             # <<<<<<<<<<<<<<
+ *                     if opts != NULL:
+ *                         hts_opt_free(opts)
+ */
+      __pyx_t_1 = ((__pyx_v_rval != 0) != 0);
+      if (__pyx_t_1) {
+
+        /* "pysam/libchtslib.pyx":583
+ *                 rval = hts_opt_add(&opts, format_option)
+ *                 if rval != 0:
+ *                     if opts != NULL:             # <<<<<<<<<<<<<<
+ *                         hts_opt_free(opts)
+ *                     raise RuntimeError('Invalid format option ({}) specified'.format(format_option))
+ */
+        __pyx_t_1 = ((__pyx_v_opts != NULL) != 0);
+        if (__pyx_t_1) {
+
+          /* "pysam/libchtslib.pyx":584
+ *                 if rval != 0:
+ *                     if opts != NULL:
+ *                         hts_opt_free(opts)             # <<<<<<<<<<<<<<
+ *                     raise RuntimeError('Invalid format option ({}) specified'.format(format_option))
+ *             if opts != NULL:
+ */
+          hts_opt_free(__pyx_v_opts);
+
+          /* "pysam/libchtslib.pyx":583
+ *                 rval = hts_opt_add(&opts, format_option)
+ *                 if rval != 0:
+ *                     if opts != NULL:             # <<<<<<<<<<<<<<
+ *                         hts_opt_free(opts)
+ *                     raise RuntimeError('Invalid format option ({}) specified'.format(format_option))
+ */
+        }
+
+        /* "pysam/libchtslib.pyx":585
+ *                     if opts != NULL:
+ *                         hts_opt_free(opts)
+ *                     raise RuntimeError('Invalid format option ({}) specified'.format(format_option))             # <<<<<<<<<<<<<<
+ *             if opts != NULL:
+ *                 rval = hts_opt_apply(self.htsfile, opts)
+ */
+        __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Invalid_format_option_specified, __pyx_n_s_format); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 585, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __pyx_t_8 = NULL;
+        if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_7))) {
+          __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_7);
+          if (likely(__pyx_t_8)) {
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
+            __Pyx_INCREF(__pyx_t_8);
+            __Pyx_INCREF(function);
+            __Pyx_DECREF_SET(__pyx_t_7, function);
+          }
+        }
+        if (!__pyx_t_8) {
+          __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_format_option); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 585, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_5);
+        } else {
+          #if CYTHON_FAST_PYCALL
+          if (PyFunction_Check(__pyx_t_7)) {
+            PyObject *__pyx_temp[2] = {__pyx_t_8, __pyx_v_format_option};
+            __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 585, __pyx_L1_error)
+            __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
+            __Pyx_GOTREF(__pyx_t_5);
+          } else
+          #endif
+          #if CYTHON_FAST_PYCCALL
+          if (__Pyx_PyFastCFunction_Check(__pyx_t_7)) {
+            PyObject *__pyx_temp[2] = {__pyx_t_8, __pyx_v_format_option};
+            __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 585, __pyx_L1_error)
+            __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
+            __Pyx_GOTREF(__pyx_t_5);
+          } else
+          #endif
+          {
+            __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 585, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_9);
+            __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_8); __pyx_t_8 = NULL;
+            __Pyx_INCREF(__pyx_v_format_option);
+            __Pyx_GIVEREF(__pyx_v_format_option);
+            PyTuple_SET_ITEM(__pyx_t_9, 0+1, __pyx_v_format_option);
+            __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_9, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 585, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_5);
+            __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+          }
+        }
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_builtin_RuntimeError, __pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 585, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __Pyx_Raise(__pyx_t_7, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __PYX_ERR(0, 585, __pyx_L1_error)
+
+        /* "pysam/libchtslib.pyx":582
+ *             for format_option in format_options:
+ *                 rval = hts_opt_add(&opts, format_option)
+ *                 if rval != 0:             # <<<<<<<<<<<<<<
+ *                     if opts != NULL:
+ *                         hts_opt_free(opts)
+ */
+      }
+
+      /* "pysam/libchtslib.pyx":580
+ * 
+ *         if format_options:
+ *             for format_option in format_options:             # <<<<<<<<<<<<<<
+ *                 rval = hts_opt_add(&opts, format_option)
+ *                 if rval != 0:
+ */
+    }
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "pysam/libchtslib.pyx":586
+ *                         hts_opt_free(opts)
+ *                     raise RuntimeError('Invalid format option ({}) specified'.format(format_option))
+ *             if opts != NULL:             # <<<<<<<<<<<<<<
+ *                 rval = hts_opt_apply(self.htsfile, opts)
+ *                 if rval != 0:
+ */
+    __pyx_t_1 = ((__pyx_v_opts != NULL) != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":587
+ *                     raise RuntimeError('Invalid format option ({}) specified'.format(format_option))
+ *             if opts != NULL:
+ *                 rval = hts_opt_apply(self.htsfile, opts)             # <<<<<<<<<<<<<<
+ *                 if rval != 0:
+ *                     hts_opt_free(opts)
+ */
+      __pyx_v_rval = hts_opt_apply(__pyx_v_self->htsfile, __pyx_v_opts);
+
+      /* "pysam/libchtslib.pyx":588
+ *             if opts != NULL:
+ *                 rval = hts_opt_apply(self.htsfile, opts)
+ *                 if rval != 0:             # <<<<<<<<<<<<<<
+ *                     hts_opt_free(opts)
+ *                     raise RuntimeError('An error occured while applying the requested format options')
+ */
+      __pyx_t_1 = ((__pyx_v_rval != 0) != 0);
+      if (unlikely(__pyx_t_1)) {
+
+        /* "pysam/libchtslib.pyx":589
+ *                 rval = hts_opt_apply(self.htsfile, opts)
+ *                 if rval != 0:
+ *                     hts_opt_free(opts)             # <<<<<<<<<<<<<<
+ *                     raise RuntimeError('An error occured while applying the requested format options')
+ *                 hts_opt_free(opts)
+ */
+        hts_opt_free(__pyx_v_opts);
+
+        /* "pysam/libchtslib.pyx":590
+ *                 if rval != 0:
+ *                     hts_opt_free(opts)
+ *                     raise RuntimeError('An error occured while applying the requested format options')             # <<<<<<<<<<<<<<
+ *                 hts_opt_free(opts)
+ * 
+ */
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__32, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 590, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_Raise(__pyx_t_2, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __PYX_ERR(0, 590, __pyx_L1_error)
+
+        /* "pysam/libchtslib.pyx":588
+ *             if opts != NULL:
+ *                 rval = hts_opt_apply(self.htsfile, opts)
+ *                 if rval != 0:             # <<<<<<<<<<<<<<
+ *                     hts_opt_free(opts)
+ *                     raise RuntimeError('An error occured while applying the requested format options')
+ */
+      }
+
+      /* "pysam/libchtslib.pyx":591
+ *                     hts_opt_free(opts)
+ *                     raise RuntimeError('An error occured while applying the requested format options')
+ *                 hts_opt_free(opts)             # <<<<<<<<<<<<<<
+ * 
+ *     def parse_region(self, contig=None, start=None, stop=None, region=None,tid=None,
+ */
+      hts_opt_free(__pyx_v_opts);
+
+      /* "pysam/libchtslib.pyx":586
+ *                         hts_opt_free(opts)
+ *                     raise RuntimeError('Invalid format option ({}) specified'.format(format_option))
+ *             if opts != NULL:             # <<<<<<<<<<<<<<
+ *                 rval = hts_opt_apply(self.htsfile, opts)
+ *                 if rval != 0:
+ */
+    }
+
+    /* "pysam/libchtslib.pyx":579
+ *         cdef hts_opt *opts = NULL
+ * 
+ *         if format_options:             # <<<<<<<<<<<<<<
+ *             for format_option in format_options:
+ *                 rval = hts_opt_add(&opts, format_option)
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":573
+ *                 return htsfile
+ * 
+ *     def add_hts_options(self, format_options=None):             # <<<<<<<<<<<<<<
+ *         """Given a list of key=value format option strings, add them to an open htsFile
+ *         """
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_9);
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.add_hts_options", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_format_option);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":593
+ *                 hts_opt_free(opts)
+ * 
+ *     def parse_region(self, contig=None, start=None, stop=None, region=None,tid=None,             # <<<<<<<<<<<<<<
+ *                      reference=None, end=None):
+ *         """parse alternative ways to specify a genomic region. A region can
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_21parse_region(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_20parse_region[] = "HTSFile.parse_region(self, contig=None, start=None, stop=None, region=None, tid=None, reference=None, end=None)\nparse alternative ways to specify a genomic region. A region can\n        either be specified by :term:`contig`, `start` and\n        `stop`. `start` and `stop` denote 0-based, half-open\n        intervals.  :term:`reference` and `end` are also accepted for\n        backward compatiblity as synonyms for :term:`contig` and\n        `stop`, respectively.\n\n        Alternatively, a samtools :term:`region` string can be\n        supplied.\n\n        If any of the coordinates are missing they will be replaced by\n        the minimum (`start`) or maximum (`stop`) coordinate.\n\n        Note that region strings are 1-based inclusive, while `start`\n        and `stop` denote an interval in 0-based, half-open\n        coordinates (like BED files and Python slices).\n\n        If `contig` or `region` or are ``*``, unmapped reads at the end\n        of a BAM file will be returned. Setting either to ``.`` will\n        iterate from the beginning of the file.\n\n        Returns\n        -------\n\n        tuple : a tuple of `flag`, :term:`tid`, `start` and\n        `stop`. The flag indicates whether no coordinates were\n        supplied and the genomic region is the complete genomic space.\n\n        Raises\n        ------\n\n        ValueError\n           for invalid or out of bounds regions.\n\n        ";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_21parse_region(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_contig = 0;
+  PyObject *__pyx_v_start = 0;
+  PyObject *__pyx_v_stop = 0;
+  PyObject *__pyx_v_region = 0;
+  PyObject *__pyx_v_tid = 0;
+  PyObject *__pyx_v_reference = 0;
+  PyObject *__pyx_v_end = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("parse_region (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_contig,&__pyx_n_s_start,&__pyx_n_s_stop,&__pyx_n_s_region,&__pyx_n_s_tid,&__pyx_n_s_reference,&__pyx_n_s_end,0};
+    PyObject* values[7] = {0,0,0,0,0,0,0};
+    values[0] = ((PyObject *)Py_None);
+    values[1] = ((PyObject *)Py_None);
+    values[2] = ((PyObject *)Py_None);
+    values[3] = ((PyObject *)Py_None);
+    values[4] = ((PyObject *)Py_None);
+
+    /* "pysam/libchtslib.pyx":594
+ * 
+ *     def parse_region(self, contig=None, start=None, stop=None, region=None,tid=None,
+ *                      reference=None, end=None):             # <<<<<<<<<<<<<<
+ *         """parse alternative ways to specify a genomic region. A region can
+ *         either be specified by :term:`contig`, `start` and
+ */
+    values[5] = ((PyObject *)Py_None);
+    values[6] = ((PyObject *)Py_None);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+        CYTHON_FALLTHROUGH;
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        CYTHON_FALLTHROUGH;
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_contig);
+          if (value) { values[0] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_start);
+          if (value) { values[1] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_stop);
+          if (value) { values[2] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_region);
+          if (value) { values[3] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  4:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_tid);
+          if (value) { values[4] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  5:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_reference);
+          if (value) { values[5] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  6:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_end);
+          if (value) { values[6] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "parse_region") < 0)) __PYX_ERR(0, 593, __pyx_L3_error)
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+        CYTHON_FALLTHROUGH;
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        CYTHON_FALLTHROUGH;
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_contig = values[0];
+    __pyx_v_start = values[1];
+    __pyx_v_stop = values[2];
+    __pyx_v_region = values[3];
+    __pyx_v_tid = values[4];
+    __pyx_v_reference = values[5];
+    __pyx_v_end = values[6];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("parse_region", 0, 0, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 593, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.parse_region", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_20parse_region(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), __pyx_v_contig, __pyx_v_start, __pyx_v_stop, __pyx_v_region, __pyx_v_tid, __pyx_v_reference, __pyx_v_end);
+
+  /* "pysam/libchtslib.pyx":593
+ *                 hts_opt_free(opts)
+ * 
+ *     def parse_region(self, contig=None, start=None, stop=None, region=None,tid=None,             # <<<<<<<<<<<<<<
+ *                      reference=None, end=None):
+ *         """parse alternative ways to specify a genomic region. A region can
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_20parse_region(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, PyObject *__pyx_v_contig, PyObject *__pyx_v_start, PyObject *__pyx_v_stop, PyObject *__pyx_v_region, PyObject *__pyx_v_tid, PyObject *__pyx_v_reference, PyObject *__pyx_v_end) {
+  int __pyx_v_rtid;
+  PY_LONG_LONG __pyx_v_rstart;
+  PY_LONG_LONG __pyx_v_rstop;
+  PyObject *__pyx_v_parts = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
   int __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   int __pyx_t_4;
-  int __pyx_t_5;
+  PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   PyObject *__pyx_t_7 = NULL;
-  PyObject *__pyx_t_8 = NULL;
-  __Pyx_RefNannySetupContext("_exists", 0);
-  __Pyx_TraceCall("_exists", __pyx_f[0], 259, 0, __PYX_ERR(0, 259, __pyx_L1_error));
+  PY_LONG_LONG __pyx_t_8;
+  int __pyx_t_9;
+  PyObject *__pyx_t_10 = NULL;
+  PyObject *__pyx_t_11 = NULL;
+  PyObject *__pyx_t_12 = NULL;
+  PyObject *__pyx_t_13 = NULL;
+  Py_ssize_t __pyx_t_14;
+  __Pyx_RefNannySetupContext("parse_region", 0);
+  __Pyx_TraceCall("parse_region", __pyx_f[0], 593, 0, __PYX_ERR(0, 593, __pyx_L1_error));
+  __Pyx_INCREF(__pyx_v_contig);
+  __Pyx_INCREF(__pyx_v_stop);
+  __Pyx_INCREF(__pyx_v_region);
 
-  /* "pysam/libchtslib.pyx":262
- *         """return False iff file is local, a file and exists.
- *         """
- *         return (not isinstance(self.filename, (str, bytes)) or             # <<<<<<<<<<<<<<
- *                 self.filename == b'-' or
- *                 self.is_remote or
+  /* "pysam/libchtslib.pyx":634
+ *         cdef long long rstop
+ * 
+ *         if reference is not None:             # <<<<<<<<<<<<<<
+ *             if contig is not None:
+ *                 raise ValueError('contig and reference should not both be specified')
  */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __pyx_v_self->filename;
-  __Pyx_INCREF(__pyx_t_3);
-  __pyx_t_4 = PyString_Check(__pyx_t_3); 
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = (__pyx_t_4 != 0);
-  if (!__pyx_t_5) {
-  } else {
-    __pyx_t_2 = __pyx_t_5;
-    goto __pyx_L5_bool_binop_done;
-  }
-  __pyx_t_3 = __pyx_v_self->filename;
-  __Pyx_INCREF(__pyx_t_3);
-  __pyx_t_5 = PyBytes_Check(__pyx_t_3); 
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_4 = (__pyx_t_5 != 0);
-  __pyx_t_2 = __pyx_t_4;
-  __pyx_L5_bool_binop_done:;
-  __pyx_t_4 = (!(__pyx_t_2 != 0));
-  if (!__pyx_t_4) {
-  } else {
-    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 262, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = __pyx_t_3;
-    __pyx_t_3 = 0;
-    goto __pyx_L3_bool_binop_done;
-  }
+  __pyx_t_1 = (__pyx_v_reference != Py_None);
+  __pyx_t_2 = (__pyx_t_1 != 0);
+  if (__pyx_t_2) {
 
-  /* "pysam/libchtslib.pyx":263
- *         """
- *         return (not isinstance(self.filename, (str, bytes)) or
- *                 self.filename == b'-' or             # <<<<<<<<<<<<<<
- *                 self.is_remote or
- *                 os.path.exists(self.filename))
+    /* "pysam/libchtslib.pyx":635
+ * 
+ *         if reference is not None:
+ *             if contig is not None:             # <<<<<<<<<<<<<<
+ *                 raise ValueError('contig and reference should not both be specified')
+ *             contig = reference
  */
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_self->filename, __pyx_kp_b__20, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 263, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 263, __pyx_L1_error)
-  if (!__pyx_t_4) {
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  } else {
-    __Pyx_INCREF(__pyx_t_3);
-    __pyx_t_1 = __pyx_t_3;
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    goto __pyx_L3_bool_binop_done;
-  }
+    __pyx_t_2 = (__pyx_v_contig != Py_None);
+    __pyx_t_1 = (__pyx_t_2 != 0);
+    if (unlikely(__pyx_t_1)) {
 
-  /* "pysam/libchtslib.pyx":264
- *         return (not isinstance(self.filename, (str, bytes)) or
- *                 self.filename == b'-' or
- *                 self.is_remote or             # <<<<<<<<<<<<<<
- *                 os.path.exists(self.filename))
+      /* "pysam/libchtslib.pyx":636
+ *         if reference is not None:
+ *             if contig is not None:
+ *                 raise ValueError('contig and reference should not both be specified')             # <<<<<<<<<<<<<<
+ *             contig = reference
+ * 
  */
-  if (!__pyx_v_self->is_remote) {
-  } else {
-    __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_v_self->is_remote); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 264, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = __pyx_t_3;
-    __pyx_t_3 = 0;
-    goto __pyx_L3_bool_binop_done;
-  }
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__33, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 636, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __PYX_ERR(0, 636, __pyx_L1_error)
 
-  /* "pysam/libchtslib.pyx":265
- *                 self.filename == b'-' or
- *                 self.is_remote or
- *                 os.path.exists(self.filename))             # <<<<<<<<<<<<<<
+      /* "pysam/libchtslib.pyx":635
+ * 
+ *         if reference is not None:
+ *             if contig is not None:             # <<<<<<<<<<<<<<
+ *                 raise ValueError('contig and reference should not both be specified')
+ *             contig = reference
  */
-  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 265, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_path); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 265, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_exists); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 265, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_6))) {
-    __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_6);
-    if (likely(__pyx_t_7)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
-      __Pyx_INCREF(__pyx_t_7);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_6, function);
     }
+
+    /* "pysam/libchtslib.pyx":637
+ *             if contig is not None:
+ *                 raise ValueError('contig and reference should not both be specified')
+ *             contig = reference             # <<<<<<<<<<<<<<
+ * 
+ *         if end is not None:
+ */
+    __Pyx_INCREF(__pyx_v_reference);
+    __Pyx_DECREF_SET(__pyx_v_contig, __pyx_v_reference);
+
+    /* "pysam/libchtslib.pyx":634
+ *         cdef long long rstop
+ * 
+ *         if reference is not None:             # <<<<<<<<<<<<<<
+ *             if contig is not None:
+ *                 raise ValueError('contig and reference should not both be specified')
+ */
   }
-  if (!__pyx_t_7) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_v_self->filename); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 265, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
+
+  /* "pysam/libchtslib.pyx":639
+ *             contig = reference
+ * 
+ *         if end is not None:             # <<<<<<<<<<<<<<
+ *             if stop is not None:
+ *                 raise ValueError('stop and end should not both be specified')
+ */
+  __pyx_t_1 = (__pyx_v_end != Py_None);
+  __pyx_t_2 = (__pyx_t_1 != 0);
+  if (__pyx_t_2) {
+
+    /* "pysam/libchtslib.pyx":640
+ * 
+ *         if end is not None:
+ *             if stop is not None:             # <<<<<<<<<<<<<<
+ *                 raise ValueError('stop and end should not both be specified')
+ *             stop = end
+ */
+    __pyx_t_2 = (__pyx_v_stop != Py_None);
+    __pyx_t_1 = (__pyx_t_2 != 0);
+    if (unlikely(__pyx_t_1)) {
+
+      /* "pysam/libchtslib.pyx":641
+ *         if end is not None:
+ *             if stop is not None:
+ *                 raise ValueError('stop and end should not both be specified')             # <<<<<<<<<<<<<<
+ *             stop = end
+ * 
+ */
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__34, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 641, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __PYX_ERR(0, 641, __pyx_L1_error)
+
+      /* "pysam/libchtslib.pyx":640
+ * 
+ *         if end is not None:
+ *             if stop is not None:             # <<<<<<<<<<<<<<
+ *                 raise ValueError('stop and end should not both be specified')
+ *             stop = end
+ */
+    }
+
+    /* "pysam/libchtslib.pyx":642
+ *             if stop is not None:
+ *                 raise ValueError('stop and end should not both be specified')
+ *             stop = end             # <<<<<<<<<<<<<<
+ * 
+ *         if contig is None and tid is None and region is None:
+ */
+    __Pyx_INCREF(__pyx_v_end);
+    __Pyx_DECREF_SET(__pyx_v_stop, __pyx_v_end);
+
+    /* "pysam/libchtslib.pyx":639
+ *             contig = reference
+ * 
+ *         if end is not None:             # <<<<<<<<<<<<<<
+ *             if stop is not None:
+ *                 raise ValueError('stop and end should not both be specified')
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":644
+ *             stop = end
+ * 
+ *         if contig is None and tid is None and region is None:             # <<<<<<<<<<<<<<
+ *             return 0, 0, 0, 0
+ * 
+ */
+  __pyx_t_2 = (__pyx_v_contig == Py_None);
+  __pyx_t_4 = (__pyx_t_2 != 0);
+  if (__pyx_t_4) {
   } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_6)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_self->filename};
-      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 265, __pyx_L1_error)
+    __pyx_t_1 = __pyx_t_4;
+    goto __pyx_L8_bool_binop_done;
+  }
+  __pyx_t_4 = (__pyx_v_tid == Py_None);
+  __pyx_t_2 = (__pyx_t_4 != 0);
+  if (__pyx_t_2) {
+  } else {
+    __pyx_t_1 = __pyx_t_2;
+    goto __pyx_L8_bool_binop_done;
+  }
+  __pyx_t_2 = (__pyx_v_region == Py_None);
+  __pyx_t_4 = (__pyx_t_2 != 0);
+  __pyx_t_1 = __pyx_t_4;
+  __pyx_L8_bool_binop_done:;
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":645
+ * 
+ *         if contig is None and tid is None and region is None:
+ *             return 0, 0, 0, 0             # <<<<<<<<<<<<<<
+ * 
+ *         rtid = -1
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_INCREF(__pyx_tuple__35);
+    __pyx_r = __pyx_tuple__35;
+    goto __pyx_L0;
+
+    /* "pysam/libchtslib.pyx":644
+ *             stop = end
+ * 
+ *         if contig is None and tid is None and region is None:             # <<<<<<<<<<<<<<
+ *             return 0, 0, 0, 0
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":647
+ *             return 0, 0, 0, 0
+ * 
+ *         rtid = -1             # <<<<<<<<<<<<<<
+ *         rstart = 0
+ *         rstop = MAX_POS
+ */
+  __pyx_v_rtid = -1;
+
+  /* "pysam/libchtslib.pyx":648
+ * 
+ *         rtid = -1
+ *         rstart = 0             # <<<<<<<<<<<<<<
+ *         rstop = MAX_POS
+ *         if start is not None:
+ */
+  __pyx_v_rstart = 0;
+
+  /* "pysam/libchtslib.pyx":649
+ *         rtid = -1
+ *         rstart = 0
+ *         rstop = MAX_POS             # <<<<<<<<<<<<<<
+ *         if start is not None:
+ *             try:
+ */
+  __pyx_v_rstop = __pyx_v_5pysam_10libchtslib_MAX_POS;
+
+  /* "pysam/libchtslib.pyx":650
+ *         rstart = 0
+ *         rstop = MAX_POS
+ *         if start is not None:             # <<<<<<<<<<<<<<
+ *             try:
+ *                 rstart = start
+ */
+  __pyx_t_1 = (__pyx_v_start != Py_None);
+  __pyx_t_4 = (__pyx_t_1 != 0);
+  if (__pyx_t_4) {
+
+    /* "pysam/libchtslib.pyx":651
+ *         rstop = MAX_POS
+ *         if start is not None:
+ *             try:             # <<<<<<<<<<<<<<
+ *                 rstart = start
+ *             except OverflowError:
+ */
+    {
+      __Pyx_PyThreadState_declare
+      __Pyx_PyThreadState_assign
+      __Pyx_ExceptionSave(&__pyx_t_5, &__pyx_t_6, &__pyx_t_7);
+      __Pyx_XGOTREF(__pyx_t_5);
+      __Pyx_XGOTREF(__pyx_t_6);
+      __Pyx_XGOTREF(__pyx_t_7);
+      /*try:*/ {
+
+        /* "pysam/libchtslib.pyx":652
+ *         if start is not None:
+ *             try:
+ *                 rstart = start             # <<<<<<<<<<<<<<
+ *             except OverflowError:
+ *                 raise ValueError('start out of range (%i)' % start)
+ */
+        __pyx_t_8 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_v_start); if (unlikely((__pyx_t_8 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 652, __pyx_L12_error)
+        __pyx_v_rstart = __pyx_t_8;
+
+        /* "pysam/libchtslib.pyx":651
+ *         rstop = MAX_POS
+ *         if start is not None:
+ *             try:             # <<<<<<<<<<<<<<
+ *                 rstart = start
+ *             except OverflowError:
+ */
+      }
+      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+      goto __pyx_L17_try_end;
+      __pyx_L12_error:;
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+      /* "pysam/libchtslib.pyx":653
+ *             try:
+ *                 rstart = start
+ *             except OverflowError:             # <<<<<<<<<<<<<<
+ *                 raise ValueError('start out of range (%i)' % start)
+ * 
+ */
+      __pyx_t_9 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_OverflowError);
+      if (__pyx_t_9) {
+        __Pyx_AddTraceback("pysam.libchtslib.HTSFile.parse_region", __pyx_clineno, __pyx_lineno, __pyx_filename);
+        if (__Pyx_GetException(&__pyx_t_3, &__pyx_t_10, &__pyx_t_11) < 0) __PYX_ERR(0, 653, __pyx_L14_except_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_GOTREF(__pyx_t_10);
+        __Pyx_GOTREF(__pyx_t_11);
+
+        /* "pysam/libchtslib.pyx":654
+ *                 rstart = start
+ *             except OverflowError:
+ *                 raise ValueError('start out of range (%i)' % start)             # <<<<<<<<<<<<<<
+ * 
+ *         if stop is not None:
+ */
+        __pyx_t_12 = __Pyx_PyString_Format(__pyx_kp_s_start_out_of_range_i, __pyx_v_start); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 654, __pyx_L14_except_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __pyx_t_13 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_12); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 654, __pyx_L14_except_error)
+        __Pyx_GOTREF(__pyx_t_13);
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __Pyx_Raise(__pyx_t_13, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+        __PYX_ERR(0, 654, __pyx_L14_except_error)
+      }
+      goto __pyx_L14_except_error;
+      __pyx_L14_except_error:;
+
+      /* "pysam/libchtslib.pyx":651
+ *         rstop = MAX_POS
+ *         if start is not None:
+ *             try:             # <<<<<<<<<<<<<<
+ *                 rstart = start
+ *             except OverflowError:
+ */
+      __Pyx_XGIVEREF(__pyx_t_5);
+      __Pyx_XGIVEREF(__pyx_t_6);
+      __Pyx_XGIVEREF(__pyx_t_7);
+      __Pyx_ExceptionReset(__pyx_t_5, __pyx_t_6, __pyx_t_7);
+      goto __pyx_L1_error;
+      __pyx_L17_try_end:;
+    }
+
+    /* "pysam/libchtslib.pyx":650
+ *         rstart = 0
+ *         rstop = MAX_POS
+ *         if start is not None:             # <<<<<<<<<<<<<<
+ *             try:
+ *                 rstart = start
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":656
+ *                 raise ValueError('start out of range (%i)' % start)
+ * 
+ *         if stop is not None:             # <<<<<<<<<<<<<<
+ *             try:
+ *                 rstop = stop
+ */
+  __pyx_t_4 = (__pyx_v_stop != Py_None);
+  __pyx_t_1 = (__pyx_t_4 != 0);
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":657
+ * 
+ *         if stop is not None:
+ *             try:             # <<<<<<<<<<<<<<
+ *                 rstop = stop
+ *             except OverflowError:
+ */
+    {
+      __Pyx_PyThreadState_declare
+      __Pyx_PyThreadState_assign
+      __Pyx_ExceptionSave(&__pyx_t_7, &__pyx_t_6, &__pyx_t_5);
+      __Pyx_XGOTREF(__pyx_t_7);
+      __Pyx_XGOTREF(__pyx_t_6);
+      __Pyx_XGOTREF(__pyx_t_5);
+      /*try:*/ {
+
+        /* "pysam/libchtslib.pyx":658
+ *         if stop is not None:
+ *             try:
+ *                 rstop = stop             # <<<<<<<<<<<<<<
+ *             except OverflowError:
+ *                 raise ValueError('stop out of range (%i)' % stop)
+ */
+        __pyx_t_8 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_v_stop); if (unlikely((__pyx_t_8 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 658, __pyx_L21_error)
+        __pyx_v_rstop = __pyx_t_8;
+
+        /* "pysam/libchtslib.pyx":657
+ * 
+ *         if stop is not None:
+ *             try:             # <<<<<<<<<<<<<<
+ *                 rstop = stop
+ *             except OverflowError:
+ */
+      }
+      __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+      goto __pyx_L26_try_end;
+      __pyx_L21_error:;
+      __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __Pyx_XDECREF(__pyx_t_13); __pyx_t_13 = 0;
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+
+      /* "pysam/libchtslib.pyx":659
+ *             try:
+ *                 rstop = stop
+ *             except OverflowError:             # <<<<<<<<<<<<<<
+ *                 raise ValueError('stop out of range (%i)' % stop)
+ * 
+ */
+      __pyx_t_9 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_OverflowError);
+      if (__pyx_t_9) {
+        __Pyx_AddTraceback("pysam.libchtslib.HTSFile.parse_region", __pyx_clineno, __pyx_lineno, __pyx_filename);
+        if (__Pyx_GetException(&__pyx_t_11, &__pyx_t_10, &__pyx_t_3) < 0) __PYX_ERR(0, 659, __pyx_L23_except_error)
+        __Pyx_GOTREF(__pyx_t_11);
+        __Pyx_GOTREF(__pyx_t_10);
+        __Pyx_GOTREF(__pyx_t_3);
+
+        /* "pysam/libchtslib.pyx":660
+ *                 rstop = stop
+ *             except OverflowError:
+ *                 raise ValueError('stop out of range (%i)' % stop)             # <<<<<<<<<<<<<<
+ * 
+ *         if region:
+ */
+        __pyx_t_13 = __Pyx_PyString_Format(__pyx_kp_s_stop_out_of_range_i, __pyx_v_stop); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 660, __pyx_L23_except_error)
+        __Pyx_GOTREF(__pyx_t_13);
+        __pyx_t_12 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_13); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 660, __pyx_L23_except_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+        __Pyx_Raise(__pyx_t_12, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __PYX_ERR(0, 660, __pyx_L23_except_error)
+      }
+      goto __pyx_L23_except_error;
+      __pyx_L23_except_error:;
+
+      /* "pysam/libchtslib.pyx":657
+ * 
+ *         if stop is not None:
+ *             try:             # <<<<<<<<<<<<<<
+ *                 rstop = stop
+ *             except OverflowError:
+ */
+      __Pyx_XGIVEREF(__pyx_t_7);
+      __Pyx_XGIVEREF(__pyx_t_6);
+      __Pyx_XGIVEREF(__pyx_t_5);
+      __Pyx_ExceptionReset(__pyx_t_7, __pyx_t_6, __pyx_t_5);
+      goto __pyx_L1_error;
+      __pyx_L26_try_end:;
+    }
+
+    /* "pysam/libchtslib.pyx":656
+ *                 raise ValueError('start out of range (%i)' % start)
+ * 
+ *         if stop is not None:             # <<<<<<<<<<<<<<
+ *             try:
+ *                 rstop = stop
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":662
+ *                 raise ValueError('stop out of range (%i)' % stop)
+ * 
+ *         if region:             # <<<<<<<<<<<<<<
+ *             region = force_str(region)
+ *             parts = re.split('[:-]', region)
+ */
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_region); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 662, __pyx_L1_error)
+  if (__pyx_t_1) {
+
+    /* "pysam/libchtslib.pyx":663
+ * 
+ *         if region:
+ *             region = force_str(region)             # <<<<<<<<<<<<<<
+ *             parts = re.split('[:-]', region)
+ *             contig = parts[0]
+ */
+    __pyx_t_3 = __pyx_f_5pysam_9libcutils_force_str(__pyx_v_region, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 663, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF_SET(__pyx_v_region, __pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "pysam/libchtslib.pyx":664
+ *         if region:
+ *             region = force_str(region)
+ *             parts = re.split('[:-]', region)             # <<<<<<<<<<<<<<
+ *             contig = parts[0]
+ *             if len(parts) >= 2:
+ */
+    __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_re); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 664, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_split); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 664, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_11);
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __pyx_t_10 = NULL;
+    __pyx_t_9 = 0;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_11))) {
+      __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_11);
+      if (likely(__pyx_t_10)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
+        __Pyx_INCREF(__pyx_t_10);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_11, function);
+        __pyx_t_9 = 1;
+      }
+    }
+    #if CYTHON_FAST_PYCALL
+    if (PyFunction_Check(__pyx_t_11)) {
+      PyObject *__pyx_temp[3] = {__pyx_t_10, __pyx_kp_s__36, __pyx_v_region};
+      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_11, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 664, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_GOTREF(__pyx_t_3);
     } else
     #endif
     #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_6)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_self->filename};
-      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 265, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+    if (__Pyx_PyFastCFunction_Check(__pyx_t_11)) {
+      PyObject *__pyx_temp[3] = {__pyx_t_10, __pyx_kp_s__36, __pyx_v_region};
+      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_11, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 664, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_GOTREF(__pyx_t_3);
     } else
     #endif
     {
-      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 265, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_7); __pyx_t_7 = NULL;
-      __Pyx_INCREF(__pyx_v_self->filename);
-      __Pyx_GIVEREF(__pyx_v_self->filename);
-      PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_v_self->filename);
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 265, __pyx_L1_error)
+      __pyx_t_12 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 664, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_12);
+      if (__pyx_t_10) {
+        __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_10); __pyx_t_10 = NULL;
+      }
+      __Pyx_INCREF(__pyx_kp_s__36);
+      __Pyx_GIVEREF(__pyx_kp_s__36);
+      PyTuple_SET_ITEM(__pyx_t_12, 0+__pyx_t_9, __pyx_kp_s__36);
+      __Pyx_INCREF(__pyx_v_region);
+      __Pyx_GIVEREF(__pyx_v_region);
+      PyTuple_SET_ITEM(__pyx_t_12, 1+__pyx_t_9, __pyx_v_region);
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_12, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 664, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
     }
+    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __pyx_v_parts = __pyx_t_3;
+    __pyx_t_3 = 0;
+
+    /* "pysam/libchtslib.pyx":665
+ *             region = force_str(region)
+ *             parts = re.split('[:-]', region)
+ *             contig = parts[0]             # <<<<<<<<<<<<<<
+ *             if len(parts) >= 2:
+ *                 rstart = int(parts[1]) - 1
+ */
+    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_parts, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 665, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF_SET(__pyx_v_contig, __pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "pysam/libchtslib.pyx":666
+ *             parts = re.split('[:-]', region)
+ *             contig = parts[0]
+ *             if len(parts) >= 2:             # <<<<<<<<<<<<<<
+ *                 rstart = int(parts[1]) - 1
+ *             if len(parts) >= 3:
+ */
+    __pyx_t_14 = PyObject_Length(__pyx_v_parts); if (unlikely(__pyx_t_14 == ((Py_ssize_t)-1))) __PYX_ERR(0, 666, __pyx_L1_error)
+    __pyx_t_1 = ((__pyx_t_14 >= 2) != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":667
+ *             contig = parts[0]
+ *             if len(parts) >= 2:
+ *                 rstart = int(parts[1]) - 1             # <<<<<<<<<<<<<<
+ *             if len(parts) >= 3:
+ *                 rstop = int(parts[2])
+ */
+      __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_parts, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 667, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_11 = __Pyx_PyNumber_Int(__pyx_t_3); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 667, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_11);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_3 = __Pyx_PyInt_SubtractObjC(__pyx_t_11, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 667, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+      __pyx_t_8 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_t_3); if (unlikely((__pyx_t_8 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 667, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_v_rstart = __pyx_t_8;
+
+      /* "pysam/libchtslib.pyx":666
+ *             parts = re.split('[:-]', region)
+ *             contig = parts[0]
+ *             if len(parts) >= 2:             # <<<<<<<<<<<<<<
+ *                 rstart = int(parts[1]) - 1
+ *             if len(parts) >= 3:
+ */
+    }
+
+    /* "pysam/libchtslib.pyx":668
+ *             if len(parts) >= 2:
+ *                 rstart = int(parts[1]) - 1
+ *             if len(parts) >= 3:             # <<<<<<<<<<<<<<
+ *                 rstop = int(parts[2])
+ * 
+ */
+    __pyx_t_14 = PyObject_Length(__pyx_v_parts); if (unlikely(__pyx_t_14 == ((Py_ssize_t)-1))) __PYX_ERR(0, 668, __pyx_L1_error)
+    __pyx_t_1 = ((__pyx_t_14 >= 3) != 0);
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":669
+ *                 rstart = int(parts[1]) - 1
+ *             if len(parts) >= 3:
+ *                 rstop = int(parts[2])             # <<<<<<<<<<<<<<
+ * 
+ *         if tid is not None:
+ */
+      __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_parts, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 669, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_11 = __Pyx_PyNumber_Int(__pyx_t_3); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 669, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_11);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_8 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_t_11); if (unlikely((__pyx_t_8 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 669, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+      __pyx_v_rstop = __pyx_t_8;
+
+      /* "pysam/libchtslib.pyx":668
+ *             if len(parts) >= 2:
+ *                 rstart = int(parts[1]) - 1
+ *             if len(parts) >= 3:             # <<<<<<<<<<<<<<
+ *                 rstop = int(parts[2])
+ * 
+ */
+    }
+
+    /* "pysam/libchtslib.pyx":662
+ *                 raise ValueError('stop out of range (%i)' % stop)
+ * 
+ *         if region:             # <<<<<<<<<<<<<<
+ *             region = force_str(region)
+ *             parts = re.split('[:-]', region)
+ */
   }
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __Pyx_INCREF(__pyx_t_3);
-  __pyx_t_1 = __pyx_t_3;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_L3_bool_binop_done:;
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
+
+  /* "pysam/libchtslib.pyx":671
+ *                 rstop = int(parts[2])
+ * 
+ *         if tid is not None:             # <<<<<<<<<<<<<<
+ *             if not self.is_valid_tid(tid):
+ *                 raise IndexError('invalid tid')
+ */
+  __pyx_t_1 = (__pyx_v_tid != Py_None);
+  __pyx_t_4 = (__pyx_t_1 != 0);
+  if (__pyx_t_4) {
+
+    /* "pysam/libchtslib.pyx":672
+ * 
+ *         if tid is not None:
+ *             if not self.is_valid_tid(tid):             # <<<<<<<<<<<<<<
+ *                 raise IndexError('invalid tid')
+ *             rtid = tid
+ */
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_is_valid_tid); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 672, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_12 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
+      __pyx_t_12 = PyMethod_GET_SELF(__pyx_t_3);
+      if (likely(__pyx_t_12)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+        __Pyx_INCREF(__pyx_t_12);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_3, function);
+      }
+    }
+    if (!__pyx_t_12) {
+      __pyx_t_11 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_tid); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 672, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_11);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_3)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_12, __pyx_v_tid};
+        __pyx_t_11 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 672, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __Pyx_GOTREF(__pyx_t_11);
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_12, __pyx_v_tid};
+        __pyx_t_11 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 672, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __Pyx_GOTREF(__pyx_t_11);
+      } else
+      #endif
+      {
+        __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 672, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_10);
+        __Pyx_GIVEREF(__pyx_t_12); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_12); __pyx_t_12 = NULL;
+        __Pyx_INCREF(__pyx_v_tid);
+        __Pyx_GIVEREF(__pyx_v_tid);
+        PyTuple_SET_ITEM(__pyx_t_10, 0+1, __pyx_v_tid);
+        __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_10, NULL); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 672, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_11);
+        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 672, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __pyx_t_1 = ((!__pyx_t_4) != 0);
+    if (unlikely(__pyx_t_1)) {
+
+      /* "pysam/libchtslib.pyx":673
+ *         if tid is not None:
+ *             if not self.is_valid_tid(tid):
+ *                 raise IndexError('invalid tid')             # <<<<<<<<<<<<<<
+ *             rtid = tid
+ *         else:
+ */
+      __pyx_t_11 = __Pyx_PyObject_Call(__pyx_builtin_IndexError, __pyx_tuple__37, NULL); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 673, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_11);
+      __Pyx_Raise(__pyx_t_11, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+      __PYX_ERR(0, 673, __pyx_L1_error)
+
+      /* "pysam/libchtslib.pyx":672
+ * 
+ *         if tid is not None:
+ *             if not self.is_valid_tid(tid):             # <<<<<<<<<<<<<<
+ *                 raise IndexError('invalid tid')
+ *             rtid = tid
+ */
+    }
+
+    /* "pysam/libchtslib.pyx":674
+ *             if not self.is_valid_tid(tid):
+ *                 raise IndexError('invalid tid')
+ *             rtid = tid             # <<<<<<<<<<<<<<
+ *         else:
+ *             if contig == "*":
+ */
+    __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_v_tid); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 674, __pyx_L1_error)
+    __pyx_v_rtid = __pyx_t_9;
+
+    /* "pysam/libchtslib.pyx":671
+ *                 rstop = int(parts[2])
+ * 
+ *         if tid is not None:             # <<<<<<<<<<<<<<
+ *             if not self.is_valid_tid(tid):
+ *                 raise IndexError('invalid tid')
+ */
+    goto __pyx_L32;
+  }
+
+  /* "pysam/libchtslib.pyx":676
+ *             rtid = tid
+ *         else:
+ *             if contig == "*":             # <<<<<<<<<<<<<<
+ *                 rtid = HTS_IDX_NOCOOR
+ *             elif contig == ".":
+ */
+  /*else*/ {
+    __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_contig, __pyx_kp_s__38, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 676, __pyx_L1_error)
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":677
+ *         else:
+ *             if contig == "*":
+ *                 rtid = HTS_IDX_NOCOOR             # <<<<<<<<<<<<<<
+ *             elif contig == ".":
+ *                 rtid = HTS_IDX_START
+ */
+      __pyx_v_rtid = HTS_IDX_NOCOOR;
+
+      /* "pysam/libchtslib.pyx":676
+ *             rtid = tid
+ *         else:
+ *             if contig == "*":             # <<<<<<<<<<<<<<
+ *                 rtid = HTS_IDX_NOCOOR
+ *             elif contig == ".":
+ */
+      goto __pyx_L34;
+    }
+
+    /* "pysam/libchtslib.pyx":678
+ *             if contig == "*":
+ *                 rtid = HTS_IDX_NOCOOR
+ *             elif contig == ".":             # <<<<<<<<<<<<<<
+ *                 rtid = HTS_IDX_START
+ *             else:
+ */
+    __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_contig, __pyx_kp_s__39, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 678, __pyx_L1_error)
+    if (__pyx_t_1) {
+
+      /* "pysam/libchtslib.pyx":679
+ *                 rtid = HTS_IDX_NOCOOR
+ *             elif contig == ".":
+ *                 rtid = HTS_IDX_START             # <<<<<<<<<<<<<<
+ *             else:
+ *                 rtid = self.get_tid(contig)
+ */
+      __pyx_v_rtid = HTS_IDX_START;
+
+      /* "pysam/libchtslib.pyx":678
+ *             if contig == "*":
+ *                 rtid = HTS_IDX_NOCOOR
+ *             elif contig == ".":             # <<<<<<<<<<<<<<
+ *                 rtid = HTS_IDX_START
+ *             else:
+ */
+      goto __pyx_L34;
+    }
+
+    /* "pysam/libchtslib.pyx":681
+ *                 rtid = HTS_IDX_START
+ *             else:
+ *                 rtid = self.get_tid(contig)             # <<<<<<<<<<<<<<
+ *                 if rtid < 0:
+ *                     raise ValueError('invalid contig `%s`' % contig)
+ */
+    /*else*/ {
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_tid); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 681, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_10 = NULL;
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_3);
+        if (likely(__pyx_t_10)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_10);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
+        }
+      }
+      if (!__pyx_t_10) {
+        __pyx_t_11 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_contig); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 681, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_11);
+      } else {
+        #if CYTHON_FAST_PYCALL
+        if (PyFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_10, __pyx_v_contig};
+          __pyx_t_11 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 681, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+          __Pyx_GOTREF(__pyx_t_11);
+        } else
+        #endif
+        #if CYTHON_FAST_PYCCALL
+        if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+          PyObject *__pyx_temp[2] = {__pyx_t_10, __pyx_v_contig};
+          __pyx_t_11 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 681, __pyx_L1_error)
+          __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+          __Pyx_GOTREF(__pyx_t_11);
+        } else
+        #endif
+        {
+          __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 681, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_12);
+          __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_10); __pyx_t_10 = NULL;
+          __Pyx_INCREF(__pyx_v_contig);
+          __Pyx_GIVEREF(__pyx_v_contig);
+          PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_v_contig);
+          __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_12, NULL); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 681, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_11);
+          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        }
+      }
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_t_11); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 681, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+      __pyx_v_rtid = __pyx_t_9;
+
+      /* "pysam/libchtslib.pyx":682
+ *             else:
+ *                 rtid = self.get_tid(contig)
+ *                 if rtid < 0:             # <<<<<<<<<<<<<<
+ *                     raise ValueError('invalid contig `%s`' % contig)
+ * 
+ */
+      __pyx_t_1 = ((__pyx_v_rtid < 0) != 0);
+      if (unlikely(__pyx_t_1)) {
+
+        /* "pysam/libchtslib.pyx":683
+ *                 rtid = self.get_tid(contig)
+ *                 if rtid < 0:
+ *                     raise ValueError('invalid contig `%s`' % contig)             # <<<<<<<<<<<<<<
+ * 
+ *         if rstart > rstop:
+ */
+        __pyx_t_11 = __Pyx_PyString_Format(__pyx_kp_s_invalid_contig_s, __pyx_v_contig); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 683, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_11);
+        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_11); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 683, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+        __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __PYX_ERR(0, 683, __pyx_L1_error)
+
+        /* "pysam/libchtslib.pyx":682
+ *             else:
+ *                 rtid = self.get_tid(contig)
+ *                 if rtid < 0:             # <<<<<<<<<<<<<<
+ *                     raise ValueError('invalid contig `%s`' % contig)
+ * 
+ */
+      }
+    }
+    __pyx_L34:;
+  }
+  __pyx_L32:;
+
+  /* "pysam/libchtslib.pyx":685
+ *                     raise ValueError('invalid contig `%s`' % contig)
+ * 
+ *         if rstart > rstop:             # <<<<<<<<<<<<<<
+ *             raise ValueError('invalid coordinates: start (%i) > stop (%i)' % (rstart, rstop))
+ *         if not 0 <= rstart < MAX_POS:
+ */
+  __pyx_t_1 = ((__pyx_v_rstart > __pyx_v_rstop) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":686
+ * 
+ *         if rstart > rstop:
+ *             raise ValueError('invalid coordinates: start (%i) > stop (%i)' % (rstart, rstop))             # <<<<<<<<<<<<<<
+ *         if not 0 <= rstart < MAX_POS:
+ *             raise ValueError('start out of range (%i)' % rstart)
+ */
+    __pyx_t_3 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstart); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 686, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_11 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstop); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 686, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_11);
+    __pyx_t_12 = PyTuple_New(2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 686, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    __Pyx_GIVEREF(__pyx_t_3);
+    PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_11);
+    PyTuple_SET_ITEM(__pyx_t_12, 1, __pyx_t_11);
+    __pyx_t_3 = 0;
+    __pyx_t_11 = 0;
+    __pyx_t_11 = __Pyx_PyString_Format(__pyx_kp_s_invalid_coordinates_start_i_stop, __pyx_t_12); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 686, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_11);
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __pyx_t_12 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_11); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 686, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __Pyx_Raise(__pyx_t_12, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __PYX_ERR(0, 686, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":685
+ *                     raise ValueError('invalid contig `%s`' % contig)
+ * 
+ *         if rstart > rstop:             # <<<<<<<<<<<<<<
+ *             raise ValueError('invalid coordinates: start (%i) > stop (%i)' % (rstart, rstop))
+ *         if not 0 <= rstart < MAX_POS:
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":687
+ *         if rstart > rstop:
+ *             raise ValueError('invalid coordinates: start (%i) > stop (%i)' % (rstart, rstop))
+ *         if not 0 <= rstart < MAX_POS:             # <<<<<<<<<<<<<<
+ *             raise ValueError('start out of range (%i)' % rstart)
+ *         if not 0 <= rstop <= MAX_POS:
+ */
+  __pyx_t_1 = (0 <= __pyx_v_rstart);
+  if (__pyx_t_1) {
+    __pyx_t_1 = (__pyx_v_rstart < __pyx_v_5pysam_10libchtslib_MAX_POS);
+  }
+  __pyx_t_4 = ((!(__pyx_t_1 != 0)) != 0);
+  if (unlikely(__pyx_t_4)) {
+
+    /* "pysam/libchtslib.pyx":688
+ *             raise ValueError('invalid coordinates: start (%i) > stop (%i)' % (rstart, rstop))
+ *         if not 0 <= rstart < MAX_POS:
+ *             raise ValueError('start out of range (%i)' % rstart)             # <<<<<<<<<<<<<<
+ *         if not 0 <= rstop <= MAX_POS:
+ *             raise ValueError('stop out of range (%i)' % rstop)
+ */
+    __pyx_t_12 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstart); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 688, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    __pyx_t_11 = __Pyx_PyString_Format(__pyx_kp_s_start_out_of_range_i, __pyx_t_12); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 688, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_11);
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __pyx_t_12 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_11); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 688, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __Pyx_Raise(__pyx_t_12, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __PYX_ERR(0, 688, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":687
+ *         if rstart > rstop:
+ *             raise ValueError('invalid coordinates: start (%i) > stop (%i)' % (rstart, rstop))
+ *         if not 0 <= rstart < MAX_POS:             # <<<<<<<<<<<<<<
+ *             raise ValueError('start out of range (%i)' % rstart)
+ *         if not 0 <= rstop <= MAX_POS:
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":689
+ *         if not 0 <= rstart < MAX_POS:
+ *             raise ValueError('start out of range (%i)' % rstart)
+ *         if not 0 <= rstop <= MAX_POS:             # <<<<<<<<<<<<<<
+ *             raise ValueError('stop out of range (%i)' % rstop)
+ * 
+ */
+  __pyx_t_4 = (0 <= __pyx_v_rstop);
+  if (__pyx_t_4) {
+    __pyx_t_4 = (__pyx_v_rstop <= __pyx_v_5pysam_10libchtslib_MAX_POS);
+  }
+  __pyx_t_1 = ((!(__pyx_t_4 != 0)) != 0);
+  if (unlikely(__pyx_t_1)) {
+
+    /* "pysam/libchtslib.pyx":690
+ *             raise ValueError('start out of range (%i)' % rstart)
+ *         if not 0 <= rstop <= MAX_POS:
+ *             raise ValueError('stop out of range (%i)' % rstop)             # <<<<<<<<<<<<<<
+ * 
+ *         return 1, rtid, rstart, rstop
+ */
+    __pyx_t_12 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstop); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 690, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    __pyx_t_11 = __Pyx_PyString_Format(__pyx_kp_s_stop_out_of_range_i, __pyx_t_12); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 690, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_11);
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __pyx_t_12 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_11); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 690, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __Pyx_Raise(__pyx_t_12, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __PYX_ERR(0, 690, __pyx_L1_error)
+
+    /* "pysam/libchtslib.pyx":689
+ *         if not 0 <= rstart < MAX_POS:
+ *             raise ValueError('start out of range (%i)' % rstart)
+ *         if not 0 <= rstop <= MAX_POS:             # <<<<<<<<<<<<<<
+ *             raise ValueError('stop out of range (%i)' % rstop)
+ * 
+ */
+  }
+
+  /* "pysam/libchtslib.pyx":692
+ *             raise ValueError('stop out of range (%i)' % rstop)
+ * 
+ *         return 1, rtid, rstart, rstop             # <<<<<<<<<<<<<<
+ * 
+ *     def is_valid_tid(self, tid):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_12 = __Pyx_PyInt_From_int(__pyx_v_rtid); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 692, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_12);
+  __pyx_t_11 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstart); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 692, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_11);
+  __pyx_t_3 = __Pyx_PyInt_From_PY_LONG_LONG(__pyx_v_rstop); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 692, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = PyTuple_New(4); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 692, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_INCREF(__pyx_int_1);
+  __Pyx_GIVEREF(__pyx_int_1);
+  PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_int_1);
+  __Pyx_GIVEREF(__pyx_t_12);
+  PyTuple_SET_ITEM(__pyx_t_10, 1, __pyx_t_12);
+  __Pyx_GIVEREF(__pyx_t_11);
+  PyTuple_SET_ITEM(__pyx_t_10, 2, __pyx_t_11);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_10, 3, __pyx_t_3);
+  __pyx_t_12 = 0;
+  __pyx_t_11 = 0;
+  __pyx_t_3 = 0;
+  __pyx_r = __pyx_t_10;
+  __pyx_t_10 = 0;
   goto __pyx_L0;
 
-  /* "pysam/libchtslib.pyx":259
- *                 return hts_hopen(hfile, cfilename, cmode)
+  /* "pysam/libchtslib.pyx":593
+ *                 hts_opt_free(opts)
  * 
- *     def _exists(self):             # <<<<<<<<<<<<<<
- *         """return False iff file is local, a file and exists.
+ *     def parse_region(self, contig=None, start=None, stop=None, region=None,tid=None,             # <<<<<<<<<<<<<<
+ *                      reference=None, end=None):
+ *         """parse alternative ways to specify a genomic region. A region can
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_10);
+  __Pyx_XDECREF(__pyx_t_11);
+  __Pyx_XDECREF(__pyx_t_12);
+  __Pyx_XDECREF(__pyx_t_13);
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.parse_region", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_parts);
+  __Pyx_XDECREF(__pyx_v_contig);
+  __Pyx_XDECREF(__pyx_v_stop);
+  __Pyx_XDECREF(__pyx_v_region);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":694
+ *         return 1, rtid, rstart, rstop
+ * 
+ *     def is_valid_tid(self, tid):             # <<<<<<<<<<<<<<
  *         """
+ *         return True if the numerical :term:`tid` is valid; False otherwise.
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_23is_valid_tid(PyObject *__pyx_v_self, PyObject *__pyx_v_tid); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_22is_valid_tid[] = "HTSFile.is_valid_tid(self, tid)\n\n        return True if the numerical :term:`tid` is valid; False otherwise.\n\n        returns -1 if contig is not known.\n        ";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_23is_valid_tid(PyObject *__pyx_v_self, PyObject *__pyx_v_tid) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("is_valid_tid (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_22is_valid_tid(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), ((PyObject *)__pyx_v_tid));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_22is_valid_tid(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_tid) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("is_valid_tid", 0);
+  __Pyx_TraceCall("is_valid_tid", __pyx_f[0], 694, 0, __PYX_ERR(0, 694, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":700
+ *         returns -1 if contig is not known.
+ *         """
+ *         raise NotImplementedError()             # <<<<<<<<<<<<<<
+ * 
+ *     def is_valid_reference_name(self, contig):
+ */
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_builtin_NotImplementedError); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 700, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __PYX_ERR(0, 700, __pyx_L1_error)
+
+  /* "pysam/libchtslib.pyx":694
+ *         return 1, rtid, rstart, rstop
+ * 
+ *     def is_valid_tid(self, tid):             # <<<<<<<<<<<<<<
+ *         """
+ *         return True if the numerical :term:`tid` is valid; False otherwise.
  */
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.is_valid_tid", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":702
+ *         raise NotImplementedError()
+ * 
+ *     def is_valid_reference_name(self, contig):             # <<<<<<<<<<<<<<
+ *         """
+ *         return True if the contig name :term:`contig` is valid; False otherwise.
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_25is_valid_reference_name(PyObject *__pyx_v_self, PyObject *__pyx_v_contig); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_24is_valid_reference_name[] = "HTSFile.is_valid_reference_name(self, contig)\n\n        return True if the contig name :term:`contig` is valid; False otherwise.\n        ";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_25is_valid_reference_name(PyObject *__pyx_v_self, PyObject *__pyx_v_contig) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("is_valid_reference_name (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_24is_valid_reference_name(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), ((PyObject *)__pyx_v_contig));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_24is_valid_reference_name(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, PyObject *__pyx_v_contig) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  __Pyx_RefNannySetupContext("is_valid_reference_name", 0);
+  __Pyx_TraceCall("is_valid_reference_name", __pyx_f[0], 702, 0, __PYX_ERR(0, 702, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":706
+ *         return True if the contig name :term:`contig` is valid; False otherwise.
+ *         """
+ *         return self.get_tid(contig) != -1             # <<<<<<<<<<<<<<
+ * 
+ *     def get_tid(self, contig):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_tid); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 706, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  if (!__pyx_t_3) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_contig); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 706, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+  } else {
+    #if CYTHON_FAST_PYCALL
+    if (PyFunction_Check(__pyx_t_2)) {
+      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_contig};
+      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 706, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_GOTREF(__pyx_t_1);
+    } else
+    #endif
+    #if CYTHON_FAST_PYCCALL
+    if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_v_contig};
+      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 706, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_GOTREF(__pyx_t_1);
+    } else
+    #endif
+    {
+      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 706, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
+      __Pyx_INCREF(__pyx_v_contig);
+      __Pyx_GIVEREF(__pyx_v_contig);
+      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_contig);
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 706, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    }
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_int_neg_1, Py_NE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 706, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "pysam/libchtslib.pyx":702
+ *         raise NotImplementedError()
+ * 
+ *     def is_valid_reference_name(self, contig):             # <<<<<<<<<<<<<<
+ *         """
+ *         return True if the contig name :term:`contig` is valid; False otherwise.
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_AddTraceback("pysam.libchtslib.HTSFile._exists", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.is_valid_reference_name", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6008,12 +12729,134 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_14_exists(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pxd":1908
+/* "pysam/libchtslib.pyx":708
+ *         return self.get_tid(contig) != -1
+ * 
+ *     def get_tid(self, contig):             # <<<<<<<<<<<<<<
+ *         """
+ *         return the numerical :term:`tid` corresponding to
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_27get_tid(PyObject *__pyx_v_self, PyObject *__pyx_v_contig); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_26get_tid[] = "HTSFile.get_tid(self, contig)\n\n        return the numerical :term:`tid` corresponding to\n        :term:`contig`\n\n        returns -1 if contig is not known.\n        ";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_27get_tid(PyObject *__pyx_v_self, PyObject *__pyx_v_contig) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("get_tid (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_26get_tid(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), ((PyObject *)__pyx_v_contig));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_26get_tid(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_contig) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("get_tid", 0);
+  __Pyx_TraceCall("get_tid", __pyx_f[0], 708, 0, __PYX_ERR(0, 708, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":715
+ *         returns -1 if contig is not known.
+ *         """
+ *         raise NotImplementedError()             # <<<<<<<<<<<<<<
+ * 
+ *     def get_reference_name(self, tid):
+ */
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_builtin_NotImplementedError); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 715, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __PYX_ERR(0, 715, __pyx_L1_error)
+
+  /* "pysam/libchtslib.pyx":708
+ *         return self.get_tid(contig) != -1
+ * 
+ *     def get_tid(self, contig):             # <<<<<<<<<<<<<<
+ *         """
+ *         return the numerical :term:`tid` corresponding to
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.get_tid", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pyx":717
+ *         raise NotImplementedError()
+ * 
+ *     def get_reference_name(self, tid):             # <<<<<<<<<<<<<<
+ *         """
+ *         return :term:`contig` name corresponding to numerical :term:`tid`
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_29get_reference_name(PyObject *__pyx_v_self, PyObject *__pyx_v_tid); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_28get_reference_name[] = "HTSFile.get_reference_name(self, tid)\n\n        return :term:`contig` name corresponding to numerical :term:`tid`\n        ";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_29get_reference_name(PyObject *__pyx_v_self, PyObject *__pyx_v_tid) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("get_reference_name (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_28get_reference_name(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), ((PyObject *)__pyx_v_tid));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_28get_reference_name(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_tid) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("get_reference_name", 0);
+  __Pyx_TraceCall("get_reference_name", __pyx_f[0], 717, 0, __PYX_ERR(0, 717, __pyx_L1_error));
+
+  /* "pysam/libchtslib.pyx":721
+ *         return :term:`contig` name corresponding to numerical :term:`tid`
+ *         """
+ *         raise NotImplementedError()             # <<<<<<<<<<<<<<
+ */
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_builtin_NotImplementedError); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 721, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __PYX_ERR(0, 721, __pyx_L1_error)
+
+  /* "pysam/libchtslib.pyx":717
+ *         raise NotImplementedError()
+ * 
+ *     def get_reference_name(self, tid):             # <<<<<<<<<<<<<<
+ *         """
+ *         return :term:`contig` name corresponding to numerical :term:`tid`
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.get_reference_name", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pxd":2594
  *     cdef          int64_t start_offset   # BGZF offset of first record
  * 
  *     cdef readonly object  filename       # filename as supplied by user             # <<<<<<<<<<<<<<
  *     cdef readonly object  mode           # file opening mode
- *     cdef readonly object  index_filename # filename of index, if supplied by user
+ *     cdef readonly object  threads        # number of threads to use
  */
 
 /* Python wrapper */
@@ -6034,7 +12877,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8filename___get__(struct 
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[2], 1908, 0, __PYX_ERR(2, 1908, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[2], 2594, 0, __PYX_ERR(2, 2594, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_self->filename);
   __pyx_r = __pyx_v_self->filename;
@@ -6051,12 +12894,12 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_8filename___get__(struct 
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pxd":1909
+/* "pysam/libchtslib.pxd":2595
  * 
  *     cdef readonly object  filename       # filename as supplied by user
  *     cdef readonly object  mode           # file opening mode             # <<<<<<<<<<<<<<
+ *     cdef readonly object  threads        # number of threads to use
  *     cdef readonly object  index_filename # filename of index, if supplied by user
- * 
  */
 
 /* Python wrapper */
@@ -6077,7 +12920,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_4mode___get__(struct __py
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[2], 1909, 0, __PYX_ERR(2, 1909, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[2], 2595, 0, __PYX_ERR(2, 2595, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_self->mode);
   __pyx_r = __pyx_v_self->mode;
@@ -6094,9 +12937,52 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_4mode___get__(struct __py
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pxd":1910
+/* "pysam/libchtslib.pxd":2596
  *     cdef readonly object  filename       # filename as supplied by user
  *     cdef readonly object  mode           # file opening mode
+ *     cdef readonly object  threads        # number of threads to use             # <<<<<<<<<<<<<<
+ *     cdef readonly object  index_filename # filename of index, if supplied by user
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_7threads_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_7threads_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_7threads___get__(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_7threads___get__(struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_TraceDeclarations
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__", 0);
+  __Pyx_TraceCall("__get__", __pyx_f[2], 2596, 0, __PYX_ERR(2, 2596, __pyx_L1_error));
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_self->threads);
+  __pyx_r = __pyx_v_self->threads;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("pysam.libchtslib.HTSFile.threads.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_TraceReturn(__pyx_r, 0);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pysam/libchtslib.pxd":2597
+ *     cdef readonly object  mode           # file opening mode
+ *     cdef readonly object  threads        # number of threads to use
  *     cdef readonly object  index_filename # filename of index, if supplied by user             # <<<<<<<<<<<<<<
  * 
  *     cdef readonly bint    is_stream      # Is htsfile a non-seekable stream
@@ -6120,7 +13006,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_14index_filename___get__(
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[2], 1910, 0, __PYX_ERR(2, 1910, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[2], 2597, 0, __PYX_ERR(2, 2597, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_self->index_filename);
   __pyx_r = __pyx_v_self->index_filename;
@@ -6137,7 +13023,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_14index_filename___get__(
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pxd":1912
+/* "pysam/libchtslib.pxd":2599
  *     cdef readonly object  index_filename # filename of index, if supplied by user
  * 
  *     cdef readonly bint    is_stream      # Is htsfile a non-seekable stream             # <<<<<<<<<<<<<<
@@ -6164,9 +13050,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_9is_stream___get__(struct
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[2], 1912, 0, __PYX_ERR(2, 1912, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[2], 2599, 0, __PYX_ERR(2, 2599, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_self->is_stream); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 1912, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_self->is_stream); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 2599, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -6184,7 +13070,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_9is_stream___get__(struct
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pxd":1913
+/* "pysam/libchtslib.pxd":2600
  * 
  *     cdef readonly bint    is_stream      # Is htsfile a non-seekable stream
  *     cdef readonly bint    is_remote      # Is htsfile a remote stream             # <<<<<<<<<<<<<<
@@ -6211,9 +13097,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_9is_remote___get__(struct
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[2], 1913, 0, __PYX_ERR(2, 1913, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[2], 2600, 0, __PYX_ERR(2, 2600, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_self->is_remote); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 1913, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_self->is_remote); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 2600, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -6231,7 +13117,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_9is_remote___get__(struct
   return __pyx_r;
 }
 
-/* "pysam/libchtslib.pxd":1914
+/* "pysam/libchtslib.pxd":2601
  *     cdef readonly bint    is_stream      # Is htsfile a non-seekable stream
  *     cdef readonly bint    is_remote      # Is htsfile a remote stream
  *     cdef readonly bint	  duplicate_filehandle   # Duplicate filehandle when opening via fh             # <<<<<<<<<<<<<<
@@ -6258,9 +13144,9 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_20duplicate_filehandle___
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_TraceCall("__get__", __pyx_f[2], 1914, 0, __PYX_ERR(2, 1914, __pyx_L1_error));
+  __Pyx_TraceCall("__get__", __pyx_f[2], 2601, 0, __PYX_ERR(2, 2601, __pyx_L1_error));
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_self->duplicate_filehandle); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 1914, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_self->duplicate_filehandle); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 2601, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -6285,20 +13171,20 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_20duplicate_filehandle___
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_17__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_5pysam_10libchtslib_7HTSFile_16__reduce_cython__[] = "HTSFile.__reduce_cython__(self)";
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_17__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_31__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_30__reduce_cython__[] = "HTSFile.__reduce_cython__(self)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_31__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_16__reduce_cython__(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_30__reduce_cython__(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_16__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_30__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -6312,7 +13198,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_16__reduce_cython__(CYTHO
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__21, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__40, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -6343,20 +13229,20 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_16__reduce_cython__(CYTHO
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_19__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static char __pyx_doc_5pysam_10libchtslib_7HTSFile_18__setstate_cython__[] = "HTSFile.__setstate_cython__(self, __pyx_state)";
-static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_19__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_33__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static char __pyx_doc_5pysam_10libchtslib_7HTSFile_32__setstate_cython__[] = "HTSFile.__setstate_cython__(self, __pyx_state)";
+static PyObject *__pyx_pw_5pysam_10libchtslib_7HTSFile_33__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_18__setstate_cython__(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_5pysam_10libchtslib_7HTSFile_32__setstate_cython__(((struct __pyx_obj_5pysam_10libchtslib_HTSFile *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_18__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_32__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_5pysam_10libchtslib_HTSFile *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
@@ -6369,7 +13255,7 @@ static PyObject *__pyx_pf_5pysam_10libchtslib_7HTSFile_18__setstate_cython__(CYT
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__22, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__41, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -7072,6 +13958,7 @@ static PyObject *__pyx_tp_new_5pysam_10libchtslib_HTSFile(PyTypeObject *t, PyObj
   p->__pyx_vtab = __pyx_vtabptr_5pysam_10libchtslib_HTSFile;
   p->filename = Py_None; Py_INCREF(Py_None);
   p->mode = Py_None; Py_INCREF(Py_None);
+  p->threads = Py_None; Py_INCREF(Py_None);
   p->index_filename = Py_None; Py_INCREF(Py_None);
   if (unlikely(__pyx_pw_5pysam_10libchtslib_7HTSFile_1__cinit__(o, a, k) < 0)) goto bad;
   return o;
@@ -7092,12 +13979,13 @@ static void __pyx_tp_dealloc_5pysam_10libchtslib_HTSFile(PyObject *o) {
     PyObject *etype, *eval, *etb;
     PyErr_Fetch(&etype, &eval, &etb);
     ++Py_REFCNT(o);
-    __pyx_pw_5pysam_10libchtslib_7HTSFile_3__dealloc__(o);
+    __pyx_pw_5pysam_10libchtslib_7HTSFile_5__dealloc__(o);
     --Py_REFCNT(o);
     PyErr_Restore(etype, eval, etb);
   }
   Py_CLEAR(p->filename);
   Py_CLEAR(p->mode);
+  Py_CLEAR(p->threads);
   Py_CLEAR(p->index_filename);
   (*Py_TYPE(o)->tp_free)(o);
 }
@@ -7110,6 +13998,9 @@ static int __pyx_tp_traverse_5pysam_10libchtslib_HTSFile(PyObject *o, visitproc 
   }
   if (p->mode) {
     e = (*v)(p->mode, a); if (e) return e;
+  }
+  if (p->threads) {
+    e = (*v)(p->threads, a); if (e) return e;
   }
   if (p->index_filename) {
     e = (*v)(p->index_filename, a); if (e) return e;
@@ -7125,6 +14016,9 @@ static int __pyx_tp_clear_5pysam_10libchtslib_HTSFile(PyObject *o) {
   Py_XDECREF(tmp);
   tmp = ((PyObject*)p->mode);
   p->mode = Py_None; Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  tmp = ((PyObject*)p->threads);
+  p->threads = Py_None; Py_INCREF(Py_None);
   Py_XDECREF(tmp);
   tmp = ((PyObject*)p->index_filename);
   p->index_filename = Py_None; Py_INCREF(Py_None);
@@ -7200,6 +14094,10 @@ static PyObject *__pyx_getprop_5pysam_10libchtslib_7HTSFile_mode(PyObject *o, CY
   return __pyx_pw_5pysam_10libchtslib_7HTSFile_4mode_1__get__(o);
 }
 
+static PyObject *__pyx_getprop_5pysam_10libchtslib_7HTSFile_threads(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_5pysam_10libchtslib_7HTSFile_7threads_1__get__(o);
+}
+
 static PyObject *__pyx_getprop_5pysam_10libchtslib_7HTSFile_index_filename(PyObject *o, CYTHON_UNUSED void *x) {
   return __pyx_pw_5pysam_10libchtslib_7HTSFile_14index_filename_1__get__(o);
 }
@@ -7217,14 +14115,21 @@ static PyObject *__pyx_getprop_5pysam_10libchtslib_7HTSFile_duplicate_filehandle
 }
 
 static PyMethodDef __pyx_methods_5pysam_10libchtslib_HTSFile[] = {
-  {"__enter__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_5__enter__, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_7HTSFile_4__enter__},
-  {"__exit__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_7__exit__, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_10libchtslib_7HTSFile_6__exit__},
-  {"reset", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_9reset, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_7HTSFile_8reset},
-  {"seek", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_11seek, METH_O, __pyx_doc_5pysam_10libchtslib_7HTSFile_10seek},
-  {"tell", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_13tell, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_7HTSFile_12tell},
-  {"_exists", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_15_exists, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_7HTSFile_14_exists},
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_17__reduce_cython__, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_7HTSFile_16__reduce_cython__},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_19__setstate_cython__, METH_O, __pyx_doc_5pysam_10libchtslib_7HTSFile_18__setstate_cython__},
+  {"close", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_3close, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_7HTSFile_2close},
+  {"check_truncation", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_7check_truncation, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_10libchtslib_7HTSFile_6check_truncation},
+  {"__enter__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_9__enter__, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_7HTSFile_8__enter__},
+  {"__exit__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_11__exit__, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_10libchtslib_7HTSFile_10__exit__},
+  {"reset", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_13reset, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_7HTSFile_12reset},
+  {"seek", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_15seek, METH_O, __pyx_doc_5pysam_10libchtslib_7HTSFile_14seek},
+  {"tell", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_17tell, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_7HTSFile_16tell},
+  {"add_hts_options", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_19add_hts_options, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_10libchtslib_7HTSFile_18add_hts_options},
+  {"parse_region", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_21parse_region, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_10libchtslib_7HTSFile_20parse_region},
+  {"is_valid_tid", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_23is_valid_tid, METH_O, __pyx_doc_5pysam_10libchtslib_7HTSFile_22is_valid_tid},
+  {"is_valid_reference_name", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_25is_valid_reference_name, METH_O, __pyx_doc_5pysam_10libchtslib_7HTSFile_24is_valid_reference_name},
+  {"get_tid", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_27get_tid, METH_O, __pyx_doc_5pysam_10libchtslib_7HTSFile_26get_tid},
+  {"get_reference_name", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_29get_reference_name, METH_O, __pyx_doc_5pysam_10libchtslib_7HTSFile_28get_reference_name},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_31__reduce_cython__, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_7HTSFile_30__reduce_cython__},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_7HTSFile_33__setstate_cython__, METH_O, __pyx_doc_5pysam_10libchtslib_7HTSFile_32__setstate_cython__},
   {0, 0, 0, 0}
 };
 
@@ -7246,6 +14151,7 @@ static struct PyGetSetDef __pyx_getsets_5pysam_10libchtslib_HTSFile[] = {
   {(char *)"is_bcf", __pyx_getprop_5pysam_10libchtslib_7HTSFile_is_bcf, 0, (char *)"return True if HTSFile is reading or writing a BCF variant file", 0},
   {(char *)"filename", __pyx_getprop_5pysam_10libchtslib_7HTSFile_filename, 0, (char *)0, 0},
   {(char *)"mode", __pyx_getprop_5pysam_10libchtslib_7HTSFile_mode, 0, (char *)0, 0},
+  {(char *)"threads", __pyx_getprop_5pysam_10libchtslib_7HTSFile_threads, 0, (char *)0, 0},
   {(char *)"index_filename", __pyx_getprop_5pysam_10libchtslib_7HTSFile_index_filename, 0, (char *)0, 0},
   {(char *)"is_stream", __pyx_getprop_5pysam_10libchtslib_7HTSFile_is_stream, 0, (char *)0, 0},
   {(char *)"is_remote", __pyx_getprop_5pysam_10libchtslib_7HTSFile_is_remote, 0, (char *)0, 0},
@@ -7310,6 +14216,171 @@ static PyTypeObject __pyx_type_5pysam_10libchtslib_HTSFile = {
   0, /*tp_finalize*/
   #endif
 };
+static struct __pyx_vtabstruct_5pysam_10libchtslib_HFile __pyx_vtable_5pysam_10libchtslib_HFile;
+
+static PyObject *__pyx_tp_new_5pysam_10libchtslib_HFile(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
+  struct __pyx_obj_5pysam_10libchtslib_HFile *p;
+  PyObject *o;
+  if (likely((t->tp_flags & Py_TPFLAGS_IS_ABSTRACT) == 0)) {
+    o = (*t->tp_alloc)(t, 0);
+  } else {
+    o = (PyObject *) PyBaseObject_Type.tp_new(t, __pyx_empty_tuple, 0);
+  }
+  if (unlikely(!o)) return 0;
+  p = ((struct __pyx_obj_5pysam_10libchtslib_HFile *)o);
+  p->__pyx_vtab = __pyx_vtabptr_5pysam_10libchtslib_HFile;
+  p->name = Py_None; Py_INCREF(Py_None);
+  p->mode = Py_None; Py_INCREF(Py_None);
+  return o;
+}
+
+static void __pyx_tp_dealloc_5pysam_10libchtslib_HFile(PyObject *o) {
+  struct __pyx_obj_5pysam_10libchtslib_HFile *p = (struct __pyx_obj_5pysam_10libchtslib_HFile *)o;
+  #if CYTHON_USE_TP_FINALIZE
+  if (unlikely(PyType_HasFeature(Py_TYPE(o), Py_TPFLAGS_HAVE_FINALIZE) && Py_TYPE(o)->tp_finalize) && !_PyGC_FINALIZED(o)) {
+    if (PyObject_CallFinalizerFromDealloc(o)) return;
+  }
+  #endif
+  PyObject_GC_UnTrack(o);
+  {
+    PyObject *etype, *eval, *etb;
+    PyErr_Fetch(&etype, &eval, &etb);
+    ++Py_REFCNT(o);
+    __pyx_pw_5pysam_10libchtslib_5HFile_3__dealloc__(o);
+    --Py_REFCNT(o);
+    PyErr_Restore(etype, eval, etb);
+  }
+  Py_CLEAR(p->name);
+  Py_CLEAR(p->mode);
+  (*Py_TYPE(o)->tp_free)(o);
+}
+
+static int __pyx_tp_traverse_5pysam_10libchtslib_HFile(PyObject *o, visitproc v, void *a) {
+  int e;
+  struct __pyx_obj_5pysam_10libchtslib_HFile *p = (struct __pyx_obj_5pysam_10libchtslib_HFile *)o;
+  if (p->name) {
+    e = (*v)(p->name, a); if (e) return e;
+  }
+  if (p->mode) {
+    e = (*v)(p->mode, a); if (e) return e;
+  }
+  return 0;
+}
+
+static int __pyx_tp_clear_5pysam_10libchtslib_HFile(PyObject *o) {
+  PyObject* tmp;
+  struct __pyx_obj_5pysam_10libchtslib_HFile *p = (struct __pyx_obj_5pysam_10libchtslib_HFile *)o;
+  tmp = ((PyObject*)p->name);
+  p->name = Py_None; Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  tmp = ((PyObject*)p->mode);
+  p->mode = Py_None; Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  return 0;
+}
+
+static PyObject *__pyx_getprop_5pysam_10libchtslib_5HFile_closed(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_5pysam_10libchtslib_5HFile_6closed_1__get__(o);
+}
+
+static PyObject *__pyx_getprop_5pysam_10libchtslib_5HFile_name(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_5pysam_10libchtslib_5HFile_4name_1__get__(o);
+}
+
+static PyObject *__pyx_getprop_5pysam_10libchtslib_5HFile_mode(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_5pysam_10libchtslib_5HFile_4mode_1__get__(o);
+}
+
+static PyMethodDef __pyx_methods_5pysam_10libchtslib_HFile[] = {
+  {"close", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_5close, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_4close},
+  {"fileno", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_7fileno, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_6fileno},
+  {"__enter__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_9__enter__, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_8__enter__},
+  {"__exit__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_11__exit__, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_10libchtslib_5HFile_10__exit__},
+  {"__next__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_15__next__, METH_NOARGS|METH_COEXIST, 0},
+  {"flush", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_17flush, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_16flush},
+  {"isatty", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_19isatty, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_18isatty},
+  {"readable", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_21readable, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_20readable},
+  {"read", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_23read, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_10libchtslib_5HFile_22read},
+  {"readall", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_25readall, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_24readall},
+  {"readinto", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_27readinto, METH_O, __pyx_doc_5pysam_10libchtslib_5HFile_26readinto},
+  {"readline", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_29readline, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_10libchtslib_5HFile_28readline},
+  {"readlines", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_31readlines, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_30readlines},
+  {"seek", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_33seek, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_10libchtslib_5HFile_32seek},
+  {"tell", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_35tell, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_34tell},
+  {"seekable", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_37seekable, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_36seekable},
+  {"truncate", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_39truncate, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5pysam_10libchtslib_5HFile_38truncate},
+  {"writable", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_41writable, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_40writable},
+  {"write", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_43write, METH_O, __pyx_doc_5pysam_10libchtslib_5HFile_42write},
+  {"writelines", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_45writelines, METH_O, __pyx_doc_5pysam_10libchtslib_5HFile_44writelines},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_47__reduce_cython__, METH_NOARGS, __pyx_doc_5pysam_10libchtslib_5HFile_46__reduce_cython__},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_5pysam_10libchtslib_5HFile_49__setstate_cython__, METH_O, __pyx_doc_5pysam_10libchtslib_5HFile_48__setstate_cython__},
+  {0, 0, 0, 0}
+};
+
+static struct PyGetSetDef __pyx_getsets_5pysam_10libchtslib_HFile[] = {
+  {(char *)"closed", __pyx_getprop_5pysam_10libchtslib_5HFile_closed, 0, (char *)0, 0},
+  {(char *)"name", __pyx_getprop_5pysam_10libchtslib_5HFile_name, 0, (char *)0, 0},
+  {(char *)"mode", __pyx_getprop_5pysam_10libchtslib_5HFile_mode, 0, (char *)0, 0},
+  {0, 0, 0, 0, 0}
+};
+
+static PyTypeObject __pyx_type_5pysam_10libchtslib_HFile = {
+  PyVarObject_HEAD_INIT(0, 0)
+  "pysam.libchtslib.HFile", /*tp_name*/
+  sizeof(struct __pyx_obj_5pysam_10libchtslib_HFile), /*tp_basicsize*/
+  0, /*tp_itemsize*/
+  __pyx_tp_dealloc_5pysam_10libchtslib_HFile, /*tp_dealloc*/
+  0, /*tp_print*/
+  0, /*tp_getattr*/
+  0, /*tp_setattr*/
+  #if PY_MAJOR_VERSION < 3
+  0, /*tp_compare*/
+  #endif
+  #if PY_MAJOR_VERSION >= 3
+  0, /*tp_as_async*/
+  #endif
+  0, /*tp_repr*/
+  0, /*tp_as_number*/
+  0, /*tp_as_sequence*/
+  0, /*tp_as_mapping*/
+  0, /*tp_hash*/
+  0, /*tp_call*/
+  0, /*tp_str*/
+  0, /*tp_getattro*/
+  0, /*tp_setattro*/
+  0, /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
+  "HFile(name, mode='r', closedf=True)", /*tp_doc*/
+  __pyx_tp_traverse_5pysam_10libchtslib_HFile, /*tp_traverse*/
+  __pyx_tp_clear_5pysam_10libchtslib_HFile, /*tp_clear*/
+  0, /*tp_richcompare*/
+  0, /*tp_weaklistoffset*/
+  __pyx_pw_5pysam_10libchtslib_5HFile_13__iter__, /*tp_iter*/
+  __pyx_pw_5pysam_10libchtslib_5HFile_15__next__, /*tp_iternext*/
+  __pyx_methods_5pysam_10libchtslib_HFile, /*tp_methods*/
+  0, /*tp_members*/
+  __pyx_getsets_5pysam_10libchtslib_HFile, /*tp_getset*/
+  0, /*tp_base*/
+  0, /*tp_dict*/
+  0, /*tp_descr_get*/
+  0, /*tp_descr_set*/
+  0, /*tp_dictoffset*/
+  __pyx_pw_5pysam_10libchtslib_5HFile_1__init__, /*tp_init*/
+  0, /*tp_alloc*/
+  __pyx_tp_new_5pysam_10libchtslib_HFile, /*tp_new*/
+  0, /*tp_free*/
+  0, /*tp_is_gc*/
+  0, /*tp_bases*/
+  0, /*tp_mro*/
+  0, /*tp_cache*/
+  0, /*tp_subclasses*/
+  0, /*tp_weaklist*/
+  0, /*tp_del*/
+  0, /*tp_version_tag*/
+  #if PY_VERSION_HEX >= 0x030400a1
+  0, /*tp_finalize*/
+  #endif
+};
 
 static PyMethodDef __pyx_methods[] = {
   {"set_verbosity", (PyCFunction)__pyx_pw_5pysam_10libchtslib_1set_verbosity, METH_O, __pyx_doc_5pysam_10libchtslib_set_verbosity},
@@ -7351,6 +14422,7 @@ static struct PyModuleDef __pyx_moduledef = {
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ALIGNMENTS, __pyx_k_ALIGNMENTS, sizeof(__pyx_k_ALIGNMENTS), 0, 0, 1, 1},
+  {&__pyx_kp_s_An_error_occured_while_applying, __pyx_k_An_error_occured_while_applying, sizeof(__pyx_k_An_error_occured_while_applying), 0, 0, 1, 0},
   {&__pyx_n_s_AttributeError, __pyx_k_AttributeError, sizeof(__pyx_k_AttributeError), 0, 0, 1, 1},
   {&__pyx_n_s_BAI, __pyx_k_BAI, sizeof(__pyx_k_BAI), 0, 0, 1, 1},
   {&__pyx_n_s_BAM, __pyx_k_BAM, sizeof(__pyx_k_BAM), 0, 0, 1, 1},
@@ -7374,14 +14446,21 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Cannot_create_hfile, __pyx_k_Cannot_create_hfile, sizeof(__pyx_k_Cannot_create_hfile), 0, 0, 1, 0},
   {&__pyx_n_s_GZI, __pyx_k_GZI, sizeof(__pyx_k_GZI), 0, 0, 1, 1},
   {&__pyx_n_s_GZIP, __pyx_k_GZIP, sizeof(__pyx_k_GZIP), 0, 0, 1, 1},
+  {&__pyx_n_s_HFile, __pyx_k_HFile, sizeof(__pyx_k_HFile), 0, 0, 1, 1},
+  {&__pyx_n_s_HTSFile, __pyx_k_HTSFile, sizeof(__pyx_k_HTSFile), 0, 0, 1, 1},
   {&__pyx_n_s_INDEX, __pyx_k_INDEX, sizeof(__pyx_k_INDEX), 0, 0, 1, 1},
   {&__pyx_n_s_IOError, __pyx_k_IOError, sizeof(__pyx_k_IOError), 0, 0, 1, 1},
   {&__pyx_kp_s_I_O_operation_on_closed_file, __pyx_k_I_O_operation_on_closed_file, sizeof(__pyx_k_I_O_operation_on_closed_file), 0, 0, 1, 0},
+  {&__pyx_n_s_IndexError, __pyx_k_IndexError, sizeof(__pyx_k_IndexError), 0, 0, 1, 1},
+  {&__pyx_kp_s_Invalid_format_option_specified, __pyx_k_Invalid_format_option_specified, sizeof(__pyx_k_Invalid_format_option_specified), 0, 0, 1, 0},
   {&__pyx_n_s_MemoryError, __pyx_k_MemoryError, sizeof(__pyx_k_MemoryError), 0, 0, 1, 1},
   {&__pyx_n_s_NONE, __pyx_k_NONE, sizeof(__pyx_k_NONE), 0, 0, 1, 1},
-  {&__pyx_n_s_OSError, __pyx_k_OSError, sizeof(__pyx_k_OSError), 0, 0, 1, 1},
+  {&__pyx_n_s_NotImplementedError, __pyx_k_NotImplementedError, sizeof(__pyx_k_NotImplementedError), 0, 0, 1, 1},
+  {&__pyx_n_s_OverflowError, __pyx_k_OverflowError, sizeof(__pyx_k_OverflowError), 0, 0, 1, 1},
   {&__pyx_n_s_REGIONS, __pyx_k_REGIONS, sizeof(__pyx_k_REGIONS), 0, 0, 1, 1},
+  {&__pyx_n_s_RuntimeError, __pyx_k_RuntimeError, sizeof(__pyx_k_RuntimeError), 0, 0, 1, 1},
   {&__pyx_n_s_SAM, __pyx_k_SAM, sizeof(__pyx_k_SAM), 0, 0, 1, 1},
+  {&__pyx_n_s_StopIteration, __pyx_k_StopIteration, sizeof(__pyx_k_StopIteration), 0, 0, 1, 1},
   {&__pyx_n_s_TBI, __pyx_k_TBI, sizeof(__pyx_k_TBI), 0, 0, 1, 1},
   {&__pyx_n_s_TEXT_FORMAT, __pyx_k_TEXT_FORMAT, sizeof(__pyx_k_TEXT_FORMAT), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
@@ -7389,8 +14468,10 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_VARIANTS, __pyx_k_VARIANTS, sizeof(__pyx_k_VARIANTS), 0, 0, 1, 1},
   {&__pyx_n_s_VCF, __pyx_k_VCF, sizeof(__pyx_k_VCF), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
-  {&__pyx_kp_b__16, __pyx_k__16, sizeof(__pyx_k__16), 0, 0, 0, 0},
-  {&__pyx_kp_b__20, __pyx_k__20, sizeof(__pyx_k__20), 0, 0, 0, 0},
+  {&__pyx_kp_s__36, __pyx_k__36, sizeof(__pyx_k__36), 0, 0, 1, 0},
+  {&__pyx_kp_s__38, __pyx_k__38, sizeof(__pyx_k__38), 0, 0, 1, 0},
+  {&__pyx_kp_s__39, __pyx_k__39, sizeof(__pyx_k__39), 0, 0, 1, 0},
+  {&__pyx_kp_b__6, __pyx_k__6, sizeof(__pyx_k__6), 0, 0, 0, 0},
   {&__pyx_n_s_all, __pyx_k_all, sizeof(__pyx_k_all), 0, 0, 1, 1},
   {&__pyx_n_b_b, __pyx_k_b, sizeof(__pyx_k_b), 0, 0, 0, 1},
   {&__pyx_n_s_bool, __pyx_k_bool, sizeof(__pyx_k_bool), 0, 0, 1, 1},
@@ -7398,60 +14479,112 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_call, __pyx_k_call, sizeof(__pyx_k_call), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_n_s_close, __pyx_k_close, sizeof(__pyx_k_close), 0, 0, 1, 1},
+  {&__pyx_n_s_closedf, __pyx_k_closedf, sizeof(__pyx_k_closedf), 0, 0, 1, 1},
+  {&__pyx_n_s_contig, __pyx_k_contig, sizeof(__pyx_k_contig), 0, 0, 1, 1},
+  {&__pyx_kp_s_contig_and_reference_should_not, __pyx_k_contig_and_reference_should_not, sizeof(__pyx_k_contig_and_reference_should_not), 0, 0, 1, 0},
   {&__pyx_n_s_doc, __pyx_k_doc, sizeof(__pyx_k_doc), 0, 0, 1, 1},
+  {&__pyx_n_s_end, __pyx_k_end, sizeof(__pyx_k_end), 0, 0, 1, 1},
   {&__pyx_n_s_eq, __pyx_k_eq, sizeof(__pyx_k_eq), 0, 0, 1, 1},
+  {&__pyx_kp_s_error_checking_for_EOF_marker, __pyx_k_error_checking_for_EOF_marker, sizeof(__pyx_k_error_checking_for_EOF_marker), 0, 0, 1, 0},
   {&__pyx_n_s_exc_type, __pyx_k_exc_type, sizeof(__pyx_k_exc_type), 0, 0, 1, 1},
   {&__pyx_n_s_exc_value, __pyx_k_exc_value, sizeof(__pyx_k_exc_value), 0, 0, 1, 1},
-  {&__pyx_n_s_exists, __pyx_k_exists, sizeof(__pyx_k_exists), 0, 0, 1, 1},
+  {&__pyx_kp_s_failed_to_close_HFile, __pyx_k_failed_to_close_HFile, sizeof(__pyx_k_failed_to_close_HFile), 0, 0, 1, 0},
+  {&__pyx_kp_s_failed_to_flush_HFile, __pyx_k_failed_to_flush_HFile, sizeof(__pyx_k_failed_to_flush_HFile), 0, 0, 1, 0},
+  {&__pyx_kp_s_failed_to_open_HFile, __pyx_k_failed_to_open_HFile, sizeof(__pyx_k_failed_to_open_HFile), 0, 0, 1, 0},
+  {&__pyx_kp_s_failed_to_read_HFile, __pyx_k_failed_to_read_HFile, sizeof(__pyx_k_failed_to_read_HFile), 0, 0, 1, 0},
   {&__pyx_kp_s_fd, __pyx_k_fd, sizeof(__pyx_k_fd), 0, 0, 1, 0},
   {&__pyx_n_s_fileno, __pyx_k_fileno, sizeof(__pyx_k_fileno), 0, 0, 1, 1},
+  {&__pyx_kp_s_fileno_not_available, __pyx_k_fileno_not_available, sizeof(__pyx_k_fileno_not_available), 0, 0, 1, 0},
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
+  {&__pyx_n_s_format_options, __pyx_k_format_options, sizeof(__pyx_k_format_options), 0, 0, 1, 1},
+  {&__pyx_n_s_get_tid, __pyx_k_get_tid, sizeof(__pyx_k_get_tid), 0, 0, 1, 1},
   {&__pyx_n_s_get_verbosity, __pyx_k_get_verbosity, sizeof(__pyx_k_get_verbosity), 0, 0, 1, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
+  {&__pyx_n_s_ignore_truncation, __pyx_k_ignore_truncation, sizeof(__pyx_k_ignore_truncation), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_init, __pyx_k_init, sizeof(__pyx_k_init), 0, 0, 1, 1},
+  {&__pyx_kp_s_invalid_contig_s, __pyx_k_invalid_contig_s, sizeof(__pyx_k_invalid_contig_s), 0, 0, 1, 0},
+  {&__pyx_kp_s_invalid_coordinates_start_i_stop, __pyx_k_invalid_coordinates_start_i_stop, sizeof(__pyx_k_invalid_coordinates_start_i_stop), 0, 0, 1, 0},
+  {&__pyx_kp_s_invalid_tid, __pyx_k_invalid_tid, sizeof(__pyx_k_invalid_tid), 0, 0, 1, 0},
+  {&__pyx_n_s_io, __pyx_k_io, sizeof(__pyx_k_io), 0, 0, 1, 1},
   {&__pyx_n_s_is_open, __pyx_k_is_open, sizeof(__pyx_k_is_open), 0, 0, 1, 1},
+  {&__pyx_n_s_is_valid_tid, __pyx_k_is_valid_tid, sizeof(__pyx_k_is_valid_tid), 0, 0, 1, 1},
+  {&__pyx_n_s_join, __pyx_k_join, sizeof(__pyx_k_join), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
+  {&__pyx_n_s_memoryview, __pyx_k_memoryview, sizeof(__pyx_k_memoryview), 0, 0, 1, 1},
   {&__pyx_n_s_metaclass, __pyx_k_metaclass, sizeof(__pyx_k_metaclass), 0, 0, 1, 1},
   {&__pyx_kp_s_metadata_not_available_on_closed, __pyx_k_metadata_not_available_on_closed, sizeof(__pyx_k_metadata_not_available_on_closed), 0, 0, 1, 0},
+  {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
   {&__pyx_n_s_module, __pyx_k_module, sizeof(__pyx_k_module), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_n_s_name_2, __pyx_k_name_2, sizeof(__pyx_k_name_2), 0, 0, 1, 1},
   {&__pyx_n_s_ne, __pyx_k_ne, sizeof(__pyx_k_ne), 0, 0, 1, 1},
+  {&__pyx_kp_s_no_BGZF_EOF_marker_file_may_be_t, __pyx_k_no_BGZF_EOF_marker_file_may_be_t, sizeof(__pyx_k_no_BGZF_EOF_marker_file_may_be_t), 0, 0, 1, 0},
   {&__pyx_kp_s_no_default___reduce___due_to_non, __pyx_k_no_default___reduce___due_to_non, sizeof(__pyx_k_no_default___reduce___due_to_non), 0, 0, 1, 0},
   {&__pyx_n_s_nonzero, __pyx_k_nonzero, sizeof(__pyx_k_nonzero), 0, 0, 1, 1},
   {&__pyx_n_s_object, __pyx_k_object, sizeof(__pyx_k_object), 0, 0, 1, 1},
+  {&__pyx_n_s_offset, __pyx_k_offset, sizeof(__pyx_k_offset), 0, 0, 1, 1},
+  {&__pyx_kp_s_operation_on_closed_HFile, __pyx_k_operation_on_closed_HFile, sizeof(__pyx_k_operation_on_closed_HFile), 0, 0, 1, 0},
   {&__pyx_n_s_os, __pyx_k_os, sizeof(__pyx_k_os), 0, 0, 1, 1},
   {&__pyx_n_s_other, __pyx_k_other, sizeof(__pyx_k_other), 0, 0, 1, 1},
-  {&__pyx_n_s_path, __pyx_k_path, sizeof(__pyx_k_path), 0, 0, 1, 1},
   {&__pyx_n_s_prepare, __pyx_k_prepare, sizeof(__pyx_k_prepare), 0, 0, 1, 1},
   {&__pyx_n_s_pysam_libchtslib, __pyx_k_pysam_libchtslib, sizeof(__pyx_k_pysam_libchtslib), 0, 0, 1, 1},
   {&__pyx_kp_s_pysam_libchtslib_pyx, __pyx_k_pysam_libchtslib_pyx, sizeof(__pyx_k_pysam_libchtslib_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
   {&__pyx_n_s_qualname, __pyx_k_qualname, sizeof(__pyx_k_qualname), 0, 0, 1, 1},
+  {&__pyx_n_s_r, __pyx_k_r, sizeof(__pyx_k_r), 0, 0, 1, 1},
+  {&__pyx_n_s_re, __pyx_k_re, sizeof(__pyx_k_re), 0, 0, 1, 1},
+  {&__pyx_n_s_read, __pyx_k_read, sizeof(__pyx_k_read), 0, 0, 1, 1},
+  {&__pyx_n_s_readline, __pyx_k_readline, sizeof(__pyx_k_readline), 0, 0, 1, 1},
   {&__pyx_n_s_reduce, __pyx_k_reduce, sizeof(__pyx_k_reduce), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
+  {&__pyx_n_s_reference, __pyx_k_reference, sizeof(__pyx_k_reference), 0, 0, 1, 1},
+  {&__pyx_n_s_region, __pyx_k_region, sizeof(__pyx_k_region), 0, 0, 1, 1},
   {&__pyx_n_s_replace, __pyx_k_replace, sizeof(__pyx_k_replace), 0, 0, 1, 1},
   {&__pyx_n_s_seek, __pyx_k_seek, sizeof(__pyx_k_seek), 0, 0, 1, 1},
+  {&__pyx_kp_s_seek_failed_on_HFile, __pyx_k_seek_failed_on_HFile, sizeof(__pyx_k_seek_failed_on_HFile), 0, 0, 1, 0},
   {&__pyx_kp_s_seek_not_available_in_streams, __pyx_k_seek_not_available_in_streams, sizeof(__pyx_k_seek_not_available_in_streams), 0, 0, 1, 0},
+  {&__pyx_kp_s_seek_not_implemented_in_files_co, __pyx_k_seek_not_implemented_in_files_co, sizeof(__pyx_k_seek_not_implemented_in_files_co), 0, 0, 1, 0},
   {&__pyx_n_s_self, __pyx_k_self, sizeof(__pyx_k_self), 0, 0, 1, 1},
+  {&__pyx_kp_s_self_fp_cannot_be_converted_to_a, __pyx_k_self_fp_cannot_be_converted_to_a, sizeof(__pyx_k_self_fp_cannot_be_converted_to_a), 0, 0, 1, 0},
   {&__pyx_n_s_set_verbosity, __pyx_k_set_verbosity, sizeof(__pyx_k_set_verbosity), 0, 0, 1, 1},
   {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
   {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
+  {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
+  {&__pyx_n_s_split, __pyx_k_split, sizeof(__pyx_k_split), 0, 0, 1, 1},
+  {&__pyx_n_s_start, __pyx_k_start, sizeof(__pyx_k_start), 0, 0, 1, 1},
+  {&__pyx_kp_s_start_out_of_range_i, __pyx_k_start_out_of_range_i, sizeof(__pyx_k_start_out_of_range_i), 0, 0, 1, 0},
+  {&__pyx_n_s_stop, __pyx_k_stop, sizeof(__pyx_k_stop), 0, 0, 1, 1},
+  {&__pyx_kp_s_stop_and_end_should_not_both_be, __pyx_k_stop_and_end_should_not_both_be, sizeof(__pyx_k_stop_and_end_should_not_both_be), 0, 0, 1, 0},
+  {&__pyx_kp_s_stop_out_of_range_i, __pyx_k_stop_out_of_range_i, sizeof(__pyx_k_stop_out_of_range_i), 0, 0, 1, 0},
+  {&__pyx_n_s_tb, __pyx_k_tb, sizeof(__pyx_k_tb), 0, 0, 1, 1},
+  {&__pyx_kp_s_tell_failed_on_HFile, __pyx_k_tell_failed_on_HFile, sizeof(__pyx_k_tell_failed_on_HFile), 0, 0, 1, 0},
   {&__pyx_kp_s_tell_not_available_in_streams, __pyx_k_tell_not_available_in_streams, sizeof(__pyx_k_tell_not_available_in_streams), 0, 0, 1, 0},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
+  {&__pyx_n_s_tid, __pyx_k_tid, sizeof(__pyx_k_tid), 0, 0, 1, 1},
   {&__pyx_n_s_traceback, __pyx_k_traceback, sizeof(__pyx_k_traceback), 0, 0, 1, 1},
+  {&__pyx_n_s_type, __pyx_k_type, sizeof(__pyx_k_type), 0, 0, 1, 1},
   {&__pyx_n_s_value, __pyx_k_value, sizeof(__pyx_k_value), 0, 0, 1, 1},
+  {&__pyx_n_s_w, __pyx_k_w, sizeof(__pyx_k_w), 0, 0, 1, 1},
+  {&__pyx_n_s_warn, __pyx_k_warn, sizeof(__pyx_k_warn), 0, 0, 1, 1},
+  {&__pyx_n_s_warnings, __pyx_k_warnings, sizeof(__pyx_k_warnings), 0, 0, 1, 1},
+  {&__pyx_n_s_whence, __pyx_k_whence, sizeof(__pyx_k_whence), 0, 0, 1, 1},
+  {&__pyx_n_s_write, __pyx_k_write, sizeof(__pyx_k_write), 0, 0, 1, 1},
+  {&__pyx_kp_s_write_failed_on_HFile, __pyx_k_write_failed_on_HFile, sizeof(__pyx_k_write_failed_on_HFile), 0, 0, 1, 0},
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_object = __Pyx_GetBuiltinName(__pyx_n_s_object); if (!__pyx_builtin_object) __PYX_ERR(0, 38, __pyx_L1_error)
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 82, __pyx_L1_error)
-  __pyx_builtin_OSError = __Pyx_GetBuiltinName(__pyx_n_s_OSError); if (!__pyx_builtin_OSError) __PYX_ERR(0, 189, __pyx_L1_error)
-  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 246, __pyx_L1_error)
-  __pyx_builtin_AttributeError = __Pyx_GetBuiltinName(__pyx_n_s_AttributeError); if (!__pyx_builtin_AttributeError) __PYX_ERR(0, 251, __pyx_L1_error)
+  __pyx_builtin_object = __Pyx_GetBuiltinName(__pyx_n_s_object); if (!__pyx_builtin_object) __PYX_ERR(0, 302, __pyx_L1_error)
+  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 101, __pyx_L1_error)
+  __pyx_builtin_AttributeError = __Pyx_GetBuiltinName(__pyx_n_s_AttributeError); if (!__pyx_builtin_AttributeError) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) __PYX_ERR(0, 133, __pyx_L1_error)
+  __pyx_builtin_NotImplementedError = __Pyx_GetBuiltinName(__pyx_n_s_NotImplementedError); if (!__pyx_builtin_NotImplementedError) __PYX_ERR(0, 275, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 379, __pyx_L1_error)
+  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 585, __pyx_L1_error)
+  __pyx_builtin_OverflowError = __Pyx_GetBuiltinName(__pyx_n_s_OverflowError); if (!__pyx_builtin_OverflowError) __PYX_ERR(0, 653, __pyx_L1_error)
+  __pyx_builtin_IndexError = __Pyx_GetBuiltinName(__pyx_n_s_IndexError); if (!__pyx_builtin_IndexError) __PYX_ERR(0, 673, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(3, 109, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -7462,129 +14595,313 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "pysam/libchtslib.pyx":82
+  /* "pysam/libchtslib.pyx":115
+ *     def fileno(self):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ *         if isinstance(self.name, int):
+ *             return self.name
+ */
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_operation_on_closed_HFile); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 115, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple_);
+  __Pyx_GIVEREF(__pyx_tuple_);
+
+  /* "pysam/libchtslib.pyx":119
+ *             return self.name
+ *         else:
+ *             raise AttributeError('fileno not available')             # <<<<<<<<<<<<<<
+ * 
+ *     def __enter__(self):
+ */
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_fileno_not_available); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__2);
+  __Pyx_GIVEREF(__pyx_tuple__2);
+
+  /* "pysam/libchtslib.pyx":138
+ *     def flush(self):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ *         if hflush(self.fp) != 0:
+ *             raise IOError(herrno(self.fp), 'failed to flush HFile', self.name)
+ */
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_operation_on_closed_HFile); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__3);
+  __Pyx_GIVEREF(__pyx_tuple__3);
+
+  /* "pysam/libchtslib.pyx":144
+ *     def isatty(self):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ *         return False
+ * 
+ */
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_operation_on_closed_HFile); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__4);
+  __Pyx_GIVEREF(__pyx_tuple__4);
+
+  /* "pysam/libchtslib.pyx":152
+ *     def read(self, Py_ssize_t size=-1):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         if size == 0:
+ */
+  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_operation_on_closed_HFile); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 152, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__5);
+  __Pyx_GIVEREF(__pyx_tuple__5);
+
+  /* "pysam/libchtslib.pyx":190
+ *     def readinto(self, buf):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         size = len(buf)
+ */
+  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_operation_on_closed_HFile); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 190, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__7);
+  __Pyx_GIVEREF(__pyx_tuple__7);
+
+  /* "pysam/libchtslib.pyx":207
+ *     def readline(self, Py_ssize_t size=-1):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         if size == 0:
+ */
+  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s_operation_on_closed_HFile); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__8);
+  __Pyx_GIVEREF(__pyx_tuple__8);
+
+  /* "pysam/libchtslib.pyx":251
+ *     def seek(self, Py_ssize_t offset, int whence=SEEK_SET):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         cdef Py_ssize_t off = hseek(self.fp, offset, whence)
+ */
+  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_operation_on_closed_HFile); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__9);
+  __Pyx_GIVEREF(__pyx_tuple__9);
+
+  /* "pysam/libchtslib.pyx":262
+ *     def tell(self):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         ret = htell(self.fp)
+ */
+  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_s_operation_on_closed_HFile); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 262, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__10);
+  __Pyx_GIVEREF(__pyx_tuple__10);
+
+  /* "pysam/libchtslib.pyx":282
+ *     def write(self, bytes b):
+ *         if self.fp == NULL:
+ *             raise IOError('operation on closed HFile')             # <<<<<<<<<<<<<<
+ * 
+ *         got = hwrite(self.fp, <void *>b, len(b))
+ */
+  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_s_operation_on_closed_HFile); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 282, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__11);
+  __Pyx_GIVEREF(__pyx_tuple__11);
+
+  /* "(tree fragment)":2
+ * def __reduce_cython__(self):
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")
+ */
+  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s_self_fp_cannot_be_converted_to_a); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__12);
+  __Pyx_GIVEREF(__pyx_tuple__12);
+
+  /* "(tree fragment)":4
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError("self.fp cannot be converted to a Python object for pickling")             # <<<<<<<<<<<<<<
+ */
+  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_self_fp_cannot_be_converted_to_a); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__13);
+  __Pyx_GIVEREF(__pyx_tuple__13);
+
+  /* "pysam/libchtslib.pyx":379
  *         VARIANTS, INDEX, REGIONS"""
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')             # <<<<<<<<<<<<<<
  *         return FORMAT_CATEGORIES[self.htsfile.format.category]
  * 
  */
-  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_metadata_not_available_on_closed); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 82, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__7);
-  __Pyx_GIVEREF(__pyx_tuple__7);
+  __pyx_tuple__20 = PyTuple_Pack(1, __pyx_kp_s_metadata_not_available_on_closed); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 379, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__20);
+  __Pyx_GIVEREF(__pyx_tuple__20);
 
-  /* "pysam/libchtslib.pyx":93
+  /* "pysam/libchtslib.pyx":390
  *         """
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')             # <<<<<<<<<<<<<<
  *         return FORMATS[self.htsfile.format.format]
  * 
  */
-  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s_metadata_not_available_on_closed); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 93, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__8);
-  __Pyx_GIVEREF(__pyx_tuple__8);
+  __pyx_tuple__21 = PyTuple_Pack(1, __pyx_kp_s_metadata_not_available_on_closed); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 390, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__21);
+  __Pyx_GIVEREF(__pyx_tuple__21);
 
-  /* "pysam/libchtslib.pyx":100
+  /* "pysam/libchtslib.pyx":397
  *         """Tuple of file format version numbers (major, minor)"""
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')             # <<<<<<<<<<<<<<
  *         return self.htsfile.format.version.major, self.htsfile.format.version.minor
  * 
  */
-  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_metadata_not_available_on_closed); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 100, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__9);
-  __Pyx_GIVEREF(__pyx_tuple__9);
+  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_kp_s_metadata_not_available_on_closed); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 397, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__22);
+  __Pyx_GIVEREF(__pyx_tuple__22);
 
-  /* "pysam/libchtslib.pyx":109
+  /* "pysam/libchtslib.pyx":406
  *         One of NONE, GZIP, BGZF, CUSTOM."""
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')             # <<<<<<<<<<<<<<
  *         return COMPRESSION[self.htsfile.format.compression]
  * 
  */
-  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_s_metadata_not_available_on_closed); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 109, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__10);
-  __Pyx_GIVEREF(__pyx_tuple__10);
+  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_kp_s_metadata_not_available_on_closed); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 406, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__23);
+  __Pyx_GIVEREF(__pyx_tuple__23);
 
-  /* "pysam/libchtslib.pyx":116
+  /* "pysam/libchtslib.pyx":413
  *         """Vaguely human readable description of the file format"""
  *         if not self.htsfile:
  *             raise ValueError('metadata not available on closed file')             # <<<<<<<<<<<<<<
  *         cdef char *desc = hts_format_description(&self.htsfile.format)
  *         try:
  */
-  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_s_metadata_not_available_on_closed); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 116, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__11);
-  __Pyx_GIVEREF(__pyx_tuple__11);
+  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_kp_s_metadata_not_available_on_closed); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 413, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__24);
+  __Pyx_GIVEREF(__pyx_tuple__24);
 
-  /* "pysam/libchtslib.pyx":187
+  /* "pysam/libchtslib.pyx":484
  *         """move file pointer to position *offset*, see :meth:`pysam.HTSFile.tell`."""
  *         if not self.is_open:
  *             raise ValueError('I/O operation on closed file')             # <<<<<<<<<<<<<<
  *         if self.is_stream:
- *             raise OSError('seek not available in streams')
+ *             raise IOError('seek not available in streams')
  */
-  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 187, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__12);
-  __Pyx_GIVEREF(__pyx_tuple__12);
+  __pyx_tuple__25 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 484, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__25);
+  __Pyx_GIVEREF(__pyx_tuple__25);
 
-  /* "pysam/libchtslib.pyx":189
+  /* "pysam/libchtslib.pyx":486
  *             raise ValueError('I/O operation on closed file')
  *         if self.is_stream:
- *             raise OSError('seek not available in streams')             # <<<<<<<<<<<<<<
+ *             raise IOError('seek not available in streams')             # <<<<<<<<<<<<<<
  * 
  *         cdef int64_t ret
  */
-  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_seek_not_available_in_streams); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 189, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__13);
-  __Pyx_GIVEREF(__pyx_tuple__13);
+  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_kp_s_seek_not_available_in_streams); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 486, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__26);
+  __Pyx_GIVEREF(__pyx_tuple__26);
 
-  /* "pysam/libchtslib.pyx":203
+  /* "pysam/libchtslib.pyx":503
  *         """return current file position, see :meth:`pysam.HTSFile.seek`."""
  *         if not self.is_open:
  *             raise ValueError('I/O operation on closed file')             # <<<<<<<<<<<<<<
  *         if self.is_stream:
- *             raise OSError('tell not available in streams')
+ *             raise IOError('tell not available in streams')
  */
-  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 203, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__14);
-  __Pyx_GIVEREF(__pyx_tuple__14);
+  __pyx_tuple__27 = PyTuple_Pack(1, __pyx_kp_s_I_O_operation_on_closed_file); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 503, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__27);
+  __Pyx_GIVEREF(__pyx_tuple__27);
 
-  /* "pysam/libchtslib.pyx":205
+  /* "pysam/libchtslib.pyx":505
  *             raise ValueError('I/O operation on closed file')
  *         if self.is_stream:
- *             raise OSError('tell not available in streams')             # <<<<<<<<<<<<<<
+ *             raise IOError('tell not available in streams')             # <<<<<<<<<<<<<<
  * 
  *         cdef int64_t ret
  */
-  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_tell_not_available_in_streams); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 205, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__15);
-  __Pyx_GIVEREF(__pyx_tuple__15);
+  __pyx_tuple__28 = PyTuple_Pack(1, __pyx_kp_s_tell_not_available_in_streams); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 505, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__28);
+  __Pyx_GIVEREF(__pyx_tuple__28);
 
-  /* "pysam/libchtslib.pyx":237
+  /* "pysam/libchtslib.pyx":548
  * 
  *             # Replicate mode normalization done in hts_open_format
  *             smode = self.mode.replace(b'b', b'').replace(b'c', b'')             # <<<<<<<<<<<<<<
  *             if b'b' in self.mode:
  *                 smode += b'b'
  */
-  __pyx_tuple__17 = PyTuple_Pack(2, __pyx_n_b_b, __pyx_kp_b__16); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 237, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__17);
-  __Pyx_GIVEREF(__pyx_tuple__17);
-  __pyx_tuple__18 = PyTuple_Pack(2, __pyx_n_b_c, __pyx_kp_b__16); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(0, 237, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__18);
-  __Pyx_GIVEREF(__pyx_tuple__18);
+  __pyx_tuple__29 = PyTuple_Pack(2, __pyx_n_b_b, __pyx_kp_b__6); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 548, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__29);
+  __Pyx_GIVEREF(__pyx_tuple__29);
+  __pyx_tuple__30 = PyTuple_Pack(2, __pyx_n_b_c, __pyx_kp_b__6); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 548, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__30);
+  __Pyx_GIVEREF(__pyx_tuple__30);
 
-  /* "pysam/libchtslib.pyx":246
+  /* "pysam/libchtslib.pyx":557
  *             hfile = hdopen(dup_fd, cmode)
  *             if hfile == NULL:
  *                 raise IOError('Cannot create hfile')             # <<<<<<<<<<<<<<
  * 
  *             try:
  */
-  __pyx_tuple__19 = PyTuple_Pack(1, __pyx_kp_s_Cannot_create_hfile); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 246, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__19);
-  __Pyx_GIVEREF(__pyx_tuple__19);
+  __pyx_tuple__31 = PyTuple_Pack(1, __pyx_kp_s_Cannot_create_hfile); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 557, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__31);
+  __Pyx_GIVEREF(__pyx_tuple__31);
+
+  /* "pysam/libchtslib.pyx":590
+ *                 if rval != 0:
+ *                     hts_opt_free(opts)
+ *                     raise RuntimeError('An error occured while applying the requested format options')             # <<<<<<<<<<<<<<
+ *                 hts_opt_free(opts)
+ * 
+ */
+  __pyx_tuple__32 = PyTuple_Pack(1, __pyx_kp_s_An_error_occured_while_applying); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 590, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__32);
+  __Pyx_GIVEREF(__pyx_tuple__32);
+
+  /* "pysam/libchtslib.pyx":636
+ *         if reference is not None:
+ *             if contig is not None:
+ *                 raise ValueError('contig and reference should not both be specified')             # <<<<<<<<<<<<<<
+ *             contig = reference
+ * 
+ */
+  __pyx_tuple__33 = PyTuple_Pack(1, __pyx_kp_s_contig_and_reference_should_not); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 636, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__33);
+  __Pyx_GIVEREF(__pyx_tuple__33);
+
+  /* "pysam/libchtslib.pyx":641
+ *         if end is not None:
+ *             if stop is not None:
+ *                 raise ValueError('stop and end should not both be specified')             # <<<<<<<<<<<<<<
+ *             stop = end
+ * 
+ */
+  __pyx_tuple__34 = PyTuple_Pack(1, __pyx_kp_s_stop_and_end_should_not_both_be); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 641, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__34);
+  __Pyx_GIVEREF(__pyx_tuple__34);
+
+  /* "pysam/libchtslib.pyx":645
+ * 
+ *         if contig is None and tid is None and region is None:
+ *             return 0, 0, 0, 0             # <<<<<<<<<<<<<<
+ * 
+ *         rtid = -1
+ */
+  __pyx_tuple__35 = PyTuple_Pack(4, __pyx_int_0, __pyx_int_0, __pyx_int_0, __pyx_int_0); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 645, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__35);
+  __Pyx_GIVEREF(__pyx_tuple__35);
+
+  /* "pysam/libchtslib.pyx":673
+ *         if tid is not None:
+ *             if not self.is_valid_tid(tid):
+ *                 raise IndexError('invalid tid')             # <<<<<<<<<<<<<<
+ *             rtid = tid
+ *         else:
+ */
+  __pyx_tuple__37 = PyTuple_Pack(1, __pyx_kp_s_invalid_tid); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 673, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__37);
+  __Pyx_GIVEREF(__pyx_tuple__37);
 
   /* "(tree fragment)":2
  * def __reduce_cython__(self):
@@ -7592,156 +14909,156 @@ static int __Pyx_InitCachedConstants(void) {
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  */
-  __pyx_tuple__21 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(1, 2, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__21);
-  __Pyx_GIVEREF(__pyx_tuple__21);
+  __pyx_tuple__40 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__40);
+  __Pyx_GIVEREF(__pyx_tuple__40);
 
   /* "(tree fragment)":4
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")
  * def __setstate_cython__(self, __pyx_state):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(1, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__22);
-  __Pyx_GIVEREF(__pyx_tuple__22);
+  __pyx_tuple__41 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__41)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__41);
+  __Pyx_GIVEREF(__pyx_tuple__41);
 
-  /* "pysam/libchtslib.pyx":23
- * 
+  /* "pysam/libchtslib.pyx":46
  * cdef int   MAX_POS = 2 << 29
+ * 
  * cdef tuple FORMAT_CATEGORIES = ('UNKNOWN', 'ALIGNMENTS', 'VARIANTS', 'INDEX', 'REGIONS')             # <<<<<<<<<<<<<<
  * cdef tuple FORMATS = ('UNKNOWN', 'BINARY_FORMAT', 'TEXT_FORMAT', 'SAM', 'BAM', 'BAI', 'CRAM', 'CRAI',
  *                       'VCF', 'BCF', 'CSI', 'GZI', 'TBI', 'BED')
  */
-  __pyx_tuple__23 = PyTuple_Pack(5, __pyx_n_s_UNKNOWN, __pyx_n_s_ALIGNMENTS, __pyx_n_s_VARIANTS, __pyx_n_s_INDEX, __pyx_n_s_REGIONS); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 23, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__23);
-  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_tuple__42 = PyTuple_Pack(5, __pyx_n_s_UNKNOWN, __pyx_n_s_ALIGNMENTS, __pyx_n_s_VARIANTS, __pyx_n_s_INDEX, __pyx_n_s_REGIONS); if (unlikely(!__pyx_tuple__42)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__42);
+  __Pyx_GIVEREF(__pyx_tuple__42);
 
-  /* "pysam/libchtslib.pyx":24
- * cdef int   MAX_POS = 2 << 29
+  /* "pysam/libchtslib.pyx":47
+ * 
  * cdef tuple FORMAT_CATEGORIES = ('UNKNOWN', 'ALIGNMENTS', 'VARIANTS', 'INDEX', 'REGIONS')
  * cdef tuple FORMATS = ('UNKNOWN', 'BINARY_FORMAT', 'TEXT_FORMAT', 'SAM', 'BAM', 'BAI', 'CRAM', 'CRAI',             # <<<<<<<<<<<<<<
  *                       'VCF', 'BCF', 'CSI', 'GZI', 'TBI', 'BED')
  * cdef tuple COMPRESSION = ('NONE', 'GZIP', 'BGZF', 'CUSTOM')
  */
-  __pyx_tuple__24 = PyTuple_Pack(14, __pyx_n_s_UNKNOWN, __pyx_n_s_BINARY_FORMAT, __pyx_n_s_TEXT_FORMAT, __pyx_n_s_SAM, __pyx_n_s_BAM, __pyx_n_s_BAI, __pyx_n_s_CRAM, __pyx_n_s_CRAI, __pyx_n_s_VCF, __pyx_n_s_BCF, __pyx_n_s_CSI, __pyx_n_s_GZI, __pyx_n_s_TBI, __pyx_n_s_BED); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 24, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__24);
-  __Pyx_GIVEREF(__pyx_tuple__24);
+  __pyx_tuple__43 = PyTuple_Pack(14, __pyx_n_s_UNKNOWN, __pyx_n_s_BINARY_FORMAT, __pyx_n_s_TEXT_FORMAT, __pyx_n_s_SAM, __pyx_n_s_BAM, __pyx_n_s_BAI, __pyx_n_s_CRAM, __pyx_n_s_CRAI, __pyx_n_s_VCF, __pyx_n_s_BCF, __pyx_n_s_CSI, __pyx_n_s_GZI, __pyx_n_s_TBI, __pyx_n_s_BED); if (unlikely(!__pyx_tuple__43)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__43);
+  __Pyx_GIVEREF(__pyx_tuple__43);
 
-  /* "pysam/libchtslib.pyx":26
+  /* "pysam/libchtslib.pyx":49
  * cdef tuple FORMATS = ('UNKNOWN', 'BINARY_FORMAT', 'TEXT_FORMAT', 'SAM', 'BAM', 'BAI', 'CRAM', 'CRAI',
  *                       'VCF', 'BCF', 'CSI', 'GZI', 'TBI', 'BED')
  * cdef tuple COMPRESSION = ('NONE', 'GZIP', 'BGZF', 'CUSTOM')             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_tuple__25 = PyTuple_Pack(4, __pyx_n_s_NONE, __pyx_n_s_GZIP, __pyx_n_s_BGZF, __pyx_n_s_CUSTOM); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 26, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__25);
-  __Pyx_GIVEREF(__pyx_tuple__25);
+  __pyx_tuple__44 = PyTuple_Pack(4, __pyx_n_s_NONE, __pyx_n_s_GZIP, __pyx_n_s_BGZF, __pyx_n_s_CUSTOM); if (unlikely(!__pyx_tuple__44)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__44);
+  __Pyx_GIVEREF(__pyx_tuple__44);
 
-  /* "pysam/libchtslib.pyx":38
- * 
+  /* "pysam/libchtslib.pyx":302
+ * ########################################################################
  * 
  * class CallableValue(object):             # <<<<<<<<<<<<<<
  *     def __init__(self, value):
  *         self.value = value
  */
-  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_builtin_object); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 38, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__26);
-  __Pyx_GIVEREF(__pyx_tuple__26);
+  __pyx_tuple__45 = PyTuple_Pack(1, __pyx_builtin_object); if (unlikely(!__pyx_tuple__45)) __PYX_ERR(0, 302, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__45);
+  __Pyx_GIVEREF(__pyx_tuple__45);
 
-  /* "pysam/libchtslib.pyx":39
+  /* "pysam/libchtslib.pyx":303
  * 
  * class CallableValue(object):
  *     def __init__(self, value):             # <<<<<<<<<<<<<<
  *         self.value = value
  *     def __call__(self):
  */
-  __pyx_tuple__27 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_value); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 39, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__27);
-  __Pyx_GIVEREF(__pyx_tuple__27);
-  __pyx_codeobj_ = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_init, 39, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj_)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_tuple__46 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_value); if (unlikely(!__pyx_tuple__46)) __PYX_ERR(0, 303, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__46);
+  __Pyx_GIVEREF(__pyx_tuple__46);
+  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__46, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_init, 303, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 303, __pyx_L1_error)
 
-  /* "pysam/libchtslib.pyx":41
+  /* "pysam/libchtslib.pyx":305
  *     def __init__(self, value):
  *         self.value = value
  *     def __call__(self):             # <<<<<<<<<<<<<<
  *         return self.value
  *     def __bool__(self):
  */
-  __pyx_tuple__28 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 41, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__28);
-  __Pyx_GIVEREF(__pyx_tuple__28);
-  __pyx_codeobj__2 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_call, 41, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__2)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_tuple__47 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__47)) __PYX_ERR(0, 305, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__47);
+  __Pyx_GIVEREF(__pyx_tuple__47);
+  __pyx_codeobj__15 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_call, 305, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__15)) __PYX_ERR(0, 305, __pyx_L1_error)
 
-  /* "pysam/libchtslib.pyx":43
+  /* "pysam/libchtslib.pyx":307
  *     def __call__(self):
  *         return self.value
  *     def __bool__(self):             # <<<<<<<<<<<<<<
  *         return self.value
  *     def __nonzero__(self):
  */
-  __pyx_tuple__29 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 43, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__29);
-  __Pyx_GIVEREF(__pyx_tuple__29);
-  __pyx_codeobj__3 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_bool, 43, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__3)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_tuple__48 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__48)) __PYX_ERR(0, 307, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__48);
+  __Pyx_GIVEREF(__pyx_tuple__48);
+  __pyx_codeobj__16 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__48, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_bool, 307, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__16)) __PYX_ERR(0, 307, __pyx_L1_error)
 
-  /* "pysam/libchtslib.pyx":45
+  /* "pysam/libchtslib.pyx":309
  *     def __bool__(self):
  *         return self.value
  *     def __nonzero__(self):             # <<<<<<<<<<<<<<
  *         return self.value
  *     def __eq__(self, other):
  */
-  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 45, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__30);
-  __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_codeobj__4 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_nonzero, 45, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__4)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_tuple__49 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__49)) __PYX_ERR(0, 309, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__49);
+  __Pyx_GIVEREF(__pyx_tuple__49);
+  __pyx_codeobj__17 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__49, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_nonzero, 309, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__17)) __PYX_ERR(0, 309, __pyx_L1_error)
 
-  /* "pysam/libchtslib.pyx":47
+  /* "pysam/libchtslib.pyx":311
  *     def __nonzero__(self):
  *         return self.value
  *     def __eq__(self, other):             # <<<<<<<<<<<<<<
  *         return self.value == other
  *     def __ne__(self, other):
  */
-  __pyx_tuple__31 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_other); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 47, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__31);
-  __Pyx_GIVEREF(__pyx_tuple__31);
-  __pyx_codeobj__5 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_eq, 47, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__5)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_tuple__50 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_other); if (unlikely(!__pyx_tuple__50)) __PYX_ERR(0, 311, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__50);
+  __Pyx_GIVEREF(__pyx_tuple__50);
+  __pyx_codeobj__18 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__50, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_eq, 311, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__18)) __PYX_ERR(0, 311, __pyx_L1_error)
 
-  /* "pysam/libchtslib.pyx":49
+  /* "pysam/libchtslib.pyx":313
  *     def __eq__(self, other):
  *         return self.value == other
  *     def __ne__(self, other):             # <<<<<<<<<<<<<<
  *         return self.value != other
  * 
  */
-  __pyx_tuple__32 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_other); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 49, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__32);
-  __Pyx_GIVEREF(__pyx_tuple__32);
-  __pyx_codeobj__6 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_ne, 49, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__6)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __pyx_tuple__51 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_other); if (unlikely(!__pyx_tuple__51)) __PYX_ERR(0, 313, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__51);
+  __Pyx_GIVEREF(__pyx_tuple__51);
+  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__51, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pysam_libchtslib_pyx, __pyx_n_s_ne, 313, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(0, 313, __pyx_L1_error)
 
-  /* "pysam/libchtslib.pyx":53
+  /* "pysam/libchtslib.pyx":317
  * 
  * 
  * CTrue = CallableValue(True)             # <<<<<<<<<<<<<<
  * CFalse = CallableValue(False)
  * 
  */
-  __pyx_tuple__33 = PyTuple_Pack(1, Py_True); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 53, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__33);
-  __Pyx_GIVEREF(__pyx_tuple__33);
+  __pyx_tuple__52 = PyTuple_Pack(1, Py_True); if (unlikely(!__pyx_tuple__52)) __PYX_ERR(0, 317, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__52);
+  __Pyx_GIVEREF(__pyx_tuple__52);
 
-  /* "pysam/libchtslib.pyx":54
+  /* "pysam/libchtslib.pyx":318
  * 
  * CTrue = CallableValue(True)
  * CFalse = CallableValue(False)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_tuple__34 = PyTuple_Pack(1, Py_False); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 54, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__34);
-  __Pyx_GIVEREF(__pyx_tuple__34);
+  __pyx_tuple__53 = PyTuple_Pack(1, Py_False); if (unlikely(!__pyx_tuple__53)) __PYX_ERR(0, 318, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__53);
+  __Pyx_GIVEREF(__pyx_tuple__53);
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -7751,6 +15068,9 @@ static int __Pyx_InitCachedConstants(void) {
 
 static int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
+  __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_neg_1 = PyInt_FromLong(-1); if (unlikely(!__pyx_int_neg_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -7797,15 +15117,26 @@ static int __Pyx_modinit_type_init_code(void) {
   /*--- Type init code ---*/
   __pyx_vtabptr_5pysam_10libchtslib_HTSFile = &__pyx_vtable_5pysam_10libchtslib_HTSFile;
   __pyx_vtable_5pysam_10libchtslib_HTSFile._open_htsfile = (htsFile *(*)(struct __pyx_obj_5pysam_10libchtslib_HTSFile *))__pyx_f_5pysam_10libchtslib_7HTSFile__open_htsfile;
-  if (PyType_Ready(&__pyx_type_5pysam_10libchtslib_HTSFile) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_5pysam_10libchtslib_HTSFile) < 0) __PYX_ERR(0, 326, __pyx_L1_error)
   __pyx_type_5pysam_10libchtslib_HTSFile.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_10libchtslib_HTSFile.tp_dictoffset && __pyx_type_5pysam_10libchtslib_HTSFile.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_5pysam_10libchtslib_HTSFile.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_5pysam_10libchtslib_HTSFile.tp_dict, __pyx_vtabptr_5pysam_10libchtslib_HTSFile) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "HTSFile", (PyObject *)&__pyx_type_5pysam_10libchtslib_HTSFile) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_10libchtslib_HTSFile) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_5pysam_10libchtslib_HTSFile.tp_dict, __pyx_vtabptr_5pysam_10libchtslib_HTSFile) < 0) __PYX_ERR(0, 326, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "HTSFile", (PyObject *)&__pyx_type_5pysam_10libchtslib_HTSFile) < 0) __PYX_ERR(0, 326, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_10libchtslib_HTSFile) < 0) __PYX_ERR(0, 326, __pyx_L1_error)
   __pyx_ptype_5pysam_10libchtslib_HTSFile = &__pyx_type_5pysam_10libchtslib_HTSFile;
+  __pyx_vtabptr_5pysam_10libchtslib_HFile = &__pyx_vtable_5pysam_10libchtslib_HFile;
+  __pyx_vtable_5pysam_10libchtslib_HFile._open = (PyObject *(*)(struct __pyx_obj_5pysam_10libchtslib_HFile *, PyObject *, PyObject *, struct __pyx_opt_args_5pysam_10libchtslib_5HFile__open *__pyx_optional_args))__pyx_f_5pysam_10libchtslib_5HFile__open;
+  if (PyType_Ready(&__pyx_type_5pysam_10libchtslib_HFile) < 0) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_type_5pysam_10libchtslib_HFile.tp_print = 0;
+  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_5pysam_10libchtslib_HFile.tp_dictoffset && __pyx_type_5pysam_10libchtslib_HFile.tp_getattro == PyObject_GenericGetAttr)) {
+    __pyx_type_5pysam_10libchtslib_HFile.tp_getattro = __Pyx_PyObject_GenericGetAttr;
+  }
+  if (__Pyx_SetVtable(__pyx_type_5pysam_10libchtslib_HFile.tp_dict, __pyx_vtabptr_5pysam_10libchtslib_HFile) < 0) __PYX_ERR(0, 72, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "HFile", (PyObject *)&__pyx_type_5pysam_10libchtslib_HFile) < 0) __PYX_ERR(0, 72, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_5pysam_10libchtslib_HFile) < 0) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_ptype_5pysam_10libchtslib_HFile = &__pyx_type_5pysam_10libchtslib_HFile;
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -8040,218 +15371,269 @@ if (!__Pyx_RefNanny) {
   #endif
   __Pyx_TraceCall("__Pyx_PyMODINIT_FUNC PyInit_libchtslib(void)", __pyx_f[0], 1, 0, __PYX_ERR(0, 1, __pyx_L1_error));
 
-  /* "pysam/libchtslib.pyx":4
- * # cython: profile=True
- * # adds doc-strings for sphinx
- * import os             # <<<<<<<<<<<<<<
- * 
- * from posix.unistd cimport dup
- */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_os, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_os, __pyx_t_1) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "pysam/libchtslib.pyx":14
- * 
- * 
- * __all__ = ["get_verbosity", "set_verbosity"]             # <<<<<<<<<<<<<<
- * 
- * 
- */
-  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 14, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_INCREF(__pyx_n_s_get_verbosity);
-  __Pyx_GIVEREF(__pyx_n_s_get_verbosity);
-  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_get_verbosity);
-  __Pyx_INCREF(__pyx_n_s_set_verbosity);
-  __Pyx_GIVEREF(__pyx_n_s_set_verbosity);
-  PyList_SET_ITEM(__pyx_t_1, 1, __pyx_n_s_set_verbosity);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_all, __pyx_t_1) < 0) __PYX_ERR(0, 14, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "pysam/libchtslib.pyx":22
+  /* "pysam/libchtslib.pyx":25
  * ########################################################################
  * 
+ * import os             # <<<<<<<<<<<<<<
+ * import io
+ * import re
+ */
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_os, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 25, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_os, __pyx_t_1) < 0) __PYX_ERR(0, 25, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "pysam/libchtslib.pyx":26
+ * 
+ * import os
+ * import io             # <<<<<<<<<<<<<<
+ * import re
+ * from warnings         import warn
+ */
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_io, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 26, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_io, __pyx_t_1) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "pysam/libchtslib.pyx":27
+ * import os
+ * import io
+ * import re             # <<<<<<<<<<<<<<
+ * from warnings         import warn
+ * 
+ */
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_re, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 27, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_re, __pyx_t_1) < 0) __PYX_ERR(0, 27, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "pysam/libchtslib.pyx":28
+ * import io
+ * import re
+ * from warnings         import warn             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_n_s_warn);
+  __Pyx_GIVEREF(__pyx_n_s_warn);
+  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_warn);
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s_warnings, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_warn); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_warn, __pyx_t_1) < 0) __PYX_ERR(0, 28, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "pysam/libchtslib.pyx":36
+ * ########################################################################
+ * 
+ * __all__ = ['get_verbosity', 'set_verbosity', 'HFile', 'HTSFile']             # <<<<<<<<<<<<<<
+ * 
+ * # defines imported from samtools
+ */
+  __pyx_t_2 = PyList_New(4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_INCREF(__pyx_n_s_get_verbosity);
+  __Pyx_GIVEREF(__pyx_n_s_get_verbosity);
+  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_get_verbosity);
+  __Pyx_INCREF(__pyx_n_s_set_verbosity);
+  __Pyx_GIVEREF(__pyx_n_s_set_verbosity);
+  PyList_SET_ITEM(__pyx_t_2, 1, __pyx_n_s_set_verbosity);
+  __Pyx_INCREF(__pyx_n_s_HFile);
+  __Pyx_GIVEREF(__pyx_n_s_HFile);
+  PyList_SET_ITEM(__pyx_t_2, 2, __pyx_n_s_HFile);
+  __Pyx_INCREF(__pyx_n_s_HTSFile);
+  __Pyx_GIVEREF(__pyx_n_s_HTSFile);
+  PyList_SET_ITEM(__pyx_t_2, 3, __pyx_n_s_HTSFile);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_all, __pyx_t_2) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "pysam/libchtslib.pyx":44
+ * 
+ * # maximum genomic coordinace
  * cdef int   MAX_POS = 2 << 29             # <<<<<<<<<<<<<<
+ * 
  * cdef tuple FORMAT_CATEGORIES = ('UNKNOWN', 'ALIGNMENTS', 'VARIANTS', 'INDEX', 'REGIONS')
- * cdef tuple FORMATS = ('UNKNOWN', 'BINARY_FORMAT', 'TEXT_FORMAT', 'SAM', 'BAM', 'BAI', 'CRAM', 'CRAI',
  */
   __pyx_v_5pysam_10libchtslib_MAX_POS = 0x40000000;
 
-  /* "pysam/libchtslib.pyx":23
- * 
+  /* "pysam/libchtslib.pyx":46
  * cdef int   MAX_POS = 2 << 29
+ * 
  * cdef tuple FORMAT_CATEGORIES = ('UNKNOWN', 'ALIGNMENTS', 'VARIANTS', 'INDEX', 'REGIONS')             # <<<<<<<<<<<<<<
  * cdef tuple FORMATS = ('UNKNOWN', 'BINARY_FORMAT', 'TEXT_FORMAT', 'SAM', 'BAM', 'BAI', 'CRAM', 'CRAI',
  *                       'VCF', 'BCF', 'CSI', 'GZI', 'TBI', 'BED')
  */
-  __Pyx_INCREF(__pyx_tuple__23);
+  __Pyx_INCREF(__pyx_tuple__42);
   __Pyx_XGOTREF(__pyx_v_5pysam_10libchtslib_FORMAT_CATEGORIES);
-  __Pyx_DECREF_SET(__pyx_v_5pysam_10libchtslib_FORMAT_CATEGORIES, __pyx_tuple__23);
-  __Pyx_GIVEREF(__pyx_tuple__23);
+  __Pyx_DECREF_SET(__pyx_v_5pysam_10libchtslib_FORMAT_CATEGORIES, __pyx_tuple__42);
+  __Pyx_GIVEREF(__pyx_tuple__42);
 
-  /* "pysam/libchtslib.pyx":24
- * cdef int   MAX_POS = 2 << 29
+  /* "pysam/libchtslib.pyx":47
+ * 
  * cdef tuple FORMAT_CATEGORIES = ('UNKNOWN', 'ALIGNMENTS', 'VARIANTS', 'INDEX', 'REGIONS')
  * cdef tuple FORMATS = ('UNKNOWN', 'BINARY_FORMAT', 'TEXT_FORMAT', 'SAM', 'BAM', 'BAI', 'CRAM', 'CRAI',             # <<<<<<<<<<<<<<
  *                       'VCF', 'BCF', 'CSI', 'GZI', 'TBI', 'BED')
  * cdef tuple COMPRESSION = ('NONE', 'GZIP', 'BGZF', 'CUSTOM')
  */
-  __Pyx_INCREF(__pyx_tuple__24);
+  __Pyx_INCREF(__pyx_tuple__43);
   __Pyx_XGOTREF(__pyx_v_5pysam_10libchtslib_FORMATS);
-  __Pyx_DECREF_SET(__pyx_v_5pysam_10libchtslib_FORMATS, __pyx_tuple__24);
-  __Pyx_GIVEREF(__pyx_tuple__24);
+  __Pyx_DECREF_SET(__pyx_v_5pysam_10libchtslib_FORMATS, __pyx_tuple__43);
+  __Pyx_GIVEREF(__pyx_tuple__43);
 
-  /* "pysam/libchtslib.pyx":26
+  /* "pysam/libchtslib.pyx":49
  * cdef tuple FORMATS = ('UNKNOWN', 'BINARY_FORMAT', 'TEXT_FORMAT', 'SAM', 'BAM', 'BAI', 'CRAM', 'CRAI',
  *                       'VCF', 'BCF', 'CSI', 'GZI', 'TBI', 'BED')
  * cdef tuple COMPRESSION = ('NONE', 'GZIP', 'BGZF', 'CUSTOM')             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __Pyx_INCREF(__pyx_tuple__25);
+  __Pyx_INCREF(__pyx_tuple__44);
   __Pyx_XGOTREF(__pyx_v_5pysam_10libchtslib_COMPRESSION);
-  __Pyx_DECREF_SET(__pyx_v_5pysam_10libchtslib_COMPRESSION, __pyx_tuple__25);
-  __Pyx_GIVEREF(__pyx_tuple__25);
+  __Pyx_DECREF_SET(__pyx_v_5pysam_10libchtslib_COMPRESSION, __pyx_tuple__44);
+  __Pyx_GIVEREF(__pyx_tuple__44);
 
-  /* "pysam/libchtslib.pyx":38
- * 
+  /* "pysam/libchtslib.pyx":302
+ * ########################################################################
  * 
  * class CallableValue(object):             # <<<<<<<<<<<<<<
  *     def __init__(self, value):
  *         self.value = value
  */
-  __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_tuple__26); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_Py3MetaclassPrepare(__pyx_t_1, __pyx_tuple__26, __pyx_n_s_CallableValue, __pyx_n_s_CallableValue, (PyObject *) NULL, __pyx_n_s_pysam_libchtslib, (PyObject *) NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_tuple__45); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 302, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_tuple__45, __pyx_n_s_CallableValue, __pyx_n_s_CallableValue, (PyObject *) NULL, __pyx_n_s_pysam_libchtslib, (PyObject *) NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 302, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
 
-  /* "pysam/libchtslib.pyx":39
+  /* "pysam/libchtslib.pyx":303
  * 
  * class CallableValue(object):
  *     def __init__(self, value):             # <<<<<<<<<<<<<<
  *         self.value = value
  *     def __call__(self):
  */
-  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_1__init__, 0, __pyx_n_s_CallableValue___init, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj_)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_1__init__, 0, __pyx_n_s_CallableValue___init, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj__14)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 303, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_init, __pyx_t_3) < 0) __PYX_ERR(0, 39, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_init, __pyx_t_3) < 0) __PYX_ERR(0, 303, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "pysam/libchtslib.pyx":41
+  /* "pysam/libchtslib.pyx":305
  *     def __init__(self, value):
  *         self.value = value
  *     def __call__(self):             # <<<<<<<<<<<<<<
  *         return self.value
  *     def __bool__(self):
  */
-  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_3__call__, 0, __pyx_n_s_CallableValue___call, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj__2)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_3__call__, 0, __pyx_n_s_CallableValue___call, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj__15)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 305, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_call, __pyx_t_3) < 0) __PYX_ERR(0, 41, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_call, __pyx_t_3) < 0) __PYX_ERR(0, 305, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "pysam/libchtslib.pyx":43
+  /* "pysam/libchtslib.pyx":307
  *     def __call__(self):
  *         return self.value
  *     def __bool__(self):             # <<<<<<<<<<<<<<
  *         return self.value
  *     def __nonzero__(self):
  */
-  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_5__bool__, 0, __pyx_n_s_CallableValue___bool, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj__3)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_5__bool__, 0, __pyx_n_s_CallableValue___bool, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj__16)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 307, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_bool, __pyx_t_3) < 0) __PYX_ERR(0, 43, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_bool, __pyx_t_3) < 0) __PYX_ERR(0, 307, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "pysam/libchtslib.pyx":45
+  /* "pysam/libchtslib.pyx":309
  *     def __bool__(self):
  *         return self.value
  *     def __nonzero__(self):             # <<<<<<<<<<<<<<
  *         return self.value
  *     def __eq__(self, other):
  */
-  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_7__nonzero__, 0, __pyx_n_s_CallableValue___nonzero, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj__4)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_7__nonzero__, 0, __pyx_n_s_CallableValue___nonzero, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj__17)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 309, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_nonzero, __pyx_t_3) < 0) __PYX_ERR(0, 45, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_nonzero, __pyx_t_3) < 0) __PYX_ERR(0, 309, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "pysam/libchtslib.pyx":47
+  /* "pysam/libchtslib.pyx":311
  *     def __nonzero__(self):
  *         return self.value
  *     def __eq__(self, other):             # <<<<<<<<<<<<<<
  *         return self.value == other
  *     def __ne__(self, other):
  */
-  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_9__eq__, 0, __pyx_n_s_CallableValue___eq, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj__5)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_9__eq__, 0, __pyx_n_s_CallableValue___eq, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj__18)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 311, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_eq, __pyx_t_3) < 0) __PYX_ERR(0, 47, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_eq, __pyx_t_3) < 0) __PYX_ERR(0, 311, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "pysam/libchtslib.pyx":49
+  /* "pysam/libchtslib.pyx":313
  *     def __eq__(self, other):
  *         return self.value == other
  *     def __ne__(self, other):             # <<<<<<<<<<<<<<
  *         return self.value != other
  * 
  */
-  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_11__ne__, 0, __pyx_n_s_CallableValue___ne, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj__6)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5pysam_10libchtslib_13CallableValue_11__ne__, 0, __pyx_n_s_CallableValue___ne, NULL, __pyx_n_s_pysam_libchtslib, __pyx_d, ((PyObject *)__pyx_codeobj__19)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 313, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ne, __pyx_t_3) < 0) __PYX_ERR(0, 49, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_ne, __pyx_t_3) < 0) __PYX_ERR(0, 313, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "pysam/libchtslib.pyx":38
- * 
+  /* "pysam/libchtslib.pyx":302
+ * ########################################################################
  * 
  * class CallableValue(object):             # <<<<<<<<<<<<<<
  *     def __init__(self, value):
  *         self.value = value
  */
-  __pyx_t_3 = __Pyx_Py3ClassCreate(__pyx_t_1, __pyx_n_s_CallableValue, __pyx_tuple__26, __pyx_t_2, NULL, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_CallableValue, __pyx_tuple__45, __pyx_t_1, NULL, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 302, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_CallableValue, __pyx_t_3) < 0) __PYX_ERR(0, 38, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_CallableValue, __pyx_t_3) < 0) __PYX_ERR(0, 302, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pysam/libchtslib.pyx":53
+  /* "pysam/libchtslib.pyx":317
  * 
  * 
  * CTrue = CallableValue(True)             # <<<<<<<<<<<<<<
  * CFalse = CallableValue(False)
  * 
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_CallableValue); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 53, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__33, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_CallableValue); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 317, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_CTrue, __pyx_t_2) < 0) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__52, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 317, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_CTrue, __pyx_t_1) < 0) __PYX_ERR(0, 317, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pysam/libchtslib.pyx":54
+  /* "pysam/libchtslib.pyx":318
  * 
  * CTrue = CallableValue(True)
  * CFalse = CallableValue(False)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_CallableValue); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 54, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__34, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_CallableValue); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 318, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_CFalse, __pyx_t_1) < 0) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__53, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 318, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_CFalse, __pyx_t_2) < 0) __PYX_ERR(0, 318, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "pysam/libchtslib.pyx":1
  * # cython: embedsignature=True             # <<<<<<<<<<<<<<
  * # cython: profile=True
  * # adds doc-strings for sphinx
  */
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_1) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_2) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "array.pxd":161
  *     return extend_buffer(self, other.data.as_chars, Py_SIZE(other))
@@ -8451,32 +15833,6 @@ bad:
 }
 #endif
 
-/* RaiseArgTupleInvalid */
-static void __Pyx_RaiseArgtupleInvalid(
-    const char* func_name,
-    int exact,
-    Py_ssize_t num_min,
-    Py_ssize_t num_max,
-    Py_ssize_t num_found)
-{
-    Py_ssize_t num_expected;
-    const char *more_or_less;
-    if (num_found < num_min) {
-        num_expected = num_min;
-        more_or_less = "at least";
-    } else {
-        num_expected = num_max;
-        more_or_less = "at most";
-    }
-    if (exact) {
-        more_or_less = "exactly";
-    }
-    PyErr_Format(PyExc_TypeError,
-                 "%.200s() takes %.8s %" CYTHON_FORMAT_SSIZE_T "d positional argument%.1s (%" CYTHON_FORMAT_SSIZE_T "d given)",
-                 func_name, more_or_less, num_expected,
-                 (num_expected == 1) ? "" : "s", num_found);
-}
-
 /* RaiseDoubleKeywords */
 static void __Pyx_RaiseDoubleKeywordsError(
     const char* func_name,
@@ -8593,100 +15949,30 @@ bad:
     return -1;
 }
 
-/* PyObjectSetAttrStr */
-#if CYTHON_USE_TYPE_SLOTS
-static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr_name, PyObject* value) {
-    PyTypeObject* tp = Py_TYPE(obj);
-    if (likely(tp->tp_setattro))
-        return tp->tp_setattro(obj, attr_name, value);
-#if PY_MAJOR_VERSION < 3
-    if (likely(tp->tp_setattr))
-        return tp->tp_setattr(obj, PyString_AS_STRING(attr_name), value);
-#endif
-    return PyObject_SetAttr(obj, attr_name, value);
-}
-#endif
-
-/* KeywordStringCheck */
-static int __Pyx_CheckKeywordStrings(
-    PyObject *kwdict,
-    const char* function_name,
-    int kw_allowed)
+/* RaiseArgTupleInvalid */
+static void __Pyx_RaiseArgtupleInvalid(
+    const char* func_name,
+    int exact,
+    Py_ssize_t num_min,
+    Py_ssize_t num_max,
+    Py_ssize_t num_found)
 {
-    PyObject* key = 0;
-    Py_ssize_t pos = 0;
-#if CYTHON_COMPILING_IN_PYPY
-    if (!kw_allowed && PyDict_Next(kwdict, &pos, &key, 0))
-        goto invalid_keyword;
-    return 1;
-#else
-    while (PyDict_Next(kwdict, &pos, &key, 0)) {
-        #if PY_MAJOR_VERSION < 3
-        if (unlikely(!PyString_Check(key)))
-        #endif
-            if (unlikely(!PyUnicode_Check(key)))
-                goto invalid_keyword_type;
-    }
-    if ((!kw_allowed) && unlikely(key))
-        goto invalid_keyword;
-    return 1;
-invalid_keyword_type:
-    PyErr_Format(PyExc_TypeError,
-        "%.200s() keywords must be strings", function_name);
-    return 0;
-#endif
-invalid_keyword:
-    PyErr_Format(PyExc_TypeError,
-    #if PY_MAJOR_VERSION < 3
-        "%.200s() got an unexpected keyword argument '%.200s'",
-        function_name, PyString_AsString(key));
-    #else
-        "%s() got an unexpected keyword argument '%U'",
-        function_name, key);
-    #endif
-    return 0;
-}
-
-/* WriteUnraisableException */
-static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
-                                  CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
-                                  int full_traceback, CYTHON_UNUSED int nogil) {
-    PyObject *old_exc, *old_val, *old_tb;
-    PyObject *ctx;
-    __Pyx_PyThreadState_declare
-#ifdef WITH_THREAD
-    PyGILState_STATE state;
-    if (nogil)
-        state = PyGILState_Ensure();
-#ifdef _MSC_VER
-    else state = (PyGILState_STATE)-1;
-#endif
-#endif
-    __Pyx_PyThreadState_assign
-    __Pyx_ErrFetch(&old_exc, &old_val, &old_tb);
-    if (full_traceback) {
-        Py_XINCREF(old_exc);
-        Py_XINCREF(old_val);
-        Py_XINCREF(old_tb);
-        __Pyx_ErrRestore(old_exc, old_val, old_tb);
-        PyErr_PrintEx(1);
-    }
-    #if PY_MAJOR_VERSION < 3
-    ctx = PyString_FromString(name);
-    #else
-    ctx = PyUnicode_FromString(name);
-    #endif
-    __Pyx_ErrRestore(old_exc, old_val, old_tb);
-    if (!ctx) {
-        PyErr_WriteUnraisable(Py_None);
+    Py_ssize_t num_expected;
+    const char *more_or_less;
+    if (num_found < num_min) {
+        num_expected = num_min;
+        more_or_less = "at least";
     } else {
-        PyErr_WriteUnraisable(ctx);
-        Py_DECREF(ctx);
+        num_expected = num_max;
+        more_or_less = "at most";
     }
-#ifdef WITH_THREAD
-    if (nogil)
-        PyGILState_Release(state);
-#endif
+    if (exact) {
+        more_or_less = "exactly";
+    }
+    PyErr_Format(PyExc_TypeError,
+                 "%.200s() takes %.8s %" CYTHON_FORMAT_SSIZE_T "d positional argument%.1s (%" CYTHON_FORMAT_SSIZE_T "d given)",
+                 func_name, more_or_less, num_expected,
+                 (num_expected == 1) ? "" : "s", num_found);
 }
 
 /* PyCFunctionFastCall */
@@ -8933,6 +16219,48 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func) {
 }
 #endif
 
+/* WriteUnraisableException */
+  static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
+                                  CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
+                                  int full_traceback, CYTHON_UNUSED int nogil) {
+    PyObject *old_exc, *old_val, *old_tb;
+    PyObject *ctx;
+    __Pyx_PyThreadState_declare
+#ifdef WITH_THREAD
+    PyGILState_STATE state;
+    if (nogil)
+        state = PyGILState_Ensure();
+#ifdef _MSC_VER
+    else state = (PyGILState_STATE)-1;
+#endif
+#endif
+    __Pyx_PyThreadState_assign
+    __Pyx_ErrFetch(&old_exc, &old_val, &old_tb);
+    if (full_traceback) {
+        Py_XINCREF(old_exc);
+        Py_XINCREF(old_val);
+        Py_XINCREF(old_tb);
+        __Pyx_ErrRestore(old_exc, old_val, old_tb);
+        PyErr_PrintEx(1);
+    }
+    #if PY_MAJOR_VERSION < 3
+    ctx = PyString_FromString(name);
+    #else
+    ctx = PyUnicode_FromString(name);
+    #endif
+    __Pyx_ErrRestore(old_exc, old_val, old_tb);
+    if (!ctx) {
+        PyErr_WriteUnraisable(Py_None);
+    } else {
+        PyErr_WriteUnraisable(ctx);
+        Py_DECREF(ctx);
+    }
+#ifdef WITH_THREAD
+    if (nogil)
+        PyGILState_Release(state);
+#endif
+}
+
 /* RaiseException */
   #if PY_MAJOR_VERSION < 3
 static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb,
@@ -9092,8 +16420,117 @@ bad:
 }
 #endif
 
+/* StringJoin */
+  #if !CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyBytes_Join(PyObject* sep, PyObject* values) {
+    return PyObject_CallMethodObjArgs(sep, __pyx_n_s_join, values, NULL);
+}
+#endif
+
+/* GetModuleGlobalName */
+  static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name) {
+    PyObject *result;
+#if !CYTHON_AVOID_BORROWED_REFS
+#if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030500A1
+    result = _PyDict_GetItem_KnownHash(__pyx_d, name, ((PyASCIIObject *) name)->hash);
+    if (likely(result)) {
+        Py_INCREF(result);
+    } else if (unlikely(PyErr_Occurred())) {
+        result = NULL;
+    } else {
+#else
+    result = PyDict_GetItem(__pyx_d, name);
+    if (likely(result)) {
+        Py_INCREF(result);
+    } else {
+#endif
+#else
+    result = PyObject_GetItem(__pyx_d, name);
+    if (!result) {
+        PyErr_Clear();
+#endif
+        result = __Pyx_GetBuiltinName(name);
+    }
+    return result;
+}
+
+/* ArgTypeTest */
+      static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact)
+{
+    if (unlikely(!type)) {
+        PyErr_SetString(PyExc_SystemError, "Missing type object");
+        return 0;
+    }
+    else if (exact) {
+        #if PY_MAJOR_VERSION == 2
+        if ((type == &PyBaseString_Type) && likely(__Pyx_PyBaseString_CheckExact(obj))) return 1;
+        #endif
+    }
+    else {
+        if (likely(__Pyx_TypeCheck(obj, type))) return 1;
+    }
+    PyErr_Format(PyExc_TypeError,
+        "Argument '%.200s' has incorrect type (expected %.200s, got %.200s)",
+        name, type->tp_name, Py_TYPE(obj)->tp_name);
+    return 0;
+}
+
+/* PyObjectSetAttrStr */
+      #if CYTHON_USE_TYPE_SLOTS
+static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr_name, PyObject* value) {
+    PyTypeObject* tp = Py_TYPE(obj);
+    if (likely(tp->tp_setattro))
+        return tp->tp_setattro(obj, attr_name, value);
+#if PY_MAJOR_VERSION < 3
+    if (likely(tp->tp_setattr))
+        return tp->tp_setattr(obj, PyString_AS_STRING(attr_name), value);
+#endif
+    return PyObject_SetAttr(obj, attr_name, value);
+}
+#endif
+
+/* KeywordStringCheck */
+      static int __Pyx_CheckKeywordStrings(
+    PyObject *kwdict,
+    const char* function_name,
+    int kw_allowed)
+{
+    PyObject* key = 0;
+    Py_ssize_t pos = 0;
+#if CYTHON_COMPILING_IN_PYPY
+    if (!kw_allowed && PyDict_Next(kwdict, &pos, &key, 0))
+        goto invalid_keyword;
+    return 1;
+#else
+    while (PyDict_Next(kwdict, &pos, &key, 0)) {
+        #if PY_MAJOR_VERSION < 3
+        if (unlikely(!PyString_Check(key)))
+        #endif
+            if (unlikely(!PyUnicode_Check(key)))
+                goto invalid_keyword_type;
+    }
+    if ((!kw_allowed) && unlikely(key))
+        goto invalid_keyword;
+    return 1;
+invalid_keyword_type:
+    PyErr_Format(PyExc_TypeError,
+        "%.200s() keywords must be strings", function_name);
+    return 0;
+#endif
+invalid_keyword:
+    PyErr_Format(PyExc_TypeError,
+    #if PY_MAJOR_VERSION < 3
+        "%.200s() got an unexpected keyword argument '%.200s'",
+        function_name, PyString_AsString(key));
+    #else
+        "%s() got an unexpected keyword argument '%U'",
+        function_name, key);
+    #endif
+    return 0;
+}
+
 /* GetItemInt */
-  static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
+      static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
     PyObject *r;
     if (!j) return NULL;
     r = PyObject_GetItem(o, j);
@@ -9180,7 +16617,7 @@ static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, 
 }
 
 /* ObjectGetItem */
-  #if CYTHON_USE_TYPE_SLOTS
+      #if CYTHON_USE_TYPE_SLOTS
 static PyObject *__Pyx_PyObject_GetIndex(PyObject *obj, PyObject* index) {
     PyObject *runerr;
     Py_ssize_t key_value;
@@ -9209,7 +16646,7 @@ static PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject* key) {
 #endif
 
 /* GetException */
-  #if CYTHON_FAST_THREAD_STATE
+      #if CYTHON_FAST_THREAD_STATE
 static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
 #else
 static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb) {
@@ -9279,7 +16716,7 @@ bad:
 }
 
 /* SwapException */
-    #if CYTHON_FAST_THREAD_STATE
+        #if CYTHON_FAST_THREAD_STATE
 static CYTHON_INLINE void __Pyx__ExceptionSwap(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
     PyObject *tmp_type, *tmp_value, *tmp_tb;
     #if PY_VERSION_HEX >= 0x030700A2
@@ -9313,7 +16750,7 @@ static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value,
 #endif
 
 /* SaveResetException */
-    #if CYTHON_FAST_THREAD_STATE
+        #if CYTHON_FAST_THREAD_STATE
 static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
     #if PY_VERSION_HEX >= 0x030700A2
     *type = tstate->exc_state.exc_type;
@@ -9351,32 +16788,127 @@ static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject 
 }
 #endif
 
-/* GetModuleGlobalName */
-    static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name) {
-    PyObject *result;
-#if !CYTHON_AVOID_BORROWED_REFS
-#if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030500A1
-    result = _PyDict_GetItem_KnownHash(__pyx_d, name, ((PyASCIIObject *) name)->hash);
-    if (likely(result)) {
-        Py_INCREF(result);
-    } else if (unlikely(PyErr_Occurred())) {
-        result = NULL;
-    } else {
-#else
-    result = PyDict_GetItem(__pyx_d, name);
-    if (likely(result)) {
-        Py_INCREF(result);
-    } else {
-#endif
-#else
-    result = PyObject_GetItem(__pyx_d, name);
-    if (!result) {
-        PyErr_Clear();
-#endif
-        result = __Pyx_GetBuiltinName(name);
+/* PyIntBinop */
+        #if !CYTHON_COMPILING_IN_PYPY
+static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, CYTHON_UNUSED int inplace) {
+    #if PY_MAJOR_VERSION < 3
+    if (likely(PyInt_CheckExact(op1))) {
+        const long b = intval;
+        long x;
+        long a = PyInt_AS_LONG(op1);
+            x = (long)((unsigned long)a - b);
+            if (likely((x^a) >= 0 || (x^~b) >= 0))
+                return PyInt_FromLong(x);
+            return PyLong_Type.tp_as_number->nb_subtract(op1, op2);
     }
-    return result;
+    #endif
+    #if CYTHON_USE_PYLONG_INTERNALS
+    if (likely(PyLong_CheckExact(op1))) {
+        const long b = intval;
+        long a, x;
+#ifdef HAVE_LONG_LONG
+        const PY_LONG_LONG llb = intval;
+        PY_LONG_LONG lla, llx;
+#endif
+        const digit* digits = ((PyLongObject*)op1)->ob_digit;
+        const Py_ssize_t size = Py_SIZE(op1);
+        if (likely(__Pyx_sst_abs(size) <= 1)) {
+            a = likely(size) ? digits[0] : 0;
+            if (size == -1) a = -a;
+        } else {
+            switch (size) {
+                case -2:
+                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT) {
+                        a = -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
+                        lla = -(PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case 2:
+                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT) {
+                        a = (long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
+                        lla = (PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case -3:
+                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT) {
+                        a = -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
+                        lla = -(PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case 3:
+                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT) {
+                        a = (long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
+                        lla = (PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case -4:
+                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT) {
+                        a = -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
+                        lla = -(PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case 4:
+                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT) {
+                        a = (long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
+                        lla = (PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                default: return PyLong_Type.tp_as_number->nb_subtract(op1, op2);
+            }
+        }
+                x = a - b;
+            return PyLong_FromLong(x);
+#ifdef HAVE_LONG_LONG
+        long_long:
+                llx = lla - llb;
+            return PyLong_FromLongLong(llx);
+#endif
+        
+        
+    }
+    #endif
+    if (PyFloat_CheckExact(op1)) {
+        const long b = intval;
+        double a = PyFloat_AS_DOUBLE(op1);
+            double result;
+            PyFPE_START_PROTECT("subtract", return NULL)
+            result = ((double)a) - (double)b;
+            PyFPE_END_PROTECT(result)
+            return PyFloat_FromDouble(result);
+    }
+    return (inplace ? PyNumber_InPlaceSubtract : PyNumber_Subtract)(op1, op2);
 }
+#endif
 
 /* PyErrExceptionMatches */
         #if CYTHON_FAST_THREAD_STATE
@@ -9402,6 +16934,152 @@ static CYTHON_INLINE int __Pyx_PyErr_ExceptionMatchesInState(PyThreadState* tsta
     return __Pyx_PyErr_GivenExceptionMatches(exc_type, err);
 }
 #endif
+
+/* BytesEquals */
+        static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {
+#if CYTHON_COMPILING_IN_PYPY
+    return PyObject_RichCompareBool(s1, s2, equals);
+#else
+    if (s1 == s2) {
+        return (equals == Py_EQ);
+    } else if (PyBytes_CheckExact(s1) & PyBytes_CheckExact(s2)) {
+        const char *ps1, *ps2;
+        Py_ssize_t length = PyBytes_GET_SIZE(s1);
+        if (length != PyBytes_GET_SIZE(s2))
+            return (equals == Py_NE);
+        ps1 = PyBytes_AS_STRING(s1);
+        ps2 = PyBytes_AS_STRING(s2);
+        if (ps1[0] != ps2[0]) {
+            return (equals == Py_NE);
+        } else if (length == 1) {
+            return (equals == Py_EQ);
+        } else {
+            int result;
+#if CYTHON_USE_UNICODE_INTERNALS
+            Py_hash_t hash1, hash2;
+            hash1 = ((PyBytesObject*)s1)->ob_shash;
+            hash2 = ((PyBytesObject*)s2)->ob_shash;
+            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
+                return (equals == Py_NE);
+            }
+#endif
+            result = memcmp(ps1, ps2, (size_t)length);
+            return (equals == Py_EQ) ? (result == 0) : (result != 0);
+        }
+    } else if ((s1 == Py_None) & PyBytes_CheckExact(s2)) {
+        return (equals == Py_NE);
+    } else if ((s2 == Py_None) & PyBytes_CheckExact(s1)) {
+        return (equals == Py_NE);
+    } else {
+        int result;
+        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
+        if (!py_result)
+            return -1;
+        result = __Pyx_PyObject_IsTrue(py_result);
+        Py_DECREF(py_result);
+        return result;
+    }
+#endif
+}
+
+/* UnicodeEquals */
+        static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals) {
+#if CYTHON_COMPILING_IN_PYPY
+    return PyObject_RichCompareBool(s1, s2, equals);
+#else
+#if PY_MAJOR_VERSION < 3
+    PyObject* owned_ref = NULL;
+#endif
+    int s1_is_unicode, s2_is_unicode;
+    if (s1 == s2) {
+        goto return_eq;
+    }
+    s1_is_unicode = PyUnicode_CheckExact(s1);
+    s2_is_unicode = PyUnicode_CheckExact(s2);
+#if PY_MAJOR_VERSION < 3
+    if ((s1_is_unicode & (!s2_is_unicode)) && PyString_CheckExact(s2)) {
+        owned_ref = PyUnicode_FromObject(s2);
+        if (unlikely(!owned_ref))
+            return -1;
+        s2 = owned_ref;
+        s2_is_unicode = 1;
+    } else if ((s2_is_unicode & (!s1_is_unicode)) && PyString_CheckExact(s1)) {
+        owned_ref = PyUnicode_FromObject(s1);
+        if (unlikely(!owned_ref))
+            return -1;
+        s1 = owned_ref;
+        s1_is_unicode = 1;
+    } else if (((!s2_is_unicode) & (!s1_is_unicode))) {
+        return __Pyx_PyBytes_Equals(s1, s2, equals);
+    }
+#endif
+    if (s1_is_unicode & s2_is_unicode) {
+        Py_ssize_t length;
+        int kind;
+        void *data1, *data2;
+        if (unlikely(__Pyx_PyUnicode_READY(s1) < 0) || unlikely(__Pyx_PyUnicode_READY(s2) < 0))
+            return -1;
+        length = __Pyx_PyUnicode_GET_LENGTH(s1);
+        if (length != __Pyx_PyUnicode_GET_LENGTH(s2)) {
+            goto return_ne;
+        }
+#if CYTHON_USE_UNICODE_INTERNALS
+        {
+            Py_hash_t hash1, hash2;
+        #if CYTHON_PEP393_ENABLED
+            hash1 = ((PyASCIIObject*)s1)->hash;
+            hash2 = ((PyASCIIObject*)s2)->hash;
+        #else
+            hash1 = ((PyUnicodeObject*)s1)->hash;
+            hash2 = ((PyUnicodeObject*)s2)->hash;
+        #endif
+            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
+                goto return_ne;
+            }
+        }
+#endif
+        kind = __Pyx_PyUnicode_KIND(s1);
+        if (kind != __Pyx_PyUnicode_KIND(s2)) {
+            goto return_ne;
+        }
+        data1 = __Pyx_PyUnicode_DATA(s1);
+        data2 = __Pyx_PyUnicode_DATA(s2);
+        if (__Pyx_PyUnicode_READ(kind, data1, 0) != __Pyx_PyUnicode_READ(kind, data2, 0)) {
+            goto return_ne;
+        } else if (length == 1) {
+            goto return_eq;
+        } else {
+            int result = memcmp(data1, data2, (size_t)(length * kind));
+            #if PY_MAJOR_VERSION < 3
+            Py_XDECREF(owned_ref);
+            #endif
+            return (equals == Py_EQ) ? (result == 0) : (result != 0);
+        }
+    } else if ((s1 == Py_None) & s2_is_unicode) {
+        goto return_ne;
+    } else if ((s2 == Py_None) & s1_is_unicode) {
+        goto return_ne;
+    } else {
+        int result;
+        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
+        if (!py_result)
+            return -1;
+        result = __Pyx_PyObject_IsTrue(py_result);
+        Py_DECREF(py_result);
+        return result;
+    }
+return_eq:
+    #if PY_MAJOR_VERSION < 3
+    Py_XDECREF(owned_ref);
+    #endif
+    return (equals == Py_EQ);
+return_ne:
+    #if PY_MAJOR_VERSION < 3
+    Py_XDECREF(owned_ref);
+    #endif
+    return (equals == Py_NE);
+#endif
+}
 
 /* PyObject_GenericGetAttrNoDict */
         #if CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP && PY_VERSION_HEX < 0x03070000
@@ -9610,6 +17288,20 @@ bad:
     Py_XDECREF(empty_list);
     Py_XDECREF(empty_dict);
     return module;
+}
+
+/* ImportFrom */
+        static PyObject* __Pyx_ImportFrom(PyObject* module, PyObject* name) {
+    PyObject* value = __Pyx_PyObject_GetAttrStr(module, name);
+    if (unlikely(!value) && PyErr_ExceptionMatches(PyExc_AttributeError)) {
+        PyErr_Format(PyExc_ImportError,
+        #if PY_MAJOR_VERSION < 3
+            "cannot import name %.230s", PyString_AS_STRING(name));
+        #else
+            "cannot import name %S", name);
+        #endif
+    }
+    return value;
 }
 
 /* CalculateMetaclass */
@@ -10610,6 +18302,37 @@ bad:
 }
 
 /* CIntToPy */
+            static CYTHON_INLINE PyObject* __Pyx_PyInt_From_off_t(off_t value) {
+    const off_t neg_one = (off_t) -1, const_zero = (off_t) 0;
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(off_t) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(off_t) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(off_t) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(off_t) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(off_t) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
+        }
+    }
+    {
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        unsigned char *bytes = (unsigned char *)&value;
+        return _PyLong_FromByteArray(bytes, sizeof(off_t),
+                                     little, !is_unsigned);
+    }
+}
+
+/* CIntToPy */
             static CYTHON_INLINE PyObject* __Pyx_PyInt_From_enum__htsFormatCategory(enum htsFormatCategory value) {
     const enum htsFormatCategory neg_one = (enum htsFormatCategory) -1, const_zero = (enum htsFormatCategory) 0;
     const int is_unsigned = neg_one > const_zero;
@@ -10760,6 +18483,68 @@ bad:
         int one = 1; int little = (int)*(unsigned char *)&one;
         unsigned char *bytes = (unsigned char *)&value;
         return _PyLong_FromByteArray(bytes, sizeof(int64_t),
+                                     little, !is_unsigned);
+    }
+}
+
+/* CIntToPy */
+            static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
+    const long neg_one = (long) -1, const_zero = (long) 0;
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(long) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(long) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(long) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(long) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(long) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
+        }
+    }
+    {
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        unsigned char *bytes = (unsigned char *)&value;
+        return _PyLong_FromByteArray(bytes, sizeof(long),
+                                     little, !is_unsigned);
+    }
+}
+
+/* CIntToPy */
+            static CYTHON_INLINE PyObject* __Pyx_PyInt_From_PY_LONG_LONG(PY_LONG_LONG value) {
+    const PY_LONG_LONG neg_one = (PY_LONG_LONG) -1, const_zero = (PY_LONG_LONG) 0;
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(PY_LONG_LONG) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(PY_LONG_LONG) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(PY_LONG_LONG) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(PY_LONG_LONG) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(PY_LONG_LONG) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
+        }
+    }
+    {
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        unsigned char *bytes = (unsigned char *)&value;
+        return _PyLong_FromByteArray(bytes, sizeof(PY_LONG_LONG),
                                      little, !is_unsigned);
     }
 }
@@ -11142,35 +18927,193 @@ raise_neg_overflow:
     return (uint64_t) -1;
 }
 
-/* CIntToPy */
-            static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
-    const long neg_one = (long) -1, const_zero = (long) 0;
+/* CIntFromPy */
+            static CYTHON_INLINE PY_LONG_LONG __Pyx_PyInt_As_PY_LONG_LONG(PyObject *x) {
+    const PY_LONG_LONG neg_one = (PY_LONG_LONG) -1, const_zero = (PY_LONG_LONG) 0;
     const int is_unsigned = neg_one > const_zero;
-    if (is_unsigned) {
-        if (sizeof(long) < sizeof(long)) {
-            return PyInt_FromLong((long) value);
-        } else if (sizeof(long) <= sizeof(unsigned long)) {
-            return PyLong_FromUnsignedLong((unsigned long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(long) <= sizeof(unsigned PY_LONG_LONG)) {
-            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#if PY_MAJOR_VERSION < 3
+    if (likely(PyInt_Check(x))) {
+        if (sizeof(PY_LONG_LONG) < sizeof(long)) {
+            __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, long, PyInt_AS_LONG(x))
+        } else {
+            long val = PyInt_AS_LONG(x);
+            if (is_unsigned && unlikely(val < 0)) {
+                goto raise_neg_overflow;
+            }
+            return (PY_LONG_LONG) val;
+        }
+    } else
 #endif
+    if (likely(PyLong_Check(x))) {
+        if (is_unsigned) {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (PY_LONG_LONG) 0;
+                case  1: __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, digit, digits[0])
+                case 2:
+                    if (8 * sizeof(PY_LONG_LONG) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(PY_LONG_LONG) >= 2 * PyLong_SHIFT) {
+                            return (PY_LONG_LONG) (((((PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[0]));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(PY_LONG_LONG) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(PY_LONG_LONG) >= 3 * PyLong_SHIFT) {
+                            return (PY_LONG_LONG) (((((((PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[0]));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(PY_LONG_LONG) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(PY_LONG_LONG) >= 4 * PyLong_SHIFT) {
+                            return (PY_LONG_LONG) (((((((((PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[0]));
+                        }
+                    }
+                    break;
+            }
+#endif
+#if CYTHON_COMPILING_IN_CPYTHON
+            if (unlikely(Py_SIZE(x) < 0)) {
+                goto raise_neg_overflow;
+            }
+#else
+            {
+                int result = PyObject_RichCompareBool(x, Py_False, Py_LT);
+                if (unlikely(result < 0))
+                    return (PY_LONG_LONG) -1;
+                if (unlikely(result == 1))
+                    goto raise_neg_overflow;
+            }
+#endif
+            if (sizeof(PY_LONG_LONG) <= sizeof(unsigned long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(PY_LONG_LONG, unsigned long, PyLong_AsUnsignedLong(x))
+#ifdef HAVE_LONG_LONG
+            } else if (sizeof(PY_LONG_LONG) <= sizeof(unsigned PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(PY_LONG_LONG, unsigned PY_LONG_LONG, PyLong_AsUnsignedLongLong(x))
+#endif
+            }
+        } else {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (PY_LONG_LONG) 0;
+                case -1: __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, sdigit, (sdigit) (-(sdigit)digits[0]))
+                case  1: __PYX_VERIFY_RETURN_INT(PY_LONG_LONG,  digit, +digits[0])
+                case -2:
+                    if (8 * sizeof(PY_LONG_LONG) - 1 > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, long, -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
+                            return (PY_LONG_LONG) (((PY_LONG_LONG)-1)*(((((PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[0])));
+                        }
+                    }
+                    break;
+                case 2:
+                    if (8 * sizeof(PY_LONG_LONG) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
+                            return (PY_LONG_LONG) ((((((PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[0])));
+                        }
+                    }
+                    break;
+                case -3:
+                    if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, long, -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
+                            return (PY_LONG_LONG) (((PY_LONG_LONG)-1)*(((((((PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[0])));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(PY_LONG_LONG) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
+                            return (PY_LONG_LONG) ((((((((PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[0])));
+                        }
+                    }
+                    break;
+                case -4:
+                    if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, long, -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
+                            return (PY_LONG_LONG) (((PY_LONG_LONG)-1)*(((((((((PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[0])));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(PY_LONG_LONG) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(PY_LONG_LONG, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
+                            return (PY_LONG_LONG) ((((((((((PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (PY_LONG_LONG)digits[0])));
+                        }
+                    }
+                    break;
+            }
+#endif
+            if (sizeof(PY_LONG_LONG) <= sizeof(long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(PY_LONG_LONG, long, PyLong_AsLong(x))
+#ifdef HAVE_LONG_LONG
+            } else if (sizeof(PY_LONG_LONG) <= sizeof(PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(PY_LONG_LONG, PY_LONG_LONG, PyLong_AsLongLong(x))
+#endif
+            }
+        }
+        {
+#if CYTHON_COMPILING_IN_PYPY && !defined(_PyLong_AsByteArray)
+            PyErr_SetString(PyExc_RuntimeError,
+                            "_PyLong_AsByteArray() not available in PyPy, cannot convert large numbers");
+#else
+            PY_LONG_LONG val;
+            PyObject *v = __Pyx_PyNumber_IntOrLong(x);
+ #if PY_MAJOR_VERSION < 3
+            if (likely(v) && !PyLong_Check(v)) {
+                PyObject *tmp = v;
+                v = PyNumber_Long(tmp);
+                Py_DECREF(tmp);
+            }
+ #endif
+            if (likely(v)) {
+                int one = 1; int is_little = (int)*(unsigned char *)&one;
+                unsigned char *bytes = (unsigned char *)&val;
+                int ret = _PyLong_AsByteArray((PyLongObject *)v,
+                                              bytes, sizeof(val),
+                                              is_little, !is_unsigned);
+                Py_DECREF(v);
+                if (likely(!ret))
+                    return val;
+            }
+#endif
+            return (PY_LONG_LONG) -1;
         }
     } else {
-        if (sizeof(long) <= sizeof(long)) {
-            return PyInt_FromLong((long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(long) <= sizeof(PY_LONG_LONG)) {
-            return PyLong_FromLongLong((PY_LONG_LONG) value);
-#endif
-        }
+        PY_LONG_LONG val;
+        PyObject *tmp = __Pyx_PyNumber_IntOrLong(x);
+        if (!tmp) return (PY_LONG_LONG) -1;
+        val = __Pyx_PyInt_As_PY_LONG_LONG(tmp);
+        Py_DECREF(tmp);
+        return val;
     }
-    {
-        int one = 1; int little = (int)*(unsigned char *)&one;
-        unsigned char *bytes = (unsigned char *)&value;
-        return _PyLong_FromByteArray(bytes, sizeof(long),
-                                     little, !is_unsigned);
-    }
+raise_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "value too large to convert to PY_LONG_LONG");
+    return (PY_LONG_LONG) -1;
+raise_neg_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "can't convert negative value to PY_LONG_LONG");
+    return (PY_LONG_LONG) -1;
 }
 
 /* CIntFromPy */

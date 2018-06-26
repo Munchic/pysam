@@ -1,4 +1,4 @@
-#include "pysam.h"
+#include "bcftools.pysam.h"
 
 /*  tsv2vcf.c -- convert from whitespace-separated fields to VCF
 
@@ -26,6 +26,7 @@
 */
 
 #include <ctype.h>
+#include <strings.h>
 #include "tsv2vcf.h"
 
 tsv_t *tsv_init(const char *str)

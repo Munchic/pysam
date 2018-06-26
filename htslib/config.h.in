@@ -10,14 +10,29 @@
    the PACKAGE_* defines are unused and are overridden by the more
    accurate PACKAGE_VERSION as computed by the Makefile.  */
 
+/* Define if HTSlib should enable GCS support. */
+#undef ENABLE_GCS
+
 /* Define if HTSlib should enable plugins. */
 #undef ENABLE_PLUGINS
+
+/* Define if HTSlib should enable S3 support. */
+#undef ENABLE_S3
 
 /* Define if you have the Common Crypto library. */
 #undef HAVE_COMMONCRYPTO
 
+/* Define to 1 if you have the `drand48' function. */
+#undef HAVE_DRAND48
+
 /* Define to 1 if you have the `fdatasync' function. */
 #undef HAVE_FDATASYNC
+
+/* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
+#undef HAVE_FSEEKO
+
+/* Define to 1 if you have the `fsync' function. */
+#undef HAVE_FSYNC
 
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
@@ -31,11 +46,20 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have the `bz2' library (-lbz2). */
+#undef HAVE_LIBBZ2
+
 /* Define if libcurl file access is enabled. */
 #undef HAVE_LIBCURL
 
+/* Define to 1 if you have the `lzma' library (-llzma). */
+#undef HAVE_LIBLZMA
+
 /* Define to 1 if you have the `z' library (-lz). */
 #undef HAVE_LIBZ
+
+/* Define to 1 if you have the <lzma.h> header file. */
+#undef HAVE_LZMA_H
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -102,5 +126,11 @@
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS
 
+/* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
+#undef _LARGEFILE_SOURCE
+
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
+
+/* Needed for PTHREAD_MUTEX_RECURSIVE */
+#undef _XOPEN_SOURCE

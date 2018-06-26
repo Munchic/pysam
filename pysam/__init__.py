@@ -3,12 +3,16 @@ import sys
 import sysconfig
 
 from pysam.libchtslib import *
+from pysam.libcsamtools import *
+from pysam.libcbcftools import *
 from pysam.libcutils import *
 import pysam.libcutils as libcutils
 import pysam.libcfaidx as libcfaidx
 from pysam.libcfaidx import *
 import pysam.libctabix as libctabix
 from pysam.libctabix import *
+# import pysam.libctabixproxies as libctabixproxies
+# from pysam.libctabixproxies import *
 import pysam.libcsamfile as libcsamfile
 from pysam.libcsamfile import *
 import pysam.libcalignmentfile as libcalignmentfile
@@ -36,6 +40,7 @@ __all__ = \
     libcbcf.__all__ +\
     libcbgzf.__all__ +\
     libcfaidx.__all__ +\
+    libctabixproxies.__all__ +\
     libcalignmentfile.__all__ +\
     libcalignedsegment.__all__ +\
     libcsamfile.__all__ +\
@@ -72,8 +77,9 @@ def get_include():
 
 def get_defines():
     '''return a list of defined compilation parameters.'''
-    return [] #('_FILE_OFFSET_BITS', '64'),
+    # ('_FILE_OFFSET_BITS', '64'),
     # ('_USE_KNETFILE', '')]
+    return []
 
 
 def get_libraries():

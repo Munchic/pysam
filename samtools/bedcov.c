@@ -33,6 +33,7 @@ DEALINGS IN THE SOFTWARE.  */
 #include <unistd.h>
 #include "htslib/kstring.h"
 #include "htslib/sam.h"
+#include "htslib/thread_pool.h"
 #include "sam_opts.h"
 
 #include "htslib/kseq.h"
@@ -74,7 +75,7 @@ int main_bedcov(int argc, char *argv[])
 
     sam_global_args ga = SAM_GLOBAL_ARGS_INIT;
     static const struct option lopts[] = {
-        SAM_OPT_GLOBAL_OPTIONS('-', 0, '-', '-', 0),
+        SAM_OPT_GLOBAL_OPTIONS('-', 0, '-', '-', 0, '-'),
         { NULL, 0, NULL, 0 }
     };
 
@@ -89,8 +90,9 @@ int main_bedcov(int argc, char *argv[])
     }
     if (usage || optind + 2 > argc) {
         fprintf(stderr, "Usage: samtools bedcov [options] <in.bed> <in1.bam> [...]\n\n");
-        fprintf(stderr, "  -Q INT       Only count bases of at least INT quality [0]\n");
-        sam_global_opt_help(stderr, "-.--.");
+        fprintf(stderr, "Options:\n");
+        fprintf(stderr, "   -Q <int>            mapping quality threshold [0]\n");
+        sam_global_opt_help(stderr, "-.--.-");
         return 1;
     }
     memset(&str, 0, sizeof(kstring_t));
@@ -126,6 +128,12 @@ int main_bedcov(int argc, char *argv[])
         int tid, beg, end, pos;
         bam_mplp_t mplp;
 
+        if (str.l == 0 || *str.s == '#') continue; /* empty or comment line */
+        /* Track and browser lines.  Also look for a trailing *space* in
+           case someone has badly-chosen a chromosome name (it would
+           be followed by a tab in that case). */
+        if (strncmp(str.s, "track ", 6) == 0) continue;
+        if (strncmp(str.s, "browser ", 8) == 0) continue;
         for (p = q = str.s; *p && *p != '\t'; ++p);
         if (*p != '\t') goto bed_error;
         *p = 0; tid = bam_name2id(aux[0]->header, q); *p = '\t';

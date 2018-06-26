@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "pooled_alloc.h": "c",
+    "pysam_util.h": "c"
+  }
+}

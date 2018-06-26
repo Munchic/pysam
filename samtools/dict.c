@@ -71,8 +71,8 @@ static void write_dict(const char *fn, args_t *args)
     if (args->header) fprintf(out, "@HD\tVN:1.0\tSO:unsorted\n");
     while ((l = kseq_read(seq)) >= 0) {
         for (i = k = 0; i < seq->seq.l; ++i) {
-            if (islower(seq->seq.s[i])) seq->seq.s[k++] = toupper(seq->seq.s[i]);
-            else if (isupper(seq->seq.s[i])) seq->seq.s[k++] = seq->seq.s[i];
+            if (seq->seq.s[i] >= '!' && seq->seq.s[i] <= '~')
+                seq->seq.s[k++] = toupper(seq->seq.s[i]);
         }
         hts_md5_reset(md5);
         hts_md5_update(md5, (unsigned char*)seq->seq.s, k);
@@ -82,7 +82,11 @@ static void write_dict(const char *fn, args_t *args)
         if (args->uri)
             fprintf(out, "\tUR:%s", args->uri);
         else if (strcmp(fn, "-") != 0) {
+#ifdef _WIN32
+            char *real_path = _fullpath(NULL, fn, PATH_MAX);
+#else
             char *real_path = realpath(fn, NULL);
+#endif
             fprintf(out, "\tUR:file://%s", real_path);
             free(real_path);
         }
