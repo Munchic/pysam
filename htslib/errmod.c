@@ -1,35 +1,42 @@
 /*  errmod.c -- revised MAQ error model.
- Copyright (C) 2010 Broad Institute.
- Copyright (C) 2012, 2013, 2016 Genome Research Ltd.
- Author: Heng Li <lh3@sanger.ac.uk>
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- DEALINGS IN THE SOFTWARE.  */
+
+    Copyright (C) 2010 Broad Institute.
+    Copyright (C) 2012, 2013, 2016 Genome Research Ltd.
+
+    Author: Heng Li <lh3@sanger.ac.uk>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.  */
 
 #include <config.h>
 
 #include <math.h>
 #include "htslib/hts.h"
 #include "htslib/ksort.h"
+#include "htslib/hts_os.h" // for drand48
+
 KSORT_INIT_GENERIC(uint16_t)
 
-typedef struct {
+struct errmod_t {
     double depcorr;
     /* table of constants generated for given depcorr and eta */
     double *fk, *beta, *lhet;
-} errmod_t;
+};
 
 typedef struct {
     double fsum[16], bsum[16];
@@ -57,7 +64,7 @@ static double* logbinomial_table( const int n_size )
 static void cal_coef(errmod_t *em, double depcorr, double eta)
 {
     int k, n, q;
-    long double sum, sum1;
+    double sum, sum1;
     double *lC;
 
     // initialize ->fk
@@ -77,10 +84,11 @@ static void cal_coef(errmod_t *em, double depcorr, double eta)
         double le1 = log(1.0 - e);
         for (n = 1; n <= 255; ++n) {
             double *beta = em->beta + (q<<16|n<<8);
-            sum1 = sum = 0.0;
-            for (k = n; k >= 0; --k, sum1 = sum) {
-                sum = sum1 + expl(lC[n<<8|k] + k*le + (n-k)*le1);
-                beta[k] = -10. / M_LN10 * logl(sum1 / sum);
+            sum1 = lC[n<<8|n] + n*le;
+            beta[n] = HUGE_VAL;
+            for (k = n - 1; k >= 0; --k, sum1 = sum) {
+                sum = sum1 + log1p(exp(lC[n<<8|k] + k*le + (n-k)*le1 - sum1));
+                beta[k] = -10. / M_LN10 * (sum1 - sum);
             }
         }
     }

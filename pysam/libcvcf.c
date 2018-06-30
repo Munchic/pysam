@@ -569,6 +569,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "fcntl.h"
 #include "unistd.h"
 #include <sys/types.h>
+#include "stdarg.h"
 #include "htslib/kstring.h"
 #include "htslib_util.h"
 #include "htslib/hfile.h"
@@ -579,9 +580,9 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "htslib/tbx.h"
 #include "htslib/vcf.h"
 #include "htslib/vcfutils.h"
+#include "htslib/cram.h"
 #include "pysam_stream.h"
 #include "pythread.h"
-#include "pysam_util.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -807,6 +808,7 @@ struct __pyx_obj_5pysam_9libctabix_TabixFile;
 struct __pyx_obj_5pysam_9libctabix_Parser;
 struct __pyx_obj_5pysam_9libctabix_asTuple;
 struct __pyx_obj_5pysam_9libctabix_asGTF;
+struct __pyx_obj_5pysam_9libctabix_asGFF3;
 struct __pyx_obj_5pysam_9libctabix_asBed;
 struct __pyx_obj_5pysam_9libctabix_asVCF;
 struct __pyx_obj_5pysam_9libctabix_TabixIterator;
@@ -816,8 +818,9 @@ struct __pyx_obj_5pysam_9libctabix_GZIteratorHead;
 struct __pyx_obj_5pysam_9libctabix_GZIteratorParsed;
 struct __pyx_obj_5pysam_9libctabix_Tabixfile;
 struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy;
-struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy;
 struct __pyx_obj_5pysam_16libctabixproxies_NamedTupleProxy;
+struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy;
+struct __pyx_obj_5pysam_16libctabixproxies_GFF3Proxy;
 struct __pyx_obj_5pysam_16libctabixproxies_BedProxy;
 struct __pyx_obj_5pysam_16libctabixproxies_VCFProxy;
 struct __pyx_obj_5pysam_7libcvcf_VCFRecord;
@@ -957,7 +960,7 @@ struct __pyx_opt_args_5pysam_9libcutils_force_bytes {
   PyObject *encoding;
 };
 
-/* "pysam/libchtslib.pxd":1904
+/* "pysam/libchtslib.pxd":2590
  * 
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
@@ -971,6 +974,7 @@ struct __pyx_obj_5pysam_10libchtslib_HTSFile {
   int64_t start_offset;
   PyObject *filename;
   PyObject *mode;
+  PyObject *threads;
   PyObject *index_filename;
   int is_stream;
   int is_remote;
@@ -1056,6 +1060,18 @@ struct __pyx_obj_5pysam_9libctabix_asGTF {
 /* "pysam/libctabix.pxd":84
  * 
  * 
+ * cdef class asGFF3(Parser):             # <<<<<<<<<<<<<<
+ *     pass
+ * 
+ */
+struct __pyx_obj_5pysam_9libctabix_asGFF3 {
+  struct __pyx_obj_5pysam_9libctabix_Parser __pyx_base;
+};
+
+
+/* "pysam/libctabix.pxd":88
+ * 
+ * 
  * cdef class asBed(Parser):             # <<<<<<<<<<<<<<
  *     pass
  * 
@@ -1065,7 +1081,7 @@ struct __pyx_obj_5pysam_9libctabix_asBed {
 };
 
 
-/* "pysam/libctabix.pxd":88
+/* "pysam/libctabix.pxd":92
  * 
  * 
  * cdef class asVCF(Parser):             # <<<<<<<<<<<<<<
@@ -1077,7 +1093,7 @@ struct __pyx_obj_5pysam_9libctabix_asVCF {
 };
 
 
-/* "pysam/libctabix.pxd":92
+/* "pysam/libctabix.pxd":96
  * 
  * 
  * cdef class TabixIterator:             # <<<<<<<<<<<<<<
@@ -1094,7 +1110,7 @@ struct __pyx_obj_5pysam_9libctabix_TabixIterator {
 };
 
 
-/* "pysam/libctabix.pxd":100
+/* "pysam/libctabix.pxd":104
  * 
  * 
  * cdef class TabixIteratorParsed(TabixIterator):             # <<<<<<<<<<<<<<
@@ -1107,7 +1123,7 @@ struct __pyx_obj_5pysam_9libctabix_TabixIteratorParsed {
 };
 
 
-/* "pysam/libctabix.pxd":104
+/* "pysam/libctabix.pxd":108
  * 
  * 
  * cdef class GZIterator:             # <<<<<<<<<<<<<<
@@ -1125,7 +1141,7 @@ struct __pyx_obj_5pysam_9libctabix_GZIterator {
 };
 
 
-/* "pysam/libctabix.pxd":113
+/* "pysam/libctabix.pxd":117
  * 
  * 
  * cdef class GZIteratorHead(GZIterator):             # <<<<<<<<<<<<<<
@@ -1137,7 +1153,7 @@ struct __pyx_obj_5pysam_9libctabix_GZIteratorHead {
 };
 
 
-/* "pysam/libctabix.pxd":117
+/* "pysam/libctabix.pxd":121
  * 
  * 
  * cdef class GZIteratorParsed(GZIterator):             # <<<<<<<<<<<<<<
@@ -1150,7 +1166,7 @@ struct __pyx_obj_5pysam_9libctabix_GZIteratorParsed {
 };
 
 
-/* "pysam/libctabix.pxd":122
+/* "pysam/libctabix.pxd":126
  * 
  * # Compatibility Layer for pysam < 0.8
  * cdef class Tabixfile(TabixFile):             # <<<<<<<<<<<<<<
@@ -1182,22 +1198,8 @@ struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy {
 };
 
 
-/* "pysam/libctabixproxies.pxd":28
- *     cdef update(self, char * buffer, size_t nbytes)
+/* "pysam/libctabixproxies.pxd":29
  * 
- * cdef class GTFProxy(TupleProxy) :             # <<<<<<<<<<<<<<
- * 
- *     cdef:
- */
-struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy {
-  struct __pyx_obj_5pysam_16libctabixproxies_TupleProxy __pyx_base;
-  char *_attributes;
-  int hasOwnAttributes;
-};
-
-
-/* "pysam/libctabixproxies.pxd":38
- *     cdef char * getAttributes(self)
  * 
  * cdef class NamedTupleProxy(TupleProxy):             # <<<<<<<<<<<<<<
  *     pass
@@ -1208,8 +1210,33 @@ struct __pyx_obj_5pysam_16libctabixproxies_NamedTupleProxy {
 };
 
 
-/* "pysam/libctabixproxies.pxd":41
+/* "pysam/libctabixproxies.pxd":33
+ * 
+ * 
+ * cdef class GTFProxy(NamedTupleProxy):             # <<<<<<<<<<<<<<
+ *     cdef object attribute_dict
+ *     cpdef int getMaxFields(self)
+ */
+struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy {
+  struct __pyx_obj_5pysam_16libctabixproxies_NamedTupleProxy __pyx_base;
+  PyObject *attribute_dict;
+};
+
+
+/* "pysam/libctabixproxies.pxd":39
+ * 
+ * 
+ * cdef class GFF3Proxy(GTFProxy):             # <<<<<<<<<<<<<<
  *     pass
+ * 
+ */
+struct __pyx_obj_5pysam_16libctabixproxies_GFF3Proxy {
+  struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy __pyx_base;
+};
+
+
+/* "pysam/libctabixproxies.pxd":43
+ * 
  * 
  * cdef class BedProxy(NamedTupleProxy):             # <<<<<<<<<<<<<<
  * 
@@ -1224,7 +1251,7 @@ struct __pyx_obj_5pysam_16libctabixproxies_BedProxy {
 };
 
 
-/* "pysam/libctabixproxies.pxd":53
+/* "pysam/libctabixproxies.pxd":55
  *     cdef update(self, char * buffer, size_t nbytes)
  * 
  * cdef class VCFProxy(NamedTupleProxy) :             # <<<<<<<<<<<<<<
@@ -1286,7 +1313,7 @@ struct __pyx_obj_5pysam_7libcvcf___pyx_scope_struct___parse {
 
 
 
-/* "pysam/libchtslib.pxd":1904
+/* "pysam/libchtslib.pxd":2590
  * 
  * 
  * cdef class HTSFile(object):             # <<<<<<<<<<<<<<
@@ -1373,6 +1400,20 @@ static struct __pyx_vtabstruct_5pysam_9libctabix_asGTF *__pyx_vtabptr_5pysam_9li
 /* "pysam/libctabix.pxd":84
  * 
  * 
+ * cdef class asGFF3(Parser):             # <<<<<<<<<<<<<<
+ *     pass
+ * 
+ */
+
+struct __pyx_vtabstruct_5pysam_9libctabix_asGFF3 {
+  struct __pyx_vtabstruct_5pysam_9libctabix_Parser __pyx_base;
+};
+static struct __pyx_vtabstruct_5pysam_9libctabix_asGFF3 *__pyx_vtabptr_5pysam_9libctabix_asGFF3;
+
+
+/* "pysam/libctabix.pxd":88
+ * 
+ * 
  * cdef class asBed(Parser):             # <<<<<<<<<<<<<<
  *     pass
  * 
@@ -1384,7 +1425,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_asBed {
 static struct __pyx_vtabstruct_5pysam_9libctabix_asBed *__pyx_vtabptr_5pysam_9libctabix_asBed;
 
 
-/* "pysam/libctabix.pxd":88
+/* "pysam/libctabix.pxd":92
  * 
  * 
  * cdef class asVCF(Parser):             # <<<<<<<<<<<<<<
@@ -1398,7 +1439,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_asVCF {
 static struct __pyx_vtabstruct_5pysam_9libctabix_asVCF *__pyx_vtabptr_5pysam_9libctabix_asVCF;
 
 
-/* "pysam/libctabix.pxd":92
+/* "pysam/libctabix.pxd":96
  * 
  * 
  * cdef class TabixIterator:             # <<<<<<<<<<<<<<
@@ -1412,7 +1453,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_TabixIterator {
 static struct __pyx_vtabstruct_5pysam_9libctabix_TabixIterator *__pyx_vtabptr_5pysam_9libctabix_TabixIterator;
 
 
-/* "pysam/libctabix.pxd":100
+/* "pysam/libctabix.pxd":104
  * 
  * 
  * cdef class TabixIteratorParsed(TabixIterator):             # <<<<<<<<<<<<<<
@@ -1426,7 +1467,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_TabixIteratorParsed {
 static struct __pyx_vtabstruct_5pysam_9libctabix_TabixIteratorParsed *__pyx_vtabptr_5pysam_9libctabix_TabixIteratorParsed;
 
 
-/* "pysam/libctabix.pxd":104
+/* "pysam/libctabix.pxd":108
  * 
  * 
  * cdef class GZIterator:             # <<<<<<<<<<<<<<
@@ -1440,7 +1481,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_GZIterator {
 static struct __pyx_vtabstruct_5pysam_9libctabix_GZIterator *__pyx_vtabptr_5pysam_9libctabix_GZIterator;
 
 
-/* "pysam/libctabix.pxd":113
+/* "pysam/libctabix.pxd":117
  * 
  * 
  * cdef class GZIteratorHead(GZIterator):             # <<<<<<<<<<<<<<
@@ -1454,7 +1495,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorHead {
 static struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorHead *__pyx_vtabptr_5pysam_9libctabix_GZIteratorHead;
 
 
-/* "pysam/libctabix.pxd":117
+/* "pysam/libctabix.pxd":121
  * 
  * 
  * cdef class GZIteratorParsed(GZIterator):             # <<<<<<<<<<<<<<
@@ -1468,7 +1509,7 @@ struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorParsed {
 static struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorParsed *__pyx_vtabptr_5pysam_9libctabix_GZIteratorParsed;
 
 
-/* "pysam/libctabix.pxd":122
+/* "pysam/libctabix.pxd":126
  * 
  * # Compatibility Layer for pysam < 0.8
  * cdef class Tabixfile(TabixFile):             # <<<<<<<<<<<<<<
@@ -1500,23 +1541,8 @@ struct __pyx_vtabstruct_5pysam_16libctabixproxies_TupleProxy {
 static struct __pyx_vtabstruct_5pysam_16libctabixproxies_TupleProxy *__pyx_vtabptr_5pysam_16libctabixproxies_TupleProxy;
 
 
-/* "pysam/libctabixproxies.pxd":28
- *     cdef update(self, char * buffer, size_t nbytes)
+/* "pysam/libctabixproxies.pxd":29
  * 
- * cdef class GTFProxy(TupleProxy) :             # <<<<<<<<<<<<<<
- * 
- *     cdef:
- */
-
-struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy {
-  struct __pyx_vtabstruct_5pysam_16libctabixproxies_TupleProxy __pyx_base;
-  char *(*getAttributes)(struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy *);
-};
-static struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy *__pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy;
-
-
-/* "pysam/libctabixproxies.pxd":38
- *     cdef char * getAttributes(self)
  * 
  * cdef class NamedTupleProxy(TupleProxy):             # <<<<<<<<<<<<<<
  *     pass
@@ -1529,8 +1555,36 @@ struct __pyx_vtabstruct_5pysam_16libctabixproxies_NamedTupleProxy {
 static struct __pyx_vtabstruct_5pysam_16libctabixproxies_NamedTupleProxy *__pyx_vtabptr_5pysam_16libctabixproxies_NamedTupleProxy;
 
 
-/* "pysam/libctabixproxies.pxd":41
+/* "pysam/libctabixproxies.pxd":33
+ * 
+ * 
+ * cdef class GTFProxy(NamedTupleProxy):             # <<<<<<<<<<<<<<
+ *     cdef object attribute_dict
+ *     cpdef int getMaxFields(self)
+ */
+
+struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy {
+  struct __pyx_vtabstruct_5pysam_16libctabixproxies_NamedTupleProxy __pyx_base;
+};
+static struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy *__pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy;
+
+
+/* "pysam/libctabixproxies.pxd":39
+ * 
+ * 
+ * cdef class GFF3Proxy(GTFProxy):             # <<<<<<<<<<<<<<
  *     pass
+ * 
+ */
+
+struct __pyx_vtabstruct_5pysam_16libctabixproxies_GFF3Proxy {
+  struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy __pyx_base;
+};
+static struct __pyx_vtabstruct_5pysam_16libctabixproxies_GFF3Proxy *__pyx_vtabptr_5pysam_16libctabixproxies_GFF3Proxy;
+
+
+/* "pysam/libctabixproxies.pxd":43
+ * 
  * 
  * cdef class BedProxy(NamedTupleProxy):             # <<<<<<<<<<<<<<
  * 
@@ -1543,7 +1597,7 @@ struct __pyx_vtabstruct_5pysam_16libctabixproxies_BedProxy {
 static struct __pyx_vtabstruct_5pysam_16libctabixproxies_BedProxy *__pyx_vtabptr_5pysam_16libctabixproxies_BedProxy;
 
 
-/* "pysam/libctabixproxies.pxd":53
+/* "pysam/libctabixproxies.pxd":55
  *     cdef update(self, char * buffer, size_t nbytes)
  * 
  * cdef class VCFProxy(NamedTupleProxy) :             # <<<<<<<<<<<<<<
@@ -2443,6 +2497,7 @@ static PyTypeObject *__pyx_ptype_5pysam_9libctabix_TabixFile = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_Parser = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_asTuple = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_asGTF = 0;
+static PyTypeObject *__pyx_ptype_5pysam_9libctabix_asGFF3 = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_asBed = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_asVCF = 0;
 static PyTypeObject *__pyx_ptype_5pysam_9libctabix_TabixIterator = 0;
@@ -2454,8 +2509,9 @@ static PyTypeObject *__pyx_ptype_5pysam_9libctabix_Tabixfile = 0;
 
 /* Module declarations from 'pysam.libctabixproxies' */
 static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_TupleProxy = 0;
-static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_GTFProxy = 0;
 static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy = 0;
+static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_GTFProxy = 0;
+static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_GFF3Proxy = 0;
 static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_BedProxy = 0;
 static PyTypeObject *__pyx_ptype_5pysam_16libctabixproxies_VCFProxy = 0;
 
@@ -33884,8 +33940,8 @@ static int __Pyx_modinit_type_import_code(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_modinit_type_import_code", 0);
   /*--- Type import code ---*/
-  __pyx_ptype_5pysam_10libchtslib_HTSFile = __Pyx_ImportType("pysam.libchtslib", "HTSFile", sizeof(struct __pyx_obj_5pysam_10libchtslib_HTSFile), 1); if (unlikely(!__pyx_ptype_5pysam_10libchtslib_HTSFile)) __PYX_ERR(3, 1904, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_10libchtslib_HTSFile = (struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_10libchtslib_HTSFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_10libchtslib_HTSFile)) __PYX_ERR(3, 1904, __pyx_L1_error)
+  __pyx_ptype_5pysam_10libchtslib_HTSFile = __Pyx_ImportType("pysam.libchtslib", "HTSFile", sizeof(struct __pyx_obj_5pysam_10libchtslib_HTSFile), 1); if (unlikely(!__pyx_ptype_5pysam_10libchtslib_HTSFile)) __PYX_ERR(3, 2590, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_10libchtslib_HTSFile = (struct __pyx_vtabstruct_5pysam_10libchtslib_HTSFile*)__Pyx_GetVtable(__pyx_ptype_5pysam_10libchtslib_HTSFile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_10libchtslib_HTSFile)) __PYX_ERR(3, 2590, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_tabix_file_iterator = __Pyx_ImportType("pysam.libctabix", "tabix_file_iterator", sizeof(struct __pyx_obj_5pysam_9libctabix_tabix_file_iterator), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_tabix_file_iterator)) __PYX_ERR(4, 47, __pyx_L1_error)
   __pyx_vtabptr_5pysam_9libctabix_tabix_file_iterator = (struct __pyx_vtabstruct_5pysam_9libctabix_tabix_file_iterator*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_tabix_file_iterator->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_tabix_file_iterator)) __PYX_ERR(4, 47, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_TabixFile = __Pyx_ImportType("pysam.libctabix", "TabixFile", sizeof(struct __pyx_obj_5pysam_9libctabix_TabixFile), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_TabixFile)) __PYX_ERR(4, 60, __pyx_L1_error)
@@ -33894,30 +33950,34 @@ static int __Pyx_modinit_type_import_code(void) {
   __pyx_vtabptr_5pysam_9libctabix_asTuple = (struct __pyx_vtabstruct_5pysam_9libctabix_asTuple*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_asTuple->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_asTuple)) __PYX_ERR(4, 76, __pyx_L1_error)
   __pyx_ptype_5pysam_9libctabix_asGTF = __Pyx_ImportType("pysam.libctabix", "asGTF", sizeof(struct __pyx_obj_5pysam_9libctabix_asGTF), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_asGTF)) __PYX_ERR(4, 80, __pyx_L1_error)
   __pyx_vtabptr_5pysam_9libctabix_asGTF = (struct __pyx_vtabstruct_5pysam_9libctabix_asGTF*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_asGTF->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_asGTF)) __PYX_ERR(4, 80, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libctabix_asBed = __Pyx_ImportType("pysam.libctabix", "asBed", sizeof(struct __pyx_obj_5pysam_9libctabix_asBed), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_asBed)) __PYX_ERR(4, 84, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libctabix_asBed = (struct __pyx_vtabstruct_5pysam_9libctabix_asBed*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_asBed->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_asBed)) __PYX_ERR(4, 84, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libctabix_asVCF = __Pyx_ImportType("pysam.libctabix", "asVCF", sizeof(struct __pyx_obj_5pysam_9libctabix_asVCF), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_asVCF)) __PYX_ERR(4, 88, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libctabix_asVCF = (struct __pyx_vtabstruct_5pysam_9libctabix_asVCF*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_asVCF->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_asVCF)) __PYX_ERR(4, 88, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libctabix_TabixIterator = __Pyx_ImportType("pysam.libctabix", "TabixIterator", sizeof(struct __pyx_obj_5pysam_9libctabix_TabixIterator), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_TabixIterator)) __PYX_ERR(4, 92, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libctabix_TabixIterator = (struct __pyx_vtabstruct_5pysam_9libctabix_TabixIterator*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_TabixIterator->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_TabixIterator)) __PYX_ERR(4, 92, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libctabix_TabixIteratorParsed = __Pyx_ImportType("pysam.libctabix", "TabixIteratorParsed", sizeof(struct __pyx_obj_5pysam_9libctabix_TabixIteratorParsed), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_TabixIteratorParsed)) __PYX_ERR(4, 100, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libctabix_TabixIteratorParsed = (struct __pyx_vtabstruct_5pysam_9libctabix_TabixIteratorParsed*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_TabixIteratorParsed->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_TabixIteratorParsed)) __PYX_ERR(4, 100, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libctabix_GZIterator = __Pyx_ImportType("pysam.libctabix", "GZIterator", sizeof(struct __pyx_obj_5pysam_9libctabix_GZIterator), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_GZIterator)) __PYX_ERR(4, 104, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libctabix_GZIterator = (struct __pyx_vtabstruct_5pysam_9libctabix_GZIterator*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_GZIterator->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_GZIterator)) __PYX_ERR(4, 104, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libctabix_GZIteratorHead = __Pyx_ImportType("pysam.libctabix", "GZIteratorHead", sizeof(struct __pyx_obj_5pysam_9libctabix_GZIteratorHead), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_GZIteratorHead)) __PYX_ERR(4, 113, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libctabix_GZIteratorHead = (struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorHead*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_GZIteratorHead->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_GZIteratorHead)) __PYX_ERR(4, 113, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libctabix_GZIteratorParsed = __Pyx_ImportType("pysam.libctabix", "GZIteratorParsed", sizeof(struct __pyx_obj_5pysam_9libctabix_GZIteratorParsed), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_GZIteratorParsed)) __PYX_ERR(4, 117, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libctabix_GZIteratorParsed = (struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorParsed*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_GZIteratorParsed->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_GZIteratorParsed)) __PYX_ERR(4, 117, __pyx_L1_error)
-  __pyx_ptype_5pysam_9libctabix_Tabixfile = __Pyx_ImportType("pysam.libctabix", "Tabixfile", sizeof(struct __pyx_obj_5pysam_9libctabix_Tabixfile), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_Tabixfile)) __PYX_ERR(4, 122, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_9libctabix_Tabixfile = (struct __pyx_vtabstruct_5pysam_9libctabix_Tabixfile*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_Tabixfile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_Tabixfile)) __PYX_ERR(4, 122, __pyx_L1_error)
-  __pyx_ptype_5pysam_16libctabixproxies_GTFProxy = __Pyx_ImportType("pysam.libctabixproxies", "GTFProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_GTFProxy)) __PYX_ERR(5, 28, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_GTFProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy)) __PYX_ERR(5, 28, __pyx_L1_error)
-  __pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy = __Pyx_ImportType("pysam.libctabixproxies", "NamedTupleProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_NamedTupleProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy)) __PYX_ERR(5, 38, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_16libctabixproxies_NamedTupleProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_NamedTupleProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_NamedTupleProxy)) __PYX_ERR(5, 38, __pyx_L1_error)
-  __pyx_ptype_5pysam_16libctabixproxies_BedProxy = __Pyx_ImportType("pysam.libctabixproxies", "BedProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_BedProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_BedProxy)) __PYX_ERR(5, 41, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_16libctabixproxies_BedProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_BedProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_BedProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_BedProxy)) __PYX_ERR(5, 41, __pyx_L1_error)
-  __pyx_ptype_5pysam_16libctabixproxies_VCFProxy = __Pyx_ImportType("pysam.libctabixproxies", "VCFProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_VCFProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_VCFProxy)) __PYX_ERR(5, 53, __pyx_L1_error)
-  __pyx_vtabptr_5pysam_16libctabixproxies_VCFProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_VCFProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_VCFProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_VCFProxy)) __PYX_ERR(5, 53, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libctabix_asGFF3 = __Pyx_ImportType("pysam.libctabix", "asGFF3", sizeof(struct __pyx_obj_5pysam_9libctabix_asGFF3), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_asGFF3)) __PYX_ERR(4, 84, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libctabix_asGFF3 = (struct __pyx_vtabstruct_5pysam_9libctabix_asGFF3*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_asGFF3->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_asGFF3)) __PYX_ERR(4, 84, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libctabix_asBed = __Pyx_ImportType("pysam.libctabix", "asBed", sizeof(struct __pyx_obj_5pysam_9libctabix_asBed), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_asBed)) __PYX_ERR(4, 88, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libctabix_asBed = (struct __pyx_vtabstruct_5pysam_9libctabix_asBed*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_asBed->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_asBed)) __PYX_ERR(4, 88, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libctabix_asVCF = __Pyx_ImportType("pysam.libctabix", "asVCF", sizeof(struct __pyx_obj_5pysam_9libctabix_asVCF), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_asVCF)) __PYX_ERR(4, 92, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libctabix_asVCF = (struct __pyx_vtabstruct_5pysam_9libctabix_asVCF*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_asVCF->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_asVCF)) __PYX_ERR(4, 92, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libctabix_TabixIterator = __Pyx_ImportType("pysam.libctabix", "TabixIterator", sizeof(struct __pyx_obj_5pysam_9libctabix_TabixIterator), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_TabixIterator)) __PYX_ERR(4, 96, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libctabix_TabixIterator = (struct __pyx_vtabstruct_5pysam_9libctabix_TabixIterator*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_TabixIterator->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_TabixIterator)) __PYX_ERR(4, 96, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libctabix_TabixIteratorParsed = __Pyx_ImportType("pysam.libctabix", "TabixIteratorParsed", sizeof(struct __pyx_obj_5pysam_9libctabix_TabixIteratorParsed), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_TabixIteratorParsed)) __PYX_ERR(4, 104, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libctabix_TabixIteratorParsed = (struct __pyx_vtabstruct_5pysam_9libctabix_TabixIteratorParsed*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_TabixIteratorParsed->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_TabixIteratorParsed)) __PYX_ERR(4, 104, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libctabix_GZIterator = __Pyx_ImportType("pysam.libctabix", "GZIterator", sizeof(struct __pyx_obj_5pysam_9libctabix_GZIterator), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_GZIterator)) __PYX_ERR(4, 108, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libctabix_GZIterator = (struct __pyx_vtabstruct_5pysam_9libctabix_GZIterator*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_GZIterator->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_GZIterator)) __PYX_ERR(4, 108, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libctabix_GZIteratorHead = __Pyx_ImportType("pysam.libctabix", "GZIteratorHead", sizeof(struct __pyx_obj_5pysam_9libctabix_GZIteratorHead), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_GZIteratorHead)) __PYX_ERR(4, 117, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libctabix_GZIteratorHead = (struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorHead*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_GZIteratorHead->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_GZIteratorHead)) __PYX_ERR(4, 117, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libctabix_GZIteratorParsed = __Pyx_ImportType("pysam.libctabix", "GZIteratorParsed", sizeof(struct __pyx_obj_5pysam_9libctabix_GZIteratorParsed), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_GZIteratorParsed)) __PYX_ERR(4, 121, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libctabix_GZIteratorParsed = (struct __pyx_vtabstruct_5pysam_9libctabix_GZIteratorParsed*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_GZIteratorParsed->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_GZIteratorParsed)) __PYX_ERR(4, 121, __pyx_L1_error)
+  __pyx_ptype_5pysam_9libctabix_Tabixfile = __Pyx_ImportType("pysam.libctabix", "Tabixfile", sizeof(struct __pyx_obj_5pysam_9libctabix_Tabixfile), 1); if (unlikely(!__pyx_ptype_5pysam_9libctabix_Tabixfile)) __PYX_ERR(4, 126, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_9libctabix_Tabixfile = (struct __pyx_vtabstruct_5pysam_9libctabix_Tabixfile*)__Pyx_GetVtable(__pyx_ptype_5pysam_9libctabix_Tabixfile->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_9libctabix_Tabixfile)) __PYX_ERR(4, 126, __pyx_L1_error)
+  __pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy = __Pyx_ImportType("pysam.libctabixproxies", "NamedTupleProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_NamedTupleProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy)) __PYX_ERR(5, 29, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_16libctabixproxies_NamedTupleProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_NamedTupleProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_NamedTupleProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_NamedTupleProxy)) __PYX_ERR(5, 29, __pyx_L1_error)
+  __pyx_ptype_5pysam_16libctabixproxies_GTFProxy = __Pyx_ImportType("pysam.libctabixproxies", "GTFProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_GTFProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_GTFProxy)) __PYX_ERR(5, 33, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_GTFProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_GTFProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_GTFProxy)) __PYX_ERR(5, 33, __pyx_L1_error)
+  __pyx_ptype_5pysam_16libctabixproxies_GFF3Proxy = __Pyx_ImportType("pysam.libctabixproxies", "GFF3Proxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_GFF3Proxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_GFF3Proxy)) __PYX_ERR(5, 39, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_16libctabixproxies_GFF3Proxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_GFF3Proxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_GFF3Proxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_GFF3Proxy)) __PYX_ERR(5, 39, __pyx_L1_error)
+  __pyx_ptype_5pysam_16libctabixproxies_BedProxy = __Pyx_ImportType("pysam.libctabixproxies", "BedProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_BedProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_BedProxy)) __PYX_ERR(5, 43, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_16libctabixproxies_BedProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_BedProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_BedProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_BedProxy)) __PYX_ERR(5, 43, __pyx_L1_error)
+  __pyx_ptype_5pysam_16libctabixproxies_VCFProxy = __Pyx_ImportType("pysam.libctabixproxies", "VCFProxy", sizeof(struct __pyx_obj_5pysam_16libctabixproxies_VCFProxy), 1); if (unlikely(!__pyx_ptype_5pysam_16libctabixproxies_VCFProxy)) __PYX_ERR(5, 55, __pyx_L1_error)
+  __pyx_vtabptr_5pysam_16libctabixproxies_VCFProxy = (struct __pyx_vtabstruct_5pysam_16libctabixproxies_VCFProxy*)__Pyx_GetVtable(__pyx_ptype_5pysam_16libctabixproxies_VCFProxy->tp_dict); if (unlikely(!__pyx_vtabptr_5pysam_16libctabixproxies_VCFProxy)) __PYX_ERR(5, 55, __pyx_L1_error)
   __pyx_ptype_7cpython_4type_type = __Pyx_ImportType(__Pyx_BUILTIN_MODULE_NAME, "type", 
   #if defined(PYPY_VERSION_NUM) && PYPY_VERSION_NUM < 0x050B0000
   sizeof(PyTypeObject),

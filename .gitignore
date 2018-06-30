@@ -14,6 +14,7 @@ tests/*.sam
 tests/*.fai
 tests/pysam_data
 tests/cbcf_data
+tests/tabix_data
 
 samtools/config.h
 htslib/config.status
@@ -26,20 +27,10 @@ htslib/autom4te.cache
 htslib/config.cache
 htslib/deps.mk
 
+# linking tests
+BuildRead.c
 # cython files
-pysam/TabProxies.c
-pysam/csamtools.c
-pysam/ctabix.c
-pysam/cvcf.c
-pysam/chtslib.c  
-pysam/cutils.c
-pysam/calignedsegment.c
-pysam/calignmentfile.c
-pysam/cbcf.c
-pysam/cfaidx.c
-pysam/chtslib.c
-pysam/csamfile.c
-pysam/ctabixproxies.c
+pysam/libc*.c
 
 ###### Generic python ignores below ######
 
@@ -66,6 +57,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+doc/_build
 
 # Installer logs
 pip-log.txt
