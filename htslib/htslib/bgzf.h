@@ -56,6 +56,7 @@ struct hts_tpool;
 struct bgzf_mtaux_t;
 typedef struct __bgzidx_t bgzidx_t;
 typedef struct __bgzf_aux_t bgzf_aux_t;
+typedef struct bgzf_cache_t bgzf_cache_t;
 
 struct BGZF {
     // Reserved bits should be written as 0; read as "don't care"
@@ -66,7 +67,7 @@ struct BGZF {
     int block_length, block_clength, block_offset;
     int64_t block_address, uncompressed_address;
     void *uncompressed_block, *compressed_block;
-    bgzf_aux_t *cache;
+    bgzf_cache_t *cache; // pointer to a hash table
     struct hFILE *fp; // actual file handle
     struct bgzf_mtaux_t *mt; // only used for multi-threading
     bgzidx_t *idx;      // BGZF index

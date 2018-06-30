@@ -83,6 +83,11 @@ typedef struct {
 KHASH_MAP_INIT_INT64(cache, cache_t)
 #endif
 
+struct bgzf_cache_t {
+    khash_t(cache) *h; // hash table h of type "cache"
+    khint_t last_pos; // iterator pointing to the last pos in hash table
+};
+
 #ifdef BGZF_MT
 
 typedef struct bgzf_job {
@@ -261,7 +266,16 @@ static BGZF *bgzf_read_init(hFILE *hfpr)
         fp->is_gzip = ( !fp->is_compressed || ((magic[3]&4) && memcmp(&magic[12], "BC\2\0",4)==0) ) ? 0 : 1;
 
 #ifdef BGZF_CACHE
-    fp->cache = kh_init(cache);
+    if (!(fp->cache = malloc(sizeof(*fp->cache)))) {
+        free(fp);
+        return NULL;
+    }
+    if (!(fp->cache->h = kh_init(cache))) {
+        free(fp->cache);
+        free(fp);
+        return NULL;
+    }
+    fp->cache->last_pos = 0;
 #endif
     return fp;
 }
@@ -673,11 +687,12 @@ static int check_header(const uint8_t *header)
 static void free_cache(BGZF *fp)
 {
     khint_t k;
-    khash_t(cache) *h = (khash_t(cache)*)fp->cache;
     if (fp->is_write) return;
+    khash_t(cache) *h = fp->cache->h;
     for (k = kh_begin(h); k < kh_end(h); ++k)
         if (kh_exist(h, k)) free(kh_val(h, k).block);
     kh_destroy(cache, h);
+    free(fp->cache);
 }
 
 static int load_block_from_cache(BGZF *fp, int64_t block_address)
@@ -685,19 +700,18 @@ static int load_block_from_cache(BGZF *fp, int64_t block_address)
     khint_t k;
     cache_t *p;
 
-    khash_t(cache) *h = (khash_t(cache)*)fp->cache;
+    khash_t(cache) *h = fp->cache->h;
     k = kh_get(cache, h, block_address);
     if (k == kh_end(h)) return 0;
     p = &kh_val(h, k);
     if (fp->block_length != 0) fp->block_offset = 0;
     fp->block_address = block_address;
     fp->block_length = p->size;
-    // FIXME: why BGZF_MAX_BLOCK_SIZE and not p->size?
-    memcpy(fp->uncompressed_block, p->block, BGZF_MAX_BLOCK_SIZE);
+    memcpy(fp->uncompressed_block, p->block, p->size);
     if ( hseek(fp->fp, p->end_offset, SEEK_SET) < 0 )
     {
         // todo: move the error up
-        fprintf(stderr,"Could not hseek to %"PRId64"\n", p->end_offset);
+        hts_log_error("Could not hseek to %"PRId64"", p->end_offset);
         exit(1);
     }
     return p->size;
@@ -706,29 +720,48 @@ static int load_block_from_cache(BGZF *fp, int64_t block_address)
 static void cache_block(BGZF *fp, int size)
 {
     int ret;
-    khint_t k;
+    khint_t k, k_orig;
+    uint8_t *block = NULL;
     cache_t *p;
     //fprintf(stderr, "Cache block at %llx\n", (int)fp->block_address);
-    khash_t(cache) *h = (khash_t(cache)*)fp->cache;
+    khash_t(cache) *h = fp->cache->h;
     if (BGZF_MAX_BLOCK_SIZE >= fp->cache_size) return;
+    if (fp->block_length < 0 || fp->block_length > BGZF_MAX_BLOCK_SIZE) return;
     if ((kh_size(h) + 1) * BGZF_MAX_BLOCK_SIZE > (uint32_t)fp->cache_size) {
-        /* A better way would be to remove the oldest block in the
-         * cache, but here we remove a random one for simplicity. This
-         * should not have a big impact on performance. */
-        for (k = kh_begin(h); k < kh_end(h); ++k)
-            if (kh_exist(h, k)) break;
-        if (k < kh_end(h)) {
-            free(kh_val(h, k).block);
+        /* Remove uniformly from any position in the hash by a simple
+         * round-robin approach.  An alternative strategy would be to
+         * remove the least recently accessed block, but the round-robin
+         * removal is simpler and is not expected to have a big impact
+         * on performance */
+        if (fp->cache->last_pos >= kh_end(h)) fp->cache->last_pos = kh_begin(h);
+        k_orig = k = fp->cache->last_pos;
+        if (++k >= kh_end(h)) k = kh_begin(h);
+        while (k != k_orig) {
+            if (kh_exist(h, k))
+                break;
+            if (++k == kh_end(h))
+                k = kh_begin(h);
+        }
+        fp->cache->last_pos = k;
+
+        if (k != k_orig) {
+            block = kh_val(h, k).block;
             kh_del(cache, h, k);
         }
+    } else {
+        block = (uint8_t*)malloc(BGZF_MAX_BLOCK_SIZE);
     }
+    if (!block) return;
     k = kh_put(cache, h, fp->block_address, &ret);
-    if (ret == 0) return; // if this happens, a bug!
+    if (ret <= 0) { // kh_put failed, or in there already (shouldn't happen)
+        free(block);
+        return;
+    }
     p = &kh_val(h, k);
     p->size = fp->block_length;
     p->end_offset = fp->block_address + size;
-    p->block = (uint8_t*)malloc(BGZF_MAX_BLOCK_SIZE);
-    memcpy(kh_val(h, k).block, fp->uncompressed_block, BGZF_MAX_BLOCK_SIZE);
+    p->block = block;
+    memcpy(p->block, fp->uncompressed_block, p->size);
 }
 #else
 static void free_cache(BGZF *fp) {}
